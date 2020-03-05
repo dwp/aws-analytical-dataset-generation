@@ -21,7 +21,7 @@ meta:
               cp terraform/deploy/terraform.tfvars ../terraform-config
           dir: aws-concourse
         inputs:
-          - name: aws-concourse
+          - name: aws-analytical-dataset-generation
         outputs:
           - name: terraform-config
       params:
