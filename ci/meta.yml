@@ -19,7 +19,7 @@ meta:
               sed -i '/^assume_role/ d' terraform/deploy/terraform.tfvars
               cp terraform/deploy/terraform.tf ../terraform-config
               cp terraform/deploy/terraform.tfvars ../terraform-config
-          dir: aws-concourse
+          dir: aws-analytical-dataset-generation
         inputs:
           - name: aws-analytical-dataset-generation
         outputs:
