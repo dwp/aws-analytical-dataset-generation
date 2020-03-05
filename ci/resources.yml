@@ -5,7 +5,7 @@ resources:
       access_token: ((github_com.token))
       repo: dwp/aws-analytical-dataset-generation
       uri: https://github.com/dwp/aws-analytical-dataset-generation.git
-    check_every: 720h
+    check_every: 15m
   - name: aws-analytical-dataset-generation
     type: git
     source:
@@ -13,7 +13,7 @@ resources:
       username: ((github_com.username))
       password: ((github_com.token))
       uri: https://github.com/dwp/aws-analytical-dataset-generation.git
-    check_every: 720h
+    check_every: 15m
   # - name: dw-hardened-ami
   #   type: ami
   #   check_every: 1h
