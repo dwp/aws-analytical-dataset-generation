@@ -1,0 +1,52 @@
+jobs:
+  - name: analytical-dataset-generation-pr
+    plan:
+      - get: aws-analytical-dataset-generation-pr
+        trigger: true
+        version: every
+      - put: aws-analytical-dataset-generation-pr
+        params:
+          context: $BUILD_JOB_NAME
+          path: aws-analytical-dataset-generation-pr
+          status: pending
+      - task: terraform-plan
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: ((terraform.repository))
+              version: ((terraform12.version))
+              tag: ((terraform12.version))
+          params:
+            AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
+            AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
+            TF_INPUT: false
+            TF_CLI_ARGS_apply: -lock-timeout=300s
+            TF_CLI_ARGS_plan: -lock-timeout=300s
+            TF_VAR_slack_webhook_url: ((slack.webhook_url))
+          run:
+            path: sh
+            dir: aws-analytical-dataset-generation-pr
+            args:
+              - -exc
+              - |
+                export TF_VAR_hardened_ami_id=$(cat ../dw-hardened-ami/id)
+                terraform init
+                terraform workspace select management-dev
+                terraform plan
+          inputs:
+            - name: aws-analytical-dataset-generation-pr
+            - name: dw-hardened-ami
+        on_failure:
+          put: aws-analytical-dataset-generation-pr
+          params:
+            context: $BUILD_JOB_NAME
+            path: aws-analytical-dataset-generation-pr
+            status: failure
+        on_success:
+          put: aws-analytical-dataset-generation-pr
+          params:
+            context: $BUILD_JOB_NAME
+            path: aws-analytical-dataset-generation-pr
+            status: success
