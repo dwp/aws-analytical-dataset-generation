@@ -1,0 +1,29 @@
+resources:
+  - name: aws-analytical-dataset-generation-pr
+    type: pull-request
+    source:
+      access_token: ((github_com.token))
+      repo: dwp/aws-analytical-dataset-generation
+      uri: https://github.com/dwp/aws-analytical-dataset-generation.git
+    check_every: 720h
+  - name: aws-analytical-dataset-generation
+    type: git
+    source:
+      branch: master
+      username: ((github_com.username))
+      password: ((github_com.token))
+      uri: https://github.com/dwp/aws-analytical-dataset-generation.git
+    check_every: 720h
+  # - name: dw-hardened-ami
+  #   type: ami
+  #   check_every: 1h
+  #   source:
+  #     aws_access_key_id: ((ci.aws_access_key_id))
+  #     aws_secret_access_key: ((ci.aws_secret_access_key))
+  #     aws_role_arn: "arn:aws:iam::[redacted]:role/ci"
+  #     region: eu-west-2
+  #     filters:
+  #       owner-id: "[redacted]"
+  #       is-public: false
+  #       state: available
+  #       name: dw-hardened-ami-1576667546

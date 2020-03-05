@@ -1,0 +1,7 @@
+groups:
+  - name: master
+    jobs:
+      - analytical-dataset-generation-dev
+  - name: pull-request
+    jobs:
+      - analytical-dataset-generation-pr

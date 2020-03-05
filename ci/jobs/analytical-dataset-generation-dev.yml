@@ -1,0 +1,8 @@
+jobs:
+  - name: analytical-dataset-generation-dev
+    plan:
+      - get: aws-analytical-dataset-generation
+        trigger: true
+      - .: (( inject meta.plan.terraform-bootstrap ))
+      - .: (( inject meta.plan.terraform-apply ))
+      - .: (( inject meta.plan.terraform-plan ))
