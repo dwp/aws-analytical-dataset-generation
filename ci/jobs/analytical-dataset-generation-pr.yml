@@ -31,13 +31,11 @@ jobs:
             args:
               - -exc
               - |
-                export TF_VAR_hardened_ami_id=$(cat ../dw-hardened-ami/id)
                 terraform init
                 terraform workspace select management-dev
                 terraform plan
           inputs:
             - name: aws-analytical-dataset-generation-pr
-            - name: dw-hardened-ami
         on_failure:
           put: aws-analytical-dataset-generation-pr
           params:
