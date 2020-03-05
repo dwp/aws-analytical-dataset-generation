@@ -9,6 +9,9 @@ jobs:
           context: $BUILD_JOB_NAME
           path: aws-analytical-dataset-generation-pr
           status: pending
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        input_mapping:
+          aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
       - task: terraform-plan
         config:
           platform: linux
@@ -27,15 +30,21 @@ jobs:
             TF_VAR_slack_webhook_url: ((slack.webhook_url))
           run:
             path: sh
-            dir: aws-analytical-dataset-generation-pr
+            dir: aws-analytical-dataset-generation
             args:
               - -exc
               - |
+                cp ../terraform-config/terraform.tf .
+                cp ../terraform-config/terraform.tfvars .
                 terraform init
-                terraform workspace select management-dev
+                # TODO: change to QA once we start deploying there
+                terraform workspace select default
                 terraform plan
           inputs:
-            - name: aws-analytical-dataset-generation-pr
+            - name: aws-analytical-dataset-generation
+            - name: terraform-config
+        input_mapping:
+          aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
         on_failure:
           put: aws-analytical-dataset-generation-pr
           params:
