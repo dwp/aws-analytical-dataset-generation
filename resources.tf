@@ -146,7 +146,7 @@ resource "aws_iam_role_policy_attachment" "ec2_for_ssm_attachment" {
 
 #        Create and attach custom policy
 #        TODO Lock down analytical dataset EMR instance profile DW-3618
-data "aws_iam_policy_document" "analytical_dataset_write_s3_dev" {
+data "aws_iam_policy_document" "analytical_dataset_write_s3" {
   statement {
     effect = "Allow"
 
@@ -203,13 +203,13 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3_dev" {
   }
 }
 
-resource "aws_iam_policy" "analytical_dataset_write_s3_dev" {
+resource "aws_iam_policy" "analytical_dataset_write_s3" {
   name        = "DatasetGeneratorWriteS3"
   description = "Allow Dataset Generator clusters to write to S3 buckets"
-  policy      = data.aws_iam_policy_document.analytical_dataset_write_s3_dev.json
+  policy      = data.aws_iam_policy_document.analytical_dataset_write_s3.json
 }
 
-resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_write_s3_dev" {
+resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_write_s3" {
   role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = aws_iam_policy.analytical_dataset_write_s3_dev.arn
+  policy_arn = aws_iam_policy.analytical_dataset_write_s3.arn
 }
