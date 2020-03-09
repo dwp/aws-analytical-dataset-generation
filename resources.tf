@@ -39,11 +39,6 @@ resource "aws_s3_bucket" "published" {
     enabled = true
   }
 
-  # logging {
-  #   target_bucket = "${data.terraform_remote_state.security-tools.logstore_bucket.id}"
-  #   target_prefix = "S3Logs/${random_id.published_bucket.hex}/ServerLogs"
-  # }
-
   lifecycle_rule {
     id      = ""
     prefix  = "/"
