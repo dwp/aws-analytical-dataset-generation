@@ -53,6 +53,20 @@ data "terraform_remote_state" "internal_compute" {
   }
 }
 
+data "terraform_remote_state" "security-tools" {
+  backend   = "s3"
+  workspace = terraform.workspace
+
+  config = {
+    bucket         = "{{state_file_bucket}}"
+    key            = "terraform/dataworks/aws-security-tools.tfstate"
+    region         = "{{state_file_region}}"
+    encrypt        = true
+    kms_key_id     = "arn:aws:kms:{{state_file_region}}:{{state_file_account}}:key/{{state_file_kms_key}}"
+    dynamodb_table = "remote_state_locks"
+  }
+}
+
 variable "assume_role" {
   default = "ci"
 }
@@ -93,3 +107,4 @@ locals {
     Application  = "aws-analytical-dataset-generation"
   }
 }
+
