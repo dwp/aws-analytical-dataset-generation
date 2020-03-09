@@ -10,6 +10,7 @@ resource "aws_kms_key" "published_bucket_cmk" {
       Name = "published_bucket_cmk"
     },
     {
+      #TODO add custom key policy if required
       requires-custom-key-policy = "False"
     }
   )
@@ -48,6 +49,8 @@ resource "aws_s3_bucket" "published" {
       days = 30
     }
   }
+
+# TODO add back logging.
 
   server_side_encryption_configuration {
     rule {
