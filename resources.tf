@@ -18,12 +18,12 @@ resource "aws_kms_key" "published_bucket_cmk" {
 
 resource "aws_kms_alias" "published_bucket_cmk" {
   name          = "alias/published_bucket_cmk"
-  target_key_id = "aws_kms_key.published_bucket_cmk.key_id"
+  target_key_id = aws_kms_key.published_bucket_cmk.key_id
 }
 
 output "published_bucket_cmk" {
   value = {
-    arn = "aws_kms_key.published_bucket_cmk.arn"
+    arn = aws_kms_key.published_bucket_cmk.arn
   }
 }
 
@@ -33,7 +33,7 @@ resource "random_id" "published_bucket" {
 
 resource "aws_s3_bucket" "published" {
   tags   = local.tags
-  bucket = "random_id.published_bucket.hex"
+  bucket = random_id.published_bucket.hex
   acl    = "private"
 
   versioning {
@@ -55,7 +55,7 @@ resource "aws_s3_bucket" "published" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = "aws_kms_key.published_bucket_cmk.arn"
+        kms_master_key_id = aws_kms_key.published_bucket_cmk.arn
         sse_algorithm     = "aws:kms"
       }
     }
@@ -63,7 +63,7 @@ resource "aws_s3_bucket" "published" {
 }
 
 resource "aws_s3_bucket_public_access_block" "published" {
-  bucket = "aws_s3_bucket.published.id"
+  bucket = aws_s3_bucket.published.id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -73,8 +73,8 @@ resource "aws_s3_bucket_public_access_block" "published" {
 
 output "published_bucket" {
   value = {
-    id  = "aws_s3_bucket.published.id"
-    arn = "aws_s3_bucket.published.arn"
+    id  = aws_s3_bucket.published.id
+    arn = aws_s3_bucket.published.arn
   }
 }
 
@@ -103,6 +103,6 @@ data "aws_iam_policy_document" "published_bucket_https_only" {
 }
 
 resource "aws_s3_bucket_policy" "published_bucket_https_only" {
-  bucket = "aws_s3_bucket.published.id"
+  bucket = aws_s3_bucket.published.id
   policy = data.aws_iam_policy_document.published_bucket_https_only.json
 }
