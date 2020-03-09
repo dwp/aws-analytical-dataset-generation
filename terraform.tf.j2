@@ -84,14 +84,12 @@ locals {
 
 locals {
 
-  environment = terraform.workspace == "default" ? "management-dev" : terraform.workspace
+  environment = terraform.workspace == "default" ? "development" : terraform.workspace
 
   tags = {
   {% for key, value in common_tags.items() %}
     {{key}} = "{{value}}"{% endfor %}
     Environment  = local.environment
     Application  = "aws-analytical-dataset-generation"
-    CreatedBy    = "terraform"
-    Owner        = "DataWorks Platform"
   }
 }
