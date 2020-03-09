@@ -85,8 +85,8 @@ data "aws_iam_policy_document" "published_bucket_https_only" {
     actions = ["*"]
 
     resources = [
-      "aws_s3_bucket.published.arn",
-      "aws_s3_bucket.published.arn/*",
+      aws_s3_bucket.published.arn,
+      "${aws_s3_bucket.published.arn}/*",
     ]
 
     principals {
