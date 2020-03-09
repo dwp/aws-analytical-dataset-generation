@@ -10,7 +10,7 @@ resource "aws_kms_key" "published_bucket_cmk" {
       Name = "published_bucket_cmk"
     },
     {
-      #TODO add custom key policy if required
+      #TODO add custom key policy if required DW-3607
       requires-custom-key-policy = "False"
     }
   )
@@ -50,7 +50,7 @@ resource "aws_s3_bucket" "published" {
     }
   }
 
-# TODO add back logging.
+# TODO add back logging. DW-3608
 
   server_side_encryption_configuration {
     rule {
