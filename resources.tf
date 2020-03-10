@@ -217,3 +217,45 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_write_s3" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_write_s3.arn
 }
+
+resource "aws_security_group" "analytical_dataset_generation" {
+  name                   = "analytical_dataset_generation_common"
+  description            = "Contains rules for both EMR cluster master nodes and EMR cluster slave nodes"
+  revoke_rules_on_delete = true
+  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.id 
+}
+
+resource "aws_security_group_rule" "analytical_dataset_generation_egress" {
+  description       = "Allow outbound traffic from Analytical Dataset Generation EMR Cluster"
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  #prefix_list_ids   = [module.vpc.s3_prefix_list_id]
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.analytical_dataset_generation.id
+}
+
+resource "aws_security_group_rule" "analytical_dataset_generation_ingress" {
+  description       = "Allow inbound traffic from Analytical Dataset Generation EMR Cluster"
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  #prefix_list_ids   = [module.vpc.s3_prefix_list_id]
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.analytical_dataset_generation.id
+}
+
+resource "aws_security_group" "analytical_dataset_generation_service" {
+  name                   = "analytical_dataset_generation_service"
+  description            = "Contains rules automatically added by the EMR service itself. See https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-man-sec-groups.html#emr-sg-elasticmapreduce-sa-private"
+  revoke_rules_on_delete = true
+  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.id 
+}
+
+#TODO add logging bucket
+
+output "analytical_dataset_generation_sg" {
+  value = aws_security_group.analytical_dataset_generation
+}
