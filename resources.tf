@@ -54,7 +54,7 @@ resource "aws_s3_bucket" "published" {
     }
   }
 
-# TODO add back logging. DW-3608
+  # TODO add back logging. DW-3608
 
   server_side_encryption_configuration {
     rule {
@@ -206,6 +206,10 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "kms:GenerateDataKey*",
       "kms:DescribeKey",
     ]
+
+    resources = [
+      "arn:aws:kms:::*",
+    ]
   }
 }
 
@@ -219,6 +223,7 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_write_s3" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_write_s3.arn
 }
+
 
 # Security groups
 
