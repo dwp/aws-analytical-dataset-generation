@@ -222,7 +222,7 @@ resource "aws_security_group" "analytical_dataset_generation" {
   name                   = "analytical_dataset_generation_common"
   description            = "Contains rules for both EMR cluster master nodes and EMR cluster slave nodes"
   revoke_rules_on_delete = true
-  vpc_id                 = data.terraform_remote_state.ingest.outputs.ingestion_vpc.id 
+  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.id 
 }
 
 resource "aws_security_group_rule" "analytical_dataset_generation_egress" {
@@ -251,7 +251,7 @@ resource "aws_security_group" "analytical_dataset_generation_service" {
   name                   = "analytical_dataset_generation_service"
   description            = "Contains rules automatically added by the EMR service itself. See https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-man-sec-groups.html#emr-sg-elasticmapreduce-sa-private"
   revoke_rules_on_delete = true
-  vpc_id                 = data.terraform_remote_state.ingest.outputs.ingestion_vpc.id 
+  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.id 
 }
 
 #TODO add logging bucket
