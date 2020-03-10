@@ -257,7 +257,5 @@ resource "aws_security_group" "analytical_dataset_generation_service" {
 #TODO add logging bucket
 
 output "analytical_dataset_generation_sg" {
-  value = {
-    id = aws_security_group.analytical_dataset_generation.id
-  }
+  value = aws_security_group.analytical_dataset_generation
 }
