@@ -1,5 +1,3 @@
-# KMS Key Creation
-
 resource "aws_kms_key" "published_bucket_cmk" {
   description             = "UCFS published Bucket Master Key"
   deletion_window_in_days = 7
@@ -28,8 +26,6 @@ output "published_bucket_cmk" {
     arn = aws_kms_key.published_bucket_cmk.arn
   }
 }
-
-# S3 Bucket creation
 
 resource "random_id" "published_bucket" {
   byte_length = 16
@@ -110,8 +106,6 @@ resource "aws_s3_bucket_policy" "published_bucket_https_only" {
   bucket = aws_s3_bucket.published.id
   policy = data.aws_iam_policy_document.published_bucket_https_only.json
 }
-
-# IAM Role and Instance Profile creation
 
 resource "aws_iam_role" "analytical_dataset_generator" {
   name               = "analytical_dataset_generator"
@@ -224,14 +218,11 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_write_s3" {
   policy_arn = aws_iam_policy.analytical_dataset_write_s3.arn
 }
 
-
-# Security groups
-
 resource "aws_security_group" "analytical_dataset_generation" {
   name                   = "analytical_dataset_generation_common"
   description            = "Contains rules for both EMR cluster master nodes and EMR cluster slave nodes"
   revoke_rules_on_delete = true
-  #vpc_id                 = module.vpc.vpc_id
+  vpc_id                 = data.terraform_remote_state.ingest.outputs.ingestion_vpc.id 
 }
 
 resource "aws_security_group_rule" "analytical_dataset_generation_egress" {
@@ -241,6 +232,7 @@ resource "aws_security_group_rule" "analytical_dataset_generation_egress" {
   to_port           = 0
   protocol          = "-1"
   #prefix_list_ids   = [module.vpc.s3_prefix_list_id]
+  cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.analytical_dataset_generation.id
 }
 
@@ -251,6 +243,7 @@ resource "aws_security_group_rule" "analytical_dataset_generation_ingress" {
   to_port           = 0
   protocol          = "-1"
   #prefix_list_ids   = [module.vpc.s3_prefix_list_id]
+  cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.analytical_dataset_generation.id
 }
 
@@ -258,7 +251,7 @@ resource "aws_security_group" "analytical_dataset_generation_service" {
   name                   = "analytical_dataset_generation_service"
   description            = "Contains rules automatically added by the EMR service itself. See https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-man-sec-groups.html#emr-sg-elasticmapreduce-sa-private"
   revoke_rules_on_delete = true
-  #vpc_id                 = module.vpc.vpc_id
+  vpc_id                 = data.terraform_remote_state.ingest.outputs.ingestion_vpc.id 
 }
 
 #TODO add logging bucket
