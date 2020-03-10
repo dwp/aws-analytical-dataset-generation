@@ -259,3 +259,16 @@ resource "aws_security_group" "analytical_dataset_generation_service" {
 output "analytical_dataset_generation_sg" {
   value = aws_security_group.analytical_dataset_generation
 }
+
+# Glue Database creation
+
+resource "aws_glue_catalog_database" "analytical_dataset_generation" {
+  name        = "analytical_dataset_generation"
+  description = "Database for the Manifest comparision ETL"
+}
+
+output "analytical_dataset_generation" {
+  value = {
+    job_name = aws_glue_catalog_database.analytical_dataset_generation.name
+  }
+}
