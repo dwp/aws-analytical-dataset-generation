@@ -383,7 +383,7 @@ data "aws_iam_policy_document" "analytical_dataset_generation_s3" {
 
     resources = [
       aws_s3_bucket.published.arn,
-      data.terraform_remote_state.common.config_bucket.arn,
+      data.terraform_remote_state.common.config.bucket,
     ]
   }
 
@@ -401,7 +401,7 @@ data "aws_iam_policy_document" "analytical_dataset_generation_s3" {
     resources = [
       "${aws_s3_bucket.published.arn}/business-data/manifest/*",
       "${aws_s3_bucket.published.arn}/business-data/manifest/",
-      "${data.terraform_remote_state.common.config_bucket.arn}/glue/scripts/*",
+      "${data.terraform_remote_state.common.config.bucket}/glue/scripts/*",
     ]
   }
 
@@ -419,7 +419,7 @@ data "aws_iam_policy_document" "analytical_dataset_generation_s3" {
 
     resources = [
       aws_kms_key.published_bucket_cmk.arn,
-      data.terraform_remote_state.common.config_bucket_cmk.arn,
+      data.terraform_remote_state.common.config.kms_key_id,
     ]
   }
 }
@@ -481,10 +481,10 @@ data "template_file" "analytical_dataset_generation_script_template" {
 }
 
 resource "aws_s3_bucket_object" "analytical_dataset_generation_script" {
-  bucket     = data.terraform_remote_state.common.config_bucket.id
+  bucket     = data.terraform_remote_state.common.config.bucket
   key        = "/glue/scripts/${local.environment}_analytical_dataset_generation.py"
   content    = data.template_file.analytical_dataset_generation_script_template.rendered
-  kms_key_id = data.terraform_remote_state.common.config_bucket_cmk.arn
+  kms_key_id = data.terraform_remote_state.common.config.kms_key_id
 }
 
 data "local_file" "analytical_dataset_generation_script_template" {
