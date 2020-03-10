@@ -269,6 +269,6 @@ resource "aws_glue_catalog_database" "analytical_dataset_generation" {
 
 output "analytical_dataset_generation" {
   value = {
-    job_name = "aws_glue_catalog_database.analytical_dataset_generation.name"
+    job_name = aws_glue_catalog_database.analytical_dataset_generation.name
   }
 }
