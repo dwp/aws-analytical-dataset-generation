@@ -155,7 +155,7 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     ]
 
     resources = [
-      "arn:aws:s3:::*",
+      "arn:aws:s3:::*"
     ]
   }
 
@@ -165,127 +165,40 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     actions = [
       "s3:GetObject*",
       "s3:DeleteObject*",
-      "s3:PutObject*",
+      "s3:PutObject*"
+    ]
 
+    resources = [
+      "arn:aws:s3:::*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
       "acm:ExportCertificate",
       "cloudwatch:*",
       "dynamodb:*",
-      "ec2:Describe*",
-      "elasticmapreduce:Describe*",
-      "elasticmapreduce:ListBootstrapActions",
-      "elasticmapreduce:ListClusters",
-      "elasticmapreduce:ListInstanceGroups",
-      "elasticmapreduce:ListInstances",
-      "elasticmapreduce:ListSteps",
-      "kinesis:CreateStream",
-      "kinesis:DeleteStream",
-      "kinesis:DescribeStream",
-      "kinesis:GetRecords",
-      "kinesis:GetShardIterator",
-      "kinesis:MergeShards",
-      "kinesis:PutRecord",
-      "kinesis:SplitShard",
+      "ec2:*",
+      "elasticmapreduce:*",
+      "kinesis:*",
       "rds:Describe*",
       "sdb:*",
       "sns:*",
       "sqs:*",
-      "glue:CreateDatabase",
-      "glue:UpdateDatabase",
-      "glue:DeleteDatabase",
-      "glue:GetDatabase",
-      "glue:GetDatabases",
-      "glue:CreateTable",
-      "glue:UpdateTable",
-      "glue:DeleteTable",
-      "glue:GetTable",
-      "glue:GetTables",
-      "glue:GetTableVersions",
-      "glue:CreatePartition",
-      "glue:BatchCreatePartition",
-      "glue:UpdatePartition",
-      "glue:DeletePartition",
-      "glue:BatchDeletePartition",
-      "glue:GetPartition",
-      "glue:GetPartitions",
-      "glue:BatchGetPartition",
-      "glue:CreateUserDefinedFunction",
-      "glue:UpdateUserDefinedFunction",
-      "glue:DeleteUserDefinedFunction",
-      "glue:GetUserDefinedFunction",
-      "glue:GetUserDefinedFunctions",
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
-      "kms:CreateGrant",
-
-      "ec2:AuthorizeSecurityGroupEgress",
-      "ec2:AuthorizeSecurityGroupIngress",
-      "ec2:CancelSpotInstanceRequests",
-      "ec2:CreateNetworkInterface",
-      "ec2:CreateSecurityGroup",
-      "ec2:CreateTags",
-      "ec2:DeleteNetworkInterface",
-      "ec2:DeleteSecurityGroup",
-      "ec2:DeleteTags",
-      "ec2:DescribeAvailabilityZones",
-      "ec2:DescribeAccountAttributes",
-      "ec2:DescribeDhcpOptions",
-      "ec2:DescribeImages",
+      "glue:*",
+      "kms:*",
+      "iam:*",
+      "application-autoscaling:*",
+      "ssm:*",
+      "ssmmessages:*",
+      "ec2messages:*",
+      "cloudwatch:PutMetricData",
       "ec2:DescribeInstanceStatus",
-      "ec2:DescribeInstances",
-      "ec2:DescribeKeyPairs",
-      "ec2:DescribeNetworkAcls",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DescribePrefixLists",
-      "ec2:DescribeRouteTables",
-      "ec2:DescribeSecurityGroups",
-      "ec2:DescribeSpotInstanceRequests",
-      "ec2:DescribeSpotPriceHistory",
-      "ec2:DescribeSubnets",
-      "ec2:DescribeTags",
-      "ec2:DescribeVpcAttribute",
-      "ec2:DescribeVpcEndpoints",
-      "ec2:DescribeVpcEndpointServices",
-      "ec2:DescribeVpcs",
-      "ec2:DetachNetworkInterface",
-      "ec2:ModifyImageAttribute",
-      "ec2:ModifyInstanceAttribute",
-      "ec2:RequestSpotInstances",
-      "ec2:RevokeSecurityGroupEgress",
-      "ec2:RunInstances",
-      "ec2:TerminateInstances",
-      "ec2:DeleteVolume",
-      "ec2:DescribeVolumeStatus",
-      "ec2:DescribeVolumes",
-      "ec2:DetachVolume",
-      "iam:GetRole",
-      "iam:GetRolePolicy",
-      "iam:ListInstanceProfiles",
-      "iam:ListRolePolicies",
-      "iam:PassRole",
-      "sdb:BatchPutAttributes",
-      "sdb:Select",
-      "sqs:CreateQueue",
-      "sqs:Delete*",
-      "sqs:GetQueue*",
-      "sqs:PurgeQueue",
-      "sqs:ReceiveMessage",
-      "cloudwatch:PutMetricAlarm",
-      "cloudwatch:DescribeAlarms",
-      "cloudwatch:DeleteAlarms",
-      "application-autoscaling:RegisterScalableTarget",
-      "application-autoscaling:DeregisterScalableTarget",
-      "application-autoscaling:PutScalingPolicy",
-      "application-autoscaling:DeleteScalingPolicy",
-      "application-autoscaling:Describe*",
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
-      "kms:CreateGrant"
+      "ds:CreateComputer",
+      "ds:DescribeDirectories",
+      "logs:*"
     ]
 
     resources = [
@@ -332,95 +245,6 @@ resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {
   role       = aws_iam_role.analytical_dataset_generator.name
 }
 
-resource aws_iam_role_policy amazon_ec2_role_for_ssm {
-  role   = aws_iam_role.analytical_dataset_generator.name
-  policy = data.aws_iam_policy_document.amazon_ec2_role_for_ssm.json
-}
-
-data aws_iam_policy_document amazon_ec2_role_for_ssm {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ssm:DescribeAssociation",
-      "ssm:GetDeployablePatchSnapshotForInstance",
-      "ssm:GetDocument",
-      "ssm:DescribeDocument",
-      "ssm:GetManifest",
-      "ssm:GetParameters",
-      "ssm:ListAssociations",
-      "ssm:ListInstanceAssociations",
-      "ssm:PutInventory",
-      "ssm:PutComplianceItems",
-      "ssm:PutConfigurePackageResult",
-      "ssm:UpdateAssociationStatus",
-      "ssm:UpdateInstanceAssociationStatus",
-      "ssm:UpdateInstanceInformation"
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "ssmmessages:CreateControlChannel",
-      "ssmmessages:CreateDataChannel",
-      "ssmmessages:OpenControlChannel",
-      "ssmmessages:OpenDataChannel"
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2messages:AcknowledgeMessage",
-      "ec2messages:DeleteMessage",
-      "ec2messages:FailMessage",
-      "ec2messages:GetEndpoint",
-      "ec2messages:GetMessages",
-      "ec2messages:SendReply"
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "cloudwatch:PutMetricData"
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:DescribeInstanceStatus"
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "ds:CreateComputer",
-      "ds:DescribeDirectories"
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
-      "logs:PutLogEvents"
-    ]
-    resources = ["*"]
-  }
-}
-
 resource "aws_iam_policy" "analytical_dataset_write_s3" {
   name        = "DatasetGeneratorWriteS3"
   description = "Allow Dataset Generator clusters to write to S3 buckets"
@@ -436,26 +260,26 @@ resource "aws_security_group" "analytical_dataset_generation" {
   name                   = "analytical_dataset_generation_common"
   description            = "Contains rules for both EMR cluster master nodes and EMR cluster slave nodes"
   revoke_rules_on_delete = true
-  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.id 
+  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.id
 }
 
 resource "aws_security_group_rule" "analytical_dataset_generation_egress" {
-  description       = "Allow outbound traffic from Analytical Dataset Generation EMR Cluster"
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
+  description = "Allow outbound traffic from Analytical Dataset Generation EMR Cluster"
+  type        = "egress"
+  from_port   = 0
+  to_port     = 0
+  protocol    = "-1"
   #prefix_list_ids   = [module.vpc.s3_prefix_list_id]
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.analytical_dataset_generation.id
 }
 
 resource "aws_security_group_rule" "analytical_dataset_generation_ingress" {
-  description       = "Allow inbound traffic from Analytical Dataset Generation EMR Cluster"
-  type              = "ingress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
+  description = "Allow inbound traffic from Analytical Dataset Generation EMR Cluster"
+  type        = "ingress"
+  from_port   = 0
+  to_port     = 0
+  protocol    = "-1"
   #prefix_list_ids   = [module.vpc.s3_prefix_list_id]
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.analytical_dataset_generation.id
@@ -486,11 +310,24 @@ resource "aws_security_group" "analytical_dataset_generation_service" {
   name                   = "analytical_dataset_generation_service"
   description            = "Contains rules automatically added by the EMR service itself. See https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-man-sec-groups.html#emr-sg-elasticmapreduce-sa-private"
   revoke_rules_on_delete = true
-  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.id 
+  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.id
 }
 
 #TODO add logging bucket
 
 output "analytical_dataset_generation_sg" {
   value = aws_security_group.analytical_dataset_generation
+}
+
+# Glue Database creation
+
+resource "aws_glue_catalog_database" "analytical_dataset_generation" {
+  name        = "analytical_dataset_generation"
+  description = "Database for the Manifest comparision ETL"
+}
+
+output "analytical_dataset_generation" {
+  value = {
+    job_name = aws_glue_catalog_database.analytical_dataset_generation.name
+  }
 }

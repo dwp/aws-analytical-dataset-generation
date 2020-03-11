@@ -6,18 +6,17 @@ resource "aws_emr_cluster" "cluster" {
   keep_job_flow_alive_when_no_steps = var.keep_flow_alive
   //TODO The below is need for transparent encryption/decryption when insecure DKS is set up
   //security_configuration            = aws_emr_security_configuration.emrfs_em.id
-  service_role                      = aws_iam_role.analytical_dataset_generator.arn
-  //TODO which is the right bucket for logs , publish bucket??
-  log_uri                           = format("s3n://%s/logs/", aws_s3_bucket.published.id)
-  ebs_root_volume_size              = local.ebs_root_volume_size
+  service_role         = aws_iam_role.analytical_dataset_generator.arn
+  log_uri              = format("s3n://%s/logs/", data.terraform_remote_state.security-tools.outputs.logstore_bucket.id)
+  ebs_root_volume_size = local.ebs_root_volume_size
   //TODO Does this cluster autoscales?
   //autoscaling_role                  = aws_iam_role.emr_autoscaling_role.arn
-  tags                              = merge({ "Name" = local.emr_cluster_name, "SSMEnabled" = "True" }, local.common_tags)
+  tags = merge({ "Name" = local.emr_cluster_name, "SSMEnabled" = "True" }, local.common_tags)
   //TODO the below needs to be replaced with DW-EMR-AMI
-  custom_ami_id                     = "ami-0c6b1df662f3c55fc"
+  custom_ami_id = "ami-0c6b1df662f3c55fc"
 
   ec2_attributes {
-    subnet_id                         = "subnet-001686d576f798979"
+    subnet_id                         = data.terraform_remote_state.internal_compute.outputs.htme_subnet.ids[0]
     additional_master_security_groups = aws_security_group.analytical_dataset_generation.id
     additional_slave_security_groups  = aws_security_group.analytical_dataset_generation.id
     instance_profile                  = aws_iam_instance_profile.analytical_dataset_generator.arn
@@ -49,16 +48,16 @@ resource "aws_emr_cluster" "cluster" {
 
   // TODO use templated proxy env vars
   configurations_json = templatefile(format("%s/configuration.json", path.module), {
-    logs_bucket_path     = format("s3://%s/logs", aws_s3_bucket.published.id)
-    data_bucket_path     = format("s3://%s/data", aws_s3_bucket.published.id)
+    logs_bucket_path = format("s3://%s/logs", data.terraform_remote_state.security-tools.outputs.logstore_bucket.arn)
+    data_bucket_path = format("s3://%s/data", aws_s3_bucket.published.id)
     //TODO this path needs to be taken from the output of aws-ingestion
-    hbase_root_path     = format("s3://%s/business-data/single-topic-per-table-hbase", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
-    hive_external_path   = format("s3://%s/hive/external", aws_s3_bucket.published.id)
-    proxy_host           = local.internet_proxy["dns_name"]
+    hbase_root_path    = format("s3://%s/business-data/single-topic-per-table-hbase", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
+    hive_external_path = format("s3://%s/hive/external", aws_s3_bucket.published.id)
+    proxy_host         = local.internet_proxy["dns_name"]
   })
 
- //TODO The below has to be done when DKS is set up
- /* bootstrap_action {
+  //TODO The below has to be done when DKS is set up
+  /* bootstrap_action {
     name = "get-dks-cert"
     path = format("s3://%s/%s", aws_s3_bucket.emr.id, aws_s3_bucket_object.get_dks_cert_sh.key)
   }*/
@@ -77,21 +76,21 @@ resource "aws_emr_cluster" "cluster" {
   }
 
   step {
-      name              = "emr-setup"
-      action_on_failure = "CONTINUE"
-      hadoop_jar_step {
-        jar = "command-runner.jar"
-        args = [
-          "spark-submit",
-          format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate-analytical-dataset-script.key),
-          "--deploy-mode",
-          "cluster",
-          "--master",
-          "yarn",
-          "--conf",
-          "spark.yarn.submit.waitAppCompletion=true"
-        ]
-      }
+    name              = "emr-setup"
+    action_on_failure = "CONTINUE"
+    hadoop_jar_step {
+      jar = "command-runner.jar"
+      args = [
+        "spark-submit",
+        format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate-analytical-dataset-script.key),
+        "--deploy-mode",
+        "cluster",
+        "--master",
+        "yarn",
+        "--conf",
+        "spark.yarn.submit.waitAppCompletion=true"
+      ]
+    }
   }
 
   depends_on = [
