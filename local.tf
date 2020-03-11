@@ -1,5 +1,5 @@
 locals {
-  name        = "aws-analytical-dataset-generator"
+  emr_cluster_name                = "aws-analytical-dataset-generator"
   master_instance_type            = "m5.2xlarge"
   core_instance_type              = "m5.2xlarge"
   core_instance_count             = 1
@@ -11,12 +11,9 @@ locals {
   autoscaling_min_capacity        = 0
   autoscaling_max_capacity        = 5
   dks_port                        = 8443
-  //  master_bid_price                = "1.0"
-  //  core_bid_price                  = "1.0"
-  //  task_bid_price                  = "1.0"
   common_tags = {
     Environment  = local.environment
-    Application  = local.name
+    Application  = local.emr_cluster_name
     CreatedBy    = "terraform"
     Owner        = "dataworks platform"
     Persistence  = "Ignore"

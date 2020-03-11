@@ -1,10 +1,3 @@
-
-
-variable "emr_cluster_name" {
-  description = "Name of the EMR Cluster"
-  default     = "aws-analytical-dataset-generator"
-}
-
 variable "emr_release_label" {
   description = "Version of AWS EMR to deploy with associated applicatoins"
   default     = "emr-5.29.0"
@@ -13,7 +6,7 @@ variable "emr_release_label" {
 variable "emr_applications" {
   description = "List of applications to deploy to EMR Cluster"
   type        = list(string)
-  default     = ["Spark","HBase", "Hive", "Livy"]
+  default     = ["Spark","HBase", "Hive"]
 }
 
 variable "termination_protection" {
