@@ -17,7 +17,7 @@ resource "aws_emr_cluster" "cluster" {
   custom_ami_id                     = "ami-0c6b1df662f3c55fc"
 
   ec2_attributes {
-    subnet_id                         = "subnet-001686d576f798979"
+    subnet_id                         = data.terraform_remote_state.internal_compute.outputs.htme_subnet.ids[0]
     additional_master_security_groups = aws_security_group.analytical_dataset_generation.id
     additional_slave_security_groups  = aws_security_group.analytical_dataset_generation.id
     instance_profile                  = aws_iam_instance_profile.analytical_dataset_generator.arn
