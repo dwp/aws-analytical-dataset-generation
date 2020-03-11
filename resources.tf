@@ -155,7 +155,7 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     ]
 
     resources = [
-      "arn:aws:s3:::*",
+      "arn:aws:s3:::*"
     ]
   }
 
@@ -165,11 +165,11 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     actions = [
       "s3:GetObject*",
       "s3:DeleteObject*",
-      "s3:PutObject*",
+      "s3:PutObject*"
     ]
 
     resources = [
-      "arn:aws:s3:::*",
+      "arn:aws:s3:::*"
     ]
   }
 
@@ -183,22 +183,26 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "ec2:*",
       "elasticmapreduce:*",
       "kinesis:*",
-      "rds:*",
+      "rds:Describe*",
       "sdb:*",
       "sns:*",
       "sqs:*",
       "glue:*",
+      "kms:*",
       "iam:*",
       "application-autoscaling:*",
       "ssm:*",
       "ssmmessages:*",
       "ec2messages:*",
-      "ds:*",
+      "cloudwatch:PutMetricData",
+      "ec2:DescribeInstanceStatus",
+      "ds:CreateComputer",
+      "ds:DescribeDirectories",
       "logs:*"
     ]
 
     resources = [
-      "*",
+      "*"
     ]
   }
 

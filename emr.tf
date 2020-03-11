@@ -6,7 +6,7 @@ resource "aws_emr_cluster" "cluster" {
   keep_job_flow_alive_when_no_steps = var.keep_flow_alive
   //TODO The below is need for transparent encryption/decryption when insecure DKS is set up
   //security_configuration            = aws_emr_security_configuration.emrfs_em.id
-  service_role = aws_iam_role.analytical_dataset_generator.arn
+  service_role         = aws_iam_role.analytical_dataset_generator.arn
   log_uri              = format("s3n://%s/logs/", data.terraform_remote_state.security-tools.outputs.logstore_bucket.id)
   ebs_root_volume_size = local.ebs_root_volume_size
   //TODO Does this cluster autoscales?
