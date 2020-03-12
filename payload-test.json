@@ -134,13 +134,13 @@
         }
     ],
     "terminationProtected": false,
-    "emrManagedMasterSecurityGroup": "TODO",
-    "emrManagedSlaveSecurityGroup": "TODO",
-    "serviceAccessSecurityGroup": "TODO",
+    "emrManagedMasterSecurityGroup": "analytical_dataset_generation_common",
+    "emrManagedSlaveSecurityGroup": "analytical_dataset_generation_common",
+    "serviceAccessSecurityGroup": "analytical_dataset_generation_service",
     "additionalMasterSecurityGroups": [
-        "TODO"
+        "analytical_dataset_generation_common"
     ],
     "additionalSlaveSecurityGroups": [
-        "TODO"
+        "analytical_dataset_generation_common"
     ]
 }
