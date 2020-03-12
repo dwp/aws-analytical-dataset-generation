@@ -1,8 +1,8 @@
 {
     "name": "AWS-Analytical-Dataset-Generation",
     "releaseLabel": "emr-5.24.1",
-    "serviceRole": "emr_service_role",
-    "jobFlowRole": "emr_hbase_ingest",
+    "serviceRole": "analytical_dataset_generator",
+    "jobFlowRole": "analytical_dataset_generator",
     "autoScalingRole": "arn:aws:iam::$ACC_NUMBER:role/AE_EMR_AutoScaling_Role",
     "hostedZoneId": "$REGION",
     "customInstanceConfig": {
