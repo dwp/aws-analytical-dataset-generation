@@ -3,10 +3,10 @@
     "releaseLabel": "emr-5.28.0",
     "serviceRole": "emr_service_role",
     "jobFlowRole": "emr_hbase_ingest",
-    "autoScalingRole": "arn:aws:iam::ACC_NO:role/AE_EMR_AutoScaling_Role",
-    "hostedZoneId": "Lindon",
+    "autoScalingRole": "arn:aws:iam::$ACC_NUMBER:role/AE_EMR_AutoScaling_Role",
+    "hostedZoneId": "$REGION",
     "customInstanceConfig": {
-        "ec2SubnetId": "subnet_id_from_vpc",
+        "ec2SubnetId": "$SUBNET_ID",
         "useSpotPricing": "false",
         "instanceTemplate": "SMALL",
         "keepAlivePostJob": "false"
