@@ -1,6 +1,6 @@
 {
-    "name": "ami_test_cluster",
-    "releaseLabel": "emr-5.28.0",
+    "name": "AWS-Analytical-Dataset-Generation",
+    "releaseLabel": "emr-5.24.1",
     "serviceRole": "emr_service_role",
     "jobFlowRole": "emr_hbase_ingest",
     "autoScalingRole": "arn:aws:iam::$ACC_NUMBER:role/AE_EMR_AutoScaling_Role",
