@@ -9,7 +9,7 @@
         "ec2SubnetId": "$SUBNET_ID",
         "useSpotPricing": "false",
         "instanceTemplate": "SMALL",
-        "keepAlivePostJob": "false"
+        "keepAlivePostJob": "true"
     },
     "customEmrConfigs": [
         {
