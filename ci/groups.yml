@@ -5,3 +5,4 @@ groups:
   - name: pull-request
     jobs:
       - analytical-dataset-generation-pr
+      - synthetic-data-ingestion-dev

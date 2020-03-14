@@ -89,3 +89,56 @@ meta:
         inputs:
           - name: aws-analytical-dataset-generation
           - name: terraform-config
+
+    synthetic-data-ingestion:
+      task: synthetic-data-ingestion
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((docker-python-boto-behave.repository))
+            version: ((docker-python-boto-behave.version))
+            tag: ((docker-python-boto-behave.version))
+        run:
+          dir: aws-ingestion
+          path: sh
+          args:
+            - -exc
+            - |
+              cd tests/bau/runners
+              ./run-ci.sh "../../../../terraform-output-ingest/outputs.json"
+        inputs:
+          - name: aws-ingestion
+      tear-down:
+        task: tear-down
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: ((docker-awscli.repository))
+              version: ((docker-awscli.version))
+              tag: ((docker-awscli.version))
+          params:
+            AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
+            AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
+            AWS_REGION: eu-west-2
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                pipeline_name=`cat "meta/build_pipeline_name"`
+                job_name=`cat "meta/build_job_name"`
+                build_number=`cat "meta/build_name"`
+                cat <<EOF> key.json
+                {
+                  "JobId": {
+                    "S": "${pipeline_name}_${job_name}_${build_number}"
+                  }
+                }
+                EOF
+                aws dynamodb delete-item --table-name StubUcfsJobStatus --key file://key.json
+          inputs:
+            - name: aws-ingestion
