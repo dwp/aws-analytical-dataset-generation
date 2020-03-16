@@ -189,7 +189,6 @@ meta:
           args:
             - -exc
             - |
-              export AWS_ACC=`cat ../terraform-config/terraform.tf | grep -i development[[:blank:]] | awk '{print $3}'`
         inputs:
           - name: aws-ingestion
           - name: meta
