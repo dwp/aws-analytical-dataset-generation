@@ -191,7 +191,6 @@ meta:
             - |
         inputs:
           - name: aws-ingestion
-          - name: meta
           - name: terraform-output-ingest
           - name: terraform-output-internal-compute
           - name: terraform-output-sdx

@@ -38,6 +38,4 @@ resources:
       uri: git@github.ucds.io:dip/aws-sdx.git
     check_every: 720h
     webhook_token: ((ucfs-github.webhook-token))
-  - name: meta-development
-    type: meta
 

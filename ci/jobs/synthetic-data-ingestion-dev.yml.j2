@@ -1,8 +1,6 @@
 jobs:
   - name: synthetic-data-ingestion-dev
     plan:
-      - put: meta
-        resource: meta-development
       - aggregate:
         - get: aws-analytical-dataset-generation
           trigger: true
