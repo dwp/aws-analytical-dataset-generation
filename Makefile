@@ -17,6 +17,7 @@ bootstrap: ## Bootstrap local environment for first use
 		export AWS_PROFILE=$(aws_profile); \
 		export AWS_REGION=$(aws_region); \
 		python3 bootstrap_terraform.py; \
+		python3 bootstrap_ci_pipeline.py; \
 	}
 	terraform fmt -recursive
 
