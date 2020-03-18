@@ -34,8 +34,8 @@ def main():
     row = Row("val")
     datadf = values.map(row).toDF()
     datadf.show()
-    datadf.write.parquet("S3_PUBLISH_BUCKET/xxx.parquet")
-    spark.sql("""CREATE EXTERNAL TABLE hive_spark_demo1(val STRING) STORED AS PARQUET LOCATION "S3_PUBLISH_BUCKET/source_table_parquet/xxxxx.parquet" """)
+    datadf.write.parquet(S3_PUBLISH_BUCKET("/xxx.parquet"))
+    spark.sql("""CREATE EXTERNAL TABLE hive_spark_demo1(val STRING) STORED AS PARQUET LOCATION (S3_PUBLISH_BUCKET)"/source_table_parquet/xxxxx.parquet" """)
     spark.sql("select * from hive_spark_demo1").show()
     # getPrinted(values)
 
