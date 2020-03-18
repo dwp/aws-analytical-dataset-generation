@@ -16,7 +16,8 @@ aws_profile = "analytical_dataset_generator"
 aws_region = "eu-west-2"
 aws = AWSSecret(profile_name=aws_profile, region_name=aws_region)
 
-aws.get_secret_value(secret_id="ADG-Payload", key="S3_PUBLISH_BUCKET")
+S3_PUBLISH_BUCKET = aws.get_secret_value(
+    secret_id="ADG-Payload", key="S3_PUBLISH_BUCKET")
 
 
 def main():
