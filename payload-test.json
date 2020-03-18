@@ -110,53 +110,5 @@
         "HBase",
         "Hive",
         "Spark"
-    ],
-    "instanceGroups": [
-        {
-            "name": "small_cluster_master",
-            "instanceRole": "MASTER",
-            "instanceType": "m5.xlarge",
-            "instanceCount": 1,
-            "ebsConfiguration": {
-                "ebsBlockDeviceConfigs": [
-                    {
-                        "volumeSpecification": {
-                            "volumeType": "gp2",
-                            "sizeInGB": 128
-                        },
-                        "volumesPerInstance": 1
-                    }
-                ],
-                "ebsOptimized": false
-            }
-        },
-        {
-            "name": "small_cluster_core",
-            "instanceRole": "CORE",
-            "instanceType": "m5.xlarge",
-            "instanceCount": 1,
-            "ebsConfiguration": {
-                "ebsBlockDeviceConfigs": [
-                    {
-                        "volumeSpecification": {
-                            "volumeType": "gp2",
-                            "sizeInGB": 128
-                        },
-                        "volumesPerInstance": 1
-                    }
-                ],
-                "ebsOptimized": false
-            }
-        }
-    ],
-    "terminationProtected": false,
-    "emrManagedMasterSecurityGroup": "$ADG_$ADG_MASTER_SG",
-    "emrManagedSlaveSecurityGroup": "$ADG_SLAVE_SG",
-    "serviceAccessSecurityGroup": "$ADG_SERVICE_SG",
-    "additionalMasterSecurityGroups": [
-        "$ADG_ADD_MASTER_SG"
-    ],
-    "additionalSlaveSecurityGroups": [
-        "$ADG_ADD_SLAVE_SG"
     ]
 }
