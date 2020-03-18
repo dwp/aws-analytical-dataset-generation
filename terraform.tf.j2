@@ -108,3 +108,32 @@ locals {
   }
 }
 
+
+
+locals {
+
+  env_prefix = {
+    development = "dev."
+    qa          = "qa."
+    stage       = "stg."
+    integration = "int."
+    preprod     = "pre."
+    production  = ""
+  }
+
+}
+
+
+data "terraform_remote_state" "certificate_authority" {
+  backend   = "s3"
+  workspace = "${terraform.workspace}"
+
+  config {
+    bucket         = "{{state_file_bucket}}"
+    key            = "terraform/dataworks/aws-certificate-authority.tfstate"
+    region         = "{{state_file_region}}"
+    encrypt        = true
+    kms_key_id     = "arn:aws:kms:{{state_file_region}}:{{state_file_account}}:key/{{state_file_kms_key}}"
+    dynamodb_table = "remote_state_locks"
+  }
+}
