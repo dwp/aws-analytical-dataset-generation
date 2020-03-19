@@ -121,6 +121,12 @@ locals {
 
 }
 
+locals {
+
+  dataworks_domain_name = "dataworks.dwp.gov.uk"
+
+}
+
 data "terraform_remote_state" "aws_certificate_authority" {
   backend = "s3"
   config = {

@@ -5,14 +5,14 @@ resource "aws_kms_key" "published_bucket_cmk" {
   enable_key_rotation     = true
 
   tags = merge(
-  local.tags,
-  {
-    Name = "published_bucket_cmk"
-  },
-  {
-    #TODO add custom key policy if required DW-3607
-    requires-custom-key-policy = "False"
-  }
+    local.tags,
+    {
+      Name = "published_bucket_cmk"
+    },
+    {
+      #TODO add custom key policy if required DW-3607
+      requires-custom-key-policy = "False"
+    }
   )
 }
 
@@ -226,22 +226,22 @@ resource "aws_security_group" "analytical_dataset_generation" {
 }
 
 resource "aws_security_group_rule" "analytical_dataset_generation_egress" {
-  description       = "Allow outbound traffic from Analytical Dataset Generation EMR Cluster"
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
+  description = "Allow outbound traffic from Analytical Dataset Generation EMR Cluster"
+  type        = "egress"
+  from_port   = 0
+  to_port     = 0
+  protocol    = "-1"
   #prefix_list_ids   = [module.vpc.s3_prefix_list_id]
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.analytical_dataset_generation.id
 }
 
 resource "aws_security_group_rule" "analytical_dataset_generation_ingress" {
-  description       = "Allow inbound traffic from Analytical Dataset Generation EMR Cluster"
-  type              = "ingress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
+  description = "Allow inbound traffic from Analytical Dataset Generation EMR Cluster"
+  type        = "ingress"
+  from_port   = 0
+  to_port     = 0
+  protocol    = "-1"
   #prefix_list_ids   = [module.vpc.s3_prefix_list_id]
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.analytical_dataset_generation.id
@@ -277,7 +277,7 @@ output "analytical_dataset_generation" {
 
 resource "aws_acm_certificate" "analytical_dataset_generation" {
   certificate_authority_arn = data.terraform_remote_state.aws_certificate_authority.outputs.cert_authority.arn
-  domain_name               = "analytical.dataset.generation.${local.env_prefix[local.environment]}dataworks.dwp.gov.uk"
+  domain_name               = "analytical.dataset.generation.${local.env_prefix[local.environment]}${local.dataworks_domain_name}"
 
   options {
     certificate_transparency_logging_preference = "DISABLED"
