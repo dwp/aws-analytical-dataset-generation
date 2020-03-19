@@ -277,7 +277,7 @@ output "analytical_dataset_generation" {
 
 resource "aws_acm_certificate" "analytical_dataset_generation" {
   certificate_authority_arn = data.terraform_remote_state.aws_certificate_authority.outputs.cert_authority.arn
-  domain_name               = "analytical_dataset_generation.${local.env_prefix[local.environment]}dataworks.dwp.gov.uk"
+  domain_name               = "analytical.dataset.generation.${local.env_prefix[local.environment]}dataworks.dwp.gov.uk"
 
   options {
     certificate_transparency_logging_preference = "DISABLED"
