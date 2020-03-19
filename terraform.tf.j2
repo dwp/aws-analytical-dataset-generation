@@ -108,8 +108,6 @@ locals {
   }
 }
 
-
-
 locals {
 
   env_prefix = {
@@ -123,12 +121,9 @@ locals {
 
 }
 
-
-data "terraform_remote_state" "certificate_authority" {
-  backend   = "s3"
-  workspace = "${terraform.workspace}"
-
-  config {
+data "terraform_remote_state" "aws_certificate_authority" {
+  backend = "s3"
+  config = {
     bucket         = "{{state_file_bucket}}"
     key            = "terraform/dataworks/aws-certificate-authority.tfstate"
     region         = "{{state_file_region}}"
