@@ -2,6 +2,8 @@ import json
 from pyspark.sql import SparkSession
 import base64
 import binascii
+import boto3
+import os
 
 import requests
 
@@ -10,14 +12,34 @@ from Crypto.Util import Counter
 from pyspark.sql.types import *
 from pyspark.sql import Row
 
-from pysecret import AWSSecret
+from pysecret.aws import AWSSecret
 
-aws_profile = "analytical_dataset_generator"
-aws_region = "eu-west-2"
-aws = AWSSecret(profile_name=aws_profile, region_name=aws_region)
 
-S3_PUBLISH_BUCKET = aws.get_secret_value(
-    secret_id="ADG-Payload", key="S3_PUBLISH_BUCKET"
+def get_boto_session():
+    session = None
+    profile = os.environ.get("AWS_DEFAULT_PROFILE")
+    role = os.environ.get("AWS_ASSUME_ROLE")
+    if role:
+        account = os.environ.get("AWS_ACCOUNT")
+        sts = boto3.client("sts")
+        response = sts.assume_role(
+            RoleArn=f"arn:aws:iam::{account}:role/{role}", RoleSessionName="GetSecret"
+        )
+        session = boto3.session.Session(
+            aws_access_key_id=response["Credentials"]["AccessKeyId"],
+            aws_secret_access_key=response["Credentials"]["SecretAccessKey"],
+            aws_session_token=response["Credentials"]["SessionToken"],
+        )
+    else:
+        session = boto3.session.Session(profile_name=profile)
+    return session._session
+
+
+session = get_boto_session()
+secret = AWSSecret(botocore_session=session)
+
+S3_PUBLISH_BUCKET = secret.get_secret_value(
+    secret_id="ADG-Payload", key="ADG_S3_PUBLISH_BUCKET"
 )
 
 
