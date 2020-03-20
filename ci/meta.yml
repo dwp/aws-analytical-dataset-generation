@@ -189,8 +189,13 @@ meta:
           args:
             - -exc
             - |
+              cd tests/bau/runners
+              ./run-ci.sh "../../../../terraform-output-ingest/outputs.json" "../../../../meta" \
+              "@synthetic-data-ingestion" 900  "../../../../terraform-output-internal-compute/outputs.json" \
+                "../../../../terraform-output-sdx/outputs.json"
         inputs:
           - name: aws-ingestion
+          - name: meta
           - name: terraform-output-ingest
           - name: terraform-output-internal-compute
           - name: terraform-output-sdx
