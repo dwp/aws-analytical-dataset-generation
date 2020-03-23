@@ -30,3 +30,11 @@ resources:
       uri: git@github.ucds.io:dip/aws-management-infrastructure.git
     check_every: 720h
     webhook_token: ((ucfs-github.webhook-token))
+  - name: aws-dataworks-e2e-framework
+    type: git
+    source:
+      branch: master
+      private_key: ((svc-dip.private_key))
+      uri: git@github.ucds.io:dip/aws-dataworks-e2e-framework.git
+    check_every: 720h
+    webhook_token: ((ucfs-github.webhook-token))

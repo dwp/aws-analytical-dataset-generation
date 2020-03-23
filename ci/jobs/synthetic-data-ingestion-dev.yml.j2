@@ -6,6 +6,8 @@ jobs:
       trigger: true
     - get: aws-ingestion
       trigger: false
+    - get: aws-dataworks-e2e-framework
+      trigger: false
     - get: aws-management-infrastructure
       trigger: false
   - .: (( inject meta.plan.create-aws-profiles ))

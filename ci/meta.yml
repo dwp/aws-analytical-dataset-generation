@@ -156,24 +156,30 @@ meta:
             version: ((docker-python-boto-behave.version))
             tag: ((docker-python-boto-behave.version))
         run:
-          dir: aws-ingestion
+          dir: aws-dataworks-e2e-framework
           path: sh
           args:
             - -exc
             - |
-              cd tests/bau/runners
-              ./run-ci.sh "../../../../terraform-output-ingest/outputs.json" "" \
-              "@synthetic-data-ingestion" 900 "" "" "../../../../terraform-output-management-infra/outputs.json"
+              cd src/runners
+              ./run-ci.sh 
+              "" \
+              "../../../terraform-output-ingest/outputs.json" \
+              "" \
+              "" \
+              "../../../terraform-output-management-infra/outputs.json"
         inputs:
-          - name: aws-ingestion
+          - name: aws-dataworks-e2e-framework
           - name: terraform-output-ingest
           - name: terraform-config
           - name: terraform-output-management-infra
           - name: .aws
       params:
         AWS_DEFAULT_PROFILE: ci
-        AWS_SHARED_CREDENTIALS_FILE: ../../../.aws/credentials
-        AWS_CONFIG_FILE: ../../../.aws/config
+        AWS_SHARED_CREDENTIALS_FILE: ../../.aws/credentials
+        AWS_CONFIG_FILE: ../../.aws/config
+        E2E_TEST_TIMEOUT: 900
+        E2E_FEATURE_TAG_FILTER: '@synthetic-data-ingestion'
     create-aws-profiles:
       task: create-aws-profiles
       config:
