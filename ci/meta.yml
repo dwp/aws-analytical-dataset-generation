@@ -171,7 +171,7 @@ meta:
           - name: terraform-output-management-infra
           - name: .aws
       params:
-        AWS_DEFAULT_PROFILE: default
+        AWS_DEFAULT_PROFILE: ci
         AWS_SHARED_CREDENTIALS_FILE: ../../../.aws/credentials
         AWS_CONFIG_FILE: ../../../.aws/config
     create-aws-profiles:
@@ -196,13 +196,13 @@ meta:
             - -exc
             - |
               cat <<EOF> .aws/credentials
-              [default]
+              [$AWS_ROLE]
               aws_access_key_id = $AWS_ACCESS_KEY_ID
               aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
               EOF
 
               cat <<EOF> .aws/config
-              [default]
+              [$AWS_ROLE]
               region = eu-west-2
               s3 =
                 max_concurrent_requests = 5

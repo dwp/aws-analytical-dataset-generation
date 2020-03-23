@@ -20,4 +20,6 @@ jobs:
     config:
       params:
         AWS_ACC: "{{accounts['development']}}"
-        AWS_MGMT_DEV_ACC: "{{accounts['management-dev']}}"
+        SYNTHETIC_RAWDATA_AWS_ACC: "{{accounts['management-dev']}}"
+        SYNTHETIC_RAWDATA_PREFIX: "synthetic-data/raw"
+        SYNTHETIC_ENCDATA_PREFIX: "synthetic-data/encrypted"
