@@ -1,22 +1,23 @@
 jobs:
 - name: synthetic-data-ingestion-dev
   plan:
-  - put: meta
-    resource: meta-development
   - aggregate:
     - get: aws-analytical-dataset-generation
       trigger: true
-    - get: aws-internal-compute
-      trigger: false
-    - get: aws-sdx
-      trigger: false
     - get: aws-ingestion
       trigger: false
+    - get: aws-management-infrastructure
+      trigger: false
+  - .: (( inject meta.plan.create-aws-profiles ))
+    config:
+        params:
+            AWS_ACC: "{{accounts['development']}}"
+            AWS_MGMT_DEV_ACC: "{{accounts['management-dev']}}"
   - .: (( inject meta.plan.terraform-bootstrap ))
-  - .: (( inject meta.plan.terraform-output-internal-compute ))
   - .: (( inject meta.plan.terraform-output-ingest ))
-  - .: (( inject meta.plan.terraform-output-sdx ))
+  - .: (( inject meta.plan.terraform-output-management-infra ))
   - .: (( inject meta.plan.synthetic-data-ingestion ))
     config:
       params:
         AWS_ACC: "{{accounts['development']}}"
+        AWS_MGMT_DEV_ACC: "{{accounts['management-dev']}}"

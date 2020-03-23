@@ -14,30 +14,19 @@ resources:
       password: ((github_com.token))
       uri: https://github.com/dwp/aws-analytical-dataset-generation.git
     check_every: 15m
-  - name: aws-internal-compute
-    type: git
-    source:
-      branch: master
-      private_key: ((svc-dip.private_key))
-      uri: git@github.ucds.io:dip/aws-internal-compute.git
-    check_every: 720h
-    webhook_token: ((ucfs-github.webhook-token))
   - name: aws-ingestion
     type: git
     source:
-      branch: DW-3662-synthetic-data-ingestion
+      branch: master
       private_key: ((svc-dip.private_key))
       uri: git@github.ucds.io:dip/aws-ingestion.git
     check_every: 720h
     webhook_token: ((ucfs-github.webhook-token))
-  - name: aws-sdx
+  - name: aws-management-infrastructure
     type: git
     source:
       branch: master
       private_key: ((svc-dip.private_key))
-      uri: git@github.ucds.io:dip/aws-sdx.git
+      uri: git@github.ucds.io:dip/aws-management-infrastructure.git
     check_every: 720h
     webhook_token: ((ucfs-github.webhook-token))
-  - name: meta-development
-    type: meta
-
