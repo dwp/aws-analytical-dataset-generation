@@ -63,6 +63,24 @@ resource "aws_emr_cluster" "cluster" {
   }*/
 
   step {
+    name              = "fetch-certificates"
+    action_on_failure = "TERMINATE_CLUSTER"
+    hadoop_jar_step {
+      jar = "command-runner.jar"
+      args = [
+        "bash",
+        "-c",
+        "sudo",
+        "acm-pca-cert-generator",
+        format("--acm-cert-arn %s", data.terraform_remote_state.aws_certificate_authority.outputs.cert_authority.arn)
+        "--private-key-alias private_key",
+        format("--truststore-certs s3://%s/ca_certificates/dataworks/ca.pem", data.terraform_remote_state.certificate_authority.public_cert_bucket.id),
+        "--truststore-aliases ca_cert"
+      ]
+    }
+  }
+
+  step {
     name              = "copy-hbase-configuration"
     action_on_failure = "TERMINATE_CLUSTER"
     hadoop_jar_step {
