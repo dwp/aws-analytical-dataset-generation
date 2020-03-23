@@ -9,10 +9,6 @@ jobs:
     - get: aws-management-infrastructure
       trigger: false
   - .: (( inject meta.plan.create-aws-profiles ))
-    config:
-        params:
-            AWS_ACC: "{{accounts['development']}}"
-            AWS_MGMT_DEV_ACC: "{{accounts['management-dev']}}"
   - .: (( inject meta.plan.terraform-bootstrap ))
   - .: (( inject meta.plan.terraform-output-ingest ))
   - .: (( inject meta.plan.terraform-output-management-infra ))
