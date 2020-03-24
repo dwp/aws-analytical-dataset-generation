@@ -162,12 +162,10 @@ meta:
             - -exc
             - |
               cd src/runners
-              ./run-ci.sh 
-              "" \
-              "../../../terraform-output-ingest/outputs.json" \
-              "" \
-              "" \
-              "../../../terraform-output-management-infra/outputs.json"
+              ls ../../../
+              ls ../../../terraform-output-ingest/
+              ls ../../../terraform-output-management-infra/
+              ./run-ci.sh "" "../../../terraform-output-ingest/outputs.json" "" "" "../../../terraform-output-management-infra/outputs.json"
         inputs:
           - name: aws-dataworks-e2e-framework
           - name: terraform-output-ingest
