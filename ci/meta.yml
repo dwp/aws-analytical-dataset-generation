@@ -89,34 +89,6 @@ meta:
         inputs:
           - name: aws-analytical-dataset-generation
           - name: terraform-config
-    terraform-output-internal-compute:
-      task: terraform-output-internal-compute
-      config:
-        platform: linux
-        image_resource:
-          type: docker-image
-          source:
-            repository: ((terraform.repository))
-            version: ((terraform.version))
-            tag: ((terraform.version))
-        run:
-          path: sh
-          args:
-            - -exc
-            - |
-              terraform workspace show
-              terraform init
-              terraform output --json > ../terraform-output-internal-compute/outputs.json
-          dir: aws-internal-compute
-        inputs:
-          - name: aws-internal-compute
-        outputs:
-          - name: terraform-output-internal-compute
-      params:
-        TF_CLI_ARGS_plan: -lock-timeout=300s
-        TF_INPUT: "false"
-        AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
-        AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
     terraform-output-ingest:
       task: terraform-output-ingest
       config:
@@ -145,16 +117,16 @@ meta:
         TF_INPUT: "false"
         AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
         AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
-    terraform-output-sdx:
-      task: terraform-output-sdx
+    terraform-output-management-infra:
+      task: terraform-output-management-infra
       config:
         platform: linux
         image_resource:
           type: docker-image
           source:
             repository: ((terraform.repository))
-            version: ((terraform.version))
-            tag: ((terraform.version))
+            version: ((terraform12.version))
+            tag: ((terraform12.version))
         run:
           path: sh
           args:
@@ -162,12 +134,12 @@ meta:
             - |
               terraform workspace show
               terraform init
-              terraform output --json > ../terraform-output-sdx/outputs.json
-          dir: aws-sdx
+              terraform output --json > ../terraform-output-management-infra/outputs.json
+          dir: aws-management-infrastructure
         inputs:
-          - name: aws-sdx
+          - name: aws-management-infrastructure
         outputs:
-          - name: terraform-output-sdx
+          - name: terraform-output-management-infra
       params:
         TF_CLI_ARGS_plan: -lock-timeout=300s
         TF_INPUT: "false"
@@ -184,20 +156,63 @@ meta:
             version: ((docker-python-boto-behave.version))
             tag: ((docker-python-boto-behave.version))
         run:
-          dir: aws-ingestion
+          dir: aws-dataworks-e2e-framework
           path: sh
           args:
             - -exc
             - |
+              cd src/runners
+              ls ../../../
+              ls ../../../terraform-output-ingest/
+              ls ../../../terraform-output-management-infra/
+              ./run-ci.sh "" "../../../terraform-output-ingest/outputs.json" "" "" "../../../terraform-output-management-infra/outputs.json"
         inputs:
-          - name: aws-ingestion
+          - name: aws-dataworks-e2e-framework
           - name: terraform-output-ingest
-          - name: terraform-output-internal-compute
-          - name: terraform-output-sdx
           - name: terraform-config
+          - name: terraform-output-management-infra
+          - name: .aws
       params:
-        AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
-        AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
-        AWS_REGION: eu-west-2
+        AWS_DEFAULT_PROFILE: ci
+        AWS_SHARED_CREDENTIALS_FILE: ../../.aws/credentials
+        AWS_CONFIG_FILE: ../../.aws/config
+        E2E_TEST_TIMEOUT: 900
+        E2E_FEATURE_TAG_FILTER: '@synthetic-data-ingestion'
+    create-aws-profiles:
+      task: create-aws-profiles
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((docker-awscli.repository))
+            version: ((docker-awscli.version))
+            tag: ((docker-awscli.version))
+        outputs:
+          - name: .aws
+        params:
+          AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
+          AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
+          AWS_ROLE: ci
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              cat <<EOF> .aws/credentials
+              [$AWS_ROLE]
+              aws_access_key_id = $AWS_ACCESS_KEY_ID
+              aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+              EOF
+
+              cat <<EOF> .aws/config
+              [$AWS_ROLE]
+              region = eu-west-2
+              s3 =
+                max_concurrent_requests = 5
+                signature_version = s3v4
+                addressing_style = virtual
+              EOF
+
 
 
