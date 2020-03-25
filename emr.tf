@@ -72,9 +72,9 @@ resource "aws_emr_cluster" "cluster" {
         "-c",
         "sudo",
         "acm-pca-cert-generator",
-        format("--acm-cert-arn %s", data.terraform_remote_state.aws_certificate_authority.outputs.cert_authority.arn)
+        format("--acm-cert-arn %s", data.terraform_remote_state.aws_certificate_authority.outputs.cert_authority.arn),
         "--private-key-alias private_key",
-        format("--truststore-certs s3://%s/ca_certificates/dataworks/ca.pem", data.terraform_remote_state.certificate_authority.public_cert_bucket.id),
+        format("--truststore-certs s3://%s/ca_certificates/dataworks/ca.pem", data.terraform_remote_state.aws_certificate_authority.outputs.public_cert_bucket.id),
         "--truststore-aliases ca_cert"
       ]
     }
