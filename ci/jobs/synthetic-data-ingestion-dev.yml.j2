@@ -1,0 +1,30 @@
+jobs:
+- name: synthetic-data-ingestion-dev
+  plan:
+  - aggregate:
+    - get: aws-analytical-dataset-generation
+      trigger: true
+    - get: aws-ingestion
+      trigger: false
+    - get: aws-internal-compute
+      trigger: false
+    - get: aws-dataworks-e2e-framework
+      trigger: false
+    - get: aws-management-infrastructure
+      trigger: false
+  - .: (( inject meta.plan.create-aws-profiles ))
+    config:
+      params:
+        AWS_ACC: "{{accounts['development']}}"
+        SYNTHETIC_RAWDATA_AWS_ACC: "{{accounts['management-dev']}}"
+  - .: (( inject meta.plan.terraform-bootstrap ))
+  - .: (( inject meta.plan.terraform-output-ingest ))
+  - .: (( inject meta.plan.terraform-output-internal-compute ))
+  - .: (( inject meta.plan.terraform-output-management-infra ))
+  - .: (( inject meta.plan.synthetic-data-ingestion ))
+    config:
+      params:
+        AWS_ACC: "{{accounts['development']}}"
+        SYNTHETIC_RAWDATA_AWS_ACC: "{{accounts['management-dev']}}"
+        SYNTHETIC_RAWDATA_PREFIX: "synthetic-data/raw"
+        SYNTHETIC_ENCDATA_PREFIX: "synthetic-data/encrypted"

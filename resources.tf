@@ -151,25 +151,13 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     effect = "Allow"
 
     actions = [
-      "s3:ListBucket",
+      "s3:*",
+      "kms:*",
     ]
 
     resources = [
-      "arn:aws:s3:::*"
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:GetObject*",
-      "s3:DeleteObject*",
-      "s3:PutObject*"
-    ]
-
-    resources = [
-      "arn:aws:s3:::*"
+      "arn:aws:s3:::*",
+      "arn:aws:kms:::*",
     ]
   }
 
@@ -203,39 +191,6 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
 
     resources = [
       "*"
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
-    ]
-
-    resources = [
-      "arn:aws:kms:::*",
-    ]
-  }
-
-  statement {
-    sid    = "AllowUseDefaultEbsCmk"
-    effect = "Allow"
-
-    actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
-    ]
-
-    resources = [
-      "arn:aws:kms:::*",
     ]
   }
 }
@@ -331,3 +286,15 @@ output "analytical_dataset_generation" {
     job_name = aws_glue_catalog_database.analytical_dataset_generation.name
   }
 }
+
+
+
+resource "aws_acm_certificate" "analytical_dataset_generation" {
+  certificate_authority_arn = data.terraform_remote_state.aws_certificate_authority.outputs.cert_authority.arn
+  domain_name               = "analytical-dataset-generator.${local.env_prefix[local.environment]}${local.dataworks_domain_name}"
+
+  options {
+    certificate_transparency_logging_preference = "DISABLED"
+  }
+}
+
