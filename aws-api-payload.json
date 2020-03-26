@@ -3,7 +3,7 @@
         "StepConcurrencyLevel": 1,
         "TerminationProtected": false,
         "BootstrapActions": [],
-        "LogUri": "s3n://$ADG_S3_LOG_BUCKET/emr/aws-ingestion/",
+        "LogUri": "s3://$ADG_S3_LOG_BUCKET/emr/aws-ingestion/",
         "Tags": [
             {
                 "Value": "Ignore",
