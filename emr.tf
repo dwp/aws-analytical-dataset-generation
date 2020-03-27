@@ -13,7 +13,7 @@ resource "aws_emr_cluster" "cluster" {
   //autoscaling_role                  = aws_iam_role.emr_autoscaling_role.arn
   tags = merge({ "Name" = local.emr_cluster_name, "SSMEnabled" = "True" }, local.common_tags)
   //TODO the below needs to be replaced with DW-EMR-AMI
-  custom_ami_id = "ami-0c6b1df662f3c55fc"
+  custom_ami_id = "ami-0793487e5844edda0"
 
   ec2_attributes {
     subnet_id                         = data.terraform_remote_state.internal_compute.outputs.htme_subnet.ids[0]
@@ -62,7 +62,7 @@ resource "aws_emr_cluster" "cluster" {
     path = format("s3://%s/%s", aws_s3_bucket.emr.id, aws_s3_bucket_object.get_dks_cert_sh.key)
   }*/
 
-  step {
+  /*step {
     name              = "fetch-certificates"
     action_on_failure = "TERMINATE_CLUSTER"
     hadoop_jar_step {
@@ -71,18 +71,29 @@ resource "aws_emr_cluster" "cluster" {
         "bash",
         "-c",
         "sudo",
-        "acm-pca-cert-generator",
+        "/usr/local/bin/acm-cert-generator",
         format("--acm-cert-arn %s", data.terraform_remote_state.aws_certificate_authority.outputs.cert_authority.arn),
         "--private-key-alias private_key",
         format("--truststore-certs s3://%s/ca_certificates/dataworks/ca.pem", data.terraform_remote_state.aws_certificate_authority.outputs.public_cert_bucket.id),
         "--truststore-aliases ca_cert"
       ]
     }
+  }*/
+
+  step {
+    name              = "submit-job"
+    action_on_failure = "CONTINUE"
+    hadoop_jar_step {
+      jar = "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+      args = [
+        format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.emr_setup_sh.key)
+      ]
+    }
   }
 
   step {
     name              = "copy-hbase-configuration"
-    action_on_failure = "TERMINATE_CLUSTER"
+    action_on_failure = "CONTINUE"
     hadoop_jar_step {
       jar = "command-runner.jar"
       args = [
