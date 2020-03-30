@@ -51,7 +51,7 @@ def main():
         .enableHiveSupport()
         .getOrCreate()
     )
-    df = spark.sql("select * from hbase_hive")
+    df = spark.sql("select * from core_contract")
     values = (
         df.select("data")
         .rdd.map(lambda x: getTuple(x.data))
@@ -65,11 +65,11 @@ def main():
     row = Row("val")
     datadf = values.map(row).toDF()
     datadf.show()
-    datadf.write.parquet(f"{S3_PUBLISH_BUCKET}/xxx.parquet")
+    datadf.write.parquet(f"{S3_PUBLISH_BUCKET}/core_contract.parquet")
     spark.sql(
-        """CREATE EXTERNAL TABLE hive_spark_demo1(val STRING) STORED AS PARQUET LOCATION (S3_PUBLISH_BUCKET)"/source_table_parquet/xxxxx.parquet" """
+        """CREATE EXTERNAL TABLE core_contract_src(val STRING) STORED AS PARQUET LOCATION (S3_PUBLISH_BUCKET)"/core_contract.parquet" """
     )
-    spark.sql("select * from hive_spark_demo1").show()
+    spark.sql("select * from core_contract_src").show()
     # getPrinted(values)
 
 
@@ -80,8 +80,8 @@ def decrypt(cek, kek, iv, ciphertext):
         url,
         params=params,
         data=cek,
-        cert=("/opt/emr/analytical.pem", "/opt/emr/analytical.key"),
-        verify=False,
+        cert=("/etc/pki/tls/certs/private_key.crt", "/etc/pki/tls/key/private_key.key"),
+        verify=True,
     )
     content = result.json()
     key = content["plaintextDataKey"]

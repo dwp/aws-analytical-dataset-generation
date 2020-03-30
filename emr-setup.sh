@@ -45,3 +45,8 @@ sudo -E /usr/local/bin/acm-cert-retriever \
     --truststore-certs "${truststore_certs}"
 
 sudo chown hadoop:hadoop /etc/pki/tls/private/"${private_key_alias}".key /etc/pki/tls/certs/"${private_key_alias}".crt
+
+hive -e "CREATE EXTERNAL TABLE core_contract(rowkey STRING, data STRING)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES ('hbase.columns.mapping' = ':key,cf:record')
+TBLPROPERTIES ('hbase.table.name' = 'core:contract');"
