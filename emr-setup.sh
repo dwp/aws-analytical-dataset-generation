@@ -37,9 +37,11 @@ spark.ssl.fs.enabled=true
 data.key.service.url=${dks_endpoint}
 EOF
 
-/usr/local/bin/acm-cert-retriever \
+sudo -E /usr/local/bin/acm-cert-retriever \
     --acm-cert-arn "${acm_cert_arn}" \
     --acm-key-passphrase "$ACM_KEY_PASSWORD" \
     --private-key-alias "${private_key_alias}" \
     --truststore-aliases "${truststore_aliases}" \
     --truststore-certs "${truststore_certs}"
+
+sudo chown hadoop:hadoop /etc/pki/tls/private/"${private_key_alias}".key /etc/pki/tls/certs/"${private_key_alias}".crt
