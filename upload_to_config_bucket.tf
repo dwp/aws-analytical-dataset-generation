@@ -19,7 +19,7 @@ resource "aws_s3_bucket_object" "analytical_dataset_generator_cluster_payload" {
 }
 
 data "template_file" "analytical_dataset_generator_cluster_payload" {
-  template = file(format("%s/payload.json", path.module))
+  template = file(format("%s/aws-api-payload.json", path.module))
   vars = {
   }
 }
