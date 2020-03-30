@@ -33,7 +33,7 @@ resources:
   - name: aws-dataworks-e2e-framework
     type: git
     source:
-      branch: master
+      branch: DW-3596-synthetic-data-ingestion
       private_key: ((svc-dip.private_key))
       uri: git@github.ucds.io:dip/aws-dataworks-e2e-framework.git
     check_every: 720h
