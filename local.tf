@@ -19,7 +19,6 @@ locals {
     Persistence  = "Ignore"
     AutoShutdown = "False"
   }
-  cert_authority_arn     = "arn:aws:acm:eu-west-2:${local.account[local.environment]}:certificate/9f2cb899-92d2-4324-9dc7-1fc58165a3ed" //data.terraform_remote_state.aws_certificate_authority.outputs.cert_authority.arn
   env_certificate_bucket = "dw-${local.environment}-public-certificates"
   dks_endpoint           = data.terraform_remote_state.crypto.outputs.dks_endpoint.development
 
