@@ -48,7 +48,7 @@ resource "aws_emr_cluster" "cluster" {
 
   // TODO use templated proxy env vars
   configurations_json = templatefile(format("%s/configuration.json", path.module), {
-    logs_bucket_path = format("s3://%s/logs", data.terraform_remote_state.security-tools.outputs.logstore_bucket.arn)
+    logs_bucket_path = format("s3://%s/logs", data.terraform_remote_state.security-tools.outputs.logstore_bucket.id)
     data_bucket_path = format("s3://%s/data", aws_s3_bucket.published.id)
     //TODO this path needs to be taken from the output of aws-ingestion
     hbase_root_path    = format("s3://%s/business-data/single-topic-per-table-hbase", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
@@ -81,7 +81,7 @@ resource "aws_emr_cluster" "cluster" {
   }*/
 
   step {
-    name              = "submit-job"
+    name              = "emr-setup"
     action_on_failure = "CONTINUE"
     hadoop_jar_step {
       jar = "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
@@ -105,7 +105,7 @@ resource "aws_emr_cluster" "cluster" {
   }
 
   step {
-    name              = "emr-setup"
+    name              = "submit-job"
     action_on_failure = "CONTINUE"
     hadoop_jar_step {
       jar = "command-runner.jar"
