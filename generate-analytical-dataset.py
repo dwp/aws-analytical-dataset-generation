@@ -17,7 +17,7 @@ def main():
     #secrets_manager = boto3.client('secretsmanager')
     #response = secrets_manager.get_secret_value(SecretId="ADG-Payload")
     #S3_PUBLISH_BUCKET = response["ADG_S3_PUBLISH_BUCKET"]
-    S3_PUBLISH_BUCKET = "14f9b07948fa7b1e5440fd977a57c92d"
+    S3_PUBLISH_BUCKET = "" #Replace with s3 bucket number to test
     spark = (
         SparkSession.builder.master("yarn")
             .config("spark.sql.parquet.binaryAsString", "true")
