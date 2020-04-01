@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-set -u
-set -x
-set -o pipefail
-
 # Only execute below here on an EMR Master node
 if [[ $(grep "isMaster" /mnt/var/lib/info/instance.json | grep true) ]]; then
     echo "I am a Master"
