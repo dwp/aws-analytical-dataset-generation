@@ -151,20 +151,6 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     effect = "Allow"
 
     actions = [
-      "s3:*",
-      "kms:*",
-    ]
-
-    resources = [
-      "arn:aws:s3:::*",
-      "arn:aws:kms:::*",
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
       "acm:ExportCertificate",
       "cloudwatch:*",
       "dynamodb:*",
@@ -186,7 +172,8 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "ec2:DescribeInstanceStatus",
       "ds:CreateComputer",
       "ds:DescribeDirectories",
-      "logs:*"
+      "logs:*",
+      "s3:*"
     ]
 
     resources = [
