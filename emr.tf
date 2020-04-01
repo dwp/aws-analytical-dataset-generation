@@ -56,30 +56,6 @@ resource "aws_emr_cluster" "cluster" {
     proxy_host         = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
   })
 
-  //TODO The below has to be done when DKS is set up
-  /* bootstrap_action {
-    name = "get-dks-cert"
-    path = format("s3://%s/%s", aws_s3_bucket.emr.id, aws_s3_bucket_object.get_dks_cert_sh.key)
-  }*/
-
-  /*step {
-    name              = "fetch-certificates"
-    action_on_failure = "TERMINATE_CLUSTER"
-    hadoop_jar_step {
-      jar = "command-runner.jar"
-      args = [
-        "bash",
-        "-c",
-        "sudo",
-        "/usr/local/bin/acm-cert-generator",
-        format("--acm-cert-arn %s", data.terraform_remote_state.aws_certificate_authority.outputs.cert_authority.arn),
-        "--private-key-alias private_key",
-        format("--truststore-certs s3://%s/ca_certificates/dataworks/ca.pem", data.terraform_remote_state.aws_certificate_authority.outputs.public_cert_bucket.id),
-        "--truststore-aliases ca_cert"
-      ]
-    }
-  }*/
-
   step {
     name              = "emr-setup"
     action_on_failure = "CONTINUE"
