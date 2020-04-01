@@ -21,5 +21,11 @@ variable "keep_flow_alive" {
   default     = true
 }
 
+variable "truststore_aliases" {
+  description = "comma seperated truststore aliases"
+  type        = list(string)
+  default     = ["ca_cert", "mgmt_cert", "root_ca"]
+}
+
 
 
