@@ -23,3 +23,29 @@ data "template_file" "analytical_dataset_generator_cluster_payload" {
   vars = {
   }
 }
+resource "aws_s3_bucket_object" "emr_setup_sh" {
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/emr-setup.sh"
+  content = data.template_file.emr_setup_sh.rendered
+}
+
+data "template_file" "emr_setup_sh" {
+  template = file(format("%s/emr-setup.sh", path.module))
+  vars = {
+    aws_default_region = "eu-west-2"
+    full_proxy         = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
+    full_no_proxy      = "127.0.0.1,localhost,169.254.169.254,*.s3.eu-west-2.amazonaws.com,s3.eu-west-2.amazonaws.com,sns.eu-west-2.amazonaws.com,sqs.eu-west-2.amazonaws.com,eu-west-2.queue.amazonaws.com,glue.eu-west-2.amazonaws.com,sts.eu-west-2.amazonaws.com,*.eu-west-2.compute.internal,dynamodb.eu-west-2.amazonaws.com"
+    acm_cert_arn       = data.aws_acm_certificate.htme.arn
+    private_key_alias  = "private_key"
+    truststore_aliases = join(",", var.truststore_aliases)
+    truststore_certs   = "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem,s3://dw-management-dev-public-certificates/ca_certificates/dataworks/ca.pem,s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem"
+
+
+    dks_endpoint = local.dks_endpoint
+  }
+}
+
+// TODO Ticket created to replace this https://projects.ucd.gpn.gov.uk/browse/DW-3765
+data "aws_acm_certificate" "htme" {
+  domain = "htme.${local.root_dns_name[local.environment]}"
+}
