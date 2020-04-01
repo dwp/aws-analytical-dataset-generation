@@ -44,9 +44,17 @@ sudo -E /usr/local/bin/acm-cert-retriever \
     --truststore-aliases "${truststore_aliases}" \
     --truststore-certs "${truststore_certs}"
 
-sudo chown hadoop:hadoop /etc/pki/tls/private/"${private_key_alias}".key /etc/pki/tls/certs/"${private_key_alias}".crt
+cd /etc/pki/ca-trust/source/anchors/
+sudo touch analytical_ca.pem
+sudo chown hadoop:hadoop /etc/pki/tls/private/"${private_key_alias}".key /etc/pki/tls/certs/"${private_key_alias}".crt /etc/pki/ca-trust/source/anchors/analytical_ca.pem
+TRUSTSTORE_ALIASES="${truststore_aliases}"
+for F in $(echo $TRUSTSTORE_ALIASES | sed "s/,/ /g"); do
+ (sudo cat "$F.crt"; echo) >> analytical_ca.pem;
+done
 
-hive -e "CREATE EXTERNAL TABLE core_contract(rowkey STRING, data STRING)
+# TODO Make the hive table creation dynamic from the names of hbase tables
+# DW-3762 created in the back log
+hive -e "CREATE EXTERNAL TABLE IF NOT EXISTS core_contract_adg(rowkey STRING, data STRING)
 STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
 WITH SERDEPROPERTIES ('hbase.columns.mapping' = ':key,cf:record')
 TBLPROPERTIES ('hbase.table.name' = 'core:contract');"
