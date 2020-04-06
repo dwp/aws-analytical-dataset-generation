@@ -173,7 +173,8 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "ds:CreateComputer",
       "ds:DescribeDirectories",
       "logs:*",
-      "s3:*"
+      "s3:*",
+      "secretsmanager:*"
     ]
 
     resources = [
