@@ -18,12 +18,9 @@ def main():
     region_name = "eu-west-2"
     # Create a Secrets Manager client
     session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager',
-        region_name=region_name
-    )
-    response = get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-    response_dict = ast.literal_eval(response['SecretString'])
+    client = session.client(service_name="secretsmanager", region_name=region_name)
+    response = client.get_secret_value(SecretId=secret_name)
+    response_dict = ast.literal_eval(response["SecretString"])
     S3_PUBLISH_BUCKET = response_dict["ADG_S3_PUBLISH_BUCKET"]
     spark = (
         SparkSession.builder.master("yarn")
