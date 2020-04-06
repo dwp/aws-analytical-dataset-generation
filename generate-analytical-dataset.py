@@ -30,12 +30,13 @@ def main():
         .getOrCreate()
     )
     adg_hive_table = "core_contract_adg"
-    adg_hive_select_query = "select * from %s limit 10" % adg_hive_table
+    adg_hive_select_query = "select * from %s" % adg_hive_table
     df = spark.sql(adg_hive_select_query)
+    keys_map = {}
     values = (
         df.select("data")
-        .rdd.map(lambda x: getTuple(x.data))
-        .map(lambda y: decrypt(y[0], y[1], y[2], y[3]))
+            .rdd.map(lambda x: getTuple(x.data))
+            .map(lambda y: decrypt(y[0], y[1], y[2], y[3], keys_map))
     )
     row = Row("val")
     datadf = values.map(row).toDF()
@@ -53,21 +54,27 @@ def main():
     spark.sql(src_hive_select_query).show()
 
 
-def decrypt(cek, kek, iv, ciphertext):
-    url = "https://dks-development.mgt-dev.dataworks.dwp.gov.uk:8443/datakey/actions/decrypt"
-    params = {"keyId": kek}
-    result = requests.post(
-        url,
-        params=params,
-        data=cek,
-        cert=("private_key.crt", "private_key.key"),
-        verify="analytical_ca.pem",
-    )
-    content = result.json()
-    key = content["plaintextDataKey"]
+def decrypt(cek, kek, iv, ciphertext, keys_map):
+    if keys_map.get(cek):
+        key = keys_map[cek]
+        print("Found the key in cache")
+    else:
+        print("Didn't find the key in cache so calling dks")
+        url = "https://dks-development.mgt-dev.dataworks.dwp.gov.uk:8443/datakey/actions/decrypt"
+        params = {"keyId": kek}
+        result = requests.post(url,
+                               params=params,
+                               data=cek,
+                               cert=("private_key.crt", "private_key.key"),
+                               verify="analytical_ca.pem",
+                               )
+        content = result.json()
+        key = content["plaintextDataKey"]
+        keys_map[cek] = key
     iv_int = int(binascii.hexlify(base64.b64decode(iv)), 16)
     ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
     aes = AES.new(base64.b64decode(key), AES.MODE_CTR, counter=ctr)
+    print("about to decrypt")
     return aes.decrypt(base64.b64decode(ciphertext))
 
 
