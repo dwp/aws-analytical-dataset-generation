@@ -4,8 +4,6 @@ import base64
 import binascii
 import boto3
 import ast
-import os
-
 import requests
 
 from Crypto.Cipher import AES
