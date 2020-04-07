@@ -25,7 +25,7 @@ def main():
             .enableHiveSupport()
             .getOrCreate()
     )
-    adg_hive_table = "core_contract_adg"
+    adg_hive_table = "analytical_dataset_generation.core_contract_adg"
     adg_hive_select_query = "select * from %s" % adg_hive_table
     df = spark.sql(adg_hive_select_query)
     keys_map = {}
@@ -40,7 +40,7 @@ def main():
     adg_parquet_name = "core_contract.parquet"
     parquet_location = "s3://%s/adg/%s" % (S3_PUBLISH_BUCKET,adg_parquet_name)
     datadf.write.mode('overwrite').parquet(parquet_location)
-    src_hive_table = "core_contract_src"
+    src_hive_table = "analytical_dataset_generation.core_contract_src"
     src_hive_create_query = """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS PARQUET LOCATION "%s" """ % (src_hive_table, parquet_location)
     spark.sql(src_hive_create_query)
     src_hive_select_query = "select * from %s" % src_hive_table
