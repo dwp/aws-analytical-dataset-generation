@@ -4,6 +4,7 @@ import base64
 import binascii
 import boto3
 import ast
+import os
 
 import requests
 
@@ -14,14 +15,13 @@ from pyspark.sql import Row
 
 
 def main():
-    secret_name = "ADG-Payload"
-    region_name = "eu-west-2"
+    secret_name = "${secret_name}"
     # Create a Secrets Manager client
     session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager", region_name=region_name)
+    client = session.client(service_name="secretsmanager")
     response = client.get_secret_value(SecretId=secret_name)
     response_dict = ast.literal_eval(response["SecretString"])
-    S3_PUBLISH_BUCKET = response_dict["ADG_S3_PUBLISH_BUCKET"]
+    S3_PUBLISH_BUCKET = response_dict["S3_PUBLISH_BUCKET"]
     spark = (
         SparkSession.builder.master("yarn")
         .config("spark.sql.parquet.binaryAsString", "true")
@@ -35,8 +35,8 @@ def main():
     keys_map = {}
     values = (
         df.select("data")
-            .rdd.map(lambda x: getTuple(x.data))
-            .map(lambda y: decrypt(y[0], y[1], y[2], y[3], keys_map))
+        .rdd.map(lambda x: getTuple(x.data))
+        .map(lambda y: decrypt(y[0], y[1], y[2], y[3], keys_map))
     )
     row = Row("val")
     datadf = values.map(row).toDF()
@@ -62,12 +62,13 @@ def decrypt(cek, kek, iv, ciphertext, keys_map):
         print("Didn't find the key in cache so calling dks")
         url = "https://dks-development.mgt-dev.dataworks.dwp.gov.uk:8443/datakey/actions/decrypt"
         params = {"keyId": kek}
-        result = requests.post(url,
-                               params=params,
-                               data=cek,
-                               cert=("private_key.crt", "private_key.key"),
-                               verify="analytical_ca.pem",
-                               )
+        result = requests.post(
+            url,
+            params=params,
+            data=cek,
+            cert=("private_key.crt", "private_key.key"),
+            verify="analytical_ca.pem",
+        )
         content = result.json()
         key = content["plaintextDataKey"]
         keys_map[cek] = key

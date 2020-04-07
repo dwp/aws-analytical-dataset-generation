@@ -13,6 +13,8 @@ whoami
 
 export AWS_DEFAULT_REGION=${aws_default_region}
 
+
+
 FULL_PROXY="${full_proxy}"
 FULL_NO_PROXY="${full_no_proxy}"
 export http_proxy="$FULL_PROXY"
