@@ -21,7 +21,7 @@ client.create_table(
                     'Type': 'string'
                 }
             ],
-            'Location': 's3://{REPLACE_THIS}/hive/external/core_contract_adg',
+            'Location': 's3://${bucket}/analytical-dataset/hive/external/core_contract_adg',
             'Compressed': False,
             'NumberOfBuckets': -1,
             'SerdeInfo': {
@@ -37,12 +37,7 @@ client.create_table(
         'Parameters': {
             'hbase.table.name': 'core:contract',
             'storage_handler':'org.apache.hadoop.hive.hbase.HBaseStorageHandler',
-            'EXTERNAL': 'True',
-            'totalSize': '0',
-            'numRows': '0',
-            'rawDataSize': '0',
-            'COLUMN_STATS_ACCURATE': '{\"BASIC_STATS\":\"true\"}',
-            'numFiles': '0'
+            'EXTERNAL': 'True'
         }
     }
 )
