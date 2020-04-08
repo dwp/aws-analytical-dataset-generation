@@ -1,15 +1,11 @@
 import boto3
 
 client = boto3.client('glue')
-client.delete_table(
-    DatabaseName='analytical_dataset_generation',
-    Name='core_contract_adg'
-)
 client.create_table(
     DatabaseName='analytical_dataset_generation',
     TableInput={
-        'Name': 'core_contract_adg',
-        'Description': 'db.core.contract',
+        'Name': 'core_contract_hbase',
+        'Description': 'Hive table to access hbase table core:contract',
         'StorageDescriptor': {
             'Columns': [
                 {
@@ -21,7 +17,7 @@ client.create_table(
                     'Type': 'string'
                 }
             ],
-            'Location': 's3://${bucket}/analytical-dataset/hive/external/core_contract_adg',
+            'Location': 's3://${bucket}/analytical-dataset/hive/external/core_contract_hbase',
             'Compressed': False,
             'NumberOfBuckets': -1,
             'SerdeInfo': {
