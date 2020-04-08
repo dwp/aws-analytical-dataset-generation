@@ -3,7 +3,7 @@ from pyspark.sql import SparkSession
 import base64
 import binascii
 import boto3
-
+import ast
 import requests
 
 from Crypto.Cipher import AES
@@ -12,18 +12,20 @@ from pyspark.sql.types import *
 from pyspark.sql import Row
 
 
-
 def main():
-    #secrets_manager = boto3.client('secretsmanager')
-    #response = secrets_manager.get_secret_value(SecretId="ADG-Payload")
-    #S3_PUBLISH_BUCKET = response["ADG_S3_PUBLISH_BUCKET"]
-    S3_PUBLISH_BUCKET = "" #Replace with s3 bucket number to test
+    secret_name = "${secret_name}"
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(service_name="secretsmanager")
+    response = client.get_secret_value(SecretId=secret_name)
+    response_dict = ast.literal_eval(response["SecretString"])
+    S3_PUBLISH_BUCKET = response_dict["S3_PUBLISH_BUCKET"]
     spark = (
         SparkSession.builder.master("yarn")
-            .config("spark.sql.parquet.binaryAsString", "true")
-            .appName("aws-analytical-dataset-generator")
-            .enableHiveSupport()
-            .getOrCreate()
+        .config("spark.sql.parquet.binaryAsString", "true")
+        .appName("aws-analytical-dataset-generator")
+        .enableHiveSupport()
+        .getOrCreate()
     )
     adg_hive_table = "analytical_dataset_generation.core_contract_adg"
     adg_hive_select_query = "select * from %s" % adg_hive_table
@@ -31,8 +33,8 @@ def main():
     keys_map = {}
     values = (
         df.select("data")
-            .rdd.map(lambda x: getTuple(x.data))
-            .map(lambda y: decrypt(y[0], y[1], y[2], y[3], keys_map))
+        .rdd.map(lambda x: getTuple(x.data))
+        .map(lambda y: decrypt(y[0], y[1], y[2], y[3], keys_map))
     )
     row = Row("val")
     datadf = values.map(row).toDF()
@@ -46,6 +48,7 @@ def main():
     src_hive_select_query = "select * from %s" % src_hive_table
     spark.sql(src_hive_select_query).show()
 
+
 def decrypt(cek, kek, iv, ciphertext, keys_map):
     if keys_map.get(cek):
         key = keys_map[cek]
@@ -54,12 +57,13 @@ def decrypt(cek, kek, iv, ciphertext, keys_map):
         print("Didn't find the key in cache so calling dks")
         url = "https://dks-development.mgt-dev.dataworks.dwp.gov.uk:8443/datakey/actions/decrypt"
         params = {"keyId": kek}
-        result = requests.post(url,
-                               params=params,
-                               data=cek,
-                               cert=("private_key.crt", "private_key.key"),
-                               verify="analytical_ca.pem",
-                               )
+        result = requests.post(
+            url,
+            params=params,
+            data=cek,
+            cert=("private_key.crt", "private_key.key"),
+            verify="analytical_ca.pem",
+        )
         content = result.json()
         key = content["plaintextDataKey"]
         keys_map[cek] = key
@@ -68,6 +72,7 @@ def decrypt(cek, kek, iv, ciphertext, keys_map):
     aes = AES.new(base64.b64decode(key), AES.MODE_CTR, counter=ctr)
     print("about to decrypt")
     return aes.decrypt(base64.b64decode(ciphertext))
+
 
 def getTuple(data):
     record = json.loads(data)
@@ -78,9 +83,11 @@ def getTuple(data):
     iv = encryption["initialisationVector"]
     return encryptedKey, keyEncryptionkeyId, iv, dbObject
 
+
 def getPrinted(values):
     for x in values:
         print(x)
+
 
 if __name__ == "__main__":
     main()

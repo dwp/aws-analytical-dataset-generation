@@ -8,6 +8,7 @@ resource "aws_s3_bucket_object" "generate-analytical-dataset-script" {
 data "template_file" "analytical_dataset_generation_script" {
   template = file(format("%s/generate-analytical-dataset.py", path.module))
   vars = {
+    secret_name = "ADG-Payload"
   }
 }
 

@@ -13,6 +13,8 @@ whoami
 
 export AWS_DEFAULT_REGION=${aws_default_region}
 
+
+
 FULL_PROXY="${full_proxy}"
 FULL_NO_PROXY="${full_no_proxy}"
 export http_proxy="$FULL_PROXY"
@@ -23,6 +25,9 @@ export no_proxy="$FULL_NO_PROXY"
 export NO_PROXY="$FULL_NO_PROXY"
 
 export ACM_KEY_PASSWORD=$(uuidgen -r)
+
+aws s3 cp "${hive-scripts-path}"  .
+/usr/bin/python create-hive-tables.py
 
 sudo mkdir -p /opt/emr
 sudo chown hadoop:hadoop /opt/emr
@@ -47,5 +52,3 @@ for F in $(echo $TRUSTSTORE_ALIASES | sed "s/,/ /g"); do
  (sudo cat "$F.crt"; echo) >> analytical_ca.pem;
 done
 
-sudo $(which aws) s3 cp "${hive-scripts-path}"  .
-sudo -E /usr/bin/python create-hive-tables.py
