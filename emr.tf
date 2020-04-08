@@ -52,7 +52,7 @@ resource "aws_emr_cluster" "cluster" {
     data_bucket_path = format("s3://%s/data", aws_s3_bucket.published.id)
     //TODO this path needs to be taken from the output of aws-ingestion
     hbase_root_path    = format("s3://%s/business-data/single-topic-per-table-hbase", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
-    hive_external_path = format("s3://%s/hive/external", aws_s3_bucket.published.id)
+    hive_external_path = format("s3://%s/analytical_dataset/hive/external", aws_s3_bucket.published.id)
     proxy_host         = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
   })
 

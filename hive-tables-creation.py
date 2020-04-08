@@ -1,11 +1,15 @@
 import boto3
 
 client = boto3.client('glue')
-response = client.create_table(
+client.delete_table(
+    DatabaseName='analytical_dataset_generation',
+    Name='core_contract_adg'
+)
+client.create_table(
     DatabaseName='analytical_dataset_generation',
     TableInput={
         'Name': 'core_contract_adg',
-        'Description': 'core_contract_adg',
+        'Description': 'db.core.contract',
         'StorageDescriptor': {
             'Columns': [
                 {
