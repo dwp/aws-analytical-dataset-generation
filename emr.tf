@@ -98,6 +98,18 @@ resource "aws_emr_cluster" "cluster" {
     }
   }
 
+  step {
+    name              = "meta-cleanup"
+    action_on_failure = "CONTINUE"
+    hadoop_jar_step {
+      jar = "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+      args = [
+        format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.meta_cleaner_sh.key)
+      ]
+    }
+  }
+
+
   depends_on = [
     aws_s3_bucket_object.generate-analytical-dataset-script
   ]
