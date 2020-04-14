@@ -6,4 +6,6 @@ echo "Removing all files from" $HBASE_META$CLUSTER_ID
 aws s3 rm --recursive $HBASE_META$CLUSTER_ID
 aws s3 rm  $HBASE_META$CLUSTER_ID'_$folder$'
 
-#emrfs sync s3 location
+aws dynamodb delete-metadata
+
+emrfs sync $HBASE_META
