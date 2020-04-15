@@ -54,6 +54,7 @@ resource "aws_emr_cluster" "cluster" {
     hbase_root_path    = format("s3://%s/business-data/single-topic-per-table-hbase", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
     hive_external_path = format("s3://%s/analytical-dataset/hive/external", aws_s3_bucket.published.id)
     proxy_host         = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
+    dynamo_meta_table = local.dynamo_meta_name
   })
 
   step {

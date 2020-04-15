@@ -79,7 +79,7 @@
       "fs.s3.maxConnections": "10000",
       "fs.s3.consistent.retryPeriodSeconds": "3",
       "fs.s3.consistent.retryCount": "5",
-      "fs.s3.consistent.metadata.tableName": "DataGen-metadata",
+      "fs.s3.consistent.metadata.tableName": "${dynamo_meta_table}",
       "fs.s3.cse.materialsDescription.enabled": "true"
     }
   }

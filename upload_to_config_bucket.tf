@@ -56,6 +56,7 @@ data "template_file" "meta_cleaner_sh" {
   template = file(format("%s/meta-cleaner.sh", path.module))
   vars = {
     hbase_meta    = format("s3://%s/business-data/single-topic-per-table-hbase/data/hbase/meta_", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
+    metatable_name = local.dynamo_meta_name
   }
 }
 
