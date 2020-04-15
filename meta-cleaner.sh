@@ -9,8 +9,11 @@ aws s3 rm --recursive $HBASE_META$CLUSTER_ID
 aws s3 rm  $HBASE_META$CLUSTER_ID'_$folder$'
 
 echo "deleting dynamodb table" $METATABLE
+
 #aws dynamodb delete-metadata
 aws dynamodb delete-table --table-name $METATABLE
 
-#echo "syncing s3"
+echo "syncing s3"
+
+#this sync step causes a step failure as it does not have a dynamo table to sync with so it may be unnecessary
 #emrfs sync $HBASE_META
