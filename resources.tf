@@ -199,6 +199,11 @@ resource "aws_s3_bucket" "published" {
     enabled = true
   }
 
+  logging {
+    target_bucket = data.terraform_remote_state.security-tools.outputs.logstore_bucket.id
+    target_prefix = "S3Logs/${random_id.published_bucket.hex}/ServerLogs"
+  }
+
   lifecycle_rule {
     id      = ""
     prefix  = "/"
@@ -437,8 +442,8 @@ output "analytical_dataset_generation" {
 
 
 
-resource "aws_acm_certificate" "analytical_dataset_generation" {
-  certificate_authority_arn = data.terraform_remote_state.aws_certificate_authority.outputs.cert_authority.arn
+resource "aws_acm_certificate" "analytical-dataset-generator" {
+  certificate_authority_arn = data.terraform_remote_state.aws_certificate_authority.outputs.root_ca.arn
   domain_name               = "analytical-dataset-generator.${local.env_prefix[local.environment]}${local.dataworks_domain_name}"
 
   options {

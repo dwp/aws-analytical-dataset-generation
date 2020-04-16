@@ -26,6 +26,9 @@ export NO_PROXY="$FULL_NO_PROXY"
 
 export ACM_KEY_PASSWORD=$(uuidgen -r)
 
+aws s3 cp "${hive-scripts-path}"  .
+/usr/bin/python create-hive-tables.py
+
 sudo mkdir -p /opt/emr
 sudo chown hadoop:hadoop /opt/emr
 touch /opt/emr/dks.properties
@@ -49,9 +52,3 @@ for F in $(echo $TRUSTSTORE_ALIASES | sed "s/,/ /g"); do
  (sudo cat "$F.crt"; echo) >> analytical_ca.pem;
 done
 
-# TODO Make the hive table creation dynamic from the names of hbase tables
-# DW-3762 created in the back log
-hive -e "CREATE EXTERNAL TABLE IF NOT EXISTS core_contract_adg(rowkey STRING, data STRING)
-STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
-WITH SERDEPROPERTIES ('hbase.columns.mapping' = ':key,cf:record')
-TBLPROPERTIES ('hbase.table.name' = 'core:contract');"
