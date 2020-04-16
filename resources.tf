@@ -150,41 +150,98 @@ resource "aws_iam_role_policy_attachment" "ec2_for_ssm_attachment" {
 }
 
 #        Create and attach custom policy
-#        TODO Lock down analytical dataset EMR instance profile DW-3618
 data "aws_iam_policy_document" "analytical_dataset_write_s3" {
   statement {
     effect = "Allow"
 
     actions = [
-      "acm:ExportCertificate",
-      "cloudwatch:*",
-      "dynamodb:*",
-      "ec2:*",
-      "elasticmapreduce:*",
-      "kinesis:*",
-      "rds:Describe*",
-      "sdb:*",
-      "sns:*",
-      "sqs:*",
-      "glue:*",
-      "kms:*",
-      "iam:*",
-      "application-autoscaling:*",
-      "ssm:*",
-      "ssmmessages:*",
-      "ec2messages:*",
-      "cloudwatch:PutMetricData",
-      "ec2:DescribeInstanceStatus",
-      "ds:CreateComputer",
-      "ds:DescribeDirectories",
-      "logs:*",
-      "s3:*",
-      "secretsmanager:*"
+      "s3:ListBucket",
     ]
 
     resources = [
-      "*"
+      aws_s3_bucket.published.arn,
+      "${data.terraform_remote_state.common.outputs.config_bucket.arn}",
+      "${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}"
     ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+      "s3:DeleteObject*",
+      "s3:PutObject*",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.published.arn}/*",
+      "${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}/business-data/single-topic-per-table-hbase/data/hbase/meta_*",
+
+    ]
+  }
+
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+    ]
+
+    resources = [
+      "${data.terraform_remote_state.common.outputs.config_bucket.arn}/component/analytical-dataset-generation/*",
+      "${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}/business-data/single-topic-per-table-hbase/*",
+    ]
+  }
+
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.published.arn}/*",
+      "${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}/business-data/single-topic-per-table-hbase/data/hbase/meta_*",
+    ]
+  }
+
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+    ]
+
+    resources = [
+      "${data.terraform_remote_state.common.outputs.config_bucket.arn}/component/analytical-dataset-generation/*",
+      "${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}/business-data/single-topic-per-table-hbase/*",
+    ]
+  }
+
+  statement {
+    sid    = "AllowUseDefaultEbsCmk"
+    effect = "Allow"
+
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey",
+    ]
+
+
+    resources = [data.terraform_remote_state.security-tools.outputs.ebs_cmk.arn]
   }
 }
 

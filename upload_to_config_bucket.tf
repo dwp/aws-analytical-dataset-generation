@@ -26,7 +26,7 @@ data "template_file" "analytical_dataset_generator_cluster_payload" {
 }
 resource "aws_s3_bucket_object" "emr_setup_sh" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
-  key     = "component/emr-setup.sh"
+  key     = "component/analytical-dataset-generation/emr-setup.sh"
   content = data.template_file.emr_setup_sh.rendered
 }
 
@@ -54,7 +54,7 @@ data "aws_acm_certificate" "htme" {
 
 resource "aws_s3_bucket_object" "create-hive-tables" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
-  key        = "component/create-hive-tables.py"
+  key        = "component/analytical-dataset-generation/create-hive-tables.py"
   content    = data.template_file.create-hive-tables.rendered
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
