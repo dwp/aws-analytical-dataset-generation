@@ -151,6 +151,119 @@ resource "aws_iam_role_policy_attachment" "ec2_for_ssm_attachment" {
 
 #        Create and attach custom policy
 data "aws_iam_policy_document" "analytical_dataset_write_s3" {
+
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ec2:AuthorizeSecurityGroupEgress",
+      "ec2:AuthorizeSecurityGroupIngress",
+      "ec2:CancelSpotInstanceRequests",
+      "ec2:CreateNetworkInterface",
+      "ec2:CreateSecurityGroup",
+      "ec2:CreateTags",
+      "ec2:DeleteNetworkInterface",
+      "ec2:DeleteSecurityGroup",
+      "ec2:DeleteTags",
+      "ec2:DescribeAvailabilityZones",
+      "ec2:DescribeAccountAttributes",
+      "ec2:DescribeDhcpOptions",
+      "ec2:DescribeImages",
+      "ec2:DescribeInstanceStatus",
+      "ec2:DescribeInstances",
+      "ec2:DescribeKeyPairs",
+      "ec2:DescribeNetworkAcls",
+      "ec2:DescribeNetworkInterfaces",
+      "ec2:DescribePrefixLists",
+      "ec2:DescribeRouteTables",
+      "ec2:DescribeSecurityGroups",
+      "ec2:DescribeSpotInstanceRequests",
+      "ec2:DescribeSpotPriceHistory",
+      "ec2:DescribeSubnets",
+      "ec2:DescribeTags",
+      "ec2:DescribeVpcAttribute",
+      "ec2:DescribeVpcEndpoints",
+      "ec2:DescribeVpcEndpointServices",
+      "ec2:DescribeVpcs",
+      "ec2:DetachNetworkInterface",
+      "ec2:ModifyImageAttribute",
+      "ec2:ModifyInstanceAttribute",
+      "ec2:RequestSpotInstances",
+      "ec2:RevokeSecurityGroupEgress",
+      "ec2:RunInstances",
+      "ec2:TerminateInstances",
+      "ec2:DeleteVolume",
+      "ec2:DescribeVolumeStatus",
+      "ec2:DescribeVolumes",
+      "ec2:DetachVolume",
+      "ec2:GetEbsDefaultKmsKeyId",
+      "iam:GetRole",
+      "iam:GetRolePolicy",
+      "iam:ListInstanceProfiles",
+      "iam:ListRolePolicies",
+      "iam:PassRole",
+      "s3:CreateBucket",
+      "sdb:BatchPutAttributes",
+      "sdb:Select",
+      "sqs:CreateQueue",
+      "sqs:Delete*",
+      "sqs:GetQueue*",
+      "sqs:PurgeQueue",
+      "sqs:ReceiveMessage",
+      "cloudwatch:PutMetricAlarm",
+      "cloudwatch:DescribeAlarms",
+      "cloudwatch:DeleteAlarms",
+      "application-autoscaling:RegisterScalableTarget",
+      "application-autoscaling:DeregisterScalableTarget",
+      "application-autoscaling:PutScalingPolicy",
+      "application-autoscaling:DeleteScalingPolicy",
+      "application-autoscaling:Describe*",
+      "elasticmapreduce:ListInstanceGroups",
+      "elasticmapreduce:ModifyInstanceGroups",
+      "dynamodb:*",
+      "glue:CreateDatabase",
+      "glue:UpdateDatabase",
+      "glue:DeleteDatabase",
+      "glue:GetDatabase",
+      "glue:GetDatabases",
+      "glue:CreateTable",
+      "glue:UpdateTable",
+      "glue:DeleteTable",
+      "glue:GetTable",
+      "glue:GetTables",
+      "glue:GetTableVersions",
+      "glue:CreatePartition",
+      "glue:BatchCreatePartition",
+      "glue:UpdatePartition",
+      "glue:DeletePartition",
+      "glue:BatchDeletePartition",
+      "glue:GetPartition",
+      "glue:GetPartitions",
+      "glue:BatchGetPartition",
+      "glue:CreateUserDefinedFunction",
+      "glue:UpdateUserDefinedFunction",
+      "glue:DeleteUserDefinedFunction",
+      "glue:GetUserDefinedFunction",
+      "glue:GetUserDefinedFunctions",
+      "elasticmapreduce:Describe*",
+      "elasticmapreduce:ListBootstrapActions",
+      "elasticmapreduce:ListClusters",
+      "elasticmapreduce:ListInstances",
+      "elasticmapreduce:ListSteps",
+      "acm:ExportCertificate",
+      "ds:CreateComputer",
+      "ds:DescribeDirectories",
+      "logs:*",
+      "secretsmanager:*",
+      "kms:*",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+
   statement {
     effect = "Allow"
 
@@ -162,6 +275,7 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       aws_s3_bucket.published.arn,
       "${data.terraform_remote_state.common.outputs.config_bucket.arn}",
       "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}",
+      "arn:aws:s3:::${data.terraform_remote_state.security-tools.outputs.logstore_bucket.id}",
     ]
   }
 
@@ -176,7 +290,8 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
 
     resources = [
       "${aws_s3_bucket.published.arn}/*",
-      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}/business-data/single-topic-per-table-hbase/data/hbase/meta_*",
+      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}/business-data/single-topic-per-table-hbase/data/hbase/*",
+      "arn:aws:s3:::${data.terraform_remote_state.security-tools.outputs.logstore_bucket.id}",
     ]
   }
 
@@ -194,6 +309,7 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     ]
   }
 
+
   statement {
     effect = "Allow"
 
@@ -207,10 +323,9 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
 
     resources = [
       "${aws_kms_key.published_bucket_cmk.arn}",
-      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.input_bucket_cmk}/business-data/single-topic-per-table-hbase/data/hbase/meta_*",
+      "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}/business-data/single-topic-per-table-hbase/data/hbase/*",
     ]
   }
-
 
   statement {
     effect = "Allow"
@@ -222,7 +337,7 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
 
     resources = [
       "${data.terraform_remote_state.common.outputs.config_bucket_cmk.arn}/component/analytical-dataset-generation/*",
-      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.input_bucket_cmk}/business-data/single-topic-per-table-hbase/*",
+      "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}/business-data/single-topic-per-table-hbase/*",
     ]
   }
 
@@ -238,9 +353,9 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "kms:DescribeKey",
     ]
 
-
     resources = [data.terraform_remote_state.security-tools.outputs.ebs_cmk.arn]
   }
+
 }
 
 resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {
@@ -337,8 +452,8 @@ output "analytical_dataset_generation" {
 
 
 
-resource "aws_acm_certificate" "analytical_dataset_generation" {
-  certificate_authority_arn = data.terraform_remote_state.aws_certificate_authority.outputs.cert_authority.arn
+resource "aws_acm_certificate" "analytical-dataset-generator" {
+  certificate_authority_arn = data.terraform_remote_state.aws_certificate_authority.outputs.root_ca.arn
   domain_name               = "analytical-dataset-generator.${local.env_prefix[local.environment]}${local.dataworks_domain_name}"
 
   options {
