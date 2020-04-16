@@ -40,11 +40,17 @@ def main():
     datadf = values.map(row).toDF()
     datadf.show()
     adg_parquet_name = "core_contract.parquet"
-    parquet_location = "s3://%s/analytical-dataset/%s" % (S3_PUBLISH_BUCKET,adg_parquet_name)
-    datadf.write.mode('overwrite').parquet(parquet_location)
+    parquet_location = "s3://%s/analytical-dataset/%s" % (
+        S3_PUBLISH_BUCKET,
+        adg_parquet_name,
+    )
+    datadf.write.mode("overwrite").parquet(parquet_location)
     src_hive_table = "analytical_dataset_generation.core_contract"
     src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
-    src_hive_create_query = """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS PARQUET LOCATION "%s" """ % (src_hive_table, parquet_location)
+    src_hive_create_query = (
+        """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS PARQUET LOCATION "%s" """
+        % (src_hive_table, parquet_location)
+    )
     spark.sql(src_hive_drop_query)
     spark.sql(src_hive_create_query)
     src_hive_select_query = "select * from %s" % src_hive_table

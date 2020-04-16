@@ -47,6 +47,21 @@ data "template_file" "emr_setup_sh" {
   }
 }
 
+resource "aws_s3_bucket_object" "meta_cleaner_sh" {
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/meta-cleaner.sh"
+  content = data.template_file.meta_cleaner_sh.rendered
+}
+data "template_file" "meta_cleaner_sh" {
+  template = file(format("%s/meta-cleaner.sh", path.module))
+  vars = {
+    hbase_meta    = format("s3://%s/business-data/single-topic-per-table-hbase/data/hbase/meta_", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
+    metatable_name = local.dynamo_meta_name
+  }
+}
+
+
+
 // TODO Ticket created to replace this https://projects.ucd.gpn.gov.uk/browse/DW-3765
 data "aws_acm_certificate" "analytical-dataset-generator" {
   domain = "analytical-dataset-generator.${local.root_dns_name[local.environment]}"
