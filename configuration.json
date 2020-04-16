@@ -14,17 +14,6 @@
     }
   },
   {
-    "Classification": "spark-env",
-    "Configurations": [
-      {
-        "Classification": "export",
-        "Properties": {
-          "PYSPARK_PYTHON": "/usr/bin/python3"
-        }
-      }
-    ]
-  },
-  {
     "Classification": "spark-defaults",
     "Properties": {
       "spark.sql.catalogImplementation": "hive",
@@ -73,10 +62,13 @@
   {
     "Classification": "emrfs-site",
     "Properties": {
+      "fs.s3.consistent": "true",
+      "fs.s3.consistent.metadata.read.capacity": "800",
+      "fs.s3.consistent.metadata.write.capacity": "200",
+      "fs.s3.maxConnections": "10000",
       "fs.s3.consistent.retryPeriodSeconds": "3",
       "fs.s3.consistent.retryCount": "5",
-      "fs.s3.consistent": "false",
-      "fs.s3.consistent.metadata.tableName": "DataGen-metadata",
+      "fs.s3.consistent.metadata.tableName": "${dynamo_meta_table}",
       "fs.s3.cse.materialsDescription.enabled": "true"
     }
   }

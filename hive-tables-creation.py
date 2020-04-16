@@ -1,6 +1,10 @@
 import boto3
 
 client = boto3.client('glue')
+client.delete_table(
+    DatabaseName='analytical_dataset_generation',
+    Name='core_contract_hbase'
+)
 client.create_table(
     DatabaseName='analytical_dataset_generation',
     TableInput={
