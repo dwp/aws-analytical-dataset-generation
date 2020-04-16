@@ -194,7 +194,6 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     ]
   }
 
-
   statement {
     effect = "Allow"
 
@@ -207,8 +206,8 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     ]
 
     resources = [
-      "${aws_s3_bucket.published.arn}/*",
-      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}/business-data/single-topic-per-table-hbase/data/hbase/meta_*",
+      "${aws_kms_key.published_bucket_cmk.arn}",
+      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.input_bucket_cmk}/business-data/single-topic-per-table-hbase/data/hbase/meta_*",
     ]
   }
 
@@ -222,8 +221,8 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     ]
 
     resources = [
-      "${data.terraform_remote_state.common.outputs.config_bucket.arn}/component/analytical-dataset-generation/*",
-      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}/business-data/single-topic-per-table-hbase/*",
+      "${data.terraform_remote_state.common.outputs.config_bucket_cmk.arn}/component/analytical-dataset-generation/*",
+      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.input_bucket_cmk}/business-data/single-topic-per-table-hbase/*",
     ]
   }
 
