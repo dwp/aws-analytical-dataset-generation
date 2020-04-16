@@ -36,7 +36,7 @@ data "template_file" "emr_setup_sh" {
     aws_default_region = "eu-west-2"
     full_proxy         = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
     full_no_proxy      = "127.0.0.1,localhost,169.254.169.254,*.s3.eu-west-2.amazonaws.com,s3.eu-west-2.amazonaws.com,sns.eu-west-2.amazonaws.com,sqs.eu-west-2.amazonaws.com,eu-west-2.queue.amazonaws.com,glue.eu-west-2.amazonaws.com,sts.eu-west-2.amazonaws.com,*.eu-west-2.compute.internal,dynamodb.eu-west-2.amazonaws.com"
-    acm_cert_arn       = data.aws_acm_certificate.htme.arn
+    acm_cert_arn       = data.aws_acm_certificate.analytical-dataset-generator.arn
     private_key_alias  = "private_key"
     truststore_aliases = join(",", var.truststore_aliases)
     truststore_certs   = "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem,s3://dw-management-dev-public-certificates/ca_certificates/dataworks/ca.pem,s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem",
@@ -55,7 +55,7 @@ resource "aws_s3_bucket_object" "meta_cleaner_sh" {
 data "template_file" "meta_cleaner_sh" {
   template = file(format("%s/meta-cleaner.sh", path.module))
   vars = {
-    hbase_meta    = format("s3://%s/business-data/single-topic-per-table-hbase/data/hbase/meta_", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
+    hbase_meta     = format("s3://%s/business-data/single-topic-per-table-hbase/data/hbase/meta_", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
     metatable_name = local.dynamo_meta_name
   }
 }
@@ -63,8 +63,8 @@ data "template_file" "meta_cleaner_sh" {
 
 
 // TODO Ticket created to replace this https://projects.ucd.gpn.gov.uk/browse/DW-3765
-data "aws_acm_certificate" "htme" {
-  domain = "htme.${local.root_dns_name[local.environment]}"
+data "aws_acm_certificate" "analytical-dataset-generator" {
+  domain = "analytical-dataset-generator.${local.root_dns_name[local.environment]}"
 }
 
 resource "aws_s3_bucket_object" "create-hive-tables" {
@@ -77,6 +77,6 @@ resource "aws_s3_bucket_object" "create-hive-tables" {
 data "template_file" "create-hive-tables" {
   template = file(format("%s/hive-tables-creation.py", path.module))
   vars = {
-    bucket     = aws_s3_bucket.published.id
+    bucket = aws_s3_bucket.published.id
   }
 }
