@@ -54,6 +54,7 @@ resource "aws_emr_cluster" "cluster" {
     hbase_root_path    = format("s3://%s/business-data/single-topic-per-table-hbase", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
     hive_external_path = format("s3://%s/analytical-dataset/hive/external", aws_s3_bucket.published.id)
     proxy_host         = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
+    dynamo_meta_table  = local.dynamo_meta_name
   })
 
   step {
@@ -97,6 +98,18 @@ resource "aws_emr_cluster" "cluster" {
       ]
     }
   }
+  //TODO currently commented out to see whether a cleanup is necessary. If it is, implement backlog ticket https://projects.ucd.gpn.gov.uk/browse/DW-3821
+  //  step {
+  //    name              = "meta-cleanup"
+  //    action_on_failure = "CONTINUE"
+  //    hadoop_jar_step {
+  //      jar = "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+  //      args = [
+  //        format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.meta_cleaner_sh.key)
+  //      ]
+  //    }
+  //  }
+
 
   depends_on = [
     aws_s3_bucket_object.generate-analytical-dataset-script

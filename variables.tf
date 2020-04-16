@@ -18,7 +18,7 @@ variable "termination_protection" {
 variable "keep_flow_alive" {
   description = "Indicates whether to keep job flow alive when no active steps"
   type        = bool
-  default     = true
+  default     = true //TODO set this to false when you want the cluster to autoterminate when final step completes
 }
 
 variable "truststore_aliases" {
