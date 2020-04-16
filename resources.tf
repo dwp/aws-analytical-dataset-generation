@@ -161,7 +161,7 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     resources = [
       aws_s3_bucket.published.arn,
       "${data.terraform_remote_state.common.outputs.config_bucket.arn}",
-      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}"
+      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}",
     ]
   }
 
