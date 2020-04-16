@@ -62,6 +62,6 @@ resource "aws_s3_bucket_object" "create-hive-tables" {
 data "template_file" "create-hive-tables" {
   template = file(format("%s/hive-tables-creation.py", path.module))
   vars = {
-    bucket     = aws_s3_bucket.published.id
+    bucket = aws_s3_bucket.published.id
   }
 }

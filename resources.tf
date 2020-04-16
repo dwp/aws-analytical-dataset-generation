@@ -152,7 +152,6 @@ resource "aws_iam_role_policy_attachment" "ec2_for_ssm_attachment" {
 #        Create and attach custom policy
 data "aws_iam_policy_document" "analytical_dataset_write_s3" {
 
-
   statement {
     effect = "Allow"
 
@@ -204,8 +203,6 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "iam:ListRolePolicies",
       "iam:PassRole",
       "s3:CreateBucket",
-      "sdb:BatchPutAttributes",
-      "sdb:Select",
       "sqs:CreateQueue",
       "sqs:Delete*",
       "sqs:GetQueue*",
@@ -252,11 +249,24 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "elasticmapreduce:ListInstances",
       "elasticmapreduce:ListSteps",
       "acm:ExportCertificate",
-      "ds:CreateComputer",
-      "ds:DescribeDirectories",
       "logs:*",
-      "secretsmanager:*",
-      "kms:*",
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey",
+      "kms:ListKeys",
+      "kms:ListAliases",
+      "kms:Create*",
+      "secretsmanager:ListSecrets",
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:GetRandomPassword",
+      "secretsmanager:GetResourcePolicy",
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:ListSecretVersionIds",
+      "secretsmanager:CreateSecret",
+      "secretsmanager:TagResource",
+      "secretsmanager:UntagResource",
     ]
 
     resources = [
