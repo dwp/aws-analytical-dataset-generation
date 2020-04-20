@@ -4,6 +4,8 @@ jobs:
       - get: aws-analytical-dataset-generation-pr
         trigger: true
         version: every
+      - get: emr-launcher-release
+        trigger: true
       - put: aws-analytical-dataset-generation-pr
         params:
           context: $BUILD_JOB_NAME
@@ -36,6 +38,7 @@ jobs:
               - |
                 cp ../terraform-config/terraform.tf .
                 cp ../terraform-config/terraform.tfvars .
+                export TF_VAR_adg_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
                 terraform init
                 # TODO: change to QA once we start deploying there
                 terraform workspace select default
