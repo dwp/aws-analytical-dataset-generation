@@ -210,6 +210,7 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "kms:DescribeKey",
       "kms:List*",
       "kms:Create*",
+      "kms:Put*",
       "secretsmanager:List*",
       "secretsmanager:DescribeSecret",
       "secretsmanager:Get*",
