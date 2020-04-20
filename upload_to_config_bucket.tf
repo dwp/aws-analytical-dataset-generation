@@ -26,7 +26,7 @@ data "template_file" "analytical_dataset_generator_cluster_payload" {
 }
 resource "aws_s3_bucket_object" "emr_setup_sh" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
-  key     = "component/emr-setup.sh"
+  key     = "component/analytical-dataset-generation/emr-setup.sh"
   content = data.template_file.emr_setup_sh.rendered
 }
 
@@ -49,7 +49,7 @@ data "template_file" "emr_setup_sh" {
 
 resource "aws_s3_bucket_object" "meta_cleaner_sh" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
-  key     = "component/meta-cleaner.sh"
+  key     = "component/analytical-dataset-generation/meta-cleaner.sh"
   content = data.template_file.meta_cleaner_sh.rendered
 }
 data "template_file" "meta_cleaner_sh" {
@@ -69,7 +69,7 @@ data "aws_acm_certificate" "analytical-dataset-generator" {
 
 resource "aws_s3_bucket_object" "create-hive-tables" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
-  key        = "component/create-hive-tables.py"
+  key        = "component/analytical-dataset-generation/create-hive-tables.py"
   content    = data.template_file.create-hive-tables.rendered
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
@@ -78,5 +78,19 @@ data "template_file" "create-hive-tables" {
   template = file(format("%s/hive-tables-creation.py", path.module))
   vars = {
     bucket = aws_s3_bucket.published.id
+    collections = data.template_file.collections_csv.rendered
+  }
+}
+
+
+resource "aws_s3_bucket_object" "collections_csv" {
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/collections.csv"
+  content = data.template_file.collections_csv.rendered
+}
+data "template_file" "collections_csv" {
+  template = file(format("%s/collections.csv", path.module))
+  vars = {
+    #collections = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.collections_csv.key)
   }
 }
