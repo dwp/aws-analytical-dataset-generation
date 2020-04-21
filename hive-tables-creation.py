@@ -3,34 +3,35 @@ import csv
 
 collections = []
 DatabaseName = "analytical_dataset_generation"
-with open ('collections.csv', 'rb') as csvfile:
-    spamreader = csv.reader(csvfile, delimiter=',')
-    for row in spamreader:
-        collections.append(row)
-        #print ', '.join(row)
+with open("collections.csv", "rb") as csvfile:
+    reader = csv.reader(csvfile, delimiter=",")
+    for row in reader:
+        collections.append(row[0])
+        # print ', '.join(row)
 
 client = boto3.client("glue")
 
 
 for collection in collections:
     collection_hbase = collection + "_hbase"
-    #make connection to happybase and check if table exists before creating it
-    if client.get_table(DatabaseName=DatabaseName, Name= collection_hbase):
-        client.delete_table(
-            DatabaseName=DatabaseName, Name = collection_hbase
-        )
+    # TODO make connection to happybase and check if table exists before creating it
+    try:
+        client.delete_table(DatabaseName=DatabaseName, Name=collection_hbase)
+    except Exception as e:
+        print(e)
 
     client.create_table(
         DatabaseName=DatabaseName,
         TableInput={
-            "Name":collection_hbase,
+            "Name": collection_hbase,
             "Description": "Hive table to access hbase table " + collection,
             "StorageDescriptor": {
                 "Columns": [
                     {"Name": "rowkey", "Type": "string"},
                     {"Name": "data", "Type": "string"},
                 ],
-                "Location": "s3://${bucket}/analytical-dataset/hive/external/" + collection_hbase,
+                "Location": "s3://${bucket}/analytical-dataset/hive/external/"
+                + collection_hbase,
                 "Compressed": False,
                 "NumberOfBuckets": -1,
                 "SerdeInfo": {
