@@ -84,10 +84,10 @@ data "aws_iam_policy_document" "published_bucket_kms_key" {
     }
 
     actions = [
-      "kms:Put*",
       "kms:Describe*",
       "kms:List*",
       "kms:Get*",
+      "kms:Put*",
       "kms:Create*"
     ]
 
@@ -126,8 +126,7 @@ data "aws_iam_policy_document" "published_bucket_kms_key" {
      "kms:Decrypt",
      "kms:ReEncrypt*",
      "kms:GenerateDataKey*",
-     "kms:DescribeKey",
-     "kms:CreateGrant"
+     "kms:DescribeKey"
     ]
 
     resources = ["*"]
@@ -144,11 +143,11 @@ data "aws_iam_policy_document" "published_bucket_kms_key" {
     }
 
     actions = [
-      "kms:Describe*",
-      "kms:Get*",
-      "kms:List*",
-      "kms:Decrypt*",
-      "kms:Encrypt*",
+     "kms:Encrypt",
+     "kms:Decrypt",
+     "kms:ReEncrypt*",
+     "kms:GenerateDataKey*",
+     "kms:DescribeKey"
     ]
 
     resources = ["*"]
