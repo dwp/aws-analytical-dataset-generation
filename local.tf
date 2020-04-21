@@ -44,6 +44,14 @@ locals {
     production  = "dataworks.dwp.gov.uk"
   }
 
+  emp_version = {
+    development = "0.0.6-all"
+    qa          = "0.0.6-all"
+    integration = "0.0.6-all"
+    preprod     = "0.0.6-all"
+    production  = "0.0.6-all"
+  }
+
 }
 
 
