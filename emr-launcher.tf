@@ -77,8 +77,6 @@ data "aws_iam_policy_document" "adg_emr_launcher_runjobflow_policy" {
   }
 }
 
-
-
 data "aws_iam_policy_document" "adg_emr_launcher_pass_role_document" {
   statement {
     effect = "Allow"
@@ -109,11 +107,6 @@ resource "aws_iam_policy" "adg_emr_launcher_pass_role_policy" {
   policy      = data.aws_iam_policy_document.adg_emr_launcher_pass_role_document.json
 }
 
-resource "aws_iam_role_policy_attachment" "adg_emr_launcher_pass_role_attachment" {
-  role       = aws_iam_role.adg_emr_launcher_lambda_role.name
-  policy_arn = aws_iam_policy.adg_emr_launcher_pass_role_policy.arn
-}
-
 resource "aws_iam_role_policy_attachment" "adg_emr_launcher_read_secrets_attachment" {
   role       = aws_iam_role.adg_emr_launcher_lambda_role.name
   policy_arn = aws_iam_policy.adg_emr_launcher_read_secrets_policy.arn
@@ -122,6 +115,11 @@ resource "aws_iam_role_policy_attachment" "adg_emr_launcher_read_secrets_attachm
 resource "aws_iam_role_policy_attachment" "adg_emr_launcher_runjobflow_attachment" {
   role       = aws_iam_role.adg_emr_launcher_lambda_role.name
   policy_arn = aws_iam_policy.adg_emr_launcher_runjobflow_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "adg_emr_launcher_pass_role_attachment" {
+  role       = aws_iam_role.adg_emr_launcher_lambda_role.name
+  policy_arn = aws_iam_policy.adg_emr_launcher_pass_role_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "adg_emr_launcher_policy_execution" {
