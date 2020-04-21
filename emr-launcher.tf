@@ -89,6 +89,7 @@ data "aws_iam_policy_document" "adg_emr_launcher_pass_role_document" {
   }
 }
 
+
 resource "aws_iam_policy" "adg_emr_launcher_read_secrets_policy" {
   name        = "ADGReadSecrets"
   description = "Allow ADG to read secrets"
