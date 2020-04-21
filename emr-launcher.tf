@@ -75,13 +75,13 @@ data "aws_iam_policy_document" "adg_emr_launcher_pass_role_document" {
 }
 
 resource "aws_iam_policy" "adg_emr_launcher_read_secrets_policy" {
-  name        = "AdgReadSecrets"
+  name        = "ADGReadSecrets"
   description = "Allow ADG to read secrets"
   policy      = data.aws_iam_policy_document.adg_emr_launcher_read_secret_policy.json
 }
 
 resource "aws_iam_policy" "adg_emr_launcher_pass_role_policy" {
-  name        = "AdgPassRole"
+  name        = "ADGPassRole"
   description = "Allow ADG to pass role"
   policy      = data.aws_iam_policy_document.adg_emr_launcher_pass_role_document.json
 }
