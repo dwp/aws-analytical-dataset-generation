@@ -88,8 +88,7 @@ data "aws_iam_policy_document" "published_bucket_kms_key" {
       "kms:Describe*",
       "kms:List*",
       "kms:Get*",
-      "kms:Create*",
-      "kms:TagResource"
+      "kms:Create*"
     ]
 
     resources = ["*"]
