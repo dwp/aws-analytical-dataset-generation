@@ -1,5 +1,11 @@
 import boto3
+import csv
 
+
+with open ('collections.csv', 'rb') as csvfile:
+    spamreader = csv.reader(csvfile, delimiter=',',)
+    for row in spamreader:
+        print ', '.join(row)
 client = boto3.client("glue")
 client.delete_table(
     DatabaseName="analytical_dataset_generation", Name="core_contract_hbase"

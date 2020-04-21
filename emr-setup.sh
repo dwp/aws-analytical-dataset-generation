@@ -27,6 +27,8 @@ export NO_PROXY="$FULL_NO_PROXY"
 export ACM_KEY_PASSWORD=$(uuidgen -r)
 
 aws s3 cp "${hive-scripts-path}"  .
+aws s3 cp "${collections_list}"  .
+
 /usr/bin/python create-hive-tables.py
 
 sudo mkdir -p /opt/emr
