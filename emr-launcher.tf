@@ -53,14 +53,31 @@ data "aws_iam_policy_document" "adg_emr_launcher_read_secret_policy" {
   statement {
     effect = "Allow"
     actions = [
-      "secretsmanager:*",
-      "elasticmapreduce:*"
+      "secretsmanager:GetSecretValue",
+    ]
+    resources = [
+      data.aws_secretsmanager_secret.secret.arn
+    ]
+  }
+}
+
+data "aws_secretsmanager_secret" "secret" {
+  name = "EMR-Launcher-Payload"
+}
+
+data "aws_iam_policy_document" "adg_emr_launcher_runjobflow_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "elasticmapreduce:RunJobFlow",
     ]
     resources = [
       "*"
     ]
   }
 }
+
+
 
 data "aws_iam_policy_document" "adg_emr_launcher_pass_role_document" {
   statement {
@@ -80,6 +97,12 @@ resource "aws_iam_policy" "adg_emr_launcher_read_secrets_policy" {
   policy      = data.aws_iam_policy_document.adg_emr_launcher_read_secret_policy.json
 }
 
+resource "aws_iam_policy" "adg_emr_launcher_runjobflow_policy" {
+  name        = "ADGRunJobFlow"
+  description = "Allow ADG to run job flow"
+  policy      = data.aws_iam_policy_document.adg_emr_launcher_runjobflow_policy.json
+}
+
 resource "aws_iam_policy" "adg_emr_launcher_pass_role_policy" {
   name        = "ADGPassRole"
   description = "Allow ADG to pass role"
@@ -94,6 +117,11 @@ resource "aws_iam_role_policy_attachment" "adg_emr_launcher_pass_role_attachment
 resource "aws_iam_role_policy_attachment" "adg_emr_launcher_read_secrets_attachment" {
   role       = aws_iam_role.adg_emr_launcher_lambda_role.name
   policy_arn = aws_iam_policy.adg_emr_launcher_read_secrets_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "adg_emr_launcher_runjobflow_attachment" {
+  role       = aws_iam_role.adg_emr_launcher_lambda_role.name
+  policy_arn = aws_iam_policy.adg_emr_launcher_runjobflow_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "adg_emr_launcher_policy_execution" {
