@@ -38,7 +38,7 @@ resource "aws_iam_role" "adg_emr_launcher_lambda_role" {
 
 data "aws_iam_policy_document" "adg_emr_launcher_assume_policy" {
   statement {
-    sid    = "AdgEmrLauncherLambdaAssumeRolePolicy"
+    sid    = "ADGEmrLauncherLambdaAssumeRolePolicy"
     effect = "Allow"
     actions = ["sts:AssumeRole"]
 
