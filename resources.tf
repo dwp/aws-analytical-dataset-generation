@@ -84,11 +84,12 @@ data "aws_iam_policy_document" "published_bucket_kms_key" {
     }
 
     actions = [
+      "kms:Put*",
       "kms:Describe*",
       "kms:List*",
-      "kms:Create*",
-      "kms:Put*",
       "kms:Get*",
+      "kms:Create*",
+      "kms:TagResource"
     ]
 
     resources = ["*"]
@@ -106,7 +107,7 @@ data "aws_iam_policy_document" "published_bucket_kms_key" {
     actions = [
       "kms:Describe*",
       "kms:Get*",
-      "kms:List*",
+      "kms:List*"
     ]
 
     resources = ["*"]      
@@ -115,21 +116,23 @@ data "aws_iam_policy_document" "published_bucket_kms_key" {
   statement {
     sid    = "EnableIAMPermissionsAnalyticDatasetGen"
     effect = "Allow"
-
+    
     principals {
       type        = "AWS"
       identifiers = [aws_iam_role.analytical_dataset_generator.arn]
     }
 
     actions = [
-      "kms:Describe*",
-      "kms:Get*",
-      "kms:List*",
-      "kms:Decrypt*",
-      "kms:Encrypt*",
+     "kms:Encrypt",
+     "kms:Decrypt",
+     "kms:ReEncrypt*",
+     "kms:GenerateDataKey*",
+     "kms:DescribeKey",
+     "kms:CreateGrant"
     ]
 
     resources = ["*"]
+    
   }
 
   statement {
