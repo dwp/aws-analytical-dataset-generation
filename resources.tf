@@ -5,14 +5,14 @@ resource "aws_kms_key" "published_bucket_cmk" {
   enable_key_rotation     = true
 
   tags = merge(
-  local.tags,
-  {
-    Name = "published_bucket_cmk"
-  },
-  {
-    #TODO add custom key policy if required DW-3607
-    requires-custom-key-policy = "False"
-  }
+    local.tags,
+    {
+      Name = "published_bucket_cmk"
+    },
+    {
+      #TODO add custom key policy if required DW-3607
+      requires-custom-key-policy = "False"
+    }
   )
 }
 
@@ -156,117 +156,12 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     effect = "Allow"
 
     actions = [
-      "ec2:AuthorizeSecurityGroupEgress",
-      "ec2:AuthorizeSecurityGroupIngress",
-      "ec2:CancelSpotInstanceRequests",
-      "ec2:CreateNetworkInterface",
-      "ec2:CreateSecurityGroup",
-      "ec2:CreateTags",
-      "ec2:DeleteNetworkInterface",
-      "ec2:DeleteSecurityGroup",
-      "ec2:DeleteTags",
-      "ec2:DescribeAvailabilityZones",
-      "ec2:DescribeAccountAttributes",
-      "ec2:DescribeDhcpOptions",
-      "ec2:DescribeImages",
-      "ec2:DescribeInstanceStatus",
-      "ec2:DescribeInstances",
-      "ec2:DescribeKeyPairs",
-      "ec2:DescribeNetworkAcls",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DescribePrefixLists",
-      "ec2:DescribeRouteTables",
-      "ec2:DescribeSecurityGroups",
-      "ec2:DescribeSpotInstanceRequests",
-      "ec2:DescribeSpotPriceHistory",
-      "ec2:DescribeSubnets",
-      "ec2:DescribeTags",
-      "ec2:DescribeVpcAttribute",
-      "ec2:DescribeVpcEndpoints",
-      "ec2:DescribeVpcEndpointServices",
-      "ec2:DescribeVpcs",
-      "ec2:DetachNetworkInterface",
-      "ec2:ModifyImageAttribute",
-      "ec2:ModifyInstanceAttribute",
-      "ec2:RequestSpotInstances",
-      "ec2:RevokeSecurityGroupEgress",
-      "ec2:RunInstances",
-      "ec2:TerminateInstances",
-      "ec2:DeleteVolume",
-      "ec2:DescribeVolumeStatus",
-      "ec2:DescribeVolumes",
-      "ec2:DetachVolume",
-      "ec2:GetEbsDefaultKmsKeyId",
-      "iam:GetRole",
-      "iam:GetRolePolicy",
-      "iam:ListInstanceProfiles",
-      "iam:ListRolePolicies",
-      "iam:PassRole",
-      "s3:CreateBucket",
-      "sqs:CreateQueue",
-      "sqs:Delete*",
-      "sqs:GetQueue*",
-      "sqs:PurgeQueue",
-      "sqs:ReceiveMessage",
-      "cloudwatch:PutMetricAlarm",
-      "cloudwatch:DescribeAlarms",
-      "cloudwatch:DeleteAlarms",
-      "application-autoscaling:RegisterScalableTarget",
-      "application-autoscaling:DeregisterScalableTarget",
-      "application-autoscaling:PutScalingPolicy",
-      "application-autoscaling:DeleteScalingPolicy",
-      "application-autoscaling:Describe*",
-      "elasticmapreduce:ListInstanceGroups",
-      "elasticmapreduce:ModifyInstanceGroups",
-      "dynamodb:*",
-      "glue:CreateDatabase",
-      "glue:UpdateDatabase",
-      "glue:DeleteDatabase",
-      "glue:GetDatabase",
-      "glue:GetDatabases",
       "glue:CreateTable",
-      "glue:UpdateTable",
       "glue:DeleteTable",
-      "glue:GetTable",
-      "glue:GetTables",
-      "glue:GetTableVersions",
-      "glue:CreatePartition",
-      "glue:BatchCreatePartition",
-      "glue:UpdatePartition",
-      "glue:DeletePartition",
-      "glue:BatchDeletePartition",
-      "glue:GetPartition",
-      "glue:GetPartitions",
-      "glue:BatchGetPartition",
-      "glue:CreateUserDefinedFunction",
-      "glue:UpdateUserDefinedFunction",
-      "glue:DeleteUserDefinedFunction",
-      "glue:GetUserDefinedFunction",
-      "glue:GetUserDefinedFunctions",
-      "elasticmapreduce:Describe*",
-      "elasticmapreduce:ListBootstrapActions",
-      "elasticmapreduce:ListClusters",
-      "elasticmapreduce:ListInstances",
-      "elasticmapreduce:ListSteps",
       "acm:ExportCertificate",
-      "logs:*",
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
-      "kms:ListKeys",
-      "kms:ListAliases",
-      "kms:Create*",
       "secretsmanager:ListSecrets",
       "secretsmanager:DescribeSecret",
-      "secretsmanager:GetRandomPassword",
-      "secretsmanager:GetResourcePolicy",
       "secretsmanager:GetSecretValue",
-      "secretsmanager:ListSecretVersionIds",
-      "secretsmanager:CreateSecret",
-      "secretsmanager:TagResource",
-      "secretsmanager:UntagResource",
     ]
 
     resources = [
@@ -344,7 +239,7 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
 
     resources = [
       "${aws_kms_key.published_bucket_cmk.arn}",
-      "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}/business-data/single-topic-per-table-hbase/data/hbase/meta_*",
+      "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}",
     ]
   }
 
@@ -357,8 +252,8 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     ]
 
     resources = [
-      "${data.terraform_remote_state.common.outputs.config_bucket_cmk.arn}/component/analytical-dataset-generation/*",
-      "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}/business-data/single-topic-per-table-hbase/*",
+      "${data.terraform_remote_state.common.outputs.config_bucket_cmk.arn}",
+      "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}",
     ]
   }
 
