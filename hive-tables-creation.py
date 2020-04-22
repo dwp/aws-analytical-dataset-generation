@@ -6,8 +6,7 @@ DatabaseName = "analytical_dataset_generation"
 with open("collections.csv", "rb") as csvfile:
     reader = csv.reader(csvfile, delimiter=",")
     for row in reader:
-        collections.append(row[0])
-        # print ', '.join(row)
+        collections.append(row[0].replace(":", "_"))
 
 client = boto3.client("glue")
 
@@ -45,7 +44,7 @@ for collection in collections:
             },
             "TableType": "EXTERNAL_TABLE",
             "Parameters": {
-                "hbase.table.name": collection,
+                "hbase.table.name": collection.replace("_", ":"),
                 "storage_handler": "org.apache.hadoop.hive.hbase.HBaseStorageHandler",
                 "EXTERNAL": "True",
             },

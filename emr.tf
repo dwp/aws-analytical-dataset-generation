@@ -82,6 +82,17 @@ resource "aws_emr_cluster" "cluster" {
   }
 
   step {
+    name              = "hive-setup"
+    action_on_failure = "CONTINUE"
+    hadoop_jar_step {
+      jar = "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+      args = [
+        format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.hive_setup_sh.key)
+      ]
+    }
+  }
+
+  step {
     name              = "submit-job"
     action_on_failure = "CONTINUE"
     hadoop_jar_step {
@@ -99,16 +110,16 @@ resource "aws_emr_cluster" "cluster" {
     }
   }
   //TODO currently commented out to see whether a cleanup is necessary. If it is, implement backlog ticket https://projects.ucd.gpn.gov.uk/browse/DW-3821
-  //  step {
-  //    name              = "meta-cleanup"
-  //    action_on_failure = "CONTINUE"
-  //    hadoop_jar_step {
-  //      jar = "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
-  //      args = [
-  //        format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.meta_cleaner_sh.key)
-  //      ]
-  //    }
-  //  }
+//    step {
+//      name              = "meta-cleanup"
+//      action_on_failure = "CONTINUE"
+//      hadoop_jar_step {
+//        jar = "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+//        args = [
+//          format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.meta_cleaner_sh.key)
+//        ]
+//      }
+//    }
 
 
   depends_on = [
