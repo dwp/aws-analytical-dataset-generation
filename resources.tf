@@ -377,6 +377,31 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     resources = [data.terraform_remote_state.security-tools.outputs.ebs_cmk.arn]
   }
 
+  statement {
+    sid       = "AllowAccessToArtefactBucket"
+    effect    = "Allow"
+    actions   = ["s3:GetBucketLocation"]
+    resources = [data.terraform_remote_state.management_artefact.outputs.artefact_bucket.arn]
+  }
+
+  statement {
+    sid       = "AllowPullFromArtefactBucket"
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = ["${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.arn}/*"]
+  }
+
+  statement {
+    sid    = "AllowDecryptArtefactBucket"
+    effect = "Allow"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+    ]
+
+    resources = [data.terraform_remote_state.management_artefact.outputs.artefact_bucket.cmk_arn]
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {

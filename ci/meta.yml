@@ -52,6 +52,7 @@ meta:
             - |
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
+              export TF_VAR_adg_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
               terraform init
               terraform workspace show
               terraform plan -out terraform.plan
@@ -59,6 +60,7 @@ meta:
         inputs:
           - name: aws-analytical-dataset-generation
           - name: terraform-config
+          - name: emr-launcher-release
     terraform-plan:
       task: terraform-plan
       config:
@@ -83,12 +85,14 @@ meta:
             - |
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
+              export TF_VAR_adg_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
               terraform init
               terraform workspace show
               terraform plan -detailed-exitcode
         inputs:
           - name: aws-analytical-dataset-generation
           - name: terraform-config
+          - name: emr-launcher-release
     terraform-output-internal-compute:
       task: terraform-output-internal-compute
       config:
