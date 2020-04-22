@@ -40,7 +40,7 @@ data "template_file" "emr_setup_sh" {
     private_key_alias  = "private_key"
     truststore_aliases = join(",", var.truststore_aliases)
     truststore_certs   = "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem,s3://dw-management-dev-public-certificates/ca_certificates/dataworks/ca.pem,s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem",
-    dks_endpoint = local.dks_endpoint
+    dks_endpoint       = data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment]
   }
 }
 
@@ -102,7 +102,5 @@ resource "aws_s3_bucket_object" "collections_csv" {
 data "template_file" "collections_csv" {
   template = file(format("%s/collections.csv", path.module))
   vars = {
-
-    #collections = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.collections_csv.key)
   }
 }
