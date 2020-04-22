@@ -1,13 +1,5 @@
 #!/usr/bin/env bash
 
-# Only execute below here on an EMR Master node
-if [[ $(grep "isMaster" /mnt/var/lib/info/instance.json | grep true) ]]; then
-    echo "I am a Master"
-else
-    echo "I am a Slave, exiting"
-    exit 0
-fi
-
 echo -n "Running as: "
 whoami
 
@@ -28,13 +20,39 @@ export ACM_KEY_PASSWORD=$(uuidgen -r)
 
 
 
+## get dks cert
+export TRUSTSTORE_PASSWORD=$(uuidgen -r)
+export KEYSTORE_PASSWORD=$(uuidgen -r)
+export PRIVATE_KEY_PASSWORD=$(uuidgen -r)
+export ACM_KEY_PASSWORD=$(uuidgen -r)
+
 sudo mkdir -p /opt/emr
 sudo chown hadoop:hadoop /opt/emr
 touch /opt/emr/dks.properties
 cat >> /opt/emr/dks.properties <<EOF
+identity.store.alias=${private_key_alias}
+identity.key.password=$PRIVATE_KEY_PASSWORD
 spark.ssl.fs.enabled=true
+spark.ssl.keyPassword=$KEYSTORE_PASSWORD
+identity.keystore=/opt/emr/keystore.jks
+identity.store.password=$KEYSTORE_PASSWORD
+trust.keystore=/opt/emr/truststore.jks
+trust.store.password=$TRUSTSTORE_PASSWORD
 data.key.service.url=${dks_endpoint}
 EOF
+
+/usr/local/bin/acm-cert-retriever \
+    --acm-cert-arn "${acm_cert_arn}" \
+    --acm-key-passphrase "$ACM_KEY_PASSWORD" \
+    --keystore-path "/opt/emr/keystore.jks" \
+    --keystore-password "$KEYSTORE_PASSWORD" \
+    --private-key-alias "${private_key_alias}" \
+    --private-key-password "$PRIVATE_KEY_PASSWORD" \
+    --truststore-path "/opt/emr/truststore.jks" \
+    --truststore-password "$TRUSTSTORE_PASSWORD" \
+    --truststore-aliases "${truststore_aliases}" \
+    --truststore-certs "${truststore_certs}" \
+    --jks-only true
 
 sudo -E /usr/local/bin/acm-cert-retriever \
     --acm-cert-arn "${acm_cert_arn}" \

@@ -44,3 +44,11 @@ resources:
       branch: master
       private_key: ((svc-dip.private_key))
       uri: git@github.ucds.io:dip/aws-internal-compute.git
+  - name: emr-launcher-release
+    type: github-release
+    source:
+      owner: dwp
+      repository: emr-launcher
+      access_token: ((github_com.token))
+    check_every: 1h
+    webhook_token: ((ucfs-github.webhook-token))

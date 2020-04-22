@@ -5,10 +5,10 @@ resource "aws_emr_cluster" "cluster" {
   termination_protection            = var.termination_protection
   keep_job_flow_alive_when_no_steps = var.keep_flow_alive
   //TODO The below is need for transparent encryption/decryption when insecure DKS is set up
-  //security_configuration            = aws_emr_security_configuration.emrfs_em.id
-  service_role         = aws_iam_role.analytical_dataset_generator.arn
-  log_uri              = format("s3n://%s/logs/", data.terraform_remote_state.security-tools.outputs.logstore_bucket.id)
-  ebs_root_volume_size = local.ebs_root_volume_size
+  security_configuration = aws_emr_security_configuration.emrfs_em.id
+  service_role           = aws_iam_role.analytical_dataset_generator.arn
+  log_uri                = format("s3n://%s/logs/", data.terraform_remote_state.security-tools.outputs.logstore_bucket.id)
+  ebs_root_volume_size   = local.ebs_root_volume_size
   //TODO Does this cluster autoscales?
   //autoscaling_role                  = aws_iam_role.emr_autoscaling_role.arn
   tags = merge({ "Name" = local.emr_cluster_name, "SSMEnabled" = "True" }, local.common_tags)
@@ -46,6 +46,11 @@ resource "aws_emr_cluster" "cluster" {
     }
   }
 
+  bootstrap_action {
+    name = "get-dks-cert"
+    path = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.emr_setup_sh.key)
+  }
+
   // TODO use templated proxy env vars
   configurations_json = templatefile(format("%s/configuration.json", path.module), {
     logs_bucket_path = format("s3://%s/logs", data.terraform_remote_state.security-tools.outputs.logstore_bucket.id)
@@ -57,16 +62,6 @@ resource "aws_emr_cluster" "cluster" {
     dynamo_meta_table  = local.dynamo_meta_name
   })
 
-  step {
-    name              = "emr-setup"
-    action_on_failure = "CONTINUE"
-    hadoop_jar_step {
-      jar = "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
-      args = [
-        format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.emr_setup_sh.key)
-      ]
-    }
-  }
 
   step {
     name              = "copy-hbase-configuration"
@@ -132,4 +127,25 @@ resource "aws_emr_cluster" "cluster" {
       ec2_attributes
     ]
   }
+}
+
+locals {
+  emrfs_em = {
+    EncryptionConfiguration = {
+      EnableInTransitEncryption = false
+      EnableAtRestEncryption = true
+      AtRestEncryptionConfiguration = {
+        S3EncryptionConfiguration = {
+          EncryptionMode             = "CSE-Custom"
+          S3Object                   = "s3://${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id}/emr-encryption-materials-provider/encryption-materials-provider-${local.emp_version[local.environment]}.jar"
+          EncryptionKeyProviderClass = "uk.gov.dwp.dataworks.dks.encryptionmaterialsprovider.DKSEncryptionMaterialsProvider"
+        }
+      }
+    }
+  }
+}
+
+resource "aws_emr_security_configuration" "emrfs_em" {
+  name          = md5(jsonencode(local.emrfs_em))
+  configuration = jsonencode(local.emrfs_em)
 }
