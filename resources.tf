@@ -229,20 +229,6 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_secretsmanager
 
 data "aws_iam_policy_document" "analytical_dataset_write_s3" {
 
-  /*  statement {
-    effect = "Allow"
-
-    actions = [
-      "glue:CreateTable",
-      "glue:DeleteTable",
-      "acm:ExportCertificate",
-      "secretsmanager:GetSecretValue",
-    ]
-
-    resources = [
-      "*"
-    ]
-  }*/
   statement {
     effect = "Allow"
 
