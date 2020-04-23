@@ -27,7 +27,7 @@ def main():
         .enableHiveSupport()
         .getOrCreate()
     )
-    adg_hive_table = "analytical_dataset_generation.core_contract_hbase"
+    adg_hive_table = "analytical_dataset_generation_staging.core_contract_hbase"
     adg_hive_select_query = "select * from %s" % adg_hive_table
     df = spark.sql(adg_hive_select_query)
     keys_map = {}
