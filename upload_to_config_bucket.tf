@@ -26,7 +26,7 @@ data "template_file" "analytical_dataset_generator_cluster_payload" {
 }
 resource "aws_s3_bucket_object" "emr_setup_sh" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
-  key     = "component/emr-setup.sh"
+  key     = "component/analytical-dataset-generation/emr-setup.sh"
   content = data.template_file.emr_setup_sh.rendered
 }
 
@@ -40,14 +40,13 @@ data "template_file" "emr_setup_sh" {
     private_key_alias  = "private_key"
     truststore_aliases = join(",", var.truststore_aliases)
     truststore_certs   = "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem,s3://dw-management-dev-public-certificates/ca_certificates/dataworks/ca.pem,s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem",
-    hive-scripts-path  = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
     dks_endpoint       = data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment]
   }
 }
 
 resource "aws_s3_bucket_object" "meta_cleaner_sh" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
-  key     = "component/meta-cleaner.sh"
+  key     = "component/analytical-dataset-generation/meta-cleaner.sh"
   content = data.template_file.meta_cleaner_sh.rendered
 }
 data "template_file" "meta_cleaner_sh" {
@@ -67,7 +66,7 @@ data "aws_acm_certificate" "analytical-dataset-generator" {
 
 resource "aws_s3_bucket_object" "create-hive-tables" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
-  key        = "component/create-hive-tables.py"
+  key        = "component/analytical-dataset-generation/create-hive-tables.py"
   content    = data.template_file.create-hive-tables.rendered
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
@@ -75,6 +74,33 @@ resource "aws_s3_bucket_object" "create-hive-tables" {
 data "template_file" "create-hive-tables" {
   template = file(format("%s/hive-tables-creation.py", path.module))
   vars = {
-    bucket = aws_s3_bucket.published.id
+    bucket      = aws_s3_bucket.published.id
+  }
+}
+
+resource "aws_s3_bucket_object" "hive_setup_sh" {
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/hive-setup.sh"
+  content = data.template_file.hive_setup_sh.rendered
+}
+
+data "template_file" "hive_setup_sh" {
+  template = file(format("%s/hive-setup.sh", path.module))
+  vars = {
+
+    hive-scripts-path  = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
+    collections_list = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.collections_csv.key)
+  }
+}
+
+
+resource "aws_s3_bucket_object" "collections_csv" {
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/collections.csv"
+  content = data.template_file.collections_csv.rendered
+}
+data "template_file" "collections_csv" {
+  template = file(format("%s/collections.csv", path.module))
+  vars = {
   }
 }
