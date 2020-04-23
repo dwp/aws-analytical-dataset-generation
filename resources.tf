@@ -150,9 +150,86 @@ resource "aws_iam_role_policy_attachment" "ec2_for_ssm_attachment" {
 }
 
 #        Create and attach custom policy
+data "aws_iam_policy_document" "analytical_dataset_gluetables" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "glue:CreateTable",
+      "glue:DeleteTable",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_gluetables" {
+  name        = "DatasetGeneratorGlueTables"
+  description = "Allow Dataset Generator clusters to create drop tables"
+  policy      = data.aws_iam_policy_document.analytical_dataset_gluetables.json
+}
+
+resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_gluetables" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_gluetables.arn
+}
+
+data "aws_iam_policy_document" "analytical_dataset_acm" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "acm:ExportCertificate",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_acm" {
+  name        = "DatasetGeneratorACM"
+  description = "Allow Dataset Generator clusters to export acm"
+  policy      = data.aws_iam_policy_document.analytical_dataset_acm.json
+}
+
+resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_acm" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_acm.arn
+}
+
+data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_secretsmanager" {
+  name        = "DatasetGeneratorSecretsManager"
+  description = "Allow Dataset Generator clusters to get secrets"
+  policy      = data.aws_iam_policy_document.analytical_dataset_secretsmanager.json
+}
+
+resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_secretsmanager" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_secretsmanager.arn
+}
+
+
 data "aws_iam_policy_document" "analytical_dataset_write_s3" {
 
-  statement {
+  /*  statement {
     effect = "Allow"
 
     actions = [
@@ -165,8 +242,7 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     resources = [
       "*"
     ]
-  }
-
+  }*/
   statement {
     effect = "Allow"
 
