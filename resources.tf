@@ -226,7 +226,6 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_secretsmanager
   policy_arn = aws_iam_policy.analytical_dataset_secretsmanager.arn
 }
 
-
 data "aws_iam_policy_document" "analytical_dataset_write_s3" {
 
   statement {
