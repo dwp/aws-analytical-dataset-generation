@@ -18,8 +18,7 @@ export NO_PROXY="$FULL_NO_PROXY"
 
 export ACM_KEY_PASSWORD=$(uuidgen -r)
 
-aws s3 cp "${hive-scripts-path}"  .
-/usr/bin/python create-hive-tables.py
+
 
 ## get dks cert
 export TRUSTSTORE_PASSWORD=$(uuidgen -r)
