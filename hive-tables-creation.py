@@ -1,4 +1,5 @@
 import boto3
+import happybase
 import csv
 
 client = boto3.client("glue")

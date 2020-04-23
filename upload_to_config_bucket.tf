@@ -58,6 +58,18 @@ data "template_file" "meta_cleaner_sh" {
 }
 
 
+resource "aws_s3_bucket_object" "installer_sh" {
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/installer.sh"
+  content = data.template_file.installer_sh.rendered
+}
+data "template_file" "installer_sh" {
+  template = file(format("%s/installer.sh", path.module))
+  vars = {
+  }
+}
+
+
 
 // TODO Ticket created to replace this https://projects.ucd.gpn.gov.uk/browse/DW-3765
 data "aws_acm_certificate" "analytical-dataset-generator" {
