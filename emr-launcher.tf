@@ -87,10 +87,7 @@ data "aws_iam_policy_document" "adg_emr_launcher_read_s3_policy" {
     resources = [
       format("arn:aws:s3:::%s/emr/adg/*", data.terraform_remote_state.common.outputs.config_bucket.id)
     ]
-  }
-}
-
-data "aws_iam_policy_document" "adg_emr_launcher_decrypt_s3_policy" {
+  },
   statement {
     effect = "Allow"
     actions = [
@@ -142,12 +139,6 @@ data "aws_iam_policy_document" "adg_emr_launcher_pass_role_document" {
   }
 }
 
-resource "aws_iam_policy" "adg_emr_launcher_decrypt_s3_policy" {
-  name        = "ADGDecryptS3"
-  description = "Allow ADG to decrypt s3 objects"
-  policy      = data.aws_iam_policy_document.adg_emr_launcher_decrypt_s3_policy.json
-}
-
 resource "aws_iam_policy" "adg_emr_launcher_read_s3_policy" {
   name        = "ADGReadS3"
   description = "Allow ADG to read from S3 bucket"
@@ -170,11 +161,6 @@ resource "aws_iam_policy" "adg_emr_launcher_pass_role_policy" {
   name        = "ADGPassRole"
   description = "Allow ADG to pass role"
   policy      = data.aws_iam_policy_document.adg_emr_launcher_pass_role_document.json
-}
-
-resource "aws_iam_role_policy_attachment" "adg_emr_launcher_decrypt_s3_attachment" {
-  role       = aws_iam_role.adg_emr_launcher_lambda_role.name
-  policy_arn = aws_iam_policy.adg_emr_launcher_decrypt_s3_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "adg_emr_launcher_read_s3_attachment" {
