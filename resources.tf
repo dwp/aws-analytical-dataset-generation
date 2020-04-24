@@ -313,6 +313,31 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "*"
     ]
   }
+  statement {
+    sid       = "AllowAccessToArtefactBucket"
+    effect    = "Allow"
+    actions   = ["s3:GetBucketLocation"]
+    resources = [data.terraform_remote_state.management_artefact.outputs.artefact_bucket.arn]
+  }
+
+  statement {
+    sid       = "AllowPullFromArtefactBucket"
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = ["${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.arn}/*"]
+  }
+
+  statement {
+    sid    = "AllowDecryptArtefactBucket"
+    effect = "Allow"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+    ]
+
+    resources = [data.terraform_remote_state.management_artefact.outputs.artefact_bucket.cmk_arn]
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {
@@ -338,28 +363,6 @@ resource "aws_security_group" "analytical_dataset_generation" {
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
 }
 
-resource "aws_security_group_rule" "analytical_dataset_generation_egress" {
-  description = "Allow outbound traffic from Analytical Dataset Generation EMR Cluster"
-  type        = "egress"
-  from_port   = 0
-  to_port     = 0
-  protocol    = "-1"
-  #prefix_list_ids   = [module.vpc.s3_prefix_list_id]
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.analytical_dataset_generation.id
-}
-
-resource "aws_security_group_rule" "analytical_dataset_generation_ingress" {
-  description = "Allow inbound traffic from Analytical Dataset Generation EMR Cluster"
-  type        = "ingress"
-  from_port   = 0
-  to_port     = 0
-  protocol    = "-1"
-  #prefix_list_ids   = [module.vpc.s3_prefix_list_id]
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.analytical_dataset_generation.id
-}
-
 resource "aws_security_group_rule" "egress_https_to_vpc_endpoints" {
   description              = "egress_https_to_vpc_endpoints"
   from_port                = 443
@@ -381,13 +384,6 @@ resource "aws_security_group_rule" "ingress_https_vpc_endpoints_from_emr" {
   source_security_group_id = aws_security_group.analytical_dataset_generation.id
 }
 
-resource "aws_security_group" "analytical_dataset_generation_service" {
-  name                   = "analytical_dataset_generation_service"
-  description            = "Contains rules automatically added by the EMR service itself. See https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-man-sec-groups.html#emr-sg-elasticmapreduce-sa-private"
-  revoke_rules_on_delete = true
-  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
-}
-
 #TODO add logging bucket
 
 output "analytical_dataset_generation_sg" {
@@ -407,6 +403,16 @@ output "analytical_dataset_generation" {
   }
 }
 
+resource "aws_glue_catalog_database" "analytical_dataset_generation_staging" {
+  name        = "analytical_dataset_generation_staging"
+  description = "Staging Database for analytical dataset generation"
+}
+
+output "analytical_dataset_generation_staging" {
+  value = {
+    job_name = aws_glue_catalog_database.analytical_dataset_generation_staging.name
+  }
+}
 
 
 resource "aws_acm_certificate" "analytical-dataset-generator" {

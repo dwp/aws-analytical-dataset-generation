@@ -21,7 +21,7 @@ locals {
     AutoShutdown = "False"
   }
   env_certificate_bucket = "dw-${local.environment}-public-certificates"
-  dks_endpoint           = data.terraform_remote_state.crypto.outputs.dks_endpoint.development
+  dks_endpoint           = data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment]
 
   crypto_workspace = {
     management-dev = "management-dev"
@@ -42,6 +42,14 @@ locals {
     integration = "int.dataworks.dwp.gov.uk"
     preprod     = "pre.dataworks.dwp.gov.uk"
     production  = "dataworks.dwp.gov.uk"
+  }
+
+  emp_version = {
+    development = "0.0.6-all"
+    qa          = "0.0.6-all"
+    integration = "0.0.6-all"
+    preprod     = "0.0.6-all"
+    production  = "0.0.6-all"
   }
 
 }
