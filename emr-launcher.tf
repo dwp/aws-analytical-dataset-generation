@@ -87,7 +87,7 @@ data "aws_iam_policy_document" "adg_emr_launcher_read_s3_policy" {
     resources = [
       format("arn:aws:s3:::%s/emr/adg/*", data.terraform_remote_state.common.outputs.config_bucket.id)
     ]
-  },
+  }
   statement {
     effect = "Allow"
     actions = [
