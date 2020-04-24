@@ -160,7 +160,8 @@ data "aws_iam_policy_document" "analytical_dataset_gluetables" {
     ]
 
     resources = [
-      "*"
+      "arn:aws:glue:::database/aws_glue_catalog_database.analytical_dataset_generation_staging.name",
+      "arn:aws:glue:::database/aws_glue_catalog_database.analytical_dataset_generation.name",
     ]
   }
 }
@@ -185,7 +186,7 @@ data "aws_iam_policy_document" "analytical_dataset_acm" {
     ]
 
     resources = [
-      "*"
+      "${data.aws_acm_certificate.analytical-dataset-generator.arn}"
     ]
   }
 }
@@ -210,7 +211,7 @@ data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
     ]
 
     resources = [
-      "*"
+      "arn:aws:secretsmanager:::secret:ADG-Payload-a7mPlw"
     ]
   }
 }
