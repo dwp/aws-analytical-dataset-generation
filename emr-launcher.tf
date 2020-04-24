@@ -36,28 +36,28 @@ resource "aws_s3_bucket_object" "cluster" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "emr/adg/cluster.yaml"
   source = "emr/adg/cluster.yaml"
-  etag = filemd5("emr/adg/cluster.yaml")
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "instances" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "emr/adg/instances.yaml"
   source = "emr/adg/instances.yaml"
-  etag = filemd5("emr/adg/instances.yaml")
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "steps" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "emr/adg/steps.yaml"
   source = "emr/adg/steps.yaml"
-  etag = filemd5("emr/adg/steps.yaml")
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "configurations" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "emr/adg/configurations.yaml"
   source = "emr/adg/configurations.yaml"
-  etag = filemd5("emr/adg/configurations.yaml")
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_iam_role" "adg_emr_launcher_lambda_role" {
