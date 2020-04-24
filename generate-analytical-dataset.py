@@ -27,35 +27,40 @@ def main():
         .enableHiveSupport()
         .getOrCreate()
     )
-    adg_hive_table = "analytical_dataset_generation_staging.core_contract_hbase"
-    adg_hive_select_query = "select * from %s" % adg_hive_table
-    df = spark.sql(adg_hive_select_query)
-    keys_map = {}
-    values = (
-        df.select("data")
-        .rdd.map(lambda x: getTuple(x.data))
-        .map(lambda y: decrypt(y[0], y[1], y[2], y[3], keys_map))
-    )
-    row = Row("val")
-    datadf = values.map(row).toDF()
-    datadf.show()
-    adg_parquet_name = "core_contract.parquet"
-    parquet_location = "s3://%s/analytical-dataset/%s" % (
-        S3_PUBLISH_BUCKET,
-        adg_parquet_name,
-    )
-    datadf.write.mode("overwrite").parquet(parquet_location)
-    src_hive_table = "analytical_dataset_generation.core_contract"
-    src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
-    src_hive_create_query = (
-        """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS PARQUET LOCATION "%s" """
-        % (src_hive_table, parquet_location)
-    )
-    spark.sql(src_hive_drop_query)
-    spark.sql(src_hive_create_query)
-    src_hive_select_query = "select * from %s" % src_hive_table
-    spark.sql(src_hive_select_query).show()
 
+    database_Name = "analytical_dataset_generation_staging"
+    tables = getTables(database_name)
+    for table_to_process in tables:   
+        adg_hive_table = table_to_process 
+        adg_hive_select_query = "select * from %s" % adg_hive_table
+        df = spark.sql(adg_hive_select_query)
+        keys_map = {}
+        values = (
+            df.select("data")
+            .rdd.map(lambda x: getTuple(x.data))
+            .map(lambda y: decrypt(y[0], y[1], y[2], y[3], keys_map))
+        )
+        row = Row("val")
+        datadf = values.map(row).toDF()
+        datadf.show()
+        adg_parquet_name = "core_contract.parquet"
+        parquet_location = "s3://%s/analytical-dataset/%s" % (
+            S3_PUBLISH_BUCKET,
+            adg_parquet_name,
+        )
+        datadf.write.mode("overwrite").parquet(parquet_location)
+        src_hive_table = "analytical_dataset_generation.core_contract"
+        src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
+        src_hive_create_query = (
+            """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS PARQUET LOCATION "%s" """
+            % (src_hive_table, parquet_location)
+        )
+        spark.sql(src_hive_drop_query)
+        spark.sql(src_hive_create_query)
+        src_hive_select_query = "select * from %s" % src_hive_table
+        spark.sql(src_hive_select_query).show()
+        print("Test================= =========")
+        print(adg_hive_table)
 
 def decrypt(cek, kek, iv, ciphertext, keys_map):
     if keys_map.get(cek):
@@ -95,6 +100,16 @@ def getTuple(data):
 def getPrinted(values):
     for x in values:
         print(x)
+
+def getTables(db_name):
+    table_list = []
+    client = boto3.client("glue")
+    tables_metadata_dict = client.get_table(DatabaseName = db_Name)
+    tables_dic = tables_metadata_dict["TableList"]
+    for table_dic in tables_dic:
+        table_list = table_dic['Name']
+    return table_list
+
 
 
 if __name__ == "__main__":
