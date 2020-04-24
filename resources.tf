@@ -1,12 +1,3 @@
-#############  IAM - policy document for breakglass, CI, administrator
-# Create PDM role
-resource "aws_iam_role" "pdm" {
-  name               = "pdm"
-  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
-  tags               = local.tags
-}
-
-#Get resources
 data "aws_iam_user" "breakglass" {
   user_name = "breakglass"
 }
@@ -86,9 +77,7 @@ data "aws_iam_policy_document" "published_bucket_kms_key" {
     actions = [
       "kms:Describe*",
       "kms:List*",
-      "kms:Get*",
-      "kms:Put*",
-      "kms:Create*"
+      "kms:Get*"
     ]
 
     resources = ["*"]
@@ -133,34 +122,13 @@ data "aws_iam_policy_document" "published_bucket_kms_key" {
     
   }
 
-  statement {
-    sid    = "EnableIAMPermissionsPdm"
-    effect = "Allow"
-
-    principals {
-      type        = "AWS"
-      identifiers = [aws_iam_role.pdm.arn]
-    }
-
-    actions = [
-     "kms:Encrypt",
-     "kms:Decrypt",
-     "kms:ReEncrypt*",
-     "kms:GenerateDataKey*",
-     "kms:DescribeKey"
-    ]
-
-    resources = ["*"]
-  }
 }
 
-# Add policy to UCFS bucket
 resource "aws_kms_key" "published_bucket_cmk" {
   description             = "UCFS published Bucket Master Key"
   deletion_window_in_days = 7
   is_enabled              = true
   enable_key_rotation     = true
-  depends_on              = [aws_iam_role.pdm]
   policy      = data.aws_iam_policy_document.published_bucket_kms_key.json
   
 
@@ -170,7 +138,6 @@ resource "aws_kms_key" "published_bucket_cmk" {
       Name = "published_bucket_cmk"
     },
     {
-      #TODO add custom key policy if required DW-3607
       requires-custom-key-policy = "True"
     }
   )
@@ -265,7 +232,6 @@ data "aws_iam_policy_document" "published_bucket_https_only" {
       variable = "aws:SecureTransport"
     }
   }
-  #
 }
 
 resource "aws_s3_bucket_policy" "published_bucket_https_only" {
