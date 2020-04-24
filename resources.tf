@@ -1,8 +1,136 @@
+data "aws_iam_user" "breakglass" {
+  user_name = "breakglass"
+}
+
+data "aws_iam_role" "ci" {
+  name = "ci"
+}
+
+data "aws_iam_role" "administrator" {
+  name = "administrator"
+}
+
+data "aws_iam_role" "aws_config" {
+  name = "aws_config"
+}
+
+data "aws_iam_role" "analytical_dataset_generator" {
+  name = "analytical_dataset_generator"
+}
+
+#Create policy document
+data "aws_iam_policy_document" "published_bucket_kms_key" {
+  
+  statement {
+    sid    = "EnableIAMPermissionsBreakglass"
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = [data.aws_iam_user.breakglass.arn]
+    }
+
+    actions   = ["kms:*"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid       = "EnableIAMPermissionsCI"
+    effect    = "Allow"
+    actions   = ["kms:*"]
+    resources = ["*"]
+
+    principals {
+      identifiers = [data.aws_iam_role.ci.arn]
+      type        = "AWS"
+    }
+  }
+
+  statement {
+    sid    = "DenyCIEncryptDecrypt"
+    effect = "Deny"
+
+    principals {
+      type        = "AWS"
+      identifiers = [data.aws_iam_role.ci.arn]
+    }
+
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ImportKeyMaterial",
+      "kms:ReEncryptFrom",
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "EnableIAMPermissionsAdministrator"
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = [data.aws_iam_role.administrator.arn]
+    }
+
+    actions = [
+      "kms:Describe*",
+      "kms:List*",
+      "kms:Get*"
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "EnableAWSConfigManagerScanForSecurityHub"
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = [data.aws_iam_role.aws_config.arn]
+    }
+
+    actions = [
+      "kms:Describe*",
+      "kms:Get*",
+      "kms:List*"
+    ]
+
+    resources = ["*"]      
+  }
+
+  statement {
+    sid    = "EnableIAMPermissionsAnalyticDatasetGen"
+    effect = "Allow"
+    
+    principals {
+      type        = "AWS"
+      identifiers = [aws_iam_role.analytical_dataset_generator.arn]
+    }
+
+    actions = [
+     "kms:Encrypt",
+     "kms:Decrypt",
+     "kms:ReEncrypt*",
+     "kms:GenerateDataKey*",
+     "kms:DescribeKey"
+    ]
+
+    resources = ["*"]
+    
+  }
+
+}
+
 resource "aws_kms_key" "published_bucket_cmk" {
   description             = "UCFS published Bucket Master Key"
   deletion_window_in_days = 7
   is_enabled              = true
   enable_key_rotation     = true
+  policy      = data.aws_iam_policy_document.published_bucket_kms_key.json
+  
 
   tags = merge(
     local.tags,
@@ -10,8 +138,7 @@ resource "aws_kms_key" "published_bucket_cmk" {
       Name = "published_bucket_cmk"
     },
     {
-      #TODO add custom key policy if required DW-3607
-      requires-custom-key-policy = "False"
+      requires-custom-key-policy = "True"
     }
   )
 }
@@ -276,6 +403,16 @@ output "analytical_dataset_generation" {
   }
 }
 
+resource "aws_glue_catalog_database" "analytical_dataset_generation_staging" {
+  name        = "analytical_dataset_generation_staging"
+  description = "Staging Database for analytical dataset generation"
+}
+
+output "analytical_dataset_generation_staging" {
+  value = {
+    job_name = aws_glue_catalog_database.analytical_dataset_generation_staging.name
+  }
+}
 
 
 resource "aws_acm_certificate" "analytical-dataset-generator" {
