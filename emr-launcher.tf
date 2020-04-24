@@ -25,10 +25,39 @@ resource "aws_lambda_function" "adg_emr_launcher" {
 
   environment {
     variables = {
-      EMR_LAUNCHER_CONFIG_DIR = "docs/examples"
+      EMR_LAUNCHER_CONFIG_S3_BUCKET = data.terraform_remote_state.common.outputs.config_bucket.id
+      EMR_LAUNCHER_CONFIG_S3_FOLDER = "emr/adg"
       EMR_LAUNCHER_LOG_LEVEL = "debug"
     }
   }
+}
+
+resource "aws_s3_bucket_object" "cluster" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "emr/adg/cluster.yaml"
+  source = "emr/adg/cluster.yaml"
+  etag = filemd5("emr/adg/cluster.yaml")
+}
+
+resource "aws_s3_bucket_object" "instances" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "emr/adg/instances.yaml"
+  source = "emr/adg/instances.yaml"
+  etag = filemd5("emr/adg/instances.yaml")
+}
+
+resource "aws_s3_bucket_object" "steps" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "emr/adg/steps.yaml"
+  source = "emr/adg/steps.yaml"
+  etag = filemd5("emr/adg/steps.yaml")
+}
+
+resource "aws_s3_bucket_object" "configurations" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "emr/adg/configurations.yaml"
+  source = "emr/adg/configurations.yaml"
+  etag = filemd5("emr/adg/configurations.yaml")
 }
 
 resource "aws_iam_role" "adg_emr_launcher_lambda_role" {
@@ -46,6 +75,27 @@ data "aws_iam_policy_document" "adg_emr_launcher_assume_policy" {
       identifiers = ["lambda.amazonaws.com"]
       type = "Service"
     }
+  }
+}
+
+data "aws_iam_policy_document" "adg_emr_launcher_read_s3_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+    ]
+    resources = [
+      format("arn:aws:s3:::%s/emr/adg/*", data.terraform_remote_state.common.outputs.config_bucket.id)
+    ]
+  }
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+    ]
+    resources = [
+      data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+    ]
   }
 }
 
@@ -89,6 +139,11 @@ data "aws_iam_policy_document" "adg_emr_launcher_pass_role_document" {
   }
 }
 
+resource "aws_iam_policy" "adg_emr_launcher_read_s3_policy" {
+  name        = "ADGReadS3"
+  description = "Allow ADG to read from S3 bucket"
+  policy      = data.aws_iam_policy_document.adg_emr_launcher_read_s3_policy.json
+}
 
 resource "aws_iam_policy" "adg_emr_launcher_read_secrets_policy" {
   name        = "ADGReadSecrets"
@@ -106,6 +161,11 @@ resource "aws_iam_policy" "adg_emr_launcher_pass_role_policy" {
   name        = "ADGPassRole"
   description = "Allow ADG to pass role"
   policy      = data.aws_iam_policy_document.adg_emr_launcher_pass_role_document.json
+}
+
+resource "aws_iam_role_policy_attachment" "adg_emr_launcher_read_s3_attachment" {
+  role       = aws_iam_role.adg_emr_launcher_lambda_role.name
+  policy_arn = aws_iam_policy.adg_emr_launcher_read_s3_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "adg_emr_launcher_read_secrets_attachment" {
