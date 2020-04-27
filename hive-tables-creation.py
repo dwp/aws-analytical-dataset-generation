@@ -3,7 +3,7 @@ import happybase
 import csv
 
 client = boto3.client("glue")
-DatabaseName = "analytical_dataset_generation"
+DatabaseName = "analytical_dataset_generation_staging"
 with open("collections.csv", "rb") as csvfile:
     collections = csv.reader(csvfile, delimiter=",")
     for collection in collections:
