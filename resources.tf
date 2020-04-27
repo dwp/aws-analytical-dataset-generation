@@ -20,7 +20,7 @@ data "aws_iam_role" "analytical_dataset_generator" {
 
 #Create policy document
 data "aws_iam_policy_document" "published_bucket_kms_key" {
-
+  
   statement {
     sid    = "EnableIAMPermissionsBreakglass"
     effect = "Allow"
@@ -98,28 +98,28 @@ data "aws_iam_policy_document" "published_bucket_kms_key" {
       "kms:List*"
     ]
 
-    resources = ["*"]
+    resources = ["*"]      
   }
 
   statement {
     sid    = "EnableIAMPermissionsAnalyticDatasetGen"
     effect = "Allow"
-
+    
     principals {
       type        = "AWS"
       identifiers = [aws_iam_role.analytical_dataset_generator.arn]
     }
 
     actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey"
+     "kms:Encrypt",
+     "kms:Decrypt",
+     "kms:ReEncrypt*",
+     "kms:GenerateDataKey*",
+     "kms:DescribeKey"
     ]
 
     resources = ["*"]
-
+    
   }
 
 }
@@ -129,8 +129,8 @@ resource "aws_kms_key" "published_bucket_cmk" {
   deletion_window_in_days = 7
   is_enabled              = true
   enable_key_rotation     = true
-  policy                  = data.aws_iam_policy_document.published_bucket_kms_key.json
-
+  policy      = data.aws_iam_policy_document.published_bucket_kms_key.json
+  
 
   tags = merge(
     local.tags,
