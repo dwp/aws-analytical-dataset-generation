@@ -4,7 +4,7 @@ import csv
 
 client = boto3.client("glue")
 DatabaseName = "analytical_dataset_generation_staging"
-with open("collections.csv", "rb") as csvfile:
+with open("collections.csv") as csvfile:
     collections = csv.reader(csvfile, delimiter=",")
     for collection in collections:
         collection = collection[0]

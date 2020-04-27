@@ -8,10 +8,5 @@ export no_proxy="$FULL_NO_PROXY"
 export NO_PROXY="$FULL_NO_PROXY"
 
 
-sudo chown hadoop:hadoop /usr/lib/python3.6/dist-packages
-sudo chown hadoop:hadoop /usr/lib64/python3.6/dist-packages
-sudo cp /usr/local/bin/rst2html.py /usr/bin/rst2html.py
-sudo chown hadoop:hadoop /usr/bin
-
-/usr/bin/pip-3.6 install boto3
-/usr/bin/pip-3.6 install happybase
+sudo -E /usr/bin/pip-3.6 install boto3
+sudo -E /usr/bin/pip-3.6 install happybase
