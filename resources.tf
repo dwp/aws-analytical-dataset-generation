@@ -277,42 +277,188 @@ resource "aws_iam_role_policy_attachment" "ec2_for_ssm_attachment" {
 }
 
 #        Create and attach custom policy
-#        TODO Lock down analytical dataset EMR instance profile DW-3618
-data "aws_iam_policy_document" "analytical_dataset_write_s3" {
+data "aws_iam_policy_document" "analytical_dataset_gluetables" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "glue:CreateTable",
+      "glue:DeleteTable",
+    ]
+
+    resources = [
+      "arn:aws:glue:::database/aws_glue_catalog_database.analytical_dataset_generation_staging.name",
+      "arn:aws:glue:::database/aws_glue_catalog_database.analytical_dataset_generation.name",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_gluetables" {
+  name        = "DatasetGeneratorGlueTables"
+  description = "Allow Dataset Generator clusters to create drop tables"
+  policy      = data.aws_iam_policy_document.analytical_dataset_gluetables.json
+}
+
+resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_gluetables" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_gluetables.arn
+}
+
+data "aws_iam_policy_document" "analytical_dataset_acm" {
   statement {
     effect = "Allow"
 
     actions = [
       "acm:ExportCertificate",
-      "cloudwatch:*",
-      "dynamodb:*",
-      "ec2:*",
-      "elasticmapreduce:*",
-      "kinesis:*",
-      "rds:Describe*",
-      "sdb:*",
-      "sns:*",
-      "sqs:*",
-      "glue:*",
-      "kms:*",
-      "iam:*",
-      "application-autoscaling:*",
-      "ssm:*",
-      "ssmmessages:*",
-      "ec2messages:*",
-      "cloudwatch:PutMetricData",
-      "ec2:DescribeInstanceStatus",
-      "ds:CreateComputer",
-      "ds:DescribeDirectories",
-      "logs:*",
-      "s3:*",
-      "secretsmanager:*"
     ]
 
     resources = [
-      "*"
+      "${data.aws_acm_certificate.analytical-dataset-generator.arn}"
     ]
   }
+}
+
+resource "aws_iam_policy" "analytical_dataset_acm" {
+  name        = "DatasetGeneratorACM"
+  description = "Allow Dataset Generator clusters to export acm"
+  policy      = data.aws_iam_policy_document.analytical_dataset_acm.json
+}
+
+resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_acm" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_acm.arn
+}
+
+data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue",
+    ]
+
+    resources = [
+      "arn:aws:secretsmanager:::secret:ADG-Payload-a7mPlw"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_secretsmanager" {
+  name        = "DatasetGeneratorSecretsManager"
+  description = "Allow Dataset Generator clusters to get secrets"
+  policy      = data.aws_iam_policy_document.analytical_dataset_secretsmanager.json
+}
+
+resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_secretsmanager" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_secretsmanager.arn
+}
+
+data "aws_iam_policy_document" "analytical_dataset_write_s3" {
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      aws_s3_bucket.published.arn,
+      "${data.terraform_remote_state.common.outputs.config_bucket.arn}",
+      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}",
+      "arn:aws:s3:::${data.terraform_remote_state.security-tools.outputs.logstore_bucket.id}",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+      "s3:DeleteObject*",
+      "s3:PutObject*",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.published.arn}/*",
+      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir}/data/hbase/meta_*",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+      "s3:PutObject*",
+    ]
+
+    resources = [
+      "arn:aws:s3:::${data.terraform_remote_state.security-tools.outputs.logstore_bucket.id}",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+    ]
+
+    resources = [
+      "${data.terraform_remote_state.common.outputs.config_bucket.arn}/component/analytical-dataset-generation/*",
+      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir}/*",
+    ]
+  }
+
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey",
+    ]
+
+    resources = [
+      "${aws_kms_key.published_bucket_cmk.arn}",
+      "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+    ]
+
+    resources = [
+      "${data.terraform_remote_state.common.outputs.config_bucket_cmk.arn}",
+      "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}",
+    ]
+  }
+
+  statement {
+    sid    = "AllowUseDefaultEbsCmk"
+    effect = "Allow"
+
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey",
+    ]
+
+    resources = [data.terraform_remote_state.security-tools.outputs.ebs_cmk.arn]
+  }
+
   statement {
     sid       = "AllowAccessToArtefactBucket"
     effect    = "Allow"
