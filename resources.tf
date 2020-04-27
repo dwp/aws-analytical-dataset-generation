@@ -333,6 +333,11 @@ data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
   statement {
     effect = "Allow"
 
+    principals {
+      type        = "AWS"
+      identifiers = [aws_iam_role.analytical_dataset_generator.arn]
+    }
+
     actions = [
       "secretsmanager:GetSecretValue",
     ]
