@@ -60,14 +60,35 @@ resource "aws_s3_bucket_object" "configurations" {
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
+
+resource "aws_cloudwatch_event_rule" "adg_emr_launcher_schedule" {
+  name                = "adg_emr_launcher_schedule"
+  description         = "Triggers ADG EMR Launcher"
+  schedule_expression = format("cron(%s)", local.adg_emr_lambda_schedule[local.environment])
+}
+
+resource "aws_cloudwatch_event_target" "adg_emr_launcher_target" {
+  rule      = aws_cloudwatch_event_rule.adg_emr_launcher_schedule.name
+  target_id = "adg_emr_launcher_target"
+  arn       = aws_lambda_function.adg_emr_launcher.arn
+}
+
 resource "aws_iam_role" "adg_emr_launcher_lambda_role" {
   name               = "adg_emr_launcher_lambda_role"
   assume_role_policy = data.aws_iam_policy_document.adg_emr_launcher_assume_policy.json
 }
 
+resource "aws_lambda_permission" "adg_emr_launcher_invoke_permission" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.adg_emr_launcher.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.adg_emr_launcher_schedule.arn
+}
+
 data "aws_iam_policy_document" "adg_emr_launcher_assume_policy" {
   statement {
-    sid    = "ADGEmrLauncherLambdaAssumeRolePolicy"
+    sid    = "ADGEMRLauncherLambdaAssumeRolePolicy"
     effect = "Allow"
     actions = ["sts:AssumeRole"]
 
