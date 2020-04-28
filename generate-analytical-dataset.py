@@ -28,10 +28,10 @@ def main():
         .getOrCreate()
     )
 
-    database_Name = "analytical_dataset_generation_staging"
+    database_name = "analytical_dataset_generation_staging"
     tables = getTables(database_name)
     for table_to_process in tables:   
-        adg_hive_table = table_to_process 
+        adg_hive_table = database_name + "." + table_to_process 
         adg_hive_select_query = "select * from %s" % adg_hive_table
         df = spark.sql(adg_hive_select_query)
         keys_map = {}
@@ -59,8 +59,6 @@ def main():
         spark.sql(src_hive_create_query)
         src_hive_select_query = "select * from %s" % src_hive_table
         spark.sql(src_hive_select_query).show()
-        print("Test================= =========")
-        print(adg_hive_table)
 
 def decrypt(cek, kek, iv, ciphertext, keys_map):
     if keys_map.get(cek):
@@ -104,10 +102,10 @@ def getPrinted(values):
 def getTables(db_name):
     table_list = []
     client = boto3.client("glue")
-    tables_metadata_dict = client.get_table(DatabaseName = db_Name)
-    tables_dic = tables_metadata_dict["TableList"]
-    for table_dic in tables_dic:
-        table_list = table_dic['Name']
+    tables_metadata_dict = client.get_tables(DatabaseName = db_name)
+    tables_dict = tables_metadata_dict["TableList"]
+    for table_dict in tables_dict:
+       table_list.append(table_dict["Name"])
     return table_list
 
 
