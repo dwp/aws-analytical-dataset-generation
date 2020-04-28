@@ -14,11 +14,11 @@ resource "aws_lambda_function" "adg_emr_launcher" {
   handler       = "emr_launcher.handler"
   runtime       = "python3.7"
   source_code_hash = filebase64sha256(
-  format(
-  "%s/emr-launcher-%s.zip",
-  var.adg_emr_launcher_zip["base_path"],
-  var.adg_emr_launcher_zip["version"]
-  )
+    format(
+      "%s/emr-launcher-%s.zip",
+      var.adg_emr_launcher_zip["base_path"],
+      var.adg_emr_launcher_zip["version"]
+    )
   )
   publish = false
   timeout = 60
@@ -27,37 +27,50 @@ resource "aws_lambda_function" "adg_emr_launcher" {
     variables = {
       EMR_LAUNCHER_CONFIG_S3_BUCKET = data.terraform_remote_state.common.outputs.config_bucket.id
       EMR_LAUNCHER_CONFIG_S3_FOLDER = "emr/adg"
-      EMR_LAUNCHER_LOG_LEVEL = "debug"
+      EMR_LAUNCHER_LOG_LEVEL        = "debug"
     }
   }
 }
 
 resource "aws_s3_bucket_object" "cluster" {
-  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "emr/adg/cluster.yaml"
-  source = "emr/adg/cluster.yaml"
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  key        = "emr/adg/cluster.yaml"
+  source     = "emr/adg/cluster.yaml"
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "instances" {
-  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "emr/adg/instances.yaml"
-  source = "emr/adg/instances.yaml"
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  key        = "emr/adg/instances.yaml"
+  source     = "emr/adg/instances.yaml"
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "steps" {
-  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "emr/adg/steps.yaml"
-  source = "emr/adg/steps.yaml"
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  key        = "emr/adg/steps.yaml"
+  source     = "emr/adg/steps.yaml"
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "configurations" {
-  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "emr/adg/configurations.yaml"
-  source = "emr/adg/configurations.yaml"
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  key        = "emr/adg/configurations.yaml"
+  source     = "emr/adg/configurations.yaml"
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+}
+
+
+resource "aws_cloudwatch_event_rule" "adg_emr_launcher_schedule" {
+  name                = "adg_emr_launcher_schedule"
+  description         = "Triggers ADG EMR Launcher"
+  schedule_expression = format("cron(%s)", local.adg_emr_lambda_schedule[local.environment])
+}
+
+resource "aws_cloudwatch_event_target" "adg_emr_launcher_target" {
+  rule      = aws_cloudwatch_event_rule.adg_emr_launcher_schedule.name
+  target_id = "adg_emr_launcher_target"
+  arn       = aws_lambda_function.adg_emr_launcher.arn
 }
 
 resource "aws_iam_role" "adg_emr_launcher_lambda_role" {
@@ -65,15 +78,23 @@ resource "aws_iam_role" "adg_emr_launcher_lambda_role" {
   assume_role_policy = data.aws_iam_policy_document.adg_emr_launcher_assume_policy.json
 }
 
+resource "aws_lambda_permission" "adg_emr_launcher_invoke_permission" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.adg_emr_launcher.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.adg_emr_launcher_schedule.arn
+}
+
 data "aws_iam_policy_document" "adg_emr_launcher_assume_policy" {
   statement {
-    sid    = "ADGEmrLauncherLambdaAssumeRolePolicy"
-    effect = "Allow"
+    sid     = "ADGEMRLauncherLambdaAssumeRolePolicy"
+    effect  = "Allow"
     actions = ["sts:AssumeRole"]
 
     principals {
       identifiers = ["lambda.amazonaws.com"]
-      type = "Service"
+      type        = "Service"
     }
   }
 }
