@@ -13,7 +13,7 @@ resource "aws_emr_cluster" "cluster" {
   //autoscaling_role                  = aws_iam_role.emr_autoscaling_role.arn
   tags = merge({ "Name" = local.emr_cluster_name, "SSMEnabled" = "True" }, local.common_tags)
   //TODO the below needs to be replaced with DW-EMR-AMI
-  custom_ami_id = "ami-0793487e5844edda0"
+  custom_ami_id = "ami-04c3e8712a22196f0"
 
   ec2_attributes {
     subnet_id                         = data.terraform_remote_state.internal_compute.outputs.htme_subnet.ids[0]
