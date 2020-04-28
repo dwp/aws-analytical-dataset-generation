@@ -329,21 +329,20 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_acm" {
   policy_arn = aws_iam_policy.analytical_dataset_acm.arn
 }
 
+data "aws_secretsmanager_secret" "adg_secret" {
+  name          = "ADG-Payload"
+}
+
 data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
   statement {
     effect = "Allow"
-
-    principals {
-      type        = "AWS"
-      identifiers = [aws_iam_role.analytical_dataset_generator.arn]
-    }
 
     actions = [
       "secretsmanager:GetSecretValue",
     ]
 
     resources = [
-      "arn:aws:secretsmanager:::secret:ADG-Payload-a7mPlw",
+      "${data.aws_secretsmanager_secret.adg_secret.arn}"
     ]
   }
 }
