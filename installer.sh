@@ -9,4 +9,3 @@ export NO_PROXY="$FULL_NO_PROXY"
 
 
 sudo -E /usr/bin/pip-3.6 install boto3
-sudo -E /usr/bin/pip-3.6 install happybase

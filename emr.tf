@@ -13,7 +13,7 @@ resource "aws_emr_cluster" "cluster" {
   //autoscaling_role                  = aws_iam_role.emr_autoscaling_role.arn
   tags = merge({ "Name" = local.emr_cluster_name, "SSMEnabled" = "True" }, local.common_tags)
   //TODO the below needs to be replaced with DW-EMR-AMI
-  custom_ami_id = "ami-0793487e5844edda0"
+  custom_ami_id = "ami-04c3e8712a22196f0"
 
   ec2_attributes {
     subnet_id                         = data.terraform_remote_state.internal_compute.outputs.htme_subnet.ids[0]
@@ -109,16 +109,16 @@ resource "aws_emr_cluster" "cluster" {
     }
   }
   //TODO currently commented out to see whether a cleanup is necessary. If it is, implement backlog ticket https://projects.ucd.gpn.gov.uk/browse/DW-3821
-//    step {
-//      name              = "meta-cleanup"
-//      action_on_failure = "CONTINUE"
-//      hadoop_jar_step {
-//        jar = "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
-//        args = [
-//          format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.meta_cleaner_sh.key)
-//        ]
-//      }
-//    }
+  //    step {
+  //      name              = "meta-cleanup"
+  //      action_on_failure = "CONTINUE"
+  //      hadoop_jar_step {
+  //        jar = "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+  //        args = [
+  //          format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.meta_cleaner_sh.key)
+  //        ]
+  //      }
+  //    }
 
 
   depends_on = [
@@ -137,7 +137,7 @@ locals {
   emrfs_em = {
     EncryptionConfiguration = {
       EnableInTransitEncryption = false
-      EnableAtRestEncryption = true
+      EnableAtRestEncryption    = true
       AtRestEncryptionConfiguration = {
         S3EncryptionConfiguration = {
           EncryptionMode             = "CSE-Custom"
