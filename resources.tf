@@ -8,6 +8,7 @@ data "aws_iam_role" "ci" {
 
 data "aws_iam_role" "administrator" {
   name = "administrator"
+  depends_on = [aws_iam_role.analytical_dataset_generator]
 }
 
 data "aws_iam_role" "aws_config" {
