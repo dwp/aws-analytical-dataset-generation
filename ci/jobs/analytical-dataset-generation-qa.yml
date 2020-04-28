@@ -1,5 +1,5 @@
 jobs:
-- name: analytical-dataset-generation-dev
+- name: analytical-dataset-generation-qa
   plan:
   - aggregate:
     - get: aws-analytical-dataset-generation
@@ -10,10 +10,10 @@ jobs:
   - .: (( inject meta.plan.create-aws-profiles ))
     config:
       params:
-        AWS_ACC: ((aws_account.development))
+        AWS_ACC: ((aws_account.qa))
   - .: (( inject meta.plan.terraform-apply ))
     params:
-      TF_WORKSPACE: dev
+      TF_WORKSPACE: qa
   - .: (( inject meta.plan.terraform-plan ))
     params:
-      TF_WORKSPACE: dev
+      TF_WORKSPACE: qa
