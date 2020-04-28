@@ -41,6 +41,7 @@ jobs:
                 cp ../terraform-config/terraform.tfvars .
                 export TF_VAR_adg_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
                 terraform init
+                terraform workspace show
                 terraform plan
           inputs:
             - name: aws-analytical-dataset-generation
