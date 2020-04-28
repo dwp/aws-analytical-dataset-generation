@@ -49,4 +49,4 @@ with open("collections.csv") as csvfile:
                 },
             )
         else:
-            print("This table is not in HBase")
+            print(collection, " is not in HBase")
