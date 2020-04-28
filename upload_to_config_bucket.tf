@@ -39,7 +39,7 @@ data "template_file" "emr_setup_sh" {
     acm_cert_arn       = data.aws_acm_certificate.analytical-dataset-generator.arn
     private_key_alias  = "private_key"
     truststore_aliases = join(",", var.truststore_aliases)
-    truststore_certs   = "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem,s3://dw-management-dev-public-certificates/ca_certificates/dataworks/ca.pem,s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem",
+    truststore_certs   = "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem,s3://dw-${local.management_account[local.environment]}-public-certificates/ca_certificates/dataworks/ca.pem,s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem",
     dks_endpoint       = data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment]
   }
 }
