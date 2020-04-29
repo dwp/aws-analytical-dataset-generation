@@ -133,7 +133,7 @@ data "aws_iam_policy_document" "adg_emr_launcher_read_secret_policy" {
 }
 
 data "aws_secretsmanager_secret" "secret" {
-  name = "EMR-Launcher-Payload"
+  name = "ADG-Payload"
 }
 
 data "aws_iam_policy_document" "adg_emr_launcher_runjobflow_policy" {
