@@ -14,10 +14,6 @@ data "aws_iam_role" "aws_config" {
   name = "aws_config"
 }
 
-data "aws_iam_role" "analytical_dataset_generator" {
-  name = "analytical_dataset_generator"
-}
-
 #Create policy document
 data "aws_iam_policy_document" "published_bucket_kms_key" {
 
@@ -264,6 +260,12 @@ data "aws_iam_policy_document" "ec2_assume_role" {
 }
 
 #        Attach AWS policies
+resource "aws_iam_role_policy_attachment" "emr_attachment" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
+
+}
+
 resource "aws_iam_role_policy_attachment" "emr_for_ec2_attachment" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role"
@@ -313,7 +315,7 @@ data "aws_iam_policy_document" "analytical_dataset_acm" {
     ]
 
     resources = [
-      "${data.aws_acm_certificate.analytical-dataset-generator.arn}"
+      aws_acm_certificate.analytical-dataset-generator.arn
     ]
   }
 }
@@ -329,8 +331,8 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_acm" {
   policy_arn = aws_iam_policy.analytical_dataset_acm.arn
 }
 
-data "aws_secretsmanager_secret" "adg_secret" {
-  name          = "ADG-Payload"
+resource "aws_secretsmanager_secret" "adg_secret" {
+  name = "ADG-Payload"
 }
 
 data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
@@ -342,7 +344,7 @@ data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
     ]
 
     resources = [
-      "${data.aws_secretsmanager_secret.adg_secret.arn}"
+      aws_secretsmanager_secret.adg_secret.arn
     ]
   }
 }
