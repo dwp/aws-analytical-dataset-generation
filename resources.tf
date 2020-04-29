@@ -14,6 +14,10 @@ data "aws_iam_role" "aws_config" {
   name = "aws_config"
 }
 
+data "aws_iam_role" "analytical_dataset_generator" {
+  name = "analytical_dataset_generator"
+}
+
 #Create policy document
 data "aws_iam_policy_document" "published_bucket_kms_key" {
 
