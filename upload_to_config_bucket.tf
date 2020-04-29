@@ -36,7 +36,7 @@ data "template_file" "emr_setup_sh" {
     aws_default_region = "eu-west-2"
     full_proxy         = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
     full_no_proxy      = "127.0.0.1,localhost,169.254.169.254,*.s3.eu-west-2.amazonaws.com,s3.eu-west-2.amazonaws.com,sns.eu-west-2.amazonaws.com,sqs.eu-west-2.amazonaws.com,eu-west-2.queue.amazonaws.com,glue.eu-west-2.amazonaws.com,sts.eu-west-2.amazonaws.com,*.eu-west-2.compute.internal,dynamodb.eu-west-2.amazonaws.com"
-    acm_cert_arn       = data.aws_acm_certificate.analytical-dataset-generator.arn
+    acm_cert_arn       = aws_acm_certificate.analytical-dataset-generator.arn
     private_key_alias  = "private_key"
     truststore_aliases = join(",", var.truststore_aliases)
     truststore_certs   = "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem,s3://dw-${local.management_account[local.environment]}-public-certificates/ca_certificates/dataworks/ca.pem,s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem",
@@ -55,13 +55,6 @@ data "template_file" "meta_cleaner_sh" {
     hbase_meta     = format("s3://%s/business-data/single-topic-per-table-hbase/data/hbase/meta_", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
     metatable_name = local.dynamo_meta_name
   }
-}
-
-
-
-// TODO Ticket created to replace this https://projects.ucd.gpn.gov.uk/browse/DW-3765
-data "aws_acm_certificate" "analytical-dataset-generator" {
-  domain = "analytical-dataset-generator.${local.root_dns_name[local.environment]}"
 }
 
 resource "aws_s3_bucket_object" "create-hive-tables" {
