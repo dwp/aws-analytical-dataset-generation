@@ -260,6 +260,12 @@ data "aws_iam_policy_document" "ec2_assume_role" {
 }
 
 #        Attach AWS policies
+resource "aws_iam_role_policy_attachment" "emr_attachment" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
+
+}
+
 resource "aws_iam_role_policy_attachment" "emr_for_ec2_attachment" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role"
