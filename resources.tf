@@ -14,10 +14,6 @@ data "aws_iam_role" "aws_config" {
   name = "aws_config"
 }
 
-data "aws_iam_role" "analytical_dataset_generator" {
-  name = "analytical_dataset_generator"
-}
-
 #Create policy document
 data "aws_iam_policy_document" "published_bucket_kms_key" {
 
@@ -319,7 +315,7 @@ data "aws_iam_policy_document" "analytical_dataset_acm" {
     ]
 
     resources = [
-      "${data.aws_acm_certificate.analytical-dataset-generator.arn}"
+      aws_acm_certificate.analytical-dataset-generator.arn
     ]
   }
 }
@@ -348,7 +344,7 @@ data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
     ]
 
     resources = [
-      "${data.aws_secretsmanager_secret.adg_secret.arn}"
+      aws_secretsmanager_secret.adg_secret.arn
     ]
   }
 }
