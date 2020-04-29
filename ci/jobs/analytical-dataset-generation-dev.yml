@@ -13,7 +13,7 @@ jobs:
         AWS_ACC: ((aws_account.development))
   - .: (( inject meta.plan.terraform-apply ))
     params:
-      TF_WORKSPACE: dev
+      TF_WORKSPACE: default
   - .: (( inject meta.plan.terraform-plan ))
     params:
-      TF_WORKSPACE: dev
+      TF_WORKSPACE: default
