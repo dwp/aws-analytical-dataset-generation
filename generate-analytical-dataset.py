@@ -28,7 +28,8 @@ def main():
         .getOrCreate()
     )
 
-    database_name = "analytical_dataset_generation_staging"
+    published_database_name = "${published_db}"
+    database_name = "${staging_db}"
     tables = getTables(database_name)
     for table_to_process in tables:   
         adg_hive_table = database_name + "." + table_to_process 
@@ -43,13 +44,13 @@ def main():
         row = Row("val")
         datadf = values.map(row).toDF()
         datadf.show()
-        adg_parquet_name = "core_contract.parquet"
-        parquet_location = "s3://%s/analytical-dataset/%s" % (
+        adg_parquet_name = table_to_process + "." + "parquet"
+        parquet_location = "s3://%s/${file_location}/%s" % (
             S3_PUBLISH_BUCKET,
             adg_parquet_name,
         )
         datadf.write.mode("overwrite").parquet(parquet_location)
-        src_hive_table = "analytical_dataset_generation.core_contract"
+        src_hive_table = published_database_name + "." + table_to_process
         src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
         src_hive_create_query = (
             """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS PARQUET LOCATION "%s" """
@@ -66,7 +67,7 @@ def decrypt(cek, kek, iv, ciphertext, keys_map):
         print("Found the key in cache")
     else:
         print("Didn't find the key in cache so calling dks")
-        url = "https://dks-development.mgt-dev.dataworks.dwp.gov.uk:8443/datakey/actions/decrypt"
+        url = "${url}"
         params = {"keyId": kek}
         result = requests.post(
             url,
@@ -103,8 +104,8 @@ def getTables(db_name):
     table_list = []
     client = boto3.client("glue")
     tables_metadata_dict = client.get_tables(DatabaseName = db_name)
-    tables_dict = tables_metadata_dict["TableList"]
-    for table_dict in tables_dict:
+    db_tables = tables_metadata_dict["TableList"]
+    for table_dict in db_tables:
        table_list.append(table_dict["Name"])
     return table_list
 
