@@ -6,6 +6,8 @@ jobs:
         version: every
       - get: emr-launcher-release
         trigger: true
+      - get: emr-ami
+        trigger: true
       - put: aws-analytical-dataset-generation-pr
         params:
           context: $BUILD_JOB_NAME
