@@ -40,6 +40,7 @@ jobs:
               - |
                 cp ../terraform-config/terraform.tf .
                 cp ../terraform-config/terraform.tfvars .
+                export TF_VAR_emr_ami_id=$(cat ../emr-ami/id)
                 export TF_VAR_adg_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
                 terraform init
                 terraform workspace show
