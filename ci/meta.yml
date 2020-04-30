@@ -28,6 +28,7 @@ meta:
         AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
         AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
         AWS_REGION: eu-west-2
+
     terraform-apply:
       task: terraform-apply
       config:
@@ -62,6 +63,7 @@ meta:
           - name: terraform-config
           - name: emr-launcher-release
           - name: emr-ami
+
     terraform-plan:
       task: terraform-plan
       config:
@@ -83,6 +85,7 @@ meta:
           args:
             - -exc
             - |
+              export TF_VAR_emr_ami_id=$(cat ../emr-ami/id)
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_adg_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
@@ -93,6 +96,8 @@ meta:
           - name: aws-analytical-dataset-generation
           - name: terraform-config
           - name: emr-launcher-release
+          - name: emr-ami
+
     terraform-output-internal-compute:
       task: terraform-output-internal-compute
       config:
@@ -121,6 +126,7 @@ meta:
         TF_INPUT: "false"
         AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
         AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
+
     terraform-output-ingest:
       task: terraform-output-ingest
       config:
@@ -149,6 +155,7 @@ meta:
         TF_INPUT: "false"
         AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
         AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
+
     terraform-output-management-infra:
       task: terraform-output-management-infra
       config:
@@ -177,6 +184,7 @@ meta:
         TF_INPUT: "false"
         AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
         AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
+
     synthetic-data-ingestion:
       task: synthetic-data-ingestion
       config:
@@ -208,6 +216,7 @@ meta:
         AWS_CONFIG_FILE: ../../.aws/config
         E2E_TEST_TIMEOUT: 900
         E2E_FEATURE_TAG_FILTER: '@synthetic-data-ingestion'
+
     create-aws-profiles:
       task: create-aws-profiles
       config:
@@ -254,6 +263,3 @@ meta:
                 signature_version = s3v4
                 addressing_style = virtual
               EOF
-
-
-
