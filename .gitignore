@@ -7,5 +7,4 @@
 
 terraform.tf
 aviator_pipeline.yml
-synthetic-data-ingestion-dev.yml
 .DS_Store

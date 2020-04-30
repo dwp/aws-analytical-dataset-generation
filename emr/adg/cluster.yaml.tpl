@@ -3,14 +3,14 @@ Applications:
 - Name: "Spark"
 - Name: "Hive"
 - Name: "HBase"
-CustomAmiId: "$AMI_ID"
+CustomAmiId: "${ami_id}"
 EbsRootVolumeSize: 100
-LogUri: "s3://$S3_LOG_BUCKET/logs"
+LogUri: "s3://${s3_log_bucket}/logs"
 Name: "emr-launcher-test"
 ReleaseLabel: "emr-5.24.1"
 ScaleDownBehavior: "TERMINATE_AT_TASK_COMPLETION"
-ServiceRole: "arn:aws:iam::$ACC_NUMBER:role/$SERVICE_ROLE"
-JobFlowRole: "arn:aws:iam::$ACC_NUMBER:instance-profile/$INSTANCE_PROFILE"
+ServiceRole: "${service_role}"
+JobFlowRole: "${instance_profile}"
 VisibleToAllUsers: True
 Tags:
 - Key: "Persistence"
