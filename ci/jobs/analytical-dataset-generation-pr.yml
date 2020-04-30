@@ -29,7 +29,7 @@ jobs:
             TF_INPUT: false
             TF_CLI_ARGS_apply: -lock-timeout=300s
             TF_CLI_ARGS_plan: -lock-timeout=300s
-            TF_VAR_slack_webhook_url: ((slack.webhook_url))
+            TF_WORKSPACE: qa
           run:
             path: sh
             dir: aws-analytical-dataset-generation
@@ -40,8 +40,7 @@ jobs:
                 cp ../terraform-config/terraform.tfvars .
                 export TF_VAR_adg_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
                 terraform init
-                # TODO: change to QA once we start deploying there
-                terraform workspace select default
+                terraform workspace show
                 terraform plan
           inputs:
             - name: aws-analytical-dataset-generation
