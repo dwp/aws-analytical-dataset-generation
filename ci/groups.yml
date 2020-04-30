@@ -2,6 +2,7 @@ groups:
   - name: master
     jobs:
       - analytical-dataset-generation-dev
+      - analytical-dataset-generation-qa
       - synthetic-data-ingestion-dev
   - name: pull-request
     jobs:

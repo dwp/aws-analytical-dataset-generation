@@ -15,8 +15,8 @@ jobs:
   - .: (( inject meta.plan.create-aws-profiles ))
     config:
       params:
-        AWS_ACC: "{{accounts['development']}}"
-        SYNTHETIC_RAWDATA_AWS_ACC: "{{accounts['management-dev']}}"
+        AWS_ACC: ((aws_account.development))
+        SYNTHETIC_RAWDATA_AWS_ACC: ((aws_account.management-dev))
   - .: (( inject meta.plan.terraform-bootstrap ))
   - .: (( inject meta.plan.terraform-output-ingest ))
   - .: (( inject meta.plan.terraform-output-internal-compute ))
@@ -24,8 +24,8 @@ jobs:
   - .: (( inject meta.plan.synthetic-data-ingestion ))
     config:
       params:
-        AWS_ACC: "{{accounts['development']}}"
-        SYNTHETIC_RAWDATA_AWS_ACC: "{{accounts['management-dev']}}"
+        AWS_ACC: ((aws_account.development))
+        SYNTHETIC_RAWDATA_AWS_ACC: ((aws_account.management-dev))
         SYNTHETIC_RAWDATA_PREFIX: "synthetic-data/raw"
         SYNTHETIC_ENCDATA_PREFIX: "synthetic-data/encrypted"
         IS_SYNTHETIC_DATA_INGESTION: "TRUE"

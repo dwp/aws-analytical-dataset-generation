@@ -27,5 +27,16 @@ variable "truststore_aliases" {
   default     = ["ca_cert", "mgmt_cert", "root_ca"]
 }
 
+variable "emr_ami_id" {
+  description = "AMI ID to use for the HBase EMR nodes"
+}
 
-
+variable "emr_instance_type" {
+  default = {
+    development = "m5.2xlarge"
+    qa          = "m5.2xlarge"
+    integration = "m5.2xlarge"
+    preprod     = "m5.2xlarge"
+    production  = "m5.2xlarge"
+  }
+}

@@ -1,13 +1,13 @@
 ---
 Instances:
   AdditionalMasterSecurityGroups:
-  - "$ADD_MASTER_SG"
+  - "${add_master_sg}"
   AdditionalSlaveSecurityGroups:
-  - "$ADD_SLAVE_SG"
-  Ec2SubnetId: "$SUBNET_ID"
-  EmrManagedMasterSecurityGroup: "$MASTER_SG"
-  EmrManagedSlaveSecurityGroup: "$SLAVE_SG"
-  ServiceAccessSecurityGroup: "$SERVICE_SG"
+  - "${add_slave_sg}"
+  Ec2SubnetId: "${subnet_id}"
+  EmrManagedMasterSecurityGroup: "${master_sg}"
+  EmrManagedSlaveSecurityGroup: "${slave_sg}"
+  ServiceAccessSecurityGroup: "${service_access_sg}"
   InstanceFleets:
   - InstanceFleetType: "MASTER"
     Name: MASTER
@@ -19,7 +19,7 @@ Instances:
             SizeInGB: 250
             VolumeType: "gp2"
           VolumesPerInstance: 1
-      InstanceType: "m5.2xlarge"
+      InstanceType: "${instance_type}"
   - InstanceFleetType: "CORE"
     Name: CORE
     TargetOnDemandCapacity: 1
@@ -30,4 +30,4 @@ Instances:
             SizeInGB: 250
             VolumeType: "gp2"
           VolumesPerInstance: 1
-      InstanceType: "m5.2xlarge"
+      InstanceType: "${instance_type}"
