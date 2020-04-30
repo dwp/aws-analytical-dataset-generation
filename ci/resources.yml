@@ -52,3 +52,16 @@ resources:
       access_token: ((github_com.token))
     check_every: 1h
     webhook_token: ((ucfs-github.webhook-token))
+  - name: emr-ami
+    type: ami
+    check_every: 1h
+    source:
+      aws_access_key_id: ((ci.aws_access_key_id))
+      aws_secret_access_key: ((ci.aws_secret_access_key))
+      aws_role_arn: "arn:aws:iam::((aws_account.management)):role/ci"
+      region: eu-west-2
+      filters:
+        owner-id: ((aws_account.management))
+        is-public: false
+        state: available
+        name: dw-emr-ami-1578322029

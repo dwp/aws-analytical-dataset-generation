@@ -3,7 +3,7 @@ Steps:
 - Name: "emr-setup"
   HadoopJarStep:
     Args:
-    - "s3://$S3_CONFIG_BUCKET/component/emr-setup.sh"
+    - "s3://${s3_config_bucket}/component/emr-setup.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "CONTINUE"
 - Name: "copy-hbase-configuration"
@@ -18,7 +18,7 @@ Steps:
   HadoopJarStep:
     Args:
     - "spark-submit"
-    - "s3://$S3_CONFIG_BUCKET/component/analytical-dataset-generation/generate-analytical-dataset.py"
+    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/generate-analytical-dataset.py"
     - "--deploy-mode"
     - "cluster"
     - "--master"

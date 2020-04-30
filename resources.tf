@@ -332,7 +332,7 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_acm" {
 }
 
 resource "aws_secretsmanager_secret" "adg_secret" {
-  name = "ADG-Payload"
+  name = "ADG-Secret"
 }
 
 data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
