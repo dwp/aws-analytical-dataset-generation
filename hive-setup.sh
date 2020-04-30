@@ -2,4 +2,6 @@
 aws s3 cp "${hive-scripts-path}"  .
 aws s3 cp "${collections_list}"  .
 
-/usr/bin/python create-hive-tables.py
+sudo echo 'list' | sudo hbase shell > current_hbase_tables
+
+/usr/bin/python3.6 create-hive-tables.py

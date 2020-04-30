@@ -50,6 +50,10 @@ resource "aws_emr_cluster" "cluster" {
     name = "get-dks-cert"
     path = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.emr_setup_sh.key)
   }
+  bootstrap_action {
+    name = "installer"
+    path = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.installer_sh.key)
+  }
 
   // TODO use templated proxy env vars
   configurations_json = templatefile(format("%s/configuration.json", path.module), {
