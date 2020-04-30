@@ -49,6 +49,7 @@ jobs:
             - name: aws-analytical-dataset-generation
             - name: terraform-config
             - name: emr-launcher-release
+            - name: emr-ami
         input_mapping:
           aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
         on_failure:
