@@ -1,5 +1,6 @@
 import boto3
 import csv
+import logging
 
 client = boto3.client("glue")
 DatabaseName = "analytical_dataset_generation_staging"
@@ -15,7 +16,7 @@ with open("collections.csv") as csvfile:
             try:
                 client.delete_table(DatabaseName=DatabaseName, Name=collection_hbase)
             except client.exceptions.EntityNotFoundException as e:
-                print(e)
+                logging.error(e)
 
             client.create_table(
                 DatabaseName=DatabaseName,
@@ -49,4 +50,4 @@ with open("collections.csv") as csvfile:
                 },
             )
         else:
-            print(collection, " is not in HBase")
+            logging.error(collection, " is not in HBase")
