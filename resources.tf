@@ -344,7 +344,7 @@ data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
     ]
 
     resources = [
-      aws_secretsmanager_secret.adg_secret.arn
+      data.aws_secretsmanager_secret.adg_secret.arn
     ]
   }
 }
