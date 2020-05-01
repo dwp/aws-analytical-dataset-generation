@@ -8,7 +8,11 @@ resource "aws_s3_bucket_object" "generate-analytical-dataset-script" {
 data "template_file" "analytical_dataset_generation_script" {
   template = file(format("%s/generate-analytical-dataset.py", path.module))
   vars = {
-    secret_name = "ADG-Payload"
+    secret_name    = "ADG-Payload"
+    staging_db     = "analytical_dataset_generation_staging"
+    published_db   = "analytical_dataset_generation"
+    file_location  = "analytical-dataset"
+    url            = format("https://%s:8443/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
   }
 }
 
