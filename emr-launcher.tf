@@ -35,28 +35,28 @@ resource "aws_lambda_function" "adg_emr_launcher" {
 resource "aws_s3_bucket_object" "cluster" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   key        = "emr/adg/cluster.yaml"
-  source     = data.template_file.cluster.rendered
+  content    = data.template_file.cluster.rendered
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "instances" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   key        = "emr/adg/instances.yaml"
-  source     = data.template_file.instances.rendered
+  content    = data.template_file.instances.rendered
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "steps" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   key        = "emr/adg/steps.yaml"
-  source     = data.template_file.steps.rendered
+  content    = data.template_file.steps.rendered
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "configurations" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   key        = "emr/adg/configurations.yaml"
-  source     = data.template_file.configurations.rendered
+  content    = data.template_file.configurations.rendered
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
