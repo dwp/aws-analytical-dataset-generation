@@ -127,7 +127,7 @@ data "aws_iam_policy_document" "adg_emr_launcher_read_secret_policy" {
       "secretsmanager:GetSecretValue",
     ]
     resources = [
-      aws_secretsmanager_secret.adg_secret.arn
+      data.aws_secretsmanager_secret.adg_secret.arn
     ]
   }
 }
