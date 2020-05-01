@@ -64,4 +64,4 @@ resources:
         owner-id: ((aws_account.management))
         is-public: false
         state: available
-        name: dw-emr-ami-1578322029
+        name: dw-emr-ami-*

@@ -331,7 +331,7 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_acm" {
   policy_arn = aws_iam_policy.analytical_dataset_acm.arn
 }
 
-resource "aws_secretsmanager_secret" "adg_secret" {
+data "aws_secretsmanager_secret" "adg_secret" {
   name = "ADG-Secret"
 }
 
