@@ -13,23 +13,11 @@ from pyspark.sql import Row
 
 
 def main():
-    secret_name = "${secret_name}"
-    # Create a Secrets Manager client
-    session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager")
-    response = client.get_secret_value(SecretId=secret_name)
-    response_dict = ast.literal_eval(response["SecretString"])
+    response_dict = retrieve_secrets()
     S3_PUBLISH_BUCKET = response_dict["S3_PUBLISH_BUCKET"]
-    spark = (
-        SparkSession.builder.master("yarn")
-        .config("spark.sql.parquet.binaryAsString", "true")
-        .appName("aws-analytical-dataset-generator")
-        .enableHiveSupport()
-        .getOrCreate()
-    )
-
-    published_database_name = "${published_db}"
     database_name = "${staging_db}"
+    published_database_name = "${published_db}"
+    spark = create_spark_session()
     tables = getTables(database_name)
     for table_to_process in tables:   
         adg_hive_table = database_name + "." + table_to_process 
@@ -60,6 +48,28 @@ def main():
         spark.sql(src_hive_create_query)
         src_hive_select_query = "select * from %s" % src_hive_table
         spark.sql(src_hive_select_query).show()
+
+
+def create_spark_session():
+    spark = (
+        SparkSession.builder.master("yarn")
+            .config("spark.sql.parquet.binaryAsString", "true")
+            .appName("aws-analytical-dataset-generator")
+            .enableHiveSupport()
+            .getOrCreate()
+    )
+    return spark
+
+
+def retrieve_secrets():
+    secret_name = "${secret_name}"
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(service_name="secretsmanager")
+    response = client.get_secret_value(SecretId=secret_name)
+    response_dict = ast.literal_eval(response["SecretString"])
+    return response_dict
+
 
 def decrypt(cek, kek, iv, ciphertext, keys_map):
     if keys_map.get(cek):
