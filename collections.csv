@@ -4,5 +4,4 @@ agent_core:agent
 agent_core:agentToDo
 agent_core:team
 core:claimant
-core:contract
 matchingService:managementInformation
