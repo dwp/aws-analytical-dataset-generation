@@ -1,10 +1,11 @@
-import json
 from pyspark.sql import SparkSession
 import base64
 import binascii
 import boto3
 import ast
 import requests
+import json
+import re
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -39,7 +40,9 @@ def main():
         values = (
             df.select("data")
             .rdd.map(lambda x: getTuple(x.data))
-            .map(lambda y: decrypt(y[0], y[1], y[2], y[3], keys_map))
+            # TODO Is there a better way without tailing ?
+            .map(lambda y: decrypt(y[0], y[1], y[2], y[3],y[4], y[5], keys_map))
+            .map(lambda z: sanitize(z[0], z[1], z[2]))
         )
         row = Row("val")
         datadf = values.map(row).toDF()
@@ -61,7 +64,14 @@ def main():
         src_hive_select_query = "select * from %s" % src_hive_table
         spark.sql(src_hive_select_query).show()
 
-def decrypt(cek, kek, iv, ciphertext, keys_map):
+def sanitize(decrypted, db_name, collection_name):
+    if ((db_name == "penalties-and-deductions" and collection_name == "sanction")
+            or (db_name == "core" and collection_name == "healthAndDisabilityDeclaration")
+            or (db_name == "accepted-data" and collection_name == "healthAndDisabilityCircumstances")):
+         re.sub(r"""(?<!\\)\\[r|n]""", "", decrypted)
+    decrypted.replace("$", "d_").replace("\\u0000", "").replace("_archivedDateTime", "_removedDateTime").replace("_archived", "_removed")
+
+def decrypt(cek, kek, iv, ciphertext, db_name, collection_name, keys_map):
     if keys_map.get(cek):
         key = keys_map[cek]
         print("Found the key in cache")
@@ -83,17 +93,20 @@ def decrypt(cek, kek, iv, ciphertext, keys_map):
     ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
     aes = AES.new(base64.b64decode(key), AES.MODE_CTR, counter=ctr)
     print("about to decrypt")
-    return aes.decrypt(base64.b64decode(ciphertext))
+    return aes.decrypt(base64.b64decode(ciphertext)), db_name, collection_name
 
 
-def getTuple(data):
-    record = json.loads(data)
+def getTuple(json_string):
+    record = json.loads(json_string)
     encryption = record["message"]["encryption"]
     dbObject = record["message"]["dbObject"]
     encryptedKey = encryption["encryptedEncryptionKey"]
     keyEncryptionkeyId = encryption["keyEncryptionKeyId"]
     iv = encryption["initialisationVector"]
-    return encryptedKey, keyEncryptionkeyId, iv, dbObject
+    # TODO  exception handling , what if the  below fields don't exist in the json
+    db_name = record['message']['db']
+    collection_name = record['message']['collection']
+    return encryptedKey, keyEncryptionkeyId, iv, dbObject, db_name, collection_name
 
 
 def getPrinted(values):
