@@ -60,7 +60,7 @@ resource "aws_emr_cluster" "cluster" {
     logs_bucket_path = format("s3://%s/logs", data.terraform_remote_state.security-tools.outputs.logstore_bucket.id)
     data_bucket_path = format("s3://%s/data", aws_s3_bucket.published.id)
     //TODO this path needs to be taken from the output of aws-ingestion
-    hbase_root_path    = format("s3://%s/business-data/single-topic-per-table-hbase", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
+    hbase_root_path    = local.hbase_root_path
     hive_external_path = format("s3://%s/analytical-dataset/hive/external", aws_s3_bucket.published.id)
     proxy_host         = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
     dynamo_meta_table  = local.dynamo_meta_name
@@ -172,6 +172,7 @@ data "template_file" "configurations" {
     s3_log_bucket       = data.terraform_remote_state.security-tools.outputs.logstore_bucket.id
     s3_published_bucket = aws_s3_bucket.published.id
     s3_ingest_bucket    = data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket
+    hbase_root_path     = local.hbase_root_path
     proxy_no_proxy      = "169.254.169.254|*.s3.eu-west-2.amazonaws.com|s3.eu-west-2.amazonaws.com|sns.eu-west-2.amazonaws.com|sqs.eu-west-2.amazonaws.com|eu-west-2.queue.amazonaws.com|glue.eu-west-2.amazonaws.com|sts.eu-west-2.amazonaws.com|*.eu-west-2.compute.internal|dynamodb.eu-west-2.amazonaws.com"
     proxy_http_address  = data.terraform_remote_state.internet_egress.outputs.internet_proxy_service.http_address
     proxy_https_address = data.terraform_remote_state.internet_egress.outputs.internet_proxy_service.https_address
