@@ -56,7 +56,7 @@
         {
             "classification": "hbase-site",
             "properties": {
-                "hbase.rootdir": "s3://$S3_INGEST_BUCKET/business-data/single-topic-per-table-hbase",
+                "hbase.rootdir": "s3://$S3_INGEST_BUCKET/business-data/hbase-single-topic-per-table",
                 "hbase.client.keyvalue.maxsize": "750000000",
                 "hbase.server.keyvalue.maxsize": "750000000",
                 "hbase.bulkload.retries.retryOnIOException": "true",
