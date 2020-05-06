@@ -16,6 +16,38 @@ jobs:
       - .: (( inject meta.plan.terraform-bootstrap ))
         input_mapping:
           aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
+      - task: unit-tests
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source:
+                repository: ((python3-pyspark-pytest.repository))
+                version: ((python3-pyspark-pytest.version))
+                tag: ((python3-pyspark-pytest.version))
+            run:
+              path: sh
+              dir: aws-analytical-dataset-generation
+              args:
+                - -exc
+                - |
+                  pytest .
+            inputs:
+              - name: aws-analytical-dataset-generation
+          input_mapping:
+            aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
+          on_failure:
+            put: aws-analytical-dataset-generation-pr
+            params:
+              context: $BUILD_JOB_NAME
+              path: aws-analytical-dataset-generation-pr
+              status: failure
+          on_success:
+            put: aws-analytical-dataset-generation-pr
+            params:
+              context: $BUILD_JOB_NAME
+              path: aws-analytical-dataset-generation-pr
+              status: success
       - task: terraform-plan
         config:
           platform: linux
