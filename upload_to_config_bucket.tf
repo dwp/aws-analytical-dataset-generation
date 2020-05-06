@@ -12,7 +12,7 @@ data "template_file" "analytical_dataset_generation_script" {
     staging_db    = "analytical_dataset_generation_staging"
     published_db  = "analytical_dataset_generation"
     file_location = "analytical-dataset"
-    url           = format("https://%s:8443/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
+    url           = = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
   }
 }
 
