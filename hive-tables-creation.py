@@ -11,7 +11,6 @@ with open("collections.csv") as csvfile:
     for collection in collections:
         collection = collection[0]
         collection_hbase = collection.replace(":", "_") + "_hbase"
-        # TODO make connection to happybase and check if table exists before creating it
         if collection in hbase_tables:
             try:
                 client.delete_table(DatabaseName=DatabaseName, Name=collection_hbase)
