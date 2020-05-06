@@ -1,11 +1,10 @@
+import json
 from pyspark.sql import SparkSession
 import base64
 import binascii
 import boto3
 import ast
 import requests
-import json
-import re
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -32,8 +31,8 @@ def main():
     published_database_name = "${published_db}"
     database_name = "${staging_db}"
     tables = getTables(database_name)
-    for table_to_process in tables:   
-        adg_hive_table = database_name + "." + table_to_process 
+    for table_to_process in tables:
+        adg_hive_table = database_name + "." + table_to_process
         adg_hive_select_query = "select * from %s" % adg_hive_table
         df = spark.sql(adg_hive_select_query)
         keys_map = {}
@@ -68,8 +67,8 @@ def sanitize(decrypted, db_name, collection_name):
     if ((db_name == "penalties-and-deductions" and collection_name == "sanction")
             or (db_name == "core" and collection_name == "healthAndDisabilityDeclaration")
             or (db_name == "accepted-data" and collection_name == "healthAndDisabilityCircumstances")):
-         re.sub(r"""(?<!\\)\\[r|n]""", "", decrypted)
-    decrypted.replace("$", "d_").replace("\\u0000", "").replace("_archivedDateTime", "_removedDateTime").replace("_archived", "_removed")
+        decrypted = re.sub(r'(?<!\\)\\[r|n]', '', decrypted)
+    return decrypted.replace("$", "d_").replace("\u0000", "").replace("_archivedDateTime", "_removedDateTime").replace("_archived", "_removed")
 
 def decrypt(cek, kek, iv, ciphertext, db_name, collection_name, keys_map):
     if keys_map.get(cek):
@@ -121,7 +120,6 @@ def getTables(db_name):
     for table_dict in db_tables:
        table_list.append(table_dict["Name"])
     return table_list
-
 
 
 if __name__ == "__main__":

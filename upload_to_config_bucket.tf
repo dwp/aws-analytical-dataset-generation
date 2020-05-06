@@ -26,6 +26,7 @@ resource "aws_s3_bucket_object" "analytical_dataset_generator_cluster_payload" {
 data "template_file" "analytical_dataset_generator_cluster_payload" {
   template = file(format("%s/aws-api-payload.json", path.module))
   vars = {
+    hbase_root_path = local.hbase_root_path
   }
 }
 resource "aws_s3_bucket_object" "emr_setup_sh" {
@@ -56,7 +57,7 @@ resource "aws_s3_bucket_object" "meta_cleaner_sh" {
 data "template_file" "meta_cleaner_sh" {
   template = file(format("%s/meta-cleaner.sh", path.module))
   vars = {
-    hbase_meta     = format("s3://%s/business-data/single-topic-per-table-hbase/data/hbase/meta_", data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket)
+    hbase_meta     = local.hbase_root_path
     metatable_name = local.dynamo_meta_name
   }
 }
