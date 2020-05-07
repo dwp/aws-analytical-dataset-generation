@@ -102,7 +102,7 @@
                 "yarn",
                 "--conf",
                 "spark.yarn.submit.waitAppCompletion=true",
-                "s3://$S3_CONFIG_BUCKET/component/analytical-dataset-generation/generate-analytical-dataset.py"
+                "s3://$S3_CONFIG_BUCKET/component/analytical-dataset-generation/generate_analytical_dataset.py"
             ]
         }
     ],
