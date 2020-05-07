@@ -23,7 +23,7 @@ def main():
     S3_PUBLISH_BUCKET = response_dict["S3_PUBLISH_BUCKET"]
     collections_dict = response_dict["collections"]
     collections_all = {key.replace('db.','',1) for key in collections_dict}
-    collections_all = {key.replace('.','_') for key in collections_dict}
+    collections_all = {key.replace('.','_') for key in collections_all}
     spark = (
         SparkSession.builder.master("yarn")
         .config("spark.sql.parquet.binaryAsString", "true")
