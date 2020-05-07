@@ -18,7 +18,7 @@ Steps:
   HadoopJarStep:
     Args:
     - "spark-submit"
-    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/generate-analytical-dataset.py"
+    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/generate_analytical_dataset.py"
     - "--deploy-mode"
     - "cluster"
     - "--master"

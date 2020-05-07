@@ -98,7 +98,7 @@ resource "aws_emr_cluster" "cluster" {
       jar = "command-runner.jar"
       args = [
         "spark-submit",
-        format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate-analytical-dataset-script.key),
+        format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_analytical_dataset_script.key),
         "--deploy-mode",
         "cluster",
         "--master",
@@ -122,7 +122,7 @@ resource "aws_emr_cluster" "cluster" {
 
 
   depends_on = [
-    aws_s3_bucket_object.generate-analytical-dataset-script
+    aws_s3_bucket_object.generate_analytical_dataset_script
   ]
 
   lifecycle {
