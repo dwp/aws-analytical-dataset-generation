@@ -29,6 +29,7 @@ def main():
             .rdd.map(lambda x: getTuple(x.data))
             # TODO Is there a better way without tailing ?
             .map(lambda y: decrypt(y[0], y[1], y[2], y[3],y[4], y[5], keys_map))
+            .map(lambda p: validate(p[0]))
             .map(lambda z: sanitize(z[0], z[1], z[2]))
         )
         row = Row("val")
@@ -77,6 +78,21 @@ def retrieve_secrets():
     response_dict = ast.literal_eval(response["SecretString"])
     return response_dict
 
+def validate(decrypted):
+    # TODO Can this decoding to an object happen at one place
+    db_object = json.loads(decrypted)
+    id = db_object['_id']
+    if(isintance(id, str)):
+        replace_id_as_object(db_object, '_id', '$oid', id)
+
+
+
+def replace_id_as_object(db_object, key_to_replace, new_key, original_id):
+    new_id = { '$oid' : original_id}
+    db_object['_id'] = new_id
+    return db_object
+
+
 
 def sanitize(decrypted, db_name, collection_name):
     if ((db_name == "penalties-and-deductions" and collection_name == "sanction")
@@ -115,7 +131,7 @@ def getTuple(json_string):
     encryption = record["message"]["encryption"]
     dbObject = record["message"]["dbObject"]
     encryptedKey = encryption["encryptedEncryptionKey"]
-    keyEncryptionkeyId = encryption["keyEncryptionKeyId"]
+    keyEncryptionkeyId = encryption["keyEncryptionKeyId"]key
     iv = encryption["initialisationVector"]
     # TODO  exception handling , what if the  below fields don't exist in the json
     db_name = record['message']['db']
@@ -133,7 +149,7 @@ def getTables(db_name):
     tables_metadata_dict = client.get_tables(DatabaseName = db_name)
     db_tables = tables_metadata_dict["TableList"]
     for table_dict in db_tables:
-       table_list.append(table_dict["Name"])
+       table_list.append(table_dict["Name"])keyboard
     return table_list
 
 
