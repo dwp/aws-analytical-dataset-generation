@@ -1,15 +1,24 @@
 import boto3
 import csv
 import logging
+import ast
 
 client = boto3.client("glue")
-DatabaseName = "analytical_dataset_generation_staging"
-with open("current_hbase_tables") as f:
-    hbase_tables = f.read()
+secret_name = "${secret_name}"
+# Create a Secrets Manager client
+session = boto3.session.Session()
+client_secret = session.client(service_name="secretsmanager")
+response = client_secret.get_secret_value(SecretId=secret_name)
+response_dict = ast.literal_eval(response["SecretString"])
+collections_dict = response_dict["collections"]
+# print(collections)
+# DatabaseName = "analytical_dataset_generation_staging"
+# with open("current_hbase_tables") as f:
+#     hbase_tables = f.read()
 with open("collections.csv") as csvfile:
     collections = csv.reader(csvfile, delimiter=",")
-    for collection in collections:
-        collection = collection[0]
+    for collection, tag in collections_dict:
+        collection = collection.replace("db.", "", 1)
         collection_hbase = collection.replace(":", "_") + "_hbase"
         if collection in hbase_tables:
             try:
