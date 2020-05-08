@@ -11,7 +11,9 @@ from Crypto.Util import Counter
 from pyspark.sql.types import *
 from pyspark.sql import Row
 from datetime import datetime
+import logging
 import pytz
+from dateutil.parser import parse
 
 
 def main():
@@ -85,8 +87,10 @@ def validate(decrypted):
     db_object = json.loads(decrypted)
     id = db_object['_id']
     if isinstance(id, str):
-    db_object =  replace_id_as_object(db_object, '_id', '$oid', id)
+        db_object =  replace_element_value_wit_key_value_pair(db_object, '_id', '$oid', id)
     wrap_dates(db_object)
+    return db_object
+    # TODO do we need timestamp here which is just for manifets purposes
 
 def replace_element_value_wit_key_value_pair(db_object, key_to_replace, new_key, original_id):
     new_id = { new_key : original_id}
@@ -96,13 +100,26 @@ def replace_element_value_wit_key_value_pair(db_object, key_to_replace, new_key,
 def wrap_dates(db_object):
     last_modified_date_time_as_string = retrieve_last_modified_date_time(db_object)
     formatted_last_modified_string = format_date_to_valid_outgoing_format(last_modified_date_time_as_string)
+    print(f"formatted_last_modified_string is {formatted_last_modified_string}")
     replace_element_value_wit_key_value_pair(db_object, '_lastModifiedDateTime', '$date', formatted_last_modified_string)
+
     created_date_time_as_string = retrieve_date_time_element('createdDateTime', db_object)
-    formatted_creates_datetime_string = format_date_to_valid_outgoing_format(created_date_time_as_string)
-    replace_element_value_wit_key_value_pair(db_object, 'createdDateTime', '$date', formatted_creates_datetime_string )
+    if created_date_time_as_string:
+        formatted_creates_datetime_string = format_date_to_valid_outgoing_format(created_date_time_as_string)
+        print(f"formatted_creates_datetime_string is {formatted_creates_datetime_string}")
+        replace_element_value_wit_key_value_pair(db_object, 'createdDateTime', '$date', formatted_creates_datetime_string )
+
     removed_date_time_as_string = retrieve_date_time_element('_removedDateTime', db_object)
-    formatted_removed_date_time_as_string = format_date_to_valid_outgoing_format(removed_date_time_as_string)
-    replace_element_value_wit_key_value_pair(db_object, '_removedDateTime', '$date', formatted_removed_date_time_as_string)
+    if removed_date_time_as_string:
+        formatted_removed_date_time_as_string = format_date_to_valid_outgoing_format(removed_date_time_as_string)
+        print(f"formatted_removed_date_time_as_string is {formatted_removed_date_time_as_string}")
+        replace_element_value_wit_key_value_pair(db_object, '_removedDateTime', '$date', formatted_removed_date_time_as_string)
+
+    archived_date_time_as_string = retrieve_date_time_element('_archivedDateTime', db_object)
+    if archived_date_time_as_string:
+        formatted_archived_date_time_as_string = format_date_to_valid_outgoing_format(archived_date_time_as_string)
+        print(f"formatted_archived_date_time_as_string is {formatted_archived_date_time_as_string}")
+        replace_element_value_wit_key_value_pair(db_object, '_archivedDateTime', '$date', formatted_archived_date_time_as_string)
 
 def retrieve_last_modified_date_time(db_object):
     epoch = "1980-01-01T00:00:00.000Z"
@@ -114,31 +131,33 @@ def retrieve_last_modified_date_time(db_object):
         return created_date_time
     return epoch
 
-
 def retrieve_date_time_element(key, db_object):
-    date_element = db_object[key]
-    #  Deal with null checks in python
-    if isinstance(date_element, dict):
-       date_sub_element =  date_element['$date']
-       return date_sub_element
-    else:
-        date_element
-    # TODO return empty  if the top level  json object is none
+    print(f"retrieving {key}")
+    date_element = db_object.get(key)
+    print(f"date_element  is {date_element}")
+    if date_element is not None:
+        if isinstance(date_element, dict):
+           date_sub_element =  date_element['$date']
+           return date_sub_element
+        else:
+           return date_element
+    else: return ""
 
 def format_date_to_valid_outgoing_format(current_date_time):
     parsed_date_time = get_valid_parsed_date_time(current_date_time)
-    parsed_date_time.astimezone(pytz.utc)
+    print(f'parsed time as {parsed_date_time}')
     return datetime.strftime(parsed_date_time, '%Y-%m-%dT%H:%M:%S.%fZ')
 
-
 def get_valid_parsed_date_time(time_stamp_as_string):
-   valid_timestamps =  ['%Y-%m-%dT%H:%M:%S.%f%z']
-   try:
-       for time_stamp_fmt in valid_timestamps:
-           return datetime.strptime(time_stamp_as_string, time_stamp_fmt)
-   except Exception:
-       print(f'timestampAsString did not match valid formats {valid_timestamps}')
+   valid_timestamps =  ['%Y-%m-%dT%H:%M:%S.%fZ','%Y-%m-%dT%H:%M:%S.%f%z']
+   for time_stamp_fmt in valid_timestamps:
+    try:
+       print(f"Trying format {time_stamp_fmt}")
+       return datetime.strptime(time_stamp_as_string, time_stamp_fmt)
+    except Exception:
+       print(f'timestampAsString did not match valid format {time_stamp_fmt}')
 
+   # TODO Think about the below exception later on
    raise Exception(f'Unparseable date found: {time_stamp_as_string} , did not match any supported date formats {valid_timestamps}')
 
 def sanitize(decrypted, db_name, collection_name):
