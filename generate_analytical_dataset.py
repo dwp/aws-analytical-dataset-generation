@@ -10,6 +10,8 @@ from Crypto.Cipher import AES
 from Crypto.Util import Counter
 from pyspark.sql.types import *
 from pyspark.sql import Row
+from datetime import datetime
+import pytz
 
 
 def main():
@@ -82,17 +84,62 @@ def validate(decrypted):
     # TODO Can this decoding to an object happen at one place
     db_object = json.loads(decrypted)
     id = db_object['_id']
-    if(isintance(id, str)):
-        replace_id_as_object(db_object, '_id', '$oid', id)
+    if isinstance(id, str):
+    db_object =  replace_id_as_object(db_object, '_id', '$oid', id)
+    wrap_dates(db_object)
 
-
-
-def replace_id_as_object(db_object, key_to_replace, new_key, original_id):
-    new_id = { '$oid' : original_id}
-    db_object['_id'] = new_id
+def replace_element_value_wit_key_value_pair(db_object, key_to_replace, new_key, original_id):
+    new_id = { new_key : original_id}
+    db_object[key_to_replace] = new_id
     return db_object
 
+def wrap_dates(db_object):
+    last_modified_date_time_as_string = retrieve_last_modified_date_time(db_object)
+    formatted_last_modified_string = format_date_to_valid_outgoing_format(last_modified_date_time_as_string)
+    replace_element_value_wit_key_value_pair(db_object, '_lastModifiedDateTime', '$date', formatted_last_modified_string)
+    created_date_time_as_string = retrieve_date_time_element('createdDateTime', db_object)
+    formatted_creates_datetime_string = format_date_to_valid_outgoing_format(created_date_time_as_string)
+    replace_element_value_wit_key_value_pair(db_object, 'createdDateTime', '$date', formatted_creates_datetime_string )
+    removed_date_time_as_string = retrieve_date_time_element('_removedDateTime', db_object)
+    formatted_removed_date_time_as_string = format_date_to_valid_outgoing_format(removed_date_time_as_string)
+    replace_element_value_wit_key_value_pair(db_object, '_removedDateTime', '$date', formatted_removed_date_time_as_string)
 
+def retrieve_last_modified_date_time(db_object):
+    epoch = "1980-01-01T00:00:00.000Z"
+    last_modified_date_time = retrieve_date_time_element('_lastModifiedDateTime', db_object)
+    created_date_time = retrieve_date_time_element('createdDateTime', db_object)
+    if last_modified_date_time:
+        return last_modified_date_time
+    if created_date_time:
+        return created_date_time
+    return epoch
+
+
+def retrieve_date_time_element(key, db_object):
+    date_element = db_object[key]
+    #  Deal with null checks in python
+    if isinstance(date_element, dict):
+       date_sub_element =  date_element['$date']
+       return date_sub_element
+    else:
+        date_element
+    # TODO return empty  if the top level  json object is none
+
+def format_date_to_valid_outgoing_format(current_date_time):
+    parsed_date_time = get_valid_parsed_date_time(current_date_time)
+    parsed_date_time.astimezone(pytz.utc)
+    return datetime.strftime(parsed_date_time, '%Y-%m-%dT%H:%M:%S.%fZ')
+
+
+def get_valid_parsed_date_time(time_stamp_as_string):
+   valid_timestamps =  ['%Y-%m-%dT%H:%M:%S.%f%z']
+   try:
+       for time_stamp_fmt in valid_timestamps:
+           return datetime.strptime(time_stamp_as_string, time_stamp_fmt)
+   except Exception:
+       print(f'timestampAsString did not match valid formats {valid_timestamps}')
+
+   raise Exception(f'Unparseable date found: {time_stamp_as_string} , did not match any supported date formats {valid_timestamps}')
 
 def sanitize(decrypted, db_name, collection_name):
     if ((db_name == "penalties-and-deductions" and collection_name == "sanction")
@@ -131,7 +178,7 @@ def getTuple(json_string):
     encryption = record["message"]["encryption"]
     dbObject = record["message"]["dbObject"]
     encryptedKey = encryption["encryptedEncryptionKey"]
-    keyEncryptionkeyId = encryption["keyEncryptionKeyId"]key
+    keyEncryptionkeyId = encryption["keyEncryptionKeyId"]
     iv = encryption["initialisationVector"]
     # TODO  exception handling , what if the  below fields don't exist in the json
     db_name = record['message']['db']
@@ -149,7 +196,7 @@ def getTables(db_name):
     tables_metadata_dict = client.get_tables(DatabaseName = db_name)
     db_tables = tables_metadata_dict["TableList"]
     for table_dict in db_tables:
-       table_list.append(table_dict["Name"])keyboard
+       table_list.append(table_dict["Name"])
     return table_list
 
 
