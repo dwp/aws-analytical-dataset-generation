@@ -85,12 +85,15 @@ def retrieve_secrets():
 def validate(decrypted):
     # TODO Can this decoding to an object happen at one place
     db_object = json.loads(decrypted)
-    id = db_object['_id']
+    id = retrieve_id(db_object)
     if isinstance(id, str):
         db_object =  replace_element_value_wit_key_value_pair(db_object, '_id', '$oid', id)
-    wrap_dates(db_object)
-    return db_object
-    # TODO do we need timestamp here which is just for manifets purposes
+    return wrap_dates(db_object)
+
+def retrieve_id(db_object):
+    id = db_object['_id']
+    return id
+
 
 def replace_element_value_wit_key_value_pair(db_object, key_to_replace, new_key, original_id):
     new_id = { new_key : original_id}
@@ -120,6 +123,7 @@ def wrap_dates(db_object):
         formatted_archived_date_time_as_string = format_date_to_valid_outgoing_format(archived_date_time_as_string)
         print(f"formatted_archived_date_time_as_string is {formatted_archived_date_time_as_string}")
         replace_element_value_wit_key_value_pair(db_object, '_archivedDateTime', '$date', formatted_archived_date_time_as_string)
+    return db_object
 
 def retrieve_last_modified_date_time(db_object):
     epoch = "1980-01-01T00:00:00.000Z"
@@ -137,11 +141,12 @@ def retrieve_date_time_element(key, db_object):
     print(f"date_element  is {date_element}")
     if date_element is not None:
         if isinstance(date_element, dict):
-           date_sub_element =  date_element['$date']
-           return date_sub_element
+           date_sub_element =  date_element.get('$date')
+           if date_sub_element is not None:
+            return date_sub_element
         else:
            return date_element
-    else: return ""
+    return ""
 
 def format_date_to_valid_outgoing_format(current_date_time):
     parsed_date_time = get_valid_parsed_date_time(current_date_time)
