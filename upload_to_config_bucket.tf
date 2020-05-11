@@ -44,7 +44,7 @@ data "template_file" "emr_setup_sh" {
     acm_cert_arn       = aws_acm_certificate.analytical-dataset-generator.arn
     private_key_alias  = "private_key"
     truststore_aliases = join(",", var.truststore_aliases)
-    truststore_certs   = "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem,s3://dw-${local.management_account[local.environment]}-public-certificates/ca_certificates/dataworks/ca.pem,s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem",
+    truststore_certs   = "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/dataworks_root_ca.pem,s3://dw-management-dev-public-certificates/ca_certificates/dataworks/dataworks_root_ca.pem,s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem,s3://dw-${local.management_account[local.environment]}-public-certificates/ca_certificates/dataworks/ca.pem,s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem"
     dks_endpoint       = data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment]
   }
 }
@@ -71,11 +71,15 @@ resource "aws_s3_bucket_object" "installer_sh" {
 data "template_file" "installer_sh" {
   template = file(format("%s/installer.sh", path.module))
   vars = {
-    full_proxy    = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
-    full_no_proxy = "127.0.0.1,localhost,169.254.169.254,*.s3.eu-west-2.amazonaws.com,s3.eu-west-2.amazonaws.com,sns.eu-west-2.amazonaws.com,sqs.eu-west-2.amazonaws.com,eu-west-2.queue.amazonaws.com,glue.eu-west-2.amazonaws.com,sts.eu-west-2.amazonaws.com,*.eu-west-2.compute.internal,dynamodb.eu-west-2.amazonaws.com"
+    VERSION                 = local.adg_version[local.environment]
+    ADG_LOG_LEVEL           = local.adg_log_level[local.environment]
+    ENVIRONMENT_NAME        = local.environment
+    S3_COMMON_LOGGING_SHELL = format("s3://%s/%s}", data.terraform_remote_state.common.outputs.config_bucket.id, data.terraform_remote_state.common.outputs.application_logging_common_file.s3_id)
+    S3_LOGGING_SHELL        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logging_script.key)
+    full_proxy              = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
+    full_no_proxy           = "127.0.0.1,localhost,169.254.169.254,*.s3.eu-west-2.amazonaws.com,s3.eu-west-2.amazonaws.com,sns.eu-west-2.amazonaws.com,sqs.eu-west-2.amazonaws.com,eu-west-2.queue.amazonaws.com,glue.eu-west-2.amazonaws.com,sts.eu-west-2.amazonaws.com,*.eu-west-2.compute.internal,dynamodb.eu-west-2.amazonaws.com"
   }
 }
-
 
 resource "aws_s3_bucket_object" "create-hive-tables" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
@@ -117,3 +121,17 @@ data "template_file" "collections_csv" {
   vars = {
   }
 }
+
+
+data "local_file" "logging_script" {
+  filename = "logging.sh"
+}
+
+resource "aws_s3_bucket_object" "logging_script" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  key        = "component/analytical-dataset-generation/logging.sh"
+  content    = data.local_file.logging_script.content
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+}
+
+
