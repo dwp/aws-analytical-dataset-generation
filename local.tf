@@ -56,9 +56,9 @@ locals {
   adg_emr_lambda_schedule = {
     development = "1 0 * * ? *"
     qa          = "1 0 * * ? *"
-    integration = "1 0 * * ? *"
-    preprod     = "1 0 * * ? *"
-    production  = "1 0 * * ? *"
+    integration = "0 0 31 12 ? 2025"
+    preprod     = "0 0 31 12 ? 2025"
+    production  = "0 0 31 12 ? 2025"
   }
 
 }
