@@ -74,8 +74,8 @@ data "template_file" "installer_sh" {
     VERSION                 = local.adg_version[local.environment]
     ADG_LOG_LEVEL           = local.adg_log_level[local.environment]
     ENVIRONMENT_NAME        = local.environment
-    S3_COMMON_LOGGING_SHELL = format("s3://%s/%s}",data.terraform_remote_state.common.outputs.config_bucket.id,data.terraform_remote_state.common.outputs.application_logging_common_file.s3_id)
-    S3_LOGGING_SHELL        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logging_shell.key)
+    S3_COMMON_LOGGING_SHELL = format("s3://%s/%s}", data.terraform_remote_state.common.outputs.config_bucket.id, data.terraform_remote_state.common.outputs.application_logging_common_file.s3_id)
+    S3_LOGGING_SHELL        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logging_script.key)
     full_proxy              = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
     full_no_proxy           = "127.0.0.1,localhost,169.254.169.254,*.s3.eu-west-2.amazonaws.com,s3.eu-west-2.amazonaws.com,sns.eu-west-2.amazonaws.com,sqs.eu-west-2.amazonaws.com,eu-west-2.queue.amazonaws.com,glue.eu-west-2.amazonaws.com,sts.eu-west-2.amazonaws.com,*.eu-west-2.compute.internal,dynamodb.eu-west-2.amazonaws.com"
   }
@@ -122,13 +122,16 @@ data "template_file" "collections_csv" {
   }
 }
 
-resource "aws_s3_bucket_object" "logging_shell" {
-  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
-  key     = "component/analytical-dataset-generation/logging.sh"
-  content = data.template_file.logging_shell.rendered
+
+data "local_file" "logging_script" {
+  filename = "logging.sh"
 }
-data "template_file" "logging_shell" {
-  template = file(format("%s/logging.sh", path.module))
-  vars = {
-  }
+
+resource "aws_s3_bucket_object" "logging_script" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  key        = "component/analytical-dataset-generation/logging.sh"
+  content    = data.local_file.logging_script.content
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
+
+

@@ -2,7 +2,7 @@
 source /opt/emr/logging.sh
 
 function log_wrapper_message() {
-    log_adg_message "${1}" "hive-setup.sh" "${PID}" "${@:2}" "Running as: ,$USER"
+    log_adg_message "${1}" "hive-setup.sh" "${3}" "Running as: ,$USER"
 }
 
 log_wrapper_message "Copying ${hive-scripts-path} and ${collections_list} files from s3 to local"

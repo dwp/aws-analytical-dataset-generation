@@ -19,7 +19,7 @@ chmod u+x /opt/emr/logging.sh
 source /opt/emr/logging.sh
 
 function log_wrapper_message() {
-    log_adg_message "${1}" "installer.sh" "${PID}" "${@:2}" "Running as: ,$USER"
+    log_adg_message "${1}" "installer.sh" "${3}"  "Running as: ,$USER"
 }
 
 log_wrapper_message "Setting up the HTTP, NO_PROXY & HTTPS Proxy"

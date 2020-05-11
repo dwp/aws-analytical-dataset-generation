@@ -4,7 +4,7 @@
 source /opt/emr/logging.sh
 
 function log_wrapper_message() {
-    log_adg_message "${1}" "emr-setup.sh" "${PID}" "${@:2}" "Running as: ,$USER"
+    log_adg_message "${1}" "emr-setup.sh" "${3}" "Running as: ,$USER"
 }
 
 log_wrapper_message "Setting up the Proxy"
