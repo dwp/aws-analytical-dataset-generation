@@ -1,23 +1,3 @@
-echo "Creating shared directory"
-sudo mkdir -p /opt/shared
-sudo mkdir -p /opt/emr
-sudo mkdir -p /var/log/adg
-sudo chown hadoop:hadoop /opt/emr
-sudo chown hadoop:hadoop /opt/shared
-sudo chown hadoop:hadoop /var/log/adg
-echo "$VERSION" > /opt/emr/version
-echo "${ADG_LOG_LEVEL}" > /opt/emr/log_level
-echo "${ENVIRONMENT_NAME}" > /opt/emr/environment
-
-echo "Installing scripts"
-s3 cp "$S3_COMMON_LOGGING_SHELL"   /opt/shared/common_logging.sh
-s3 cp "$S3_LOGGING_SHELL"          /opt/emr/logging.sh
-
-echo "Changing the Permissions"
-chmod u+x /opt/shared/common_logging.sh
-chmod u+x /opt/emr/logging.sh
-
-
 (
 # Import the logging functions
 source /opt/emr/logging.sh
