@@ -1,5 +1,5 @@
 jobs:
-- name: analytical-dataset-generation-prod
+- name: analytical-dataset-generation-production
   plan:
   - aggregate:
     - get: aws-analytical-dataset-generation
