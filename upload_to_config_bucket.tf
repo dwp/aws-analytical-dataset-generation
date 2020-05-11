@@ -76,8 +76,8 @@ resource "aws_s3_bucket_object" "installer_sh" {
 data "template_file" "installer_sh" {
   template = file(format("%s/installer.sh", path.module))
   vars = {
-    full_proxy     = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
-    full_no_proxy  = "127.0.0.1,localhost,169.254.169.254,*.s3.eu-west-2.amazonaws.com,s3.eu-west-2.amazonaws.com,sns.eu-west-2.amazonaws.com,sqs.eu-west-2.amazonaws.com,eu-west-2.queue.amazonaws.com,glue.eu-west-2.amazonaws.com,sts.eu-west-2.amazonaws.com,*.eu-west-2.compute.internal,dynamodb.eu-west-2.amazonaws.com"
+    full_proxy    = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
+    full_no_proxy = "127.0.0.1,localhost,169.254.169.254,*.s3.eu-west-2.amazonaws.com,s3.eu-west-2.amazonaws.com,sns.eu-west-2.amazonaws.com,sqs.eu-west-2.amazonaws.com,eu-west-2.queue.amazonaws.com,glue.eu-west-2.amazonaws.com,sts.eu-west-2.amazonaws.com,*.eu-west-2.compute.internal,dynamodb.eu-west-2.amazonaws.com"
   }
 }
 
@@ -133,5 +133,4 @@ resource "aws_s3_bucket_object" "logging_script" {
   content    = data.local_file.logging_script.content
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
-
 

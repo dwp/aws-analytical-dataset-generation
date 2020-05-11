@@ -22,4 +22,4 @@ log_wrapper_message "Installing boto3 packages"
 
 sudo -E /usr/bin/pip-3.6 install boto3
 
-) >> /var/log/adg/nohup.log
+) >> /var/log/adg/nohup.log 2>&1

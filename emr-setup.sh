@@ -101,4 +101,4 @@ done
 
 log_wrapper_message "Complete the set-up of the EMR Cluster"
 
-) >> /var/log/adg/nohup.log
+) >> /var/log/adg/nohup.log 2>&1
