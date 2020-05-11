@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 
+# Import the logging functions
+source /opt/htme/logging.sh
+
+function log_wrapper_message() {
+    log_adg_message "${1}" "emr-setup.sh" "${PID}" "${@:2}" "Running as: ,$USER"
+}
+
+
+log_wrapper_message "Setting up the Proxy"
+
 echo -n "Running as: "
 whoami
 
@@ -18,7 +28,7 @@ export NO_PROXY="$FULL_NO_PROXY"
 
 export ACM_KEY_PASSWORD=$(uuidgen -r)
 
-
+log_wrapper_message "Getting the DKS Certificate Details "
 
 ## get dks cert
 export TRUSTSTORE_PASSWORD=$(uuidgen -r)
@@ -26,8 +36,8 @@ export KEYSTORE_PASSWORD=$(uuidgen -r)
 export PRIVATE_KEY_PASSWORD=$(uuidgen -r)
 export ACM_KEY_PASSWORD=$(uuidgen -r)
 
-sudo mkdir -p /opt/emr
-sudo chown hadoop:hadoop /opt/emr
+#sudo mkdir -p /opt/emr
+#sudo chown hadoop:hadoop /opt/emr
 touch /opt/emr/dks.properties
 cat >> /opt/emr/dks.properties <<EOF
 identity.store.alias=${private_key_alias}
@@ -41,6 +51,8 @@ trust.store.password=$TRUSTSTORE_PASSWORD
 data.key.service.url=${dks_endpoint}
 EOF
 
+log_wrapper_message "Retrieving the ACM Certificate details"
+
 /usr/local/bin/acm-cert-retriever \
     --acm-cert-arn "${acm_cert_arn}" \
     --acm-key-passphrase "$ACM_KEY_PASSWORD" \
@@ -52,14 +64,15 @@ EOF
     --truststore-password "$TRUSTSTORE_PASSWORD" \
     --truststore-aliases "${truststore_aliases}" \
     --truststore-certs "${truststore_certs}" \
-    --jks-only true
+    --jks-only true >> /var/log/acm-cert-retriever.log 2>&1
+
 
 sudo -E /usr/local/bin/acm-cert-retriever \
     --acm-cert-arn "${acm_cert_arn}" \
     --acm-key-passphrase "$ACM_KEY_PASSWORD" \
     --private-key-alias "${private_key_alias}" \
     --truststore-aliases "${truststore_aliases}" \
-    --truststore-certs "${truststore_certs}"
+    --truststore-certs "${truststore_certs}"  >> /var/log/acm-cert-retriever.log 2>&1
 
 cd /etc/pki/ca-trust/source/anchors/
 sudo touch analytical_ca.pem
@@ -69,3 +82,5 @@ for F in $(echo $TRUSTSTORE_ALIASES | sed "s/,/ /g"); do
  (sudo cat "$F.crt"; echo) >> analytical_ca.pem;
 done
 
+
+log_wrapper_message "Complete the set-up of the EMR Cluster"
