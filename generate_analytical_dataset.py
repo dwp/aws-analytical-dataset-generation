@@ -182,8 +182,11 @@ def retrieve_date_time_element(key, db_object):
 
 def format_date_to_valid_outgoing_format(current_date_time):
     parsed_date_time = get_valid_parsed_date_time(current_date_time)
-    print(f'parsed time as {parsed_date_time}')
-    return datetime.strftime(parsed_date_time, '%Y-%m-%dT%H:%M:%S.%fZ')
+    parsed_date_time.astimezone(pytz.utc)
+    parsed_date_time = datetime.strftime(parsed_date_time, '%Y-%m-%dT%H:%M:%S.%f')
+    (dt, micro) = parsed_date_time.split('.')
+    dt = "%s.%03d%s" % (dt, int(micro) / 1000, 'Z')
+    return dt
 
 def get_valid_parsed_date_time(time_stamp_as_string):
     valid_timestamps =  ['%Y-%m-%dT%H:%M:%S.%fZ','%Y-%m-%dT%H:%M:%S.%f%z']
