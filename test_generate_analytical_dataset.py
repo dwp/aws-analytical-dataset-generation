@@ -1,8 +1,9 @@
 import generate_analytical_dataset
-from generate_analytical_dataset import sanitize, validate, retrieve_id, retrieve_last_modified_date_time, retrieve_date_time_element, replace_element_value_wit_key_value_pair, wrap_dates
+from generate_analytical_dataset import sanitize, validate, retrieve_id, retrieve_last_modified_date_time, retrieve_date_time_element, replace_element_value_wit_key_value_pair, wrap_dates,get_valid_parsed_date_time,format_date_to_valid_outgoing_format
 from pyspark.sql import SparkSession
 import json
 from pyspark.sql import Row
+from datetime import datetime
 
 
 def test_sanitisation_processor_removes_desired_chars_in_collections():
@@ -138,8 +139,8 @@ def test_if_decrypted_dbObject_is_a_valid_json_with_object_id():
     actual = validate(msg)
     assert actual is not None
 
-# def test_log_error_if_decrypted_dbObject_is_a_invalid_json
-# def test_log_error_if_decrypted_dbObject_is_a_jsonprimitive
+# def Should_Log_Error_If_Decrypted_DbObject_Is_A_InValid_Json
+# def Should_Log_Error_If_Decrypted_DbObject_Is_A_JsonPrimitive
 
 def test_retrieve_id_if_dbobject_is_a_valid_json():
     date_one = '2019-12-14T15:01:02.000+0000'
@@ -282,7 +283,7 @@ def test_retrieve_empty_string_when_date_element_is_null():
     actual = retrieve_date_time_element('dateTimeTestElement',decrypted_db_object)
     assert expected == actual
 
-#def test_log_error_if_dbObject_doesnt_have_id():
+#def Should_Log_Error_If_DbObject_Doesnt_Have_Id():
 
 def test_replace_value_when_current_value_is_string():
     old_date = "2019-12-14T15:01:02.000+0000"
@@ -369,8 +370,189 @@ def test_wrap_all_dates():
     }
     # TODO do we need to return  last modified time as tuple
     actual = wrap_dates(old_json)
-    print(f'actual is {actual}')
     assert new_json == actual
+
+
+def test_format_all_unwrapped_dates():
+    dateOne = "2019-12-14T15:01:02.000+0000"
+    dateTwo = "2018-12-14T15:01:02.000+0000"
+    dateThree = "2017-12-14T15:01:02.000+0000"
+    dateFour = "2016-12-14T15:01:02.000+0000"
+
+    old_json = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": dateOne,
+        "createdDateTime": dateTwo,
+        "_removedDateTime": dateThree,
+        "_archivedDateTime": dateFour
+    }
+
+    formattedDateOne = "2019-12-14T15:01:02.000Z"
+    formattedDateTwo = "2018-12-14T15:01:02.000Z"
+    formattedDateThree = "2017-12-14T15:01:02.000Z"
+    formattedDateFour = "2016-12-14T15:01:02.000Z"
+
+    new_json = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": {"$date": formattedDateOne},
+        "createdDateTime": {"$date": formattedDateTwo},
+        "_removedDateTime": {"$date": formattedDateThree},
+        "_archivedDateTime": {"$date": formattedDateFour}
+    }
+    actual = wrap_dates(old_json)
+    assert new_json == actual
+
+def test_keep_wrapped_dates_within_wrapper():
+    dateOne = "2019-12-14T15:01:02.000Z"
+    dateTwo = "2018-12-14T15:01:02.000Z"
+    dateThree = "2017-12-14T15:01:02.000Z"
+    dateFour = "2016-12-14T15:01:02.000Z"
+
+    oldJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": {"$date": dateOne},
+        "createdDateTime": {"$date": dateTwo},
+        "_removedDateTime": {"$date": dateThree},
+        "_archivedDateTime": {"$date": dateFour}
+    }
+
+    newJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": {"$date": dateOne},
+        "createdDateTime": {"$date": dateTwo},
+        "_removedDateTime": {"$date": dateThree},
+        "_archivedDateTime": {"$date": dateFour}
+    }
+    actual = wrap_dates(oldJson)
+    assert newJson == actual
+
+def test_format_all_wrapped_dates():
+    dateOne = "2019-12-14T15:01:02.000+0000"
+    dateTwo = "2018-12-14T15:01:02.000+0000"
+    dateThree = "2017-12-14T15:01:02.000+0000"
+    dateFour = "2016-12-14T15:01:02.000+0000"
+
+    oldJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": {"$date": dateOne},
+        "createdDateTime": {"$date": dateTwo},
+        "_removedDateTime": {"$date": dateThree},
+        "_archivedDateTime": {"$date": dateFour}
+    }
+
+    formattedDateOne = "2019-12-14T15:01:02.000Z"
+    formattedDateTwo = "2018-12-14T15:01:02.000Z"
+    formattedDateThree = "2017-12-14T15:01:02.000Z"
+    formattedDateFour = "2016-12-14T15:01:02.000Z"
+
+    newJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": {"$date": formattedDateOne},
+        "createdDateTime": {"$date": formattedDateTwo},
+        "_removedDateTime": {"$date": formattedDateThree},
+        "_archivedDateTime": {"$date": formattedDateFour}
+    }
+    actual = wrap_dates(oldJson)
+    assert newJson == actual
+
+def test_allow_for_missing_created_removed_and_archived_dates():
+    dateOne = "2019-12-14T15:01:02.000Z"
+
+    oldJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": dateOne
+    }
+
+    newJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": {"$date": dateOne}
+    }
+    actual = wrap_dates(oldJson)
+    assert newJson == actual
+
+def test_allow_for_empty_created_removed_and_archived_dates():
+    dateOne = "2019-12-14T15:01:02.000Z"
+
+    oldJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": dateOne,
+        "createdDateTime": "",
+        "_removedDateTime": "",
+        "_archivedDateTime": ""
+    }
+
+    newJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": {"$date": dateOne},
+        "createdDateTime": "",
+        "_removedDateTime": "",
+        "_archivedDateTime": ""
+    }
+    actual = wrap_dates(oldJson)
+    assert newJson == actual
+
+def test_allow_for_null_created_removed_and_archived_dates():
+    dateOne = "2019-12-14T15:01:02.000Z"
+
+    oldJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": dateOne,
+        "createdDateTime": None,
+        "_removedDateTime": None,
+        "_archivedDateTime": None
+    }
+
+    newJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": {"$date": dateOne},
+        "createdDateTime": None,
+        "_removedDateTime": None,
+        "_archivedDateTime": None
+    }
+    actual = wrap_dates(oldJson)
+    assert newJson == actual
+
+def test_create_last_modified_if_missing_dates():
+    epoch = "1980-01-01T00:00:00.000Z"
+
+    oldJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"}
+    }
+
+    newJson = {
+        "_id":{"test_key_a":"test_value_a","test_key_b":"test_value_b"},
+        "_lastModifiedDateTime": {"$date": epoch}
+    }
+    actual = wrap_dates(oldJson)
+    assert newJson == actual
+
+def test_parse_valid_incoming_date_format():
+    dateOne = "2019-12-14T15:01:02.000+0000"
+    expected = datetime.strptime(dateOne,'%Y-%m-%dT%H:%M:%S.%f%z')
+    actual = get_valid_parsed_date_time(dateOne)
+    assert expected == actual
+
+def test_parse_valid_outgoing_date_format():
+    dateOne = "2019-12-14T15:01:02.000Z"
+    expected = datetime.strptime(dateOne,'%Y-%m-%dT%H:%M:%S.%fZ')
+    actual = get_valid_parsed_date_time(dateOne)
+    assert expected == actual
+
+#def Should_Throw_Error_With_Invalid_Date_Format
+#def Should_Return_Timestamp_Of_Valid_Date
+#def Should_Return_Timestamp_Of_Valid_Date
+
+def test_change_incoming_format_date_to_outgoing_format():
+    dateOne = "2019-12-14T15:01:02.000+0000"
+    expected = "2019-12-14T15:01:02.000Z"
+    actual = format_date_to_valid_outgoing_format(dateOne)
+    assert expected == actual
+
+def test_not_change_date_already_in_outgoing_format():
+    dateOne = "2019-12-14T15:01:02.000Z"
+    expected = "2019-12-14T15:01:02.000Z"
+    actual = format_date_to_valid_outgoing_format(dateOne)
+    assert expected == actual
 
 def test_main(monkeypatch):
     generate_analytical_dataset.get_plaintext_key_calling_dks = mock_get_plaintext_key_calling_dks
