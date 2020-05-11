@@ -22,7 +22,7 @@ function log_wrapper_message() {
     log_adg_message "${1}" "installer.sh" "${PID}" "${@:2}" "Running as: ,$USER"
 }
 
-log_wrapper_message "Setting up the Proxy"
+log_wrapper_message "Setting up the HTTP, NO_PROXY & HTTPS Proxy"
 
 FULL_PROXY="${full_proxy}"
 FULL_NO_PROXY="${full_no_proxy}"

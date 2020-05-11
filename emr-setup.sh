@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
 # Import the logging functions
-source /opt/htme/logging.sh
+source /opt/emr/logging.sh
 
 function log_wrapper_message() {
     log_adg_message "${1}" "emr-setup.sh" "${PID}" "${@:2}" "Running as: ,$USER"
 }
-
 
 log_wrapper_message "Setting up the Proxy"
 
@@ -14,8 +13,6 @@ echo -n "Running as: "
 whoami
 
 export AWS_DEFAULT_REGION=${aws_default_region}
-
-
 
 FULL_PROXY="${full_proxy}"
 FULL_NO_PROXY="${full_no_proxy}"
