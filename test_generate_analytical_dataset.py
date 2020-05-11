@@ -11,7 +11,6 @@ def test_sanitisation_processor_removes_desired_chars_in_collections():
     expected =  '{"fieldA":"ad_","_removedDateTime":"b","_removed":"c"}'
     msg = {"decrypted":input, "db_name":"","collection_name":""}
     actual = sanitize(msg)
-    print(f'actualllllly is {actual}')
     assert expected == actual
 
 # TODO Check how is this working in Kotlin """{"message":{"db":"penalties-and-deductions","collection":"sanction"},"data":{"carriage":"\\r","newline":"\\n","superEscaped":"\\\r\\\n"}}"""
@@ -160,7 +159,6 @@ def test_retrieve_lastmodifieddatetime_if_dbobject_is_a_valid_string():
         "createdDateTime": date_two
     }
     last_modified_date_time = retrieve_last_modified_date_time(decrypted_db_object)
-    print(f'actual is {last_modified_date_time}')
     assert  date_one == last_modified_date_time
 
 
@@ -184,7 +182,6 @@ def test_retrieve_createddatetime_when_present_and_lastmodifieddatetime_is_missi
         "createdDateTime": {"$date": date_two}
     }
     last_modified_date_time = retrieve_last_modified_date_time(decrypted_db_object)
-    print(f'actual is {last_modified_date_time}')
     assert date_two == last_modified_date_time
 
 def test_retrieve_createddatetime_when_present_and_lastmodifieddatetime_is_empty():
@@ -594,18 +591,13 @@ def mock_get_dataframe_from_staging(adg_hive_select_query, spark):
     with open('test_message.json', 'r') as file:
         data = json.load(file)
         dt_string = json.dumps(data)
-        #df =   pd.DataFrame({'data':[dt_string]})
-        #print(f'df is {df.head()}')
-        #return df
         data_row = Row('data')
         data_rows =[ data_row(dt_string)]
         user_df = spark.createDataFrame(data_rows)
-        print(f'the dataframe from  the test is below ')
         user_df.show()
         return user_df
 
 def mock_get_plaintext_key_calling_dks(r,keys_map):
-    print(f'i am called heheeheheh')
     r['plain_text_key'] = 'czMQLgW/OrzBZwFV9u4EBA=='
     return r
 
@@ -623,18 +615,13 @@ def mock_get_dataframe_from_staging(adg_hive_select_query, spark):
     with open('test_message.json', 'r') as file:
         data = json.load(file)
         dt_string = json.dumps(data)
-        #df =   pd.DataFrame({'data':[dt_string]})
-        #print(f'df is {df.head()}')
-        #return df
         data_row = Row('data')
         data_rows =[ data_row(dt_string)]
         user_df = spark.createDataFrame(data_rows)
-        print(f'the dataframe from  the test is below ')
         user_df.show()
         return user_df
 
 def mock_get_plaintext_key_calling_dks(r,keys_map):
-    print(f'i am called heheeheheh')
     r['plain_text_key'] = 'czMQLgW/OrzBZwFV9u4EBA=='
     return r
 

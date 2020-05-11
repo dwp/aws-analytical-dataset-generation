@@ -62,7 +62,6 @@ def create_hive_on_published(parquet_location, published_database_name, spark, t
 
 
 def persist_parquet(S3_PUBLISH_BUCKET, table_to_process, values):
-    print(f'and the values are {values.take(1)}')
     row = Row("val")
     datadf = values.map(row).toDF()
     datadf.show()
@@ -113,7 +112,6 @@ def retrieve_secrets():
 def validate(p):
     # TODO Can this decoding to an object happen at one place
     decrypted = p['decrypted']
-    print(f'And the deccrypted is {decrypted}')
     db_object = json.loads(decrypted)
     id = retrieve_id(db_object)
     if isinstance(id, str):
@@ -134,25 +132,21 @@ def replace_element_value_wit_key_value_pair(db_object, key_to_replace, new_key,
 def wrap_dates(db_object):
     last_modified_date_time_as_string = retrieve_last_modified_date_time(db_object)
     formatted_last_modified_string = format_date_to_valid_outgoing_format(last_modified_date_time_as_string)
-    print(f"formatted_last_modified_string is {formatted_last_modified_string}")
     replace_element_value_wit_key_value_pair(db_object, '_lastModifiedDateTime', '$date', formatted_last_modified_string)
 
     created_date_time_as_string = retrieve_date_time_element('createdDateTime', db_object)
     if created_date_time_as_string:
         formatted_creates_datetime_string = format_date_to_valid_outgoing_format(created_date_time_as_string)
-        print(f"formatted_creates_datetime_string is {formatted_creates_datetime_string}")
         replace_element_value_wit_key_value_pair(db_object, 'createdDateTime', '$date', formatted_creates_datetime_string )
 
     removed_date_time_as_string = retrieve_date_time_element('_removedDateTime', db_object)
     if removed_date_time_as_string:
         formatted_removed_date_time_as_string = format_date_to_valid_outgoing_format(removed_date_time_as_string)
-        print(f"formatted_removed_date_time_as_string is {formatted_removed_date_time_as_string}")
         replace_element_value_wit_key_value_pair(db_object, '_removedDateTime', '$date', formatted_removed_date_time_as_string)
 
     archived_date_time_as_string = retrieve_date_time_element('_archivedDateTime', db_object)
     if archived_date_time_as_string:
         formatted_archived_date_time_as_string = format_date_to_valid_outgoing_format(archived_date_time_as_string)
-        print(f"formatted_archived_date_time_as_string is {formatted_archived_date_time_as_string}")
         replace_element_value_wit_key_value_pair(db_object, '_archivedDateTime', '$date', formatted_archived_date_time_as_string)
     return db_object
 
@@ -167,9 +161,7 @@ def retrieve_last_modified_date_time(db_object):
     return epoch
 
 def retrieve_date_time_element(key, db_object):
-    print(f"retrieving {key}")
     date_element = db_object.get(key)
-    print(f"date_element  is {date_element}")
     if date_element is not None:
         if isinstance(date_element, dict):
             date_sub_element =  date_element.get('$date')
@@ -191,7 +183,6 @@ def get_valid_parsed_date_time(time_stamp_as_string):
     valid_timestamps =  ['%Y-%m-%dT%H:%M:%S.%fZ','%Y-%m-%dT%H:%M:%S.%f%z']
     for time_stamp_fmt in valid_timestamps:
         try:
-            print(f"Trying format {time_stamp_fmt}")
             return datetime.strptime(time_stamp_as_string, time_stamp_fmt)
         except Exception:
             print(f'timestampAsString did not match valid format {time_stamp_fmt}')
@@ -203,7 +194,6 @@ def sanitize(z):
     decrypted = z['decrypted']
     db_name = z['db_name']
     collection_name = z['collection_name']
-    print(f'And the deccrypted after validate is {decrypted} ')
     if ((db_name == "penalties-and-deductions" and collection_name == "sanction")
             or (db_name == "core" and collection_name == "healthAndDisabilityDeclaration")
             or (db_name == "accepted-data" and collection_name == "healthAndDisabilityCircumstances")):
@@ -217,7 +207,6 @@ def decrypt(y):
     iv_int = int(binascii.hexlify(base64.b64decode(iv)), 16)
     ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
     aes = AES.new(base64.b64decode(key), AES.MODE_CTR, counter=ctr)
-    print("about to decrypt")
     y['decrypted'] = aes.decrypt(base64.b64decode(ciphertext))
     return y
 
@@ -249,7 +238,6 @@ def call_dks(cek, kek):
     return content["plaintextDataKey"]
 
 def getTuple(json_string):
-    print(f'The json string is {json_string}')
     record = json.loads(json_string)
     encryption = record["message"]["encryption"]
     dbObject = record["message"]["dbObject"]
