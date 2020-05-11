@@ -1,6 +1,5 @@
 
 aws s3 cp "${hive-scripts-path}"  .
-aws s3 cp "${collections_list}"  .
 
 sleep 3m
 
