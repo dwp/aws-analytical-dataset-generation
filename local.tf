@@ -61,6 +61,22 @@ locals {
     production  = "0 0 31 12 ? 2025"
   }
 
+  adg_log_level = {
+    development = "DEBUG"
+    qa          = "DEBUG"
+    integration = "DEBUG"
+    preprod     = "INFO"
+    production  = "INFO"
+  }
+
+  adg_version = {
+    development = "0.0.1"
+    qa          = "0.0.1"
+    integration = "0.0.1"
+    preprod     = "0.0.1"
+    production  = "0.0.1"
+  }
+
 }
 
 
