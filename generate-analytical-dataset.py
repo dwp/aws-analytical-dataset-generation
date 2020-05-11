@@ -21,9 +21,9 @@ def main():
     response_dict = ast.literal_eval(response["SecretString"])
     client_s3 = session.client(service_name='s3')
     S3_PUBLISH_BUCKET = response_dict["S3_PUBLISH_BUCKET"]
-    collections_dict = response_dict["collections"]
-    collections_all = {key.replace('db.','',1) for key in collections_dict}
-    collections_all = {key.replace('.','_') for key in collections_all}
+    collections_dict = ast.literal_eval(response_dict["collections"])
+    collections_all = {key.replace('db.','',1):value for (key,value) in collections_dict.items()}
+    collections_all = {key.replace('.','_'):value for (key,value) in collections_all.items()}
     spark = (
         SparkSession.builder.master("yarn")
         .config("spark.sql.parquet.binaryAsString", "true")
@@ -57,9 +57,8 @@ def main():
                 adg_parquet_name
             )
             datadf.write.mode("overwrite").parquet(parquet_location)
-            for key in client_s3.list_objects(Bucket=S3_PUBLISH_BUCKET, Prefix=parquet_location+'/'):
-                client_s3.put_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=key, Tagging={'TagSet':[{'Key':'collection_tag','Value': collections_all[collection_name]}]})
-
+            for key in client_s3.list_objects(Bucket=S3_PUBLISH_BUCKET, Prefix=parquet_location)['Contents']:
+                client_s3.put_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=key['Key'], Tagging={'TagSet':[{'Key':'collection_tag','Value': collections_all[collection_name]}]})
 
             src_hive_table = published_database_name + "." + table_to_process
             src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
@@ -72,7 +71,7 @@ def main():
             src_hive_select_query = "select * from %s" % src_hive_table
             spark.sql(src_hive_select_query).show()
         else:
-            print('this collection is not here')
+            print('this collection is not here:', collection_name)
 
 def decrypt(cek, kek, iv, ciphertext, keys_map):
     if keys_map.get(cek):
