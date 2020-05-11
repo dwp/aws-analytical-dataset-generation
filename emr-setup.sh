@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+(
 # Import the logging functions
 source /opt/emr/logging.sh
 
@@ -81,3 +81,5 @@ done
 
 
 log_wrapper_message "Complete the set-up of the EMR Cluster"
+
+) >> /var/log/adg/nohup.log

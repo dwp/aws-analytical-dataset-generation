@@ -1,3 +1,4 @@
+(
 # Import the logging functions
 source /opt/emr/logging.sh
 
@@ -21,3 +22,4 @@ sleep 10
 log_wrapper_message "Running create-hive-tables.py "
 
 sudo -E /usr/bin/python3.6 create-hive-tables.py
+) >> /var/log/adg/nohup.log
