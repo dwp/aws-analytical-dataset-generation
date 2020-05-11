@@ -5,6 +5,7 @@ import binascii
 import boto3
 import ast
 import requests
+import re
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -200,7 +201,6 @@ def sanitize(z):
     decrypted = z['decrypted']
     db_name = z['db_name']
     collection_name = z['collection_name']
-    type(decrypted)
     print(f'And the deccrypted after validate is {decrypted} ')
     if ((db_name == "penalties-and-deductions" and collection_name == "sanction")
             or (db_name == "core" and collection_name == "healthAndDisabilityDeclaration")
