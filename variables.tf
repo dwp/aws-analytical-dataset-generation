@@ -27,18 +27,6 @@ variable "truststore_aliases" {
   default     = ["dataworks_root_ca", "dataworks_mgt_root_ca", "ca_cert", "mgmt_cert", "root_ca"]
 }
 
-variable "truststore_certs" {
-  description = "comma seperated truststore certificates"
-  type        = list(string)
-  default     = [
-    "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/dataworks_root_ca.pem",
-    "s3://dw-management-dev-public-certificates/ca_certificates/dataworks/dataworks_root_ca.pem",
-    "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem",
-    "s3://dw-management-dev-public-certificates/ca_certificates/dataworks/ca.pem",
-    "s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem"
-  ]
-}
-
 variable "emr_ami_id" {
   description = "AMI ID to use for the HBase EMR nodes"
 }
