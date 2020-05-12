@@ -223,9 +223,7 @@ meta:
         image_resource:
           type: docker-image
           source:
-            repository: ((python3-pyspark-pytest.repository))
-            version: ((python3-pyspark-pytest.version))
-            tag: ((python3-pyspark-pytest.version))
+            repository: dwpdigital/python3-pyspark-pytest
         run:
           path: sh
           dir: aws-analytical-dataset-generation
