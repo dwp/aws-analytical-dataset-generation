@@ -43,7 +43,7 @@ def main():
             )
             parquet_location = persist_parquet(s3_publish_bucket, collection_name, values)
             tag_objects(s3_publish_bucket, parquet_location, collection_name, collections_all)
-            create_hive_on_published(parquet_location, published_database_name, spark, table_to_process)
+            create_hive_on_published(parquet_location, published_database_name, spark, collection_name)
         else:
             logging.error(collection_name, 'from staging_db is not present in the collections list ')
 
@@ -56,18 +56,17 @@ def get_publish_bucket(response_dict):
 
 def get_collections_dict(response_dict):
     try:
-        collctions_dict = response_dict["collections"]
-        collections_all = {key.replace('db.','',1):value for (key,value) in collctions_dict.items()}
+        collections_dict = ast.literal_eval(response_dict["collections"])
+        collections_all = {key.replace('db.','',1):value for (key,value) in collections_dict.items()}
         collections_all = {key.replace('.','_'):value for (key,value) in collections_all.items()}
 
-    S3_PUBLISH_BUCKET = response_dict["S3_PUBLISH_BUCKET"]
     except Exception:
-        print(' key doesnt exist')
+        logging.error('Problem with collections list')
     return collections_all
 
 
-def create_hive_on_published(parquet_location, published_database_name, spark, table_to_process):
-    src_hive_table = published_database_name + "." + table_to_process
+def create_hive_on_published(parquet_location, published_database_name, spark, collection_name):
+    src_hive_table = published_database_name + "." + collection_name
     src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
     src_hive_create_query = (
             """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS PARQUET LOCATION "%s" """
