@@ -503,7 +503,6 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "kms:GenerateDataKey*",
       "kms:DescribeKey",
     ]
-
     resources = [data.terraform_remote_state.security-tools.outputs.ebs_cmk.arn]
   }
 
