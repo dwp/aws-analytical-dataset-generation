@@ -551,11 +551,164 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_write_s3" {
 }
 
 resource "aws_security_group" "analytical_dataset_generation" {
-  name                   = "analytical_dataset_generation_common"
+  name                   = "analytical_dataset_generation_additional_common"
   description            = "Contains rules for both EMR cluster master nodes and EMR cluster slave nodes"
   revoke_rules_on_delete = true
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
 }
+
+resource "aws_security_group" "master_sg" {
+  name                   = "analytical_dataset_generation_master_sg"
+  description            = "Contains rules for EMR master"
+  revoke_rules_on_delete = true
+  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
+}
+
+resource "aws_security_group" "slave_sg" {
+  name                   = "analytical_dataset_generation_slave_sg"
+  description            = "Contains rules for EMR slave"
+  revoke_rules_on_delete = true
+  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
+}
+
+resource "aws_security_group" "service_access_sg" {
+  name                   = "analytical_dataset_generation_service_access_sg"
+  description            = "Contains rules for EMR cluster"
+  revoke_rules_on_delete = true
+  vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
+}
+
+resource "aws_security_group_rule" "ingress_tcp_master_master" {
+  description              = "ingress_tcp_master_master"
+  from_port                = 0
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.master_sg.id
+  to_port                  = 65535
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.master_sg.id
+}
+
+resource "aws_security_group_rule" "ingress_tcp_slave_master" {
+  description              = "ingress_tcp_slave_master"
+  from_port                = 0
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.master_sg.id
+  to_port                  = 65535
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.slave_sg.id
+}
+
+resource "aws_security_group_rule" "ingress_tcp_service_master" {
+  description              = "ingress_tcp_service_master"
+  from_port                = 8443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.master_sg.id
+  to_port                  = 8443
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.service_access_sg.id
+}
+
+resource "aws_security_group_rule" "ingress_udp_master_master" {
+  description              = "ingress_udp_master_master"
+  from_port                = 0
+  protocol                 = "udp"
+  security_group_id        = aws_security_group.master_sg.id
+  to_port                  = 65535
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.master_sg.id
+}
+
+resource "aws_security_group_rule" "ingress_udp_slave_master" {
+  description              = "ingress_udp_slave_master"
+  from_port                = 0
+  protocol                 = "udp"
+  security_group_id        = aws_security_group.master_sg.id
+  to_port                  = 65535
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.slave_sg.id
+}
+
+resource "aws_security_group_rule" "egress_all_traffic_master" {
+  description               = "egress_all_traffic_master"
+  from_port                 = 0
+  protocol                  = "-1"
+  security_group_id         = aws_security_group.master_sg.id
+  to_port                   = 0
+  type                      = "egress"
+  cidr_blocks               = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group_rule" "egress_tcp_service" {
+  description              = "egress_tcp_service_master"
+  from_port                = 8443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.service_access_sg.id
+  to_port                  = 8443
+  type                     = "egress"
+}
+
+
+
+resource "aws_security_group_rule" "ingress_tcp_master_slave" {
+  description              = "ingress_tcp_master_slave"
+  from_port                = 0
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.slave_sg.id
+  to_port                  = 65535
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.master_sg.id
+}
+
+resource "aws_security_group_rule" "ingress_tcp_slave_slave" {
+  description              = "ingress_tcp_slave_slave"
+  from_port                = 0
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.slave_sg.id
+  to_port                  = 65535
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.slave_sg.id
+}
+
+resource "aws_security_group_rule" "ingress_tcp_service_slave" {
+  description              = "ingress_tcp_service_slave"
+  from_port                = 8443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.slave_sg.id
+  to_port                  = 8443
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.service_access_sg.id
+}
+
+resource "aws_security_group_rule" "ingress_udp_master_slave" {
+  description              = "ingress_udp_master_slaver"
+  from_port                = 0
+  protocol                 = "udp"
+  security_group_id        = aws_security_group.slave_sg.id
+  to_port                  = 65535
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.master_sg.id
+}
+
+resource "aws_security_group_rule" "ingress_udp_slave_slave" {
+  description              = "ingress_udp_slave_slave"
+  from_port                = 0
+  protocol                 = "udp"
+  security_group_id        = aws_security_group.slave_sg.id
+  to_port                  = 65535
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.slave_sg.id
+}
+
+resource "aws_security_group_rule" "egress_all_traffic_slave" {
+  description               = "egress_all_traffic_slave"
+  from_port                 = 0
+  protocol                  = "-1"
+  security_group_id         = aws_security_group.slave_sg.id
+  to_port                   = 0
+  type                      = "egress"
+  cidr_blocks               = ["0.0.0.0/0"]
+}
+
 
 resource "aws_security_group_rule" "egress_https_to_vpc_endpoints" {
   description              = "egress_https_to_vpc_endpoints"
@@ -565,7 +718,6 @@ resource "aws_security_group_rule" "egress_https_to_vpc_endpoints" {
   to_port                  = 443
   type                     = "egress"
   source_security_group_id = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.interface_vpce_sg_id
-
 }
 
 resource "aws_security_group_rule" "ingress_https_vpc_endpoints_from_emr" {
