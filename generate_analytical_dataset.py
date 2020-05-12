@@ -42,7 +42,8 @@ def main():
                     .map(lambda decrypted_db_obj: sanitize(decrypted_db_obj))
             )
             parquet_location = persist_parquet(s3_publish_bucket, collection_name, values)
-            tag_objects(s3_publish_bucket, parquet_location, collection_name, collections_all)
+            prefix = "${file_location}/" + collection_name, collection_name + ".parquet"
+            tag_objects(s3_publish_bucket, prefix, collection_name, collections_all)
             create_hive_on_published(parquet_location, published_database_name, spark, collection_name)
         else:
             logging.error(collection_name, 'from staging_db is not present in the collections list ')
@@ -91,13 +92,13 @@ def persist_parquet(s3_publish_bucket, collection_name, values):
     datadf.write.mode("overwrite").parquet(parquet_location)
     return parquet_location
 
-def tag_objects(s3_publish_bucket, parquet_location, collection_name, collections_all):
+def tag_objects(s3_publish_bucket, prefix, collection_name, collections_all):
     session = boto3.session.Session()
     client_s3 = session.client(service_name='s3')
     default_value = 'default'
     if collections_all[collection_name] is None or collections_all[collection_name] == '':
         collections_all[collection_name] = default_value
-    for key in client_s3.list_objects(Bucket=s3_publish_bucket, Prefix=parquet_location)['Contents']:
+    for key in client_s3.list_objects(Bucket=s3_publish_bucket, Prefix=prefix)['Contents']:
         client_s3.put_object_tagging(Bucket=s3_publish_bucket, Key=key['Key'], Tagging={'TagSet':[{'Key':'collection_tag','Value': collections_all[collection_name]}]})
 
 
