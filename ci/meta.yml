@@ -216,7 +216,37 @@ meta:
         AWS_CONFIG_FILE: ../../.aws/config
         E2E_TEST_TIMEOUT: 900
         E2E_FEATURE_TAG_FILTER: '@synthetic-data-ingestion'
-
+    unit-tests:
+      task: unit-tests
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: dwpdigital/python3-pyspark-pytest
+        run:
+          path: sh
+          dir: aws-analytical-dataset-generation
+          args:
+            - -exc
+            - |
+              pytest .
+        inputs:
+          - name: aws-analytical-dataset-generation
+      input_mapping:
+        aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
+      on_failure:
+        put: aws-analytical-dataset-generation-pr
+        params:
+          context: $BUILD_JOB_NAME
+          path: aws-analytical-dataset-generation-pr
+          status: failure
+      on_success:
+        put: aws-analytical-dataset-generation-pr
+        params:
+          context: $BUILD_JOB_NAME
+          path: aws-analytical-dataset-generation-pr
+          status: success
     create-aws-profiles:
       task: create-aws-profiles
       config:
