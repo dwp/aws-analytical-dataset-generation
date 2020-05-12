@@ -1,0 +1,27 @@
+jobs:
+- name: analytical-dataset-generation-production
+  plan:
+  - aggregate:
+    - get: aws-analytical-dataset-generation
+      trigger: true
+      passed:
+      - analytical-dataset-generation-preprod
+    - get: emr-launcher-release
+      trigger: true
+      passed:
+      - analytical-dataset-generation-preprod
+    - get: emr-ami
+      trigger: true
+      passed:
+      - analytical-dataset-generation-preprod
+  - .: (( inject meta.plan.terraform-bootstrap ))
+  - .: (( inject meta.plan.create-aws-profiles ))
+    config:
+      params:
+        AWS_ACC: ((aws_account.production))
+  - .: (( inject meta.plan.terraform-apply ))
+    params:
+      TF_WORKSPACE: production
+  - .: (( inject meta.plan.terraform-plan ))
+    params:
+      TF_WORKSPACE: production
