@@ -16,6 +16,9 @@ jobs:
       - .: (( inject meta.plan.terraform-bootstrap ))
         input_mapping:
           aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
+      - .: (( inject meta.plan.unit-tests ))
+        input_mapping:
+          aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
       - task: terraform-plan
         config:
           platform: linux
@@ -64,3 +67,4 @@ jobs:
             context: $BUILD_JOB_NAME
             path: aws-analytical-dataset-generation-pr
             status: success
+
