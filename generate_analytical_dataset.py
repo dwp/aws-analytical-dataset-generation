@@ -32,10 +32,10 @@ def main():
             df.select("data")
                 .rdd.map(lambda x: getTuple(x.data))
                 # TODO Is there a better way without tailing ?
-                .map(lambda r: get_plaintext_key_calling_dks(r,keys_map))
-                .map(lambda y: decrypt(y))
-                .map(lambda p: validate(p))
-                .map(lambda z: sanitize(z))
+                .map(lambda decrypted_db_obj: get_plaintext_key_calling_dks(decrypted_db_obj,keys_map))
+                .map(lambda decrypted_db_obj: decrypt(decrypted_db_obj))
+                .map(lambda decrypted_db_obj: validate(decrypted_db_obj))
+                .map(lambda decrypted_db_obj: sanitize(decrypted_db_obj))
         )
         parquet_location = persist_parquet(s3_publish_bucket, table_to_process, values)
         create_hive_on_published(parquet_location, published_database_name, spark, table_to_process)
@@ -255,10 +255,6 @@ def getTuple(json_string):
         "db_name":db_name,
         "collection_name":collection_name
     }
-
-def getPrinted(values):
-    for x in values:
-        print(x)
 
 def get_tables(db_name):
     table_list = []
