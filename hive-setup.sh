@@ -22,4 +22,4 @@ sleep 10
 log_wrapper_message "Running create-hive-tables.py "
 
 sudo -E /usr/bin/python3.6 create-hive-tables.py
-) >> /var/log/adg/nohup.log
+) >> /var/log/adg/nohup.log 2>&1
