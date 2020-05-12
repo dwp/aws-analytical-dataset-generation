@@ -3,6 +3,9 @@ groups:
     jobs:
       - analytical-dataset-generation-dev
       - analytical-dataset-generation-qa
+      - analytical-dataset-generation-integration
+      - analytical-dataset-generation-preprod
+      - analytical-dataset-generation-production
       - synthetic-data-ingestion-dev
   - name: pull-request
     jobs:
