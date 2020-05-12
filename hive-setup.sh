@@ -3,16 +3,13 @@
 source /opt/emr/logging.sh
 
 function log_wrapper_message() {
-    log_adg_message "$${1}" "hive-setup.sh" "$${PID}" "$${@:2}" "Running as: ,$USER"
+    log_adg_message "$${1}" "hive-setup.sh" "$${PID}"  "Running as: ,$USER"
 }
 
 log_wrapper_message "Copying create-hive-tables.py and collections.csv files from s3 to local"
 
-s3cp1=`aws s3 cp "${hive-scripts-path}"  .`
-s3cp2=`aws s3 cp "${collections_list}"  .`
-
-log_wrapper_message "$s3cp1"
-log_wrapper_message "$s3cp2"
+aws s3 cp "${hive-scripts-path}"  .
+aws s3 cp "${collections_list}"  .
 
 sleep 3m
 
