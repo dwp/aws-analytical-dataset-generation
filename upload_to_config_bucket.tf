@@ -41,7 +41,7 @@ data "template_file" "emr_setup_sh" {
     VERSION                 = local.adg_version[local.environment]
     ADG_LOG_LEVEL           = local.adg_log_level[local.environment]
     ENVIRONMENT_NAME        = local.environment
-    S3_COMMON_LOGGING_SHELL = format("s3://%s/%s}", data.terraform_remote_state.common.outputs.config_bucket.id, data.terraform_remote_state.common.outputs.application_logging_common_file.s3_id)
+    S3_COMMON_LOGGING_SHELL = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, data.terraform_remote_state.common.outputs.application_logging_common_file.s3_id)
     S3_LOGGING_SHELL        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logging_script.key)
     aws_default_region      = "eu-west-2"
     full_proxy              = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address

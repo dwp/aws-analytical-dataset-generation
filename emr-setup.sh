@@ -6,13 +6,13 @@ sudo mkdir -p /var/log/adg
 sudo chown hadoop:hadoop /opt/emr
 sudo chown hadoop:hadoop /opt/shared
 sudo chown hadoop:hadoop /var/log/adg
-echo "$VERSION" > /opt/emr/version
+echo "${VERSION}" > /opt/emr/version
 echo "${ADG_LOG_LEVEL}" > /opt/emr/log_level
 echo "${ENVIRONMENT_NAME}" > /opt/emr/environment
 
 echo "Installing scripts"
-s3 cp "$S3_COMMON_LOGGING_SHELL"   /opt/shared/common_logging.sh
-s3 cp "$S3_LOGGING_SHELL"          /opt/emr/logging.sh
+aws s3 cp "${S3_COMMON_LOGGING_SHELL}"   /opt/shared/common_logging.sh
+aws s3 cp "${S3_LOGGING_SHELL}"          /opt/emr/logging.sh
 
 echo "Changing the Permissions"
 chmod u+x /opt/shared/common_logging.sh
@@ -23,7 +23,7 @@ chmod u+x /opt/emr/logging.sh
 source /opt/emr/logging.sh
 
 function log_wrapper_message() {
-    log_adg_message "${1}" "emr-setup.sh" "${3}" "Running as: ,$USER"
+    log_adg_message "$${1}" "emr-setup.sh" "$${PID}" "$${@:2}" "Running as: ,$USER"
 }
 
 log_wrapper_message "Setting up the Proxy"
@@ -80,7 +80,7 @@ log_wrapper_message "Retrieving the ACM Certificate details"
     --truststore-password "$TRUSTSTORE_PASSWORD" \
     --truststore-aliases "${truststore_aliases}" \
     --truststore-certs "${truststore_certs}" \
-    --jks-only true >> /var/log/acm-cert-retriever.log 2>&1
+    --jks-only true >> /var/log/adg/acm-cert-retriever.log 2>&1
 
 
 sudo -E /usr/local/bin/acm-cert-retriever \
@@ -88,7 +88,7 @@ sudo -E /usr/local/bin/acm-cert-retriever \
     --acm-key-passphrase "$ACM_KEY_PASSWORD" \
     --private-key-alias "${private_key_alias}" \
     --truststore-aliases "${truststore_aliases}" \
-    --truststore-certs "${truststore_certs}"  >> /var/log/acm-cert-retriever.log 2>&1
+    --truststore-certs "${truststore_certs}"  >> /var/log/adg/acm-cert-retriever.log 2>&1
 
 cd /etc/pki/ca-trust/source/anchors/
 sudo touch analytical_ca.pem
@@ -99,6 +99,6 @@ for F in $(echo $TRUSTSTORE_ALIASES | sed "s/,/ /g"); do
 done
 
 
-log_wrapper_message "Complete the set-up of the EMR Cluster"
+log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 
 ) >> /var/log/adg/nohup.log 2>&1
