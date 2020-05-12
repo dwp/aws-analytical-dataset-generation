@@ -1,12 +1,12 @@
-resource "aws_s3_bucket_object" "generate-analytical-dataset-script" {
+resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
-  key        = "component/analytical-dataset-generation/generate-analytical-dataset.py"
+  key        = "component/analytical-dataset-generation/generate_analytical_dataset.py"
   content    = data.template_file.analytical_dataset_generation_script.rendered
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 data "template_file" "analytical_dataset_generation_script" {
-  template = file(format("%s/generate-analytical-dataset.py", path.module))
+  template = file(format("%s/generate_analytical_dataset.py", path.module))
   vars = {
     secret_name   = "ADG-Secret"
     staging_db    = "analytical_dataset_generation_staging"
