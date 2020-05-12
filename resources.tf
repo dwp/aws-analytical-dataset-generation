@@ -638,17 +638,6 @@ resource "aws_security_group_rule" "egress_all_traffic_master" {
   cidr_blocks               = ["0.0.0.0/0"]
 }
 
-resource "aws_security_group_rule" "egress_tcp_service" {
-  description              = "egress_tcp_service_master"
-  from_port                = 8443
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.service_access_sg.id
-  to_port                  = 8443
-  type                     = "egress"
-}
-
-
-
 resource "aws_security_group_rule" "ingress_tcp_master_slave" {
   description              = "ingress_tcp_master_slave"
   from_port                = 0
@@ -708,7 +697,6 @@ resource "aws_security_group_rule" "egress_all_traffic_slave" {
   type                      = "egress"
   cidr_blocks               = ["0.0.0.0/0"]
 }
-
 
 resource "aws_security_group_rule" "egress_https_to_vpc_endpoints" {
   description              = "egress_https_to_vpc_endpoints"
