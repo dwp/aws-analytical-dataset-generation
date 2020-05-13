@@ -6,6 +6,7 @@ import boto3
 import ast
 import requests
 import re
+import os
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -17,8 +18,7 @@ import pytz
 
 
 def main():
-    response_dict = retrieve_secrets()
-    s3_publish_bucket = get_publish_bucket(response_dict)
+    s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     published_database_name = get_published_db_name()
     database_name = get_staging_db_name()
     spark = get_spark_session()
@@ -39,13 +39,6 @@ def main():
         )
         parquet_location = persist_parquet(s3_publish_bucket, table_to_process, values)
         create_hive_on_published(parquet_location, published_database_name, spark, table_to_process)
-
-def get_publish_bucket(response_dict):
-    try:
-        S3_PUBLISH_BUCKET = response_dict["S3_PUBLISH_BUCKET"]
-    except Exception:
-        print(' key doesnt exist')
-    return S3_PUBLISH_BUCKET
 
 
 def create_hive_on_published(parquet_location, published_database_name, spark, table_to_process):
@@ -98,16 +91,6 @@ def get_spark_session():
             .getOrCreate()
     )
     return spark
-
-
-def retrieve_secrets():
-    secret_name = "${secret_name}"
-    # Create a Secrets Manager client
-    session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager")
-    response = client.get_secret_value(SecretId=secret_name)
-    response_dict = ast.literal_eval(response["SecretString"])
-    return response_dict
 
 def validate(p):
     # TODO Can this decoding to an object happen at one place
