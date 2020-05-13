@@ -24,5 +24,3 @@ sudo -E /usr/bin/pip-3.6 install boto3 >> /var/log/adg/install-boto3.log 2>&1
 log_wrapper_message "Completed the installer.sh step of the EMR Cluster"
 
 ) >> /var/log/adg/nohup.log 2>&1
-
-
