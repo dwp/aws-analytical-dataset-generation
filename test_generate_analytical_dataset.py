@@ -553,7 +553,6 @@ def test_not_change_date_already_in_outgoing_format():
 
 def test_main(monkeypatch):
     generate_analytical_dataset.get_plaintext_key_calling_dks = mock_get_plaintext_key_calling_dks
-    monkeypatch.setattr(generate_analytical_dataset, 'retrieve_secrets', mock_retrieve_secrets)
     monkeypatch.setattr(generate_analytical_dataset, 'get_published_db_name', mock_get_published_db_name)
     monkeypatch.setattr(generate_analytical_dataset, 'get_staging_db_name', mock_get_staging_db_name)
     monkeypatch.setattr(generate_analytical_dataset, 'get_tables', mock_get_tables)
@@ -563,9 +562,6 @@ def test_main(monkeypatch):
     monkeypatch.setattr(generate_analytical_dataset, 'persist_parquet', mock_persist_parquet)
     monkeypatch.setattr(generate_analytical_dataset, 'create_hive_on_published', mock_create_hive_on_published)
     generate_analytical_dataset.main()
-
-def mock_retrieve_secrets():
-    return {"S3_PUBLISH_BUCKET":"abcd"}
 
 def mock_get_spark_session():
     spark = (

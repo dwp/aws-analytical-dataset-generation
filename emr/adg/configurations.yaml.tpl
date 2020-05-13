@@ -51,3 +51,4 @@ Configurations:
   - Classification: "export"
     Properties:
       "PYSPARK_PYTHON": "/usr/bin/python3"
+      "S3_PUBLISH_BUCKET": "${s3_publish_bucket}"
