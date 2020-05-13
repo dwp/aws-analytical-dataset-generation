@@ -155,7 +155,7 @@ data "terraform_remote_state" "aws_certificate_authority" {
 
 data "terraform_remote_state" "crypto" {
   backend   = "s3"
-  workspace = "management-dev"
+  workspace = local.crypto_workspace[local.management_account[local.environment]]
   config = {
     bucket         = "{{state_file_bucket}}"
     key            = "terraform/dataworks/aws-crypto.tfstate"
