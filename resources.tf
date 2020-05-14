@@ -331,35 +331,6 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_acm" {
   policy_arn = aws_iam_policy.analytical_dataset_acm.arn
 }
 
-data "aws_secretsmanager_secret" "adg_secret" {
-  name = "ADG-Secret"
-}
-
-data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "secretsmanager:GetSecretValue",
-    ]
-
-    resources = [
-      data.aws_secretsmanager_secret.adg_secret.arn
-    ]
-  }
-}
-
-resource "aws_iam_policy" "analytical_dataset_secretsmanager" {
-  name        = "DatasetGeneratorSecretsManager"
-  description = "Allow Dataset Generator clusters to get secrets"
-  policy      = data.aws_iam_policy_document.analytical_dataset_secretsmanager.json
-}
-
-resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_secretsmanager" {
-  role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = aws_iam_policy.analytical_dataset_secretsmanager.arn
-}
-
 # Create and attach custom policy to allow use of CMK for EBS encryption
 data "aws_iam_policy_document" "analytical_dataset_ebs_cmk" {
   statement {
@@ -628,13 +599,13 @@ resource "aws_security_group_rule" "ingress_udp_slave_master" {
 }
 
 resource "aws_security_group_rule" "egress_all_traffic_master" {
-  description               = "egress_all_traffic_master"
-  from_port                 = 0
-  protocol                  = "-1"
-  security_group_id         = aws_security_group.master_sg.id
-  to_port                   = 0
-  type                      = "egress"
-  cidr_blocks               = ["0.0.0.0/0"]
+  description       = "egress_all_traffic_master"
+  from_port         = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.master_sg.id
+  to_port           = 0
+  type              = "egress"
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 resource "aws_security_group_rule" "ingress_tcp_master_slave" {
@@ -688,13 +659,13 @@ resource "aws_security_group_rule" "ingress_udp_slave_slave" {
 }
 
 resource "aws_security_group_rule" "egress_all_traffic_slave" {
-  description               = "egress_all_traffic_slave"
-  from_port                 = 0
-  protocol                  = "-1"
-  security_group_id         = aws_security_group.slave_sg.id
-  to_port                   = 0
-  type                      = "egress"
-  cidr_blocks               = ["0.0.0.0/0"]
+  description       = "egress_all_traffic_slave"
+  from_port         = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.slave_sg.id
+  to_port           = 0
+  type              = "egress"
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 resource "aws_security_group_rule" "egress_https_to_vpc_endpoints" {

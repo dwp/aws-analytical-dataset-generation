@@ -17,14 +17,11 @@ import pytz
 
 
 def main():
-    response_dict = retrieve_secrets()
-    s3_publish_bucket = get_publish_bucket(response_dict)
-    collections_all = get_collections_dict(response_dict)
+    s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     published_database_name = get_published_db_name()
     database_name = get_staging_db_name()
     spark = get_spark_session()
     tables = get_tables(database_name)
-
     for table_to_process in tables:
         collection_name = table_to_process.replace('_hbase','')
         if collection_name in collections_all:
@@ -49,22 +46,6 @@ def main():
         else:
             logging.error(collection_name, 'from staging_db is not present in the collections list ')
 
-def get_publish_bucket(response_dict):
-    try:
-        S3_PUBLISH_BUCKET = response_dict["S3_PUBLISH_BUCKET"]
-    except Exception as e:
-        logging.error(' key doesnt exist', e)
-    return S3_PUBLISH_BUCKET
-
-def get_collections_dict(response_dict):
-    try:
-        collections_dict = response_dict["collections"]
-        collections_all = {key.replace('db.','',1):value for (key,value) in collections_dict.items()}
-        collections_all = {key.replace('.','_'):value for (key,value) in collections_all.items()}
-
-    except Exception as e:
-        logging.error('Problem with collections list', e)
-    return collections_all
 
 
 def create_hive_on_published(parquet_location, published_database_name, spark, collection_name):
