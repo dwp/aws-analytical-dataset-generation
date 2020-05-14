@@ -50,9 +50,10 @@ def main():
 
 def retrieve_secrets():
     secret_name = "${secret_name}"
+    region = "${aws_default_region}"
     # Create a Secrets Manager client
     session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager", region_name="${aws_default_region}")
+    client = session.client(service_name="secretsmanager", region_name=region)
     response = client.get_secret_value(SecretId=secret_name)
     response_dict = ast.literal_eval(response["SecretString"])
     return response_dict
