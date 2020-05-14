@@ -9,7 +9,7 @@ session = boto3.session.Session()
 client_secret = session.client(service_name="secretsmanager")
 response = client_secret.get_secret_value(SecretId=secret_name)
 response_dict = ast.literal_eval(response["SecretString"])
-collections_dict = response_dict["collections"]
+collections_dict = response_dict["collections_all"]
 collections_hbase = {key.replace('db.','',1):value for (key,value) in collections_dict.items()}
 collections_hbase = {key.replace('.','_'):value for (key,value) in collections_hbase.items()}
 

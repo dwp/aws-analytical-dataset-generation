@@ -60,7 +60,7 @@ def retrieve_secrets():
 
 def get_collections(secrets_response):
     try:
-        collections = secrets_response["collections"]
+        collections = secrets_response["collections_all"]
         collections = {key.replace('db.','',1):value for (key,value) in collections.items()}
         collections = {key.replace('.','_'):value for (key,value) in collections.items()}
 
