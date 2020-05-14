@@ -7,6 +7,8 @@ groups:
       - analytical-dataset-generation-preprod
       - analytical-dataset-generation-production
       - synthetic-data-ingestion-dev
+      - synthetic-data-ingestion-integration
+      - synthetic-data-ingestion-qa
   - name: pull-request
     jobs:
       - analytical-dataset-generation-pr
