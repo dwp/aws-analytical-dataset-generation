@@ -4,7 +4,7 @@ import logging
 import logger
 
 level = "info"
-logger_path = "/var/log/adg/hive_tables_creation_log.txt"
+logger_path = "/var/log/adg/hive_tables_creation_log.log"
 logger_format = "{ 'timestamp': '%(asctime)s', 'log_level': '%(levelname)s', 'message': '%(message)s' }"
 the_logger = setup_logging(level, logger_path , logger_format)
 
