@@ -130,15 +130,6 @@ def get_spark_session():
     )
     return spark
 
-def retrieve_secrets():
-    secret_name = "${secret_name}"
-    # Create a Secrets Manager client
-    session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager")
-    response = client.get_secret_value(SecretId=secret_name)
-    response_dict = ast.literal_eval(response["SecretString"])
-    return response_dict
-
 def validate(p):
     # TODO Can this decoding to an object happen at one place
     decrypted = p['decrypted']
