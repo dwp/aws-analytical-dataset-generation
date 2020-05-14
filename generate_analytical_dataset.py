@@ -23,6 +23,7 @@ def main():
     database_name = get_staging_db_name()
     spark = get_spark_session()
     tables = get_tables(database_name)
+    collections_all = {} #TODO fetch collections from new secrets repo
     for table_to_process in tables:
         collection_name = table_to_process.replace('_hbase','')
         if collection_name in collections_all:
