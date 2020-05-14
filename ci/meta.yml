@@ -214,7 +214,7 @@ meta:
         AWS_DEFAULT_PROFILE: output
         AWS_SHARED_CREDENTIALS_FILE: ../../.aws/credentials
         AWS_CONFIG_FILE: ../../.aws/config
-        E2E_TEST_TIMEOUT: 900
+        E2E_TEST_TIMEOUT: 2700
         E2E_FEATURE_TAG_FILTER: '@synthetic-data-ingestion'
     unit-tests:
       task: unit-tests
