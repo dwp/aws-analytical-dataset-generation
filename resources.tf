@@ -599,13 +599,13 @@ resource "aws_security_group_rule" "ingress_udp_slave_master" {
 }
 
 resource "aws_security_group_rule" "egress_all_traffic_master" {
-  description               = "egress_all_traffic_master"
-  from_port                 = 0
-  protocol                  = "-1"
-  security_group_id         = aws_security_group.master_sg.id
-  to_port                   = 0
-  type                      = "egress"
-  cidr_blocks               = ["0.0.0.0/0"]
+  description       = "egress_all_traffic_master"
+  from_port         = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.master_sg.id
+  to_port           = 0
+  type              = "egress"
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 resource "aws_security_group_rule" "ingress_tcp_master_slave" {
@@ -659,13 +659,13 @@ resource "aws_security_group_rule" "ingress_udp_slave_slave" {
 }
 
 resource "aws_security_group_rule" "egress_all_traffic_slave" {
-  description               = "egress_all_traffic_slave"
-  from_port                 = 0
-  protocol                  = "-1"
-  security_group_id         = aws_security_group.slave_sg.id
-  to_port                   = 0
-  type                      = "egress"
-  cidr_blocks               = ["0.0.0.0/0"]
+  description       = "egress_all_traffic_slave"
+  from_port         = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.slave_sg.id
+  to_port           = 0
+  type              = "egress"
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 resource "aws_security_group_rule" "egress_https_to_vpc_endpoints" {
