@@ -42,7 +42,7 @@ Configurations:
 - Classification: "emrfs-site"
   Properties:
     "fs.s3.consistent.retryPeriodSeconds": "3"
-    "fs.s3.consistent": "false"
+    "fs.s3.consistent": "true"
     "fs.s3.cse.materialsDescription.enabled": "true"
     "fs.s3.consistent.retryCount": "5"
     "fs.s3.consistent.metadata.tableName": "DataGen-metadata"
