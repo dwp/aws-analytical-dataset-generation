@@ -575,7 +575,7 @@ def mock_get_spark_session():
     return spark
 
 def mock_retrieve_secrets():
-    return ''
+    return {}
 
 def mock_get_tables(database_name):
     return ['table1']
