@@ -1,14 +1,11 @@
 ---
 BootstrapActions:
 - Name: "get-dks-cert"
-   ScriptBootstrapAction:
-    Args:
-    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/emr-setup.sh"
+  ScriptBootstrapAction:
+    Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/emr-setup.sh"
 - Name: "installer"
-   ScriptBootstrapAction:
-    Args:
-    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/installer.sh"
----
+  ScriptBootstrapAction:
+    Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/installer.sh"
 Steps:
 - Name: "copy-hbase-configuration"
   HadoopJarStep:

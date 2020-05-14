@@ -46,8 +46,14 @@ def main():
         else:
             logging.error(collection_name, 'from staging_db is not present in the collections list ')
 
-
-
+def retrieve_secrets():
+    secret_name = "ADG-Secret"
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(service_name="secretsmanager")
+    response = client.get_secret_value(SecretId=secret_name)
+    response_dict = ast.literal_eval(response["SecretString"])
+    return response_dict
 def create_hive_on_published(parquet_location, published_database_name, spark, collection_name):
     src_hive_table = published_database_name + "." + collection_name
     src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
