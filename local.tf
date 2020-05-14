@@ -13,6 +13,7 @@ locals {
   dks_port                        = 8443
   dynamo_meta_name                = "DataGen-metadata"
   hbase_root_path                 = format("s3://%s", data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir)
+  secret_name                     = "/concourse/dataworks/adg"
   common_tags = {
     Environment  = local.environment
     Application  = local.emr_cluster_name

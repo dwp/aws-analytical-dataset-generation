@@ -1,11 +1,12 @@
 ---
+BootstrapActions:
+- Name: "get-dks-cert"
+  ScriptBootstrapAction:
+    Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/emr-setup.sh"
+- Name: "installer"
+  ScriptBootstrapAction:
+    Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/installer.sh"
 Steps:
-- Name: "emr-setup"
-  HadoopJarStep:
-    Args:
-    - "s3://${s3_config_bucket}/component/emr-setup.sh"
-    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
-  ActionOnFailure: "CONTINUE"
 - Name: "copy-hbase-configuration"
   HadoopJarStep:
     Args:
@@ -13,6 +14,12 @@ Steps:
     - "-c"
     - "sudo cp /etc/hbase/conf/hbase-site.xml /etc/spark/conf/"
     Jar: "command-runner.jar"
+  ActionOnFailure: "CONTINUE"
+- Name: "hive-setup"
+  HadoopJarStep:
+    Args:
+    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/hive-setup.sh"
+    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "CONTINUE"
 - Name: "submit-job"
   HadoopJarStep:
@@ -27,3 +34,4 @@ Steps:
     - "spark.yarn.submit.waitAppCompletion=true"
     Jar: "command-runner.jar"
   ActionOnFailure: "CONTINUE"
+

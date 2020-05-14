@@ -19,30 +19,57 @@ import pytz
 
 def main():
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
+    secrets_response = retrieve_secrets()
+    collections = get_collections(secrets_response)
     published_database_name = get_published_db_name()
     database_name = get_staging_db_name()
     spark = get_spark_session()
     tables = get_tables(database_name)
     for table_to_process in tables:
-        adg_hive_table = database_name + "." + table_to_process
-        adg_hive_select_query = "select * from %s" % adg_hive_table
-        df = get_dataframe_from_staging(adg_hive_select_query, spark)
-        keys_map = {}
-        values = (
-            df.select("data")
-                .rdd.map(lambda x: getTuple(x.data))
-                # TODO Is there a better way without tailing ?
-                .map(lambda decrypted_db_obj: get_plaintext_key_calling_dks(decrypted_db_obj,keys_map))
-                .map(lambda decrypted_db_obj: decrypt(decrypted_db_obj))
-                .map(lambda decrypted_db_obj: validate(decrypted_db_obj))
-                .map(lambda decrypted_db_obj: sanitize(decrypted_db_obj))
-        )
-        parquet_location = persist_parquet(s3_publish_bucket, table_to_process, values)
-        create_hive_on_published(parquet_location, published_database_name, spark, table_to_process)
+        collection_name = table_to_process.replace('_hbase','')
+        if collection_name in collections:
+            adg_hive_table = database_name + "." + table_to_process
+            adg_hive_select_query = "select * from %s" % adg_hive_table
+            df = get_dataframe_from_staging(adg_hive_select_query, spark)
+            keys_map = {}
+            values = (
+                df.select("data")
+                    .rdd.map(lambda x: getTuple(x.data))
+                    # TODO Is there a better way without tailing ?
+                    .map(lambda decrypted_db_obj: get_plaintext_key_calling_dks(decrypted_db_obj,keys_map))
+                    .map(lambda decrypted_db_obj: decrypt(decrypted_db_obj))
+                    .map(lambda decrypted_db_obj: validate(decrypted_db_obj))
+                    .map(lambda decrypted_db_obj: sanitize(decrypted_db_obj))
+            )
+            parquet_location = persist_parquet(s3_publish_bucket, collection_name, values)
+            prefix = "${file_location}/" + collection_name + '/' + collection_name + ".parquet"
+            tag_objects(s3_publish_bucket, prefix, collection_name, tag_value=collections[collection_name])
+            create_hive_on_published(parquet_location, published_database_name, spark, collection_name)
+        else:
+            logging.error(collection_name, 'from staging_db is not present in the collections list ')
+
+def retrieve_secrets():
+    secret_name = "${secret_name}"
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(service_name="secretsmanager")
+    response = client.get_secret_value(SecretId=secret_name)
+    response_dict = ast.literal_eval(response["SecretString"])
+    return response_dict
+
+def get_collections(secrets_response):
+    try:
+        collections = secrets_response["collections_all"]
+        collections = {key.replace('db.','',1):value for (key,value) in collections.items()}
+        collections = {key.replace('.','_'):value for (key,value) in collections.items()}
+
+    except Exception as e:
+        logging.error('Problem with collections list', e)
+    return collections
 
 
-def create_hive_on_published(parquet_location, published_database_name, spark, table_to_process):
-    src_hive_table = published_database_name + "." + table_to_process
+def create_hive_on_published(parquet_location, published_database_name, spark, collection_name):
+    src_hive_table = published_database_name + "." + collection_name
     src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
     src_hive_create_query = (
             """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS PARQUET LOCATION "%s" """
@@ -54,17 +81,28 @@ def create_hive_on_published(parquet_location, published_database_name, spark, t
     spark.sql(src_hive_select_query).show()
 
 
-def persist_parquet(S3_PUBLISH_BUCKET, table_to_process, values):
+def persist_parquet(s3_publish_bucket, collection_name, values):
     row = Row("val")
     datadf = values.map(row).toDF()
     datadf.show()
-    adg_parquet_name = table_to_process + "." + "parquet"
-    parquet_location = "s3://%s/${file_location}/%s" % (
-        S3_PUBLISH_BUCKET,
-        adg_parquet_name,
+    adg_parquet_name = collection_name + "." + "parquet"
+    parquet_location = "s3://%s/${file_location}/%s/%s" % (
+        s3_publish_bucket,
+        collection_name,
+        adg_parquet_name
     )
     datadf.write.mode("overwrite").parquet(parquet_location)
     return parquet_location
+
+def tag_objects(s3_publish_bucket, prefix, collection_name, tag_value):
+    session = boto3.session.Session()
+    client_s3 = session.client(service_name='s3')
+    default_value = 'default'
+
+    if tag_value is None or tag_value == '':
+        tag_value = default_value
+    for key in client_s3.list_objects(Bucket=s3_publish_bucket, Prefix=prefix)['Contents']:
+        client_s3.put_object_tagging(Bucket=s3_publish_bucket, Key=key['Key'], Tagging={'TagSet':[{'Key':'collection_tag','Value': tag_value}]})
 
 
 def get_staging_db_name():

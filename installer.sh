@@ -21,6 +21,13 @@ log_wrapper_message "Installing boto3 packages"
 
 sudo -E /usr/bin/pip-3.6 install boto3 >> /var/log/adg/install-boto3.log 2>&1
 
+sudo -E /usr/bin/pip-3.6 install requests >> /var/log/adg/install-requests.log 2>&1
+
+sudo -E /usr/bin/pip-3.6 install pyspark >> /var/log/adg/install-pyspark.log 2>&1
+
+sudo -E /usr/bin/pip-3.6 install Crypto >> /var/log/adg/install-Crypto.log 2>&1
+
+
 log_wrapper_message "Completed the installer.sh step of the EMR Cluster"
 
 ) >> /var/log/adg/nohup.log 2>&1

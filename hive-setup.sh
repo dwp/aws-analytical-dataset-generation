@@ -6,10 +6,10 @@ function log_wrapper_message() {
     log_adg_message "$${1}" "hive-setup.sh" "$${PID}"  "Running as: ,$USER"
 }
 
-log_wrapper_message "Copying create-hive-tables.py and collections.csv files from s3 to local"
+log_wrapper_message "Copying create-hive-tables.py files from s3 to local"
+
 
 aws s3 cp "${hive-scripts-path}"  .
-aws s3 cp "${collections_list}"  .
 
 sleep 3m
 
