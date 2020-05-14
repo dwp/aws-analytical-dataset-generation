@@ -561,6 +561,7 @@ def test_main(monkeypatch):
     monkeypatch.setattr(generate_analytical_dataset, 'get_plaintext_key_calling_dks', mock_get_plaintext_key_calling_dks)
     monkeypatch.setattr(generate_analytical_dataset, 'persist_parquet', mock_persist_parquet)
     monkeypatch.setattr(generate_analytical_dataset, 'create_hive_on_published', mock_create_hive_on_published)
+    monkeypatch.setattr(generate_analytical_dataset, 'retrieve_secrets', mock_retrieve_secrets)
     generate_analytical_dataset.main()
 
 def mock_get_spark_session():
@@ -572,6 +573,9 @@ def mock_get_spark_session():
             .getOrCreate()
     )
     return spark
+
+def mock_retrieve_secrets():
+    return ''
 
 def mock_get_tables(database_name):
     return ['table1']
