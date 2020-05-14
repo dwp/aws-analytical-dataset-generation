@@ -6,6 +6,7 @@ import boto3
 import ast
 import requests
 import re
+import os
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
