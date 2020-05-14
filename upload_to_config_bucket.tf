@@ -8,7 +8,7 @@ resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
 data "template_file" "analytical_dataset_generation_script" {
   template = file(format("%s/generate_analytical_dataset.py", path.module))
   vars = {
-    secret_name   = "ADG-Secret"
+    secret_name   = local.secret_name
     staging_db    = "analytical_dataset_generation_staging"
     published_db  = "analytical_dataset_generation"
     file_location = "analytical-dataset"
@@ -92,7 +92,7 @@ data "template_file" "create-hive-tables" {
   template = file(format("%s/hive-tables-creation.py", path.module))
   vars = {
     bucket      = aws_s3_bucket.published.id
-    secret_name = "ADG-Secret"
+    secret_name = local.secret_name
   }
 }
 

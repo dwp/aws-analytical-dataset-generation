@@ -19,14 +19,15 @@ import pytz
 
 def main():
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
+    secrets_response = retrieve_secrets()
+    collections = get_collections(secrets_response)
     published_database_name = get_published_db_name()
     database_name = get_staging_db_name()
     spark = get_spark_session()
     tables = get_tables(database_name)
-    collections_all = {} #TODO fetch collections from new secrets repo
     for table_to_process in tables:
         collection_name = table_to_process.replace('_hbase','')
-        if collection_name in collections_all:
+        if collection_name in collections:
             adg_hive_table = database_name + "." + table_to_process
             adg_hive_select_query = "select * from %s" % adg_hive_table
             df = get_dataframe_from_staging(adg_hive_select_query, spark)
@@ -43,19 +44,31 @@ def main():
             parquet_location = persist_parquet(s3_publish_bucket, collection_name, values)
             prefix = "${file_location}/" + collection_name + '/' + collection_name + ".parquet"
             'analytical-dataset/core_contract/core_contract.parquet'
-            tag_objects(s3_publish_bucket, prefix, collection_name, tag_value=collections_all[collection_name])
+            tag_objects(s3_publish_bucket, prefix, collection_name, tag_value=collections[collection_name])
             create_hive_on_published(parquet_location, published_database_name, spark, collection_name)
         else:
             logging.error(collection_name, 'from staging_db is not present in the collections list ')
 
 def retrieve_secrets():
-    secret_name = "ADG-Secret"
+    secret_name = "${secret_name}"
     # Create a Secrets Manager client
     session = boto3.session.Session()
     client = session.client(service_name="secretsmanager")
     response = client.get_secret_value(SecretId=secret_name)
     response_dict = ast.literal_eval(response["SecretString"])
     return response_dict
+
+def get_collections(secrets_response):
+    try:
+        collections = secrets_response["collections"]
+        collections = {key.replace('db.','',1):value for (key,value) in collections.items()}
+        collections = {key.replace('.','_'):value for (key,value) in collections.items()}
+
+    except Exception as e:
+        logging.error('Problem with collections list', e)
+    return collections
+
+
 def create_hive_on_published(parquet_location, published_database_name, spark, collection_name):
     src_hive_table = published_database_name + "." + collection_name
     src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
