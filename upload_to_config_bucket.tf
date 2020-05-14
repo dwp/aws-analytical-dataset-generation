@@ -8,11 +8,12 @@ resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
 data "template_file" "analytical_dataset_generation_script" {
   template = file(format("%s/generate_analytical_dataset.py", path.module))
   vars = {
-    secret_name   = local.secret_name
-    staging_db    = "analytical_dataset_generation_staging"
-    published_db  = "analytical_dataset_generation"
-    file_location = "analytical-dataset"
-    url           = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
+    secret_name             = local.secret_name
+    staging_db              = "analytical_dataset_generation_staging"
+    published_db            = "analytical_dataset_generation"
+    file_location           = "analytical-dataset"
+    url                     = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
+    aws_default_region      = "eu-west-2"
   }
 }
 
