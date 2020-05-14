@@ -5,6 +5,13 @@ resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
+resource "aws_s3_bucket_object" "logger_script" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  key        = "component/analytical-dataset-generation/logger.py"
+  content    = data.template_file.logger_script.rendered
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+}
+
 data "template_file" "analytical_dataset_generation_script" {
   template = file(format("%s/generate_analytical_dataset.py", path.module))
   vars = {
@@ -118,6 +125,12 @@ resource "aws_s3_bucket_object" "collections_csv" {
 }
 data "template_file" "collections_csv" {
   template = file(format("%s/collections.csv", path.module))
+  vars = {
+  }
+}
+
+data "template_file" "logger_script" {
+  template = file(format("%s/logger.py", path.module))
   vars = {
   }
 }
