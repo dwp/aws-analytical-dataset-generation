@@ -43,7 +43,6 @@ def main():
             )
             parquet_location = persist_parquet(s3_publish_bucket, collection_name, values)
             prefix = "${file_location}/" + collection_name + '/' + collection_name + ".parquet"
-            'analytical-dataset/core_contract/core_contract.parquet'
             tag_objects(s3_publish_bucket, prefix, collection_name, tag_value=collections[collection_name])
             create_hive_on_published(parquet_location, published_database_name, spark, collection_name)
         else:
