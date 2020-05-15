@@ -59,9 +59,6 @@ def retrieve_secrets():
     response_dict = ast.literal_eval(response_decoded)
     return response_dict
 
-
-
-
 def get_collections(secrets_response):
     try:
         collections = secrets_response["collections_all"]
