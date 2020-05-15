@@ -27,6 +27,8 @@ sudo -E /usr/bin/pip-3.6 install pyspark >> /var/log/adg/install-pyspark.log 2>&
 
 sudo -E /usr/bin/pip-3.6 install Crypto >> /var/log/adg/install-Crypto.log 2>&1
 
+sudo -E /usr/bin/pip-3.6 install pycrypto >> /var/log/adg/install-pycrypto.log 2>&1
+
 
 log_wrapper_message "Completed the installer.sh step of the EMR Cluster"
 
