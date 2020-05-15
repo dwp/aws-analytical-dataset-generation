@@ -54,7 +54,9 @@ def retrieve_secrets():
     session = boto3.session.Session()
     client = session.client(service_name="secretsmanager")
     response = client.get_secret_value(SecretId=secret_name)
-    response_dict = ast.literal_eval(response["SecretString"])
+    response_binary = response["SecretBinary"]
+    response_decoded = response_binary.decode("utf-8")
+    response_dict = ast.literal_eval(response_decoded)
     return response_dict
 
 def get_collections(secrets_response):
@@ -62,6 +64,7 @@ def get_collections(secrets_response):
         collections = secrets_response["collections_all"]
         collections = {key.replace('db.','',1):value for (key,value) in collections.items()}
         collections = {key.replace('.','_'):value for (key,value) in collections.items()}
+        collections = {key.replace('-','_'):value for (key,value) in collections.items()}
 
     except Exception as e:
         logging.error('Problem with collections list', e)

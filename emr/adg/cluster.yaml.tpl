@@ -6,7 +6,7 @@ Applications:
 CustomAmiId: "${ami_id}"
 EbsRootVolumeSize: 100
 LogUri: "s3://${s3_log_bucket}/logs"
-Name: "emr-launcher-test"
+Name: "analytical-dataset-generator"
 ReleaseLabel: "emr-5.24.1"
 ScaleDownBehavior: "TERMINATE_AT_TASK_COMPLETION"
 ServiceRole: "${service_role}"

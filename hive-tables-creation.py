@@ -5,10 +5,12 @@ import ast
 
 import boto3et = session.client(service_name="secretsmanager")
 response = client_secret.get_secret_value(SecretId=secret_name)
-response_dict = ast.literal_eval(response["SecretString"])
-collections_dict = response_dict["collections_all"]
+response_dict = response["SecretBinary"]
+collections_decoded = response_dict.decode("utf-8")
+collections_dict = ast.literal_eval(collections_decoded)["collections_all"]
 collections_hbase = {key.replace('db.','',1):value for (key,value) in collections_dict.items()}
-collections_hbase = {key.replace('.','_'):value for (key,value) in collections_hbase.items()}
+collections_hbase = {key.replace('-','_'):value for (key,value) in collections_hbase.items()}
+collections_hbase = {key.replace('.',':'):value for (key,value) in collections_hbase.items()}
 
 level = "info"
 logger_path = "/var/log/adg/hive_tables_creation_log.log"
@@ -19,6 +21,7 @@ DatabaseName = "analytical_dataset_generation_staging"
 with open("current_hbase_tables") as f:
     hbase_tables = f.read()
 
+
 client = boto3.client("glue")
 # Create a Secrets Manager client
 secret_name = "${secret_name}"
@@ -26,8 +29,8 @@ session = boto3.session.Session()
 client_secr
 
 for collection in collections_hbase:
-    collection_staging = collection.replace(":", "_") + "_hbase"
     if collection in hbase_tables:
+        collection_staging = collection.replace(":", "_") + "_hbase"
         try:
             client.delete_table(DatabaseName=DatabaseName, Name=collection_staging)
         except client.exceptions.EntityNotFoundException as e:
