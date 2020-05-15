@@ -5,6 +5,13 @@ resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
+resource "aws_s3_bucket_object" "logger_script" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  key        = "component/analytical-dataset-generation/logger.py"
+  content    = data.template_file.logger_script.rendered
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+}
+
 data "template_file" "analytical_dataset_generation_script" {
   template = file(format("%s/generate_analytical_dataset.py", path.module))
   vars = {
@@ -110,6 +117,13 @@ data "template_file" "hive_setup_sh" {
   }
 }
 
+data "template_file" "logger_script" {
+  template = file(format("%s/logger.py", path.module))
+  vars = {
+  }
+}
+
+
 data "local_file" "logging_script" {
   filename = "logging.sh"
 }
@@ -120,4 +134,3 @@ resource "aws_s3_bucket_object" "logging_script" {
   content    = data.local_file.logging_script.content
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
-

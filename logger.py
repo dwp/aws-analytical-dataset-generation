@@ -6,7 +6,7 @@ def setup_logging(log_level, log_path, log_format_json):
    
     file_hander = logging.FileHandler(log_path)
 
-    file_hander.setFormatter(logging.Formatter(log_format_json))  #/var/log/adg/h
+    file_hander.setFormatter(logging.Formatter(log_format_json))
     the_logger.addHandler(file_hander)
     new_level = logging.getLevelName(log_level.upper())
     the_logger.setLevel(new_level)
