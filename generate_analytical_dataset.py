@@ -64,6 +64,7 @@ def get_collections(secrets_response):
         collections = secrets_response["collections_all"]
         collections = {key.replace('db.','',1):value for (key,value) in collections.items()}
         collections = {key.replace('.','_'):value for (key,value) in collections.items()}
+        collections = {key.replace('-','_'):value for (key,value) in collections.items()}
 
     except Exception as e:
         logging.error('Problem with collections list', e)
