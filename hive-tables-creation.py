@@ -1,7 +1,7 @@
 import boto3
 import logging
 import ast
-import logger
+from logger import setup_logging
 
 level = "info"
 logger_path = "/var/log/adg/hive_tables_creation_log.log"
