@@ -8,7 +8,7 @@ resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
 resource "aws_s3_bucket_object" "logger_script" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   key        = "component/analytical-dataset-generation/logger.py"
-  content    = data.template_file.logger_script.rendered
+  content    = data.template_file.logger.rendered
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
@@ -117,7 +117,7 @@ data "template_file" "hive_setup_sh" {
   }
 }
 
-data "template_file" "logger_script" {
+data "template_file" "logger" {
   template = file(format("%s/logger.py", path.module))
   vars = {
   }
