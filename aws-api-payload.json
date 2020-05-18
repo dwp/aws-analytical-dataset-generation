@@ -58,6 +58,10 @@
             {
                 "Version": "2.4.4",
                 "Name": "Spark"
+            },
+            {
+                "Version": "3.7.2",
+                "Name": "Ganglia"
             }
         ],
         "CustomAmiId": "ami-0c659cf3b3d891800",
