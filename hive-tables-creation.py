@@ -1,5 +1,4 @@
 import boto3
-import logging
 import ast
 from logger import setup_logging
 
