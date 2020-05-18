@@ -1,6 +1,11 @@
 import boto3
-import logging
 import ast
+from logger import setup_logging
+
+level = "info"
+logger_path = "/var/log/adg/hive_tables_creation_log.log"
+logger_format = "{ 'timestamp': '%(asctime)s', 'log_level': '%(levelname)s', 'message': '%(message)s' }"
+the_logger = setup_logging(level, logger_path , logger_format)
 
 client = boto3.client("glue")
 # Create a Secrets Manager client
@@ -25,40 +30,47 @@ for collection in collections_hbase:
         try:
             client.delete_table(DatabaseName=DatabaseName, Name=collection_staging)
         except client.exceptions.EntityNotFoundException as e:
-            logging.error(e)
+            the_logger.error(
+                    "Exception cannot delete table: " + str(e)
+                ) 
 
-        client.create_table(
-            DatabaseName=DatabaseName,
-            TableInput={
-                "Name": collection_staging,
-                "Description": "Hive table to access hbase table " + collection,
-                "StorageDescriptor": {
-                    "Columns": [
-                        {"Name": "rowkey", "Type": "string"},
-                        {"Name": "data", "Type": "string"},
-                    ],
-                    "Location": "s3://${bucket}/analytical-dataset/hive/external/"
-                    + collection_staging,
-                    "Compressed": False,
-                    "NumberOfBuckets": -1,
-                    "SerdeInfo": {
-                        "Name": "string",
-                        "SerializationLibrary": "org.apache.hadoop.hive.hbase.HBaseSerDe",
-                        "Parameters": {
-                            "hbase.columns.mapping": ":key,cf:record",
-                            "serialization.format": "1",
+        try:
+            client.create_table(
+                DatabaseName=DatabaseName,
+                TableInput={
+                    "Name": collection_staging,
+                    "Description": "Hive table to access hbase table " + collection,
+                    "StorageDescriptor": {
+                        "Columns": [
+                            {"Name": "rowkey", "Type": "string"},
+                            {"Name": "data", "Type": "string"},
+                        ],
+                        "Location": "s3://${bucket}/analytical-dataset/hive/external/"
+                        + collection_staging,
+                        "Compressed": False,
+                        "NumberOfBuckets": -1,
+                        "SerdeInfo": {
+                            "Name": "string",
+                            "SerializationLibrary": "org.apache.hadoop.hive.hbase.HBaseSerDe",
+                            "Parameters": {
+                                "hbase.columns.mapping": ":key,cf:record",
+                                "serialization.format": "1",
+                            },
                         },
                     },
+                    "TableType": "EXTERNAL_TABLE",
+                    "Parameters": {
+                        "hbase.table.name": collection,
+                        "storage_handler": "org.apache.hadoop.hive.hbase.HBaseStorageHandler",
+                        "EXTERNAL": "True",
+                    },
                 },
-                "TableType": "EXTERNAL_TABLE",
-                "Parameters": {
-                    "hbase.table.name": collection,
-                    "storage_handler": "org.apache.hadoop.hive.hbase.HBaseStorageHandler",
-                    "EXTERNAL": "True",
-                },
-            },
-        )
+            )
+        except Exception as e:
+                the_logger.error(
+                    "Exception cannot create table: " + collection_hbase + " " + str(e)
+                )  
     else:
-        logging.error(collection, " is not in HBase")
+        the_logger.error(collection, " is not in HBase")
 
 
