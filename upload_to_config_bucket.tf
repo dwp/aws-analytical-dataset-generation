@@ -118,13 +118,6 @@ data "template_file" "hive_setup_sh" {
   }
 }
 
-data "template_file" "logger" {
-  template = file(format("%s/logger.py", path.module))
-  vars = {
-  }
-}
-
-
 data "local_file" "logging_script" {
   filename = "logging.sh"
 }
