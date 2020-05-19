@@ -59,6 +59,7 @@ data "template_file" "emr_setup_sh" {
     truststore_aliases      = join(",", var.truststore_aliases)
     truststore_certs        = "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/dataworks_root_ca.pem,s3://dw-management-dev-public-certificates/ca_certificates/dataworks/dataworks_root_ca.pem,s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem,s3://dw-${local.management_account[local.environment]}-public-certificates/ca_certificates/dataworks/ca.pem,s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem"
     dks_endpoint            = data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment]
+    python_logger           = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
   }
 }
 
@@ -117,20 +118,27 @@ data "template_file" "hive_setup_sh" {
   }
 }
 
-data "template_file" "logger" {
-  template = file(format("%s/logger.py", path.module))
-  vars = {
-  }
-}
-
-
-data "local_file" "logging_script" {
-  filename = "logging.sh"
-}
-
 resource "aws_s3_bucket_object" "logging_script" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   key        = "component/analytical-dataset-generation/logging.sh"
   content    = data.local_file.logging_script.content
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+}
+
+data "local_file" "logging_script" {
+  filename = "logging.sh"
+}
+
+
+resource "aws_s3_bucket_object" "logger" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  key        = "component/analytical-dataset-generation/logger.py"
+  content    = data.template_file.logger.rendered
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+}
+
+data "template_file" "logger" {
+  template = file(format("%s/logger.py", path.module))
+  vars = {
+  }
 }
