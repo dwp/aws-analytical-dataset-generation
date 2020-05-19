@@ -118,17 +118,23 @@ data "template_file" "hive_setup_sh" {
   }
 }
 
+data "template_file" "logger" {
+  template = file(format("%s/logger.py", path.module))
+  vars = {
+  }
+}
+
+
+data "local_file" "logging_script" {
+  filename = "logging.sh"
+}
+
 resource "aws_s3_bucket_object" "logging_script" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   key        = "component/analytical-dataset-generation/logging.sh"
   content    = data.local_file.logging_script.content
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
-
-data "local_file" "logging_script" {
-  filename = "logging.sh"
-}
-
 
 resource "aws_s3_bucket_object" "logger" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
