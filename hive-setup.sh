@@ -19,6 +19,8 @@ log_wrapper_message "Listing the tables in Hbase and exporting it to a file curr
 
 sleep 10
 
+aws s3 cp "${python_logger}" .
+
 log_wrapper_message "Running create-hive-tables.py "
 
 sudo -E /usr/bin/python3.6 create-hive-tables.py >> /var/log/adg/create-hive-tables.log 2>&1

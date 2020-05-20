@@ -59,7 +59,6 @@ data "template_file" "emr_setup_sh" {
     truststore_aliases      = join(",", var.truststore_aliases)
     truststore_certs        = "s3://${local.env_certificate_bucket}/ca_certificates/dataworks/dataworks_root_ca.pem,s3://dw-management-dev-public-certificates/ca_certificates/dataworks/dataworks_root_ca.pem,s3://${local.env_certificate_bucket}/ca_certificates/dataworks/ca.pem,s3://dw-${local.management_account[local.environment]}-public-certificates/ca_certificates/dataworks/ca.pem,s3://${data.terraform_remote_state.mgmt_ca.outputs.public_cert_bucket.id}/ca_certificates/dataworks/root_ca.pem"
     dks_endpoint            = data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment]
-    python_logger           = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
   }
 }
 
@@ -115,6 +114,7 @@ data "template_file" "hive_setup_sh" {
   template = file(format("%s/hive-setup.sh", path.module))
   vars = {
     hive-scripts-path = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
+    python_logger     = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
   }
 }
 
