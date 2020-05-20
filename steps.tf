@@ -30,6 +30,7 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
   content = templatefile("${path.module}/steps/hive-setup.sh",
     {
       hive-scripts-path = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
+      python_logger     = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
     }
   )
 }
