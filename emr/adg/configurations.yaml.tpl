@@ -4,7 +4,7 @@ Configurations:
   Properties:
     "yarn.log-aggregation.retain-seconds": "-1"
     "yarn.log-aggregation-enable": "true"
-    "yarn.nodemanager.remote-app-log-dir": "s3://${s3_log_bucket}/logs/yarn"
+    "yarn.nodemanager.remote-app-log-dir": "s3://${s3_log_bucket}/${s3_log_prefix}/yarn"
 - Classification: "spark"
   Properties:
     "maximizeResourceAllocation": "false"
