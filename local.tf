@@ -78,6 +78,5 @@ locals {
     production  = "0.0.1"
   }
 
+  s3_log_prefix = "emr/analytical_dataset_generator"
 }
-
-

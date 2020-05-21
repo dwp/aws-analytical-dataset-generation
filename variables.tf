@@ -6,7 +6,7 @@ variable "emr_release_label" {
 variable "emr_applications" {
   description = "List of applications to deploy to EMR Cluster"
   type        = list(string)
-  default     = ["Spark", "HBase", "Hive","Ganglia"]
+  default     = ["Spark", "HBase", "Hive", "Ganglia"]
 }
 
 variable "termination_protection" {
