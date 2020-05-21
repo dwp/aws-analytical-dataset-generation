@@ -212,8 +212,8 @@ data "template_file" "instances" {
   template = file("emr/adg/instances.yaml.tpl")
 
   vars = {
-    add_master_sg     = aws_security_group.analytical_dataset_generation.id
-    add_slave_sg      = aws_security_group.analytical_dataset_generation.id
+    add_master_sg     = aws_security_group.common_sg.id
+    add_slave_sg      = aws_security_group.common_sg.id
     subnet_id         = data.terraform_remote_state.internal_compute.outputs.htme_subnet.ids[0]
     master_sg         = aws_security_group.master_sg.id
     slave_sg          = aws_security_group.slave_sg.id
