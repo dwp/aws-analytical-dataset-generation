@@ -56,7 +56,7 @@ resource "aws_security_group_rule" "egress_https_s3_endpoint" {
   security_group_id = aws_security_group.common_sg.id
 }
 
-resource "aws_security_group_rule" "egress_https_s3_endpoint" {
+resource "aws_security_group_rule" "egress_internet_proxy" {
   description       = "Allow Internet access via the proxy (for ACM-PCA)"
   type              = "ingress"
   from_port         = 3128
