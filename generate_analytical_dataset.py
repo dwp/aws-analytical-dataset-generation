@@ -7,6 +7,9 @@ import ast
 import requests
 import re
 import os
+import time
+import itertools
+import concurrent.futures
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -23,31 +26,45 @@ def main():
     collections = get_collections(secrets_response)
     published_database_name = get_published_db_name()
     database_name = get_staging_db_name()
-    spark = get_spark_session()
     tables = get_tables(database_name)
+    spark = get_spark_session()
+
+    tag_values = []
+    collection_names = []
+    adg_hive_tables = []
+
     for table_to_process in tables:
         collection_name = table_to_process.replace('_hbase','')
         if collection_name in collections:
+            collection_names.append(collection_name)
             adg_hive_table = database_name + "." + table_to_process
-            adg_hive_select_query = "select * from %s" % adg_hive_table
-            df = get_dataframe_from_staging(adg_hive_select_query, spark)
-            keys_map = {}
-            values = (
-                df.select("data")
-                    .rdd.map(lambda x: getTuple(x.data))
-                    # TODO Is there a better way without tailing ?
-                    .map(lambda decrypted_db_obj: get_plaintext_key_calling_dks(decrypted_db_obj,keys_map))
-                    .map(lambda decrypted_db_obj: decrypt(decrypted_db_obj))
-                    .map(lambda decrypted_db_obj: validate(decrypted_db_obj))
-                    .map(lambda decrypted_db_obj: sanitize(decrypted_db_obj))
-            )
-            parquet_location = persist_parquet(s3_publish_bucket, collection_name, values)
-            prefix = "${file_location}/" + collection_name + '/' + collection_name + ".parquet"
-            tag_objects(s3_publish_bucket, prefix, collection_name, tag_value=collections[collection_name])
-            create_hive_on_published(parquet_location, published_database_name, spark, collection_name)
+            adg_hive_tables.append(adg_hive_table)
+            tag_values.append(collections[collection_name])
         else:
-            logging.error(collection_name, 'from staging_db is not present in the collections list ')
+            logging.error(table_to_process, 'from staging_db is not present in the collections list ')
+    length = len(collection_names)
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = executor.map(spark_process, itertools.repeat(spark, length),
+                               itertools.repeat(s3_publish_bucket, length), collection_names,
+                               tag_values, itertools.repeat(published_database_name, length))
 
+def spark_process(spark, adg_hive_table, s3_publish_bucket, collection_name, tag_value, published_database_name):
+    adg_hive_select_query = "select * from %s" % adg_hive_table
+    df = get_dataframe_from_staging(adg_hive_select_query, spark)
+    keys_map = {}
+    values = (
+        df.select("data")
+            .rdd.map(lambda x: getTuple(x.data))
+            # TODO Is there a better way without tailing ?
+            .map(lambda decrypted_db_obj: get_plaintext_key_calling_dks(decrypted_db_obj,keys_map))
+            .map(lambda decrypted_db_obj: decrypt(decrypted_db_obj))
+            .map(lambda decrypted_db_obj: validate(decrypted_db_obj))
+            .map(lambda decrypted_db_obj: sanitize(decrypted_db_obj))
+    )
+    parquet_location = persist_parquet(s3_publish_bucket, collection_name, values)
+    prefix = "${file_location}/" + collection_name + '/' + collection_name + ".parquet"
+    tag_objects(s3_publish_bucket, prefix, collection_name, tag_value=tag_value)
+    create_hive_on_published(parquet_location, published_database_name, spark, collection_name)
 def retrieve_secrets():
     secret_name = "${secret_name}"
     # Create a Secrets Manager client
