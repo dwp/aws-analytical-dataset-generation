@@ -112,6 +112,7 @@ resource "aws_kms_key" "adg_ebs_cmk" {
   tags = merge(
     local.tags,
     {
+      Name                  = "adg_ebs_cmk"
       ProtectsSensitiveData = "True"
     }
   )
