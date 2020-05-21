@@ -136,6 +136,63 @@ resource "aws_iam_role_policy_attachment" "adg_read_ingest_hbase" {
   policy_arn = aws_iam_policy.read_ingest_hbase.arn
 }
 
+data "aws_iam_policy_document" "write_ingest_hbase_meta" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+      "s3:PutObject*",
+    ]
+
+
+    # Allow a "read-only" HBase replica to maintain its own metadata which allows
+    # clients to find which files are in which HBase regions
+    resources = [
+      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}/${data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir}/data/hbase/meta_*",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:Encrypt",
+      "kms:GenerateDataKey*",
+      "kms:ReEncrypt*",
+    ]
+
+    resources = [
+      "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "write_ingest_hbase_meta" {
+  name        = "IngestHBaseWriteMeta"
+  description = "Allow writes to read-replica metadata area under Ingest HBase's root"
+  policy      = data.aws_iam_policy_document.write_ingest_hbase_meta.json
+}
+
+resource "aws_iam_role_policy_attachment" "adg_write_ingest_hbase_meta" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.write_ingest_hbase_meta.arn
+}
 data "aws_iam_policy_document" "write_analytical_dataset" {
 
   statement {
@@ -180,6 +237,7 @@ data "aws_iam_policy_document" "write_analytical_dataset" {
     ]
   }
 }
+
 resource "aws_iam_policy" "write_analytical_dataset" {
   name        = "AnalyticalDatasetWriteData"
   description = "Allow write access to the Analytical Dataset"
