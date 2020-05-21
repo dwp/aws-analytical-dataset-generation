@@ -1,20 +1,20 @@
 resource "aws_security_group" "master_sg" {
   name                   = "analytical_dataset_generation_master_sg"
-  description            = "Contains rules for EMR master"
+  description            = "Contains rules for EMR master; rules are injected by EMR not managed by TF"
   revoke_rules_on_delete = true
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
 }
 
 resource "aws_security_group" "slave_sg" {
   name                   = "analytical_dataset_generation_slave_sg"
-  description            = "Contains rules for EMR slave"
+  description            = "Contains rules for EMR slave;rules are injected by EMR not managed by TF"
   revoke_rules_on_delete = true
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
 }
 
 resource "aws_security_group" "service_access_sg" {
   name                   = "analytical_dataset_generation_service_access_sg"
-  description            = "Contains rules for EMR cluster"
+  description            = "Contains rules for EMR cluster; rules are injected by EMR not managed by TF"
   revoke_rules_on_delete = true
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
 }
@@ -48,7 +48,7 @@ resource "aws_security_group_rule" "ingress_https_vpc_endpoints_from_emr" {
 
 resource "aws_security_group_rule" "egress_https_s3_endpoint" {
   description       = "Allow HTTPS access to S3 via its endpoint"
-  type              = "ingress"
+  type              = "egress"
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
@@ -58,7 +58,7 @@ resource "aws_security_group_rule" "egress_https_s3_endpoint" {
 
 resource "aws_security_group_rule" "egress_internet_proxy" {
   description       = "Allow Internet access via the proxy (for ACM-PCA)"
-  type              = "ingress"
+  type              = "egress"
   from_port         = 3128
   to_port           = 3128
   protocol          = "tcp"

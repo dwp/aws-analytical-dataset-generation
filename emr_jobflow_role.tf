@@ -196,12 +196,11 @@ data "aws_iam_policy_document" "write_analytical_dataset_logs" {
     effect = "Allow"
 
     actions = [
-
       "s3:ListBucket",
     ]
 
     resources = [
-      aws_s3_bucket.published.arn,
+      data.terraform_remote_state.security-tools.outputs.logstore_bucket.arn,
     ]
   }
 
@@ -320,6 +319,7 @@ data "aws_iam_policy_document" "read_analytical_dataset_artefacts" {
     ]
   }
 }
+
 resource "aws_iam_policy" "read_analytical_dataset_artefacts" {
   name        = "AnalyticalDatasetReadArtefacts"
   description = "Allow read access to Analytical Dataset software artefacts"
