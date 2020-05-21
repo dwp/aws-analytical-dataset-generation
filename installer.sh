@@ -25,7 +25,7 @@ sudo -E /usr/bin/pip-3.6 install requests >> /var/log/adg/install-requests.log 2
 
 sudo -E /usr/bin/pip-3.6 install pyspark >> /var/log/adg/install-pyspark.log 2>&1
 
-sudo -E /usr/bin/pip-3.6 install pycryptodome >> /var/log/adg/install-pycryptodome.log 2>&1
+sudo -E /usr/bin/pip-3.6 install pycrypto >> /var/log/adg/install-pycrypto.log 2>&1
 
 log_wrapper_message "Completed the installer.sh step of the EMR Cluster"
 
