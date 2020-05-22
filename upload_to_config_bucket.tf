@@ -50,20 +50,6 @@ data "template_file" "emr_setup_sh" {
   }
 }
 
-resource "aws_s3_bucket_object" "meta_cleaner_sh" {
-  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
-  key     = "component/analytical-dataset-generation/meta-cleaner.sh"
-  content = data.template_file.meta_cleaner_sh.rendered
-}
-
-data "template_file" "meta_cleaner_sh" {
-  template = file(format("%s/meta-cleaner.sh", path.module))
-  vars = {
-    hbase_meta     = local.hbase_root_path
-    metatable_name = local.dynamo_meta_name
-  }
-}
-
 resource "aws_s3_bucket_object" "installer_sh" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
   key     = "component/analytical-dataset-generation/installer.sh"
