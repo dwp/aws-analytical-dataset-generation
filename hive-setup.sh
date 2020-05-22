@@ -23,13 +23,17 @@ log_wrapper_message "Running create-hive-tables.py "
 
 sudo -E /usr/bin/python3.6 create-hive-tables.py >> /var/log/adg/create-hive-tables.log 2>&1
 
-log_wrapper_message "Completed the hive-setup.sh step of the EMR Cluster"
-
 setcleaner=`echo "cleaner_chore_switch false" | sudo -E hbase shell `
+
+log_wrapper_message "Setting  hbase cleaner_chore_switch to false  $setcleaner "
 
 sleep 10m
 
 refresh_meta=`echo "refresh_meta" | sudo -E hbase shell `
+
+log_wrapper_message "Refreshing hbase meta $refresh_meta "
+
+log_wrapper_message "Completed the hive-setup.sh step of the EMR Cluster"
 
 ) >> /var/log/adg/nohup.log 2>&1
 
