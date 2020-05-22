@@ -31,7 +31,7 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
 }
 
 data "template_file" "emr_setup_sh" {
-  template = file(format("%s/emr-setup.sh", path.module))
+  template = file(format("%s/bootstrap_actions/emr-setup.sh", path.module))
   vars = {
     VERSION                 = local.adg_version[local.environment]
     ADG_LOG_LEVEL           = local.adg_log_level[local.environment]
@@ -70,7 +70,7 @@ resource "aws_s3_bucket_object" "installer_sh" {
   content = data.template_file.installer_sh.rendered
 }
 data "template_file" "installer_sh" {
-  template = file(format("%s/installer.sh", path.module))
+  template = file("bootstrap_actions/installer.sh")
   vars = {
     full_proxy    = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
     full_no_proxy = "127.0.0.1,localhost,169.254.169.254,*.s3.eu-west-2.amazonaws.com,s3.eu-west-2.amazonaws.com,sns.eu-west-2.amazonaws.com,sqs.eu-west-2.amazonaws.com,eu-west-2.queue.amazonaws.com,glue.eu-west-2.amazonaws.com,sts.eu-west-2.amazonaws.com,*.eu-west-2.compute.internal,dynamodb.eu-west-2.amazonaws.com"
@@ -106,7 +106,7 @@ data "template_file" "hive_setup_sh" {
 }
 
 data "local_file" "logging_script" {
-  filename = "logging.sh"
+  filename = "bootstrap_actions/logging.sh"
 }
 
 resource "aws_s3_bucket_object" "logging_script" {
