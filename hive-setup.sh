@@ -27,11 +27,10 @@ setcleaner=`echo "cleaner_chore_switch false" | sudo -E hbase shell `
 
 log_wrapper_message "Setting  hbase cleaner_chore_switch to false  $setcleaner "
 
+# sleeping for 10 min, during the testing it was observed that the hbase read replica isn't ready for the spark job to run. This is
+# because the region server and hbase meta table of read replica cluster need some time to replicate the master cluster meta.
+
 sleep 10m
-
-refresh_meta=`echo "refresh_meta" | sudo -E hbase shell `
-
-log_wrapper_message "Refreshing hbase meta $refresh_meta "
 
 log_wrapper_message "Completed the hive-setup.sh step of the EMR Cluster"
 
