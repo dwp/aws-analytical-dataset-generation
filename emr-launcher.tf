@@ -199,6 +199,7 @@ data "template_file" "configurations" {
 
   vars = {
     s3_log_bucket       = data.terraform_remote_state.security-tools.outputs.logstore_bucket.id
+    s3_log_prefix       = local.s3_log_prefix
     s3_published_bucket = aws_s3_bucket.published.id
     s3_ingest_bucket    = data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket
     hbase_root_path     = local.hbase_root_path
