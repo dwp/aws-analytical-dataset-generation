@@ -548,6 +548,78 @@ resource "aws_security_group" "service_access_sg" {
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
 }
 
+# DW-4134 - Rule for the dev Workspaces, gated to dev - "Ganglia"
+resource "aws_security_group_rule" "emr_server_ingress_workspaces_master_80" {
+  count             = local.environment == "development" ? 1 : 0
+  description       = "Allow WorkSpaces (internal-compute VPC) access to Ganglia"
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.cidr_block]
+  security_group_id = aws_security_group.master_sg.id
+}
+
+# DW-4134 - Rule for the dev Workspaces, gated to dev - "Hbase"
+resource "aws_security_group_rule" "emr_server_ingress_workspaces_master_hbase" {
+  count             = local.environment == "development" ? 1 : 0
+  description       = "Allow WorkSpaces (internal-compute VPC) access to Hbase"
+  type              = "ingress"
+  from_port         = 16010
+  to_port           = 16010
+  protocol          = "tcp"
+  cidr_blocks       = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.cidr_block]
+  security_group_id = aws_security_group.master_sg.id
+}
+
+# DW-4134 - Rule for the dev Workspaces, gated to dev - "Spark"
+resource "aws_security_group_rule" "emr_server_ingress_workspaces_master_spark" {
+  count             = local.environment == "development" ? 1 : 0
+  description       = "Allow WorkSpaces (internal-compute VPC) access to Spark"
+  type              = "ingress"
+  from_port         = 18080
+  to_port           = 18080
+  protocol          = "tcp"
+  cidr_blocks       = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.cidr_block]
+  security_group_id = aws_security_group.master_sg.id
+}
+
+# DW-4134 - Rule for the dev Workspaces, gated to dev - "Yarn NodeManager"
+resource "aws_security_group_rule" "emr_server_ingress_workspaces_master_yarn_nm" {
+  count             = local.environment == "development" ? 1 : 0
+  description       = "Allow WorkSpaces (internal-compute VPC) access to Yarn NodeManager"
+  type              = "ingress"
+  from_port         = 8042
+  to_port           = 8042
+  protocol          = "tcp"
+  cidr_blocks       = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.cidr_block]
+  security_group_id = aws_security_group.master_sg.id
+}
+
+# DW-4134 - Rule for the dev Workspaces, gated to dev - "Yarn ResourceManager"
+resource "aws_security_group_rule" "emr_server_ingress_workspaces_master_yarn_rm" {
+  count             = local.environment == "development" ? 1 : 0
+  description       = "Allow WorkSpaces (internal-compute VPC) access to Yarn ResourceManager"
+  type              = "ingress"
+  from_port         = 8088
+  to_port           = 8088
+  protocol          = "tcp"
+  cidr_blocks       = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.cidr_block]
+  security_group_id = aws_security_group.master_sg.id
+}
+
+# DW-4134 - Rule for the dev Workspaces, gated to dev - "Region Server"
+resource "aws_security_group_rule" "emr_server_ingress_workspaces_slave_region_server" {
+  count             = local.environment == "development" ? 1 : 0
+  description       = "Allow WorkSpaces (internal-compute VPC) access to Region Server"
+  type              = "ingress"
+  from_port         = 16030
+  to_port           = 16030
+  protocol          = "tcp"
+  cidr_blocks       = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.cidr_block]
+  security_group_id = aws_security_group.slave_sg.id
+}
+
 resource "aws_security_group_rule" "ingress_tcp_master_master" {
   description              = "ingress_tcp_master_master"
   from_port                = 0
