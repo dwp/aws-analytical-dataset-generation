@@ -183,7 +183,7 @@ resource "aws_iam_role_policy_attachment" "adg_emr_launcher_policy_execution" {
 }
 
 data "template_file" "cluster" {
-  template = file("emr/adg/cluster.yaml.tpl")
+  template = file("cluster_config/cluster.yaml.tpl")
 
   vars = {
     s3_log_bucket    = data.terraform_remote_state.security-tools.outputs.logstore_bucket.id
@@ -194,7 +194,7 @@ data "template_file" "cluster" {
 }
 
 data "template_file" "configurations" {
-  template = file("emr/adg/configurations.yaml.tpl")
+  template = file("cluster_config/configurations.yaml.tpl")
 
   vars = {
     s3_log_bucket       = data.terraform_remote_state.security-tools.outputs.logstore_bucket.id
@@ -208,7 +208,7 @@ data "template_file" "configurations" {
 }
 
 data "template_file" "instances" {
-  template = file("emr/adg/instances.yaml.tpl")
+  template = file("cluster_config/instances.yaml.tpl")
 
   vars = {
     add_master_sg     = aws_security_group.analytical_dataset_generation.id
@@ -222,7 +222,7 @@ data "template_file" "instances" {
 }
 
 data "template_file" "steps" {
-  template = file("emr/adg/steps.yaml.tpl")
+  template = file("cluster_config/steps.yaml.tpl")
 
   vars = {
     s3_config_bucket = data.terraform_remote_state.common.outputs.config_bucket.id
