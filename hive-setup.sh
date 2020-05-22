@@ -25,6 +25,12 @@ sudo -E /usr/bin/python3.6 create-hive-tables.py >> /var/log/adg/create-hive-tab
 
 log_wrapper_message "Completed the hive-setup.sh step of the EMR Cluster"
 
+setcleaner=`echo "cleaner_chore_switch false" | sudo -E hbase shell `
+
+sleep 10m
+
+refresh_meta=`echo "refresh_meta" | sudo -E hbase shell `
+
 ) >> /var/log/adg/nohup.log 2>&1
 
 
