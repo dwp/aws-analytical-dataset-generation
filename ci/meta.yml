@@ -226,7 +226,7 @@ meta:
             repository: dwpdigital/python3-pyspark-pytest
         run:
           path: sh
-          dir: aws-analytical-dataset-generation
+          dir: aws-analytical-dataset-generation/steps
           args:
             - -exc
             - |

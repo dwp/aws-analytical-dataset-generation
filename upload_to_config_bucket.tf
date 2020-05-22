@@ -13,7 +13,7 @@ resource "aws_s3_bucket_object" "logger_script" {
 }
 
 data "template_file" "analytical_dataset_generation_script" {
-  template = file(format("%s/generate_analytical_dataset.py", path.module))
+  template = file("steps/generate_analytical_dataset.py")
   vars = {
     secret_name        = local.secret_name
     staging_db         = "analytical_dataset_generation_staging"
@@ -55,6 +55,7 @@ resource "aws_s3_bucket_object" "meta_cleaner_sh" {
   key     = "component/analytical-dataset-generation/meta-cleaner.sh"
   content = data.template_file.meta_cleaner_sh.rendered
 }
+
 data "template_file" "meta_cleaner_sh" {
   template = file(format("%s/meta-cleaner.sh", path.module))
   vars = {
@@ -62,7 +63,6 @@ data "template_file" "meta_cleaner_sh" {
     metatable_name = local.dynamo_meta_name
   }
 }
-
 
 resource "aws_s3_bucket_object" "installer_sh" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
@@ -85,7 +85,7 @@ resource "aws_s3_bucket_object" "create-hive-tables" {
 }
 
 data "template_file" "create-hive-tables" {
-  template = file(format("%s/hive-tables-creation.py", path.module))
+  template = file("steps/create-hive-tables.py")
   vars = {
     bucket      = aws_s3_bucket.published.id
     secret_name = local.secret_name
@@ -99,7 +99,7 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
 }
 
 data "template_file" "hive_setup_sh" {
-  template = file(format("%s/hive-setup.sh", path.module))
+  template = file("steps/hive-setup.sh")
   vars = {
     hive-scripts-path = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
   }
@@ -124,7 +124,7 @@ resource "aws_s3_bucket_object" "logger" {
 }
 
 data "template_file" "logger" {
-  template = file(format("%s/logger.py", path.module))
+  template = file("steps/logger.py")
   vars = {
   }
 }
