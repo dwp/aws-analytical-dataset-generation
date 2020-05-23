@@ -306,26 +306,6 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_gluetables" {
   policy_arn = aws_iam_policy.analytical_dataset_gluetables.arn
 }
 
-data "aws_iam_policy_document" "analytical_dataset_acm" {
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "acm:ExportCertificate",
-    ]
-
-    resources = [
-      aws_acm_certificate.analytical-dataset-generator.arn
-    ]
-  }
-}
-
-resource "aws_iam_policy" "analytical_dataset_acm" {
-  name        = "DatasetGeneratorACM"
-  description = "Allow Dataset Generator clusters to export acm"
-  policy      = data.aws_iam_policy_document.analytical_dataset_acm.json
-}
-
 resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_acm" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_acm.arn
@@ -789,17 +769,6 @@ output "analytical_dataset_generation_staging" {
     job_name = aws_glue_catalog_database.analytical_dataset_generation_staging.name
   }
 }
-
-
-resource "aws_acm_certificate" "analytical-dataset-generator" {
-  certificate_authority_arn = data.terraform_remote_state.aws_certificate_authority.outputs.root_ca.arn
-  domain_name               = "analytical-dataset-generator.${local.env_prefix[local.environment]}${local.dataworks_domain_name}"
-
-  options {
-    certificate_transparency_logging_preference = "DISABLED"
-  }
-}
-
 
 data "aws_secretsmanager_secret" "adg_secret" {
   name = local.secret_name
