@@ -10,7 +10,7 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       S3_LOGGING_SHELL        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logging_script.key)
       aws_default_region      = "eu-west-2"
       full_proxy              = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
-      full_no_proxy           = "127.0.0.1,localhost,169.254.169.254,*.s3.eu-west-2.amazonaws.com,s3.eu-west-2.amazonaws.com,sns.eu-west-2.amazonaws.com,sqs.eu-west-2.amazonaws.com,eu-west-2.queue.amazonaws.com,glue.eu-west-2.amazonaws.com,sts.eu-west-2.amazonaws.com,*.eu-west-2.compute.internal,dynamodb.eu-west-2.amazonaws.com"
+      full_no_proxy           = local.no_proxy
       acm_cert_arn            = aws_acm_certificate.analytical-dataset-generator.arn
       private_key_alias       = "private_key"
       truststore_aliases      = join(",", var.truststore_aliases)
@@ -26,7 +26,7 @@ resource "aws_s3_bucket_object" "installer_sh" {
   content = templatefile("${path.module}/bootstrap_actions/installer.sh",
     {
       full_proxy    = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
-      full_no_proxy = "127.0.0.1,localhost,169.254.169.254,*.s3.eu-west-2.amazonaws.com,s3.eu-west-2.amazonaws.com,sns.eu-west-2.amazonaws.com,sqs.eu-west-2.amazonaws.com,eu-west-2.queue.amazonaws.com,glue.eu-west-2.amazonaws.com,sts.eu-west-2.amazonaws.com,*.eu-west-2.compute.internal,dynamodb.eu-west-2.amazonaws.com"
+      full_no_proxy = local.no_proxy
     }
   )
 }

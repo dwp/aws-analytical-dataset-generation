@@ -49,7 +49,7 @@ resource "aws_s3_bucket_object" "configurations" {
       s3_published_bucket = aws_s3_bucket.published.id
       s3_ingest_bucket    = data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket
       hbase_root_path     = local.hbase_root_path
-      proxy_no_proxy      = "169.254.169.254|*.s3.eu-west-2.amazonaws.com|s3.eu-west-2.amazonaws.com|sns.eu-west-2.amazonaws.com|sqs.eu-west-2.amazonaws.com|eu-west-2.queue.amazonaws.com|glue.eu-west-2.amazonaws.com|sts.eu-west-2.amazonaws.com|*.eu-west-2.compute.internal|dynamodb.eu-west-2.amazonaws.com"
+      proxy_no_proxy      = local.no_proxy
       proxy_http_address  = data.terraform_remote_state.internet_egress.outputs.internet_proxy_service.http_address
       proxy_https_address = data.terraform_remote_state.internet_egress.outputs.internet_proxy_service.https_address
     }
