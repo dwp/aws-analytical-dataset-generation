@@ -21,10 +21,3 @@ resource "aws_iam_policy" "analytical_dataset_secretsmanager" {
   description = "Allow Dataset Generator clusters to get secrets"
   policy      = data.aws_iam_policy_document.analytical_dataset_secretsmanager.json
 }
-
-resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_secretsmanager" {
-  role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = aws_iam_policy.analytical_dataset_secretsmanager.arn
-}
-
-

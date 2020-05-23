@@ -256,3 +256,8 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_write_s3" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_write_s3.arn
 }
+
+resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_secretsmanager" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_secretsmanager.arn
+}
