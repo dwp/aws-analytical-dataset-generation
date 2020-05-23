@@ -7,7 +7,6 @@ resource "aws_s3_bucket_object" "create-hive-tables" {
       secret_name = local.secret_name
     }
   )
-  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
@@ -23,7 +22,6 @@ resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
       aws_default_region = "eu-west-2"
     }
   )
-  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "hive_setup_sh" {
@@ -37,8 +35,7 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
 }
 
 resource "aws_s3_bucket_object" "logger" {
-  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
-  key        = "component/analytical-dataset-generation/logger.py"
-  content    = file("${path.module}/steps/logger.py")
-  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/logger.py"
+  content = file("${path.module}/steps/logger.py")
 }

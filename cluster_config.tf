@@ -9,7 +9,6 @@ resource "aws_s3_bucket_object" "cluster" {
       instance_profile = aws_iam_instance_profile.analytical_dataset_generator.arn
     }
   )
-  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "instances" {
@@ -26,7 +25,6 @@ resource "aws_s3_bucket_object" "instances" {
       instance_type     = var.emr_instance_type[local.environment]
     }
   )
-  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "steps" {
@@ -37,7 +35,6 @@ resource "aws_s3_bucket_object" "steps" {
       s3_config_bucket = data.terraform_remote_state.common.outputs.config_bucket.id
     }
   )
-  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
 resource "aws_s3_bucket_object" "configurations" {
@@ -54,5 +51,4 @@ resource "aws_s3_bucket_object" "configurations" {
       proxy_https_address = data.terraform_remote_state.internet_egress.outputs.internet_proxy_service.https_address
     }
   )
-  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }

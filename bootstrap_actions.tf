@@ -32,8 +32,7 @@ resource "aws_s3_bucket_object" "installer_sh" {
 }
 
 resource "aws_s3_bucket_object" "logging_script" {
-  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
-  key        = "component/analytical-dataset-generation/logging.sh"
-  content    = file("${path.module}/bootstrap_actions/logging.sh")
-  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/logging.sh"
+  content = file("${path.module}/bootstrap_actions/logging.sh")
 }
