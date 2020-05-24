@@ -23,12 +23,12 @@ resource "aws_s3_bucket_object" "instances" {
   content = templatefile("${path.module}/cluster_config/instances.yaml.tpl",
     {
       keep_cluster_alive = local.keep_cluster_alive[local.environment]
-      add_master_sg      = aws_security_group.analytical_dataset_generation.id
-      add_slave_sg       = aws_security_group.analytical_dataset_generation.id
+      add_master_sg      = aws_security_group.adg_common.id
+      add_slave_sg       = aws_security_group.adg_common.id
       subnet_id          = data.terraform_remote_state.internal_compute.outputs.htme_subnet.ids[0]
-      master_sg          = aws_security_group.master_sg.id
-      slave_sg           = aws_security_group.slave_sg.id
-      service_access_sg  = aws_security_group.service_access_sg.id
+      master_sg          = aws_security_group.adg_master.id
+      slave_sg           = aws_security_group.adg_slave.id
+      service_access_sg  = aws_security_group.adg_emr_service.id
       instance_type      = var.emr_instance_type[local.environment]
     }
   )
