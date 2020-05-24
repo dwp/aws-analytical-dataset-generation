@@ -28,6 +28,11 @@ resource "aws_iam_role_policy_attachment" "ec2_for_ssm_attachment" {
 
 }
 
+resource "aws_iam_role_policy_attachment" "use_ebs_cmk" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_ebs_cmk_encrypt.arn
+}
+
 #        Create and attach custom policy
 data "aws_iam_policy_document" "analytical_dataset_gluetables" {
   statement {
@@ -149,20 +154,6 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "${data.terraform_remote_state.common.outputs.config_bucket_cmk.arn}",
       "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}",
     ]
-  }
-
-  statement {
-    sid    = "AllowUseDefaultEbsCmk"
-    effect = "Allow"
-
-    actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
-    ]
-    resources = [data.terraform_remote_state.security-tools.outputs.ebs_cmk.arn]
   }
 
   statement {
