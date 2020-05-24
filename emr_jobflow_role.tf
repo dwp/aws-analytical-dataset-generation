@@ -16,13 +16,6 @@ data "aws_iam_policy_document" "ec2_assume_role" {
   }
 }
 
-#        Attach AWS policies
-resource "aws_iam_role_policy_attachment" "emr_attachment" {
-  role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
-
-}
-
 resource "aws_iam_role_policy_attachment" "emr_for_ec2_attachment" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role"
@@ -66,48 +59,6 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_gluetables" {
 resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_acm" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_acm.arn
-}
-
-# Create and attach custom policy to allow use of CMK for EBS encryption
-data "aws_iam_policy_document" "analytical_dataset_ebs_cmk" {
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
-    ]
-
-    resources = [data.terraform_remote_state.security-tools.outputs.ebs_cmk.arn]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = ["kms:CreateGrant"]
-
-    resources = [data.terraform_remote_state.security-tools.outputs.ebs_cmk.arn]
-
-    condition {
-      test     = "Bool"
-      variable = "kms:GrantIsForAWSResource"
-      values   = ["true"]
-    }
-  }
-}
-
-resource "aws_iam_policy" "analytical_dataset_ebs_cmk" {
-  name        = "DataGenerationEmrUseEbsCmk"
-  description = "Allow Analytical EMR cluster to use EB CMK for encryption"
-  policy      = data.aws_iam_policy_document.analytical_dataset_ebs_cmk.json
-}
-
-resource "aws_iam_role_policy_attachment" "analytical_dataset_ebs_cmk" {
-  role       = aws_iam_role.analytical_dataset_generator.id
-  policy_arn = aws_iam_policy.analytical_dataset_ebs_cmk.arn
 }
 
 data "aws_iam_policy_document" "analytical_dataset_write_s3" {
