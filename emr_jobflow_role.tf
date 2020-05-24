@@ -33,32 +33,9 @@ resource "aws_iam_role_policy_attachment" "use_ebs_cmk" {
   policy_arn = aws_iam_policy.analytical_dataset_ebs_cmk_encrypt.arn
 }
 
-#        Create and attach custom policy
-data "aws_iam_policy_document" "analytical_dataset_gluetables" {
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "glue:CreateTable",
-      "glue:DeleteTable",
-    ]
-
-    resources = [
-      "arn:aws:glue:::database/aws_glue_catalog_database.analytical_dataset_generation_staging.name",
-      "arn:aws:glue:::database/aws_glue_catalog_database.analytical_dataset_generation.name",
-    ]
-  }
-}
-
-resource "aws_iam_policy" "analytical_dataset_gluetables" {
-  name        = "DatasetGeneratorGlueTables"
-  description = "Allow Dataset Generator clusters to create drop tables"
-  policy      = data.aws_iam_policy_document.analytical_dataset_gluetables.json
-}
-
 resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_gluetables" {
   role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = aws_iam_policy.analytical_dataset_gluetables.arn
+  policy_arn = aws_iam_policy.analytical_dataset_generator_gluetables_write.arn
 }
 
 resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_acm" {
