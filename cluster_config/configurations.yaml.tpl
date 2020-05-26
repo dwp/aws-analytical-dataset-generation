@@ -33,6 +33,15 @@ Configurations:
   Properties:
     "hbase.emr.storageMode": "s3"
     "hbase.emr.readreplica.enabled": "true"
+- Classification: "emrfs-site"
+  Properties:
+    "fs.s3.consistent": "true"
+    "fs.s3.consistent.metadata.read.capacity": "800"
+    "fs.s3.consistent.metadata.write.capacity": "200"
+    "fs.s3.maxConnections": "10000"
+    "fs.s3.consistent.retryPolicyType": "fixed"
+    "fs.s3.consistent.retryPeriodSeconds": "2"
+    "fs.s3.consistent.retryCount": "10"
 - Classification: "spark-env"
   Configurations:
   - Classification: "export"
