@@ -27,7 +27,7 @@ def main():
     published_database_name = get_published_db_name()
     database_name = get_staging_db_name()
     tables = get_tables(database_name)
-    spark = get_spark_session()
+
 
     tag_values = []
     collection_names = []
@@ -43,14 +43,14 @@ def main():
         else:
             logging.error(table_to_process, 'from staging_db is not present in the collections list ')
     length = len(collection_names)
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = executor.map(spark_process, itertools.repeat(spark, length),
-                               itertools.repeat(s3_publish_bucket, length), collection_names,
-                               tag_values, itertools.repeat(published_database_name, length))
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = executor.map(itertools.repeat(s3_publish_bucket, length), collection_names,
+                               tag_values, itertools.repeat(published_database_name, length),
+                               adg_hive_tables)
 
-def spark_process(spark, adg_hive_table, s3_publish_bucket, collection_name, tag_value, published_database_name):
+def spark_process(s3_publish_bucket, collection_name, tag_value, published_database_name, adg_hive_table):
     adg_hive_select_query = "select * from %s" % adg_hive_table
-    df = get_dataframe_from_staging(adg_hive_select_query, spark)
+    df = get_dataframe_from_staging(adg_hive_select_query)
     keys_map = {}
     values = (
         df.select("data")
@@ -63,8 +63,8 @@ def spark_process(spark, adg_hive_table, s3_publish_bucket, collection_name, tag
     )
     parquet_location = persist_parquet(s3_publish_bucket, collection_name, values)
     prefix = "${file_location}/" + collection_name + '/' + collection_name + ".parquet"
-    tag_objects(s3_publish_bucket, prefix, collection_name, tag_value=tag_value)
-    create_hive_on_published(parquet_location, published_database_name, spark, collection_name)
+    tag_objects(s3_publish_bucket, prefix, tag_value=tag_value)
+    create_hive_on_published(parquet_location, published_database_name, collection_name)
 def retrieve_secrets():
     secret_name = "${secret_name}"
     # Create a Secrets Manager client
@@ -82,13 +82,14 @@ def get_collections(secrets_response):
         collections = {key.replace('db.','',1):value for (key,value) in collections.items()}
         collections = {key.replace('.','_'):value for (key,value) in collections.items()}
         collections = {key.replace('-','_'):value for (key,value) in collections.items()}
+        collections = {k.lower():v.lower() for k, v in collections.items()}
 
     except Exception as e:
         logging.error('Problem with collections list', e)
     return collections
 
 
-def create_hive_on_published(parquet_location, published_database_name, spark, collection_name):
+def create_hive_on_published(parquet_location, published_database_name, collection_name):
     src_hive_table = published_database_name + "." + collection_name
     src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
     src_hive_create_query = (
@@ -114,7 +115,7 @@ def persist_parquet(s3_publish_bucket, collection_name, values):
     datadf.write.mode("overwrite").parquet(parquet_location)
     return parquet_location
 
-def tag_objects(s3_publish_bucket, prefix, collection_name, tag_value):
+def tag_objects(s3_publish_bucket, prefix, tag_value):
     session = boto3.session.Session()
     client_s3 = session.client(service_name='s3')
     default_value = 'default'
@@ -135,7 +136,7 @@ def get_published_db_name():
     return published_database_name
 
 
-def get_dataframe_from_staging(adg_hive_select_query, spark):
+def get_dataframe_from_staging(adg_hive_select_query):
     df = spark.sql(adg_hive_select_query)
     return df
 
@@ -148,6 +149,7 @@ def get_spark_session():
             .enableHiveSupport()
             .getOrCreate()
     )
+    spark.conf.set("spark.scheduler.mode", "FAIR")
     return spark
 
 def validate(p):
@@ -303,9 +305,10 @@ def get_tables(db_name):
     tables_metadata_dict = client.get_tables(DatabaseName = db_name)
     db_tables = tables_metadata_dict["TableList"]
     for table_dict in db_tables:
-        table_list.append(table_dict["Name"])
+        table_list.append(table_dict["Name"].lower())
     return table_list
 
 
 if __name__ == "__main__":
+    spark = get_spark_session()
     main()
