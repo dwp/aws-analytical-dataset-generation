@@ -14,6 +14,7 @@ echo "Installing scripts"
 aws s3 cp "${S3_COMMON_LOGGING_SHELL}"   /opt/shared/common_logging.sh
 aws s3 cp "${S3_LOGGING_SHELL}"          /opt/emr/logging.sh
 
+
 echo "Changing the Permissions"
 chmod u+x /opt/shared/common_logging.sh
 chmod u+x /opt/emr/logging.sh

@@ -46,7 +46,7 @@ def main():
             tag_objects(s3_publish_bucket, prefix, collection_name, tag_value=collections[collection_name])
             create_hive_on_published(parquet_location, published_database_name, spark, collection_name)
         else:
-            logging.error(collection_name, 'from staging_db is not present in the collections list ')
+            logging.error(table_to_process, 'from staging_db is not present in the collections list ')
 
 def retrieve_secrets():
     secret_name = "${secret_name}"
@@ -64,6 +64,7 @@ def get_collections(secrets_response):
         collections = secrets_response["collections_all"]
         collections = {key.replace('db.','',1):value for (key,value) in collections.items()}
         collections = {key.replace('.','_'):value for (key,value) in collections.items()}
+        collections = {key.replace('-','_'):value for (key,value) in collections.items()}
 
     except Exception as e:
         logging.error('Problem with collections list', e)
