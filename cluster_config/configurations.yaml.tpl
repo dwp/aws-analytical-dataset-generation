@@ -39,7 +39,7 @@ Configurations:
     "fs.s3.consistent.metadata.read.capacity": "800"
     "fs.s3.consistent.metadata.write.capacity": "200"
     "fs.s3.maxConnections": "10000"
-    "fs.s3.consistent.retryPolicyType": "exponential"
+    "fs.s3.consistent.retryPolicyType": "fixed"
     "fs.s3.consistent.retryPeriodSeconds": "2"
     "fs.s3.consistent.retryCount": "10"
 - Classification: "spark-env"
