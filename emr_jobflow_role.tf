@@ -44,7 +44,7 @@ resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_ebs_cmk"
 
 resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_ingest_hbase_read_storefiles" {
   role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current}:policy/IngestHBaseReadStorefiles"
+  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/IngestHBaseReadStorefiles"
 }
 
 resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_write_parquet" {
@@ -54,7 +54,7 @@ resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_write_pa
 
 resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_ingest_hbase_write_hbase_meta" {
   role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current}:policy/IngestHBaseWriteHBaseMeta"
+  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/IngestHBaseWriteHBaseMeta"
 }
 
 resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_gluetables" {
