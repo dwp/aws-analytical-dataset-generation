@@ -78,6 +78,22 @@ locals {
     production  = "0.0.1"
   }
 
+  amazon_region_domain = "${data.aws_region.current.name}.amazonaws.com"
+  endpoint_services    = ["autoscaling", "dynamodb", "ec2", "ec2messages", "ecr.dkr", "glue", "kms", "logs", "monitoring", "s3", "secretsmanager", "sns", "sqs", "ssm", "ssmmessages"]
+  no_proxy             = "169.254.169.254,${join(",", formatlist("%s.%s", local.endpoint_services, local.amazon_region_domain))}"
+
+  emrfs_em = {
+    EncryptionConfiguration = {
+      EnableInTransitEncryption = false
+      EnableAtRestEncryption    = true
+      AtRestEncryptionConfiguration = {
+        S3EncryptionConfiguration = {
+          EncryptionMode             = "CSE-Custom"
+          S3Object                   = "s3://${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id}/emr-encryption-materials-provider/encryption-materials-provider-${local.emp_version[local.environment]}.jar"
+          EncryptionKeyProviderClass = "uk.gov.dwp.dataworks.dks.encryptionmaterialsprovider.DKSEncryptionMaterialsProvider"
+        }
+      }
+    }
+  }
+
 }
-
-

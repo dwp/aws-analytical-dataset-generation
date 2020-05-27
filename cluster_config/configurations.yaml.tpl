@@ -28,17 +28,20 @@ Configurations:
     "hive.metastore.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
 - Classification: "hbase-site"
   Properties:
-    "hbase.server.keyvalue.maxsize": "750000000"
-    "hbase.bulkload.retries.retryOnIOException": "true"
-    "hbase.client.write.buffer": "8388608"
-    "hbase.regionserver.handler.count": "4"
-    "hbase.client.keyvalue.maxsize": "750000000"
-    "hbase.bucketcache.bucket.sizes": "5120,9216,17408,33792,41984,50176,58368,66560,99328,132096,197632,263168,394240,525312,656384,787456,918528,1049600,1180672,1311744,1442816,1704960,1967104,2229248"
     "hbase.rootdir": "${hbase_root_path}"
 - Classification: "hbase"
   Properties:
     "hbase.emr.storageMode": "s3"
     "hbase.emr.readreplica.enabled": "true"
+- Classification: "emrfs-site"
+  Properties:
+    "fs.s3.consistent": "true"
+    "fs.s3.consistent.metadata.read.capacity": "800"
+    "fs.s3.consistent.metadata.write.capacity": "200"
+    "fs.s3.maxConnections": "10000"
+    "fs.s3.consistent.retryPolicyType": "fixed"
+    "fs.s3.consistent.retryPeriodSeconds": "2"
+    "fs.s3.consistent.retryCount": "10"
 - Classification: "spark-env"
   Configurations:
   - Classification: "export"
