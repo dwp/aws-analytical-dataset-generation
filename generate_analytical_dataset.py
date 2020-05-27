@@ -44,7 +44,7 @@ def main():
             logging.error(table_to_process, 'from staging_db is not present in the collections list ')
     length = len(collection_names)
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        results = executor.map(itertools.repeat(s3_publish_bucket, length), collection_names,
+        results = executor.map(spark_process, itertools.repeat(s3_publish_bucket, length), collection_names,
                                tag_values, itertools.repeat(published_database_name, length),
                                adg_hive_tables)
 
