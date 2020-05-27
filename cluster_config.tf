@@ -9,6 +9,7 @@ resource "aws_s3_bucket_object" "cluster" {
   content = templatefile("${path.module}/cluster_config/cluster.yaml.tpl",
     {
       s3_log_bucket          = data.terraform_remote_state.security-tools.outputs.logstore_bucket.id
+      s3_log_prefix          = local.s3_log_prefix
       ami_id                 = var.emr_ami_id
       service_role           = aws_iam_role.adg_emr_service.arn
       instance_profile       = aws_iam_instance_profile.analytical_dataset_generator.arn
@@ -50,6 +51,7 @@ resource "aws_s3_bucket_object" "configurations" {
   content = templatefile("${path.module}/cluster_config/configurations.yaml.tpl",
     {
       s3_log_bucket       = data.terraform_remote_state.security-tools.outputs.logstore_bucket.id
+      s3_log_prefix       = local.s3_log_prefix
       s3_published_bucket = aws_s3_bucket.published.id
       s3_ingest_bucket    = data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket
       hbase_root_path     = local.hbase_root_path
