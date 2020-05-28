@@ -9,7 +9,7 @@ from datetime import datetime
 def test_sanitisation_processor_removes_desired_chars_in_collections():
     input =  """{"fieldA":"a$\u0000","_archivedDateTime":"b","_archived":"c"}"""
     expected =  '{"fieldA":"ad_","_removedDateTime":"b","_removed":"c"}'
-    msg = {"decrypted":input.encode(), "db_name":"","collection_name":""}
+    msg = {"decrypted":input, "db_name":"","collection_name":""}
     actual = sanitize(msg)
     assert expected == actual
 
@@ -32,7 +32,7 @@ def test_sanitisatio_processor_removes_desired_chars_from_specific_collections()
 def test_sanitisation_processor_does_not_remove_chars_from_other_collections():
     input = json.dumps(get_input())
     expected = json.dumps(get_expected())
-    msg = {"decrypted":input.encode(), "db_name":"","collection_name":""}
+    msg = {"decrypted":input, "db_name":"","collection_name":""}
     actual = sanitize(msg)
     assert expected != actual
 
