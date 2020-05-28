@@ -7,6 +7,7 @@ import ast
 import requests
 import re
 import os
+import concurrent.futures
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -16,38 +17,47 @@ from datetime import datetime
 import logging
 import pytz
 
+class CollectionData:
+    def __init__(self, collection_name, staging_hive_table, tag_value):
+        self.collection_name = collection_name
+        self.staging_hive_table = staging_hive_table
+        self.tag_value = tag_value
 
 def main():
-    s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
+    database_name = get_staging_db_name()
     secrets_response = retrieve_secrets()
     collections = get_collections(secrets_response)
-    published_database_name = get_published_db_name()
-    database_name = get_staging_db_name()
-    spark = get_spark_session()
     tables = get_tables(database_name)
+    collection_objects = []
     for table_to_process in tables:
         collection_name = table_to_process.replace('_hbase','')
         if collection_name in collections:
-            adg_hive_table = database_name + "." + table_to_process
-            adg_hive_select_query = "select * from %s" % adg_hive_table
-            df = get_dataframe_from_staging(adg_hive_select_query, spark)
-            keys_map = {}
-            values = (
-                df.select("data")
-                    .rdd.map(lambda x: getTuple(x.data))
-                    # TODO Is there a better way without tailing ?
-                    .map(lambda decrypted_db_obj: get_plaintext_key_calling_dks(decrypted_db_obj,keys_map))
-                    .map(lambda decrypted_db_obj: decrypt(decrypted_db_obj))
-                    .map(lambda decrypted_db_obj: validate(decrypted_db_obj))
-                    .map(lambda decrypted_db_obj: sanitize(decrypted_db_obj))
-            )
-            parquet_location = persist_parquet(s3_publish_bucket, collection_name, values)
-            prefix = "${file_location}/" + collection_name + '/' + collection_name + ".parquet"
-            tag_objects(s3_publish_bucket, prefix, collection_name, tag_value=collections[collection_name])
-            create_hive_on_published(parquet_location, published_database_name, spark, collection_name)
+            staging_hive_table = database_name + "." + table_to_process
+            tag_value = collections[collection_name]
+            collection_name_object = CollectionData(collection_name, staging_hive_table, tag_value)
+            collection_objects.append(collection_name_object)
         else:
             logging.error(table_to_process, 'from staging_db is not present in the collections list ')
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = executor.map(spark_process, collection_objects)
 
+def spark_process(collection):
+    adg_hive_select_query = "select * from %s" % collection.staging_hive_table
+    df = get_dataframe_from_staging(adg_hive_select_query)
+    keys_map = {}
+    values = (
+        df.select("data")
+            .rdd.map(lambda x: getTuple(x.data))
+            # TODO Is there a better way without tailing ?
+            .map(lambda decrypted_db_obj: get_plaintext_key_calling_dks(decrypted_db_obj,keys_map))
+            .map(lambda decrypted_db_obj: decrypt(decrypted_db_obj))
+            .map(lambda decrypted_db_obj: validate(decrypted_db_obj))
+            .map(lambda decrypted_db_obj: sanitize(decrypted_db_obj))
+    )
+    parquet_location = persist_parquet(collection.collection_name, values)
+    prefix = "${file_location}/" + collection.collection_name + '/' + collection.collection_name + ".parquet"
+    tag_objects(prefix, tag_value=collection.tag_value)
+    create_hive_on_published(parquet_location, collection.collection_name)
 def retrieve_secrets():
     secret_name = "${secret_name}"
     # Create a Secrets Manager client
@@ -65,13 +75,14 @@ def get_collections(secrets_response):
         collections = {key.replace('db.','',1):value for (key,value) in collections.items()}
         collections = {key.replace('.','_'):value for (key,value) in collections.items()}
         collections = {key.replace('-','_'):value for (key,value) in collections.items()}
+        collections = {k.lower():v.lower() for k, v in collections.items()}
 
     except Exception as e:
         logging.error('Problem with collections list', e)
     return collections
 
 
-def create_hive_on_published(parquet_location, published_database_name, spark, collection_name):
+def create_hive_on_published(parquet_location, collection_name):
     src_hive_table = published_database_name + "." + collection_name
     src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
     src_hive_create_query = (
@@ -84,7 +95,7 @@ def create_hive_on_published(parquet_location, published_database_name, spark, c
     spark.sql(src_hive_select_query).show()
 
 
-def persist_parquet(s3_publish_bucket, collection_name, values):
+def persist_parquet(collection_name, values):
     row = Row("val")
     datadf = values.map(row).toDF()
     datadf.show()
@@ -97,7 +108,7 @@ def persist_parquet(s3_publish_bucket, collection_name, values):
     datadf.write.mode("overwrite").parquet(parquet_location)
     return parquet_location
 
-def tag_objects(s3_publish_bucket, prefix, collection_name, tag_value):
+def tag_objects(prefix, tag_value):
     session = boto3.session.Session()
     client_s3 = session.client(service_name='s3')
     default_value = 'default'
@@ -118,7 +129,7 @@ def get_published_db_name():
     return published_database_name
 
 
-def get_dataframe_from_staging(adg_hive_select_query, spark):
+def get_dataframe_from_staging(adg_hive_select_query):
     df = spark.sql(adg_hive_select_query)
     return df
 
@@ -131,6 +142,7 @@ def get_spark_session():
             .enableHiveSupport()
             .getOrCreate()
     )
+    spark.conf.set("spark.scheduler.mode", "FAIR")
     return spark
 
 def validate(p):
@@ -222,6 +234,8 @@ def sanitize(z):
             or (db_name == "core" and collection_name == "healthAndDisabilityDeclaration")
             or (db_name == "accepted-data" and collection_name == "healthAndDisabilityCircumstances")):
         decrypted = re.sub(r'(?<!\\)\\[r|n]', '', decrypted)
+    if type(decrypted) is bytes:
+        decrypted = decrypted.decode("utf-8")
     return decrypted.replace("$", "d_").replace("\u0000", "").replace("_archivedDateTime", "_removedDateTime").replace("_archived", "_removed")
 
 def decrypt(y):
@@ -286,9 +300,13 @@ def get_tables(db_name):
     tables_metadata_dict = client.get_tables(DatabaseName = db_name)
     db_tables = tables_metadata_dict["TableList"]
     for table_dict in db_tables:
-        table_list.append(table_dict["Name"])
+        table_list.append(table_dict["Name"].lower())
     return table_list
 
 
 if __name__ == "__main__":
+    spark = get_spark_session()
+    s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
+    published_database_name = get_published_db_name()
+    database_name = get_staging_db_name()
     main()
