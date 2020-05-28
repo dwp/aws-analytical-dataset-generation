@@ -242,7 +242,7 @@ def sanitize(z):
             or (db_name == "accepted-data" and collection_name == "healthAndDisabilityCircumstances")):
         decrypted = re.sub(r'(?<!\\)\\[r|n]', '', decrypted)
         if type(decrypted) is bytes:
-            decrypted = decrypted.decode()
+            decrypted = decrypted.decode("utf-8")
     return decrypted.replace("$", "d_").replace("\u0000", "").replace("_archivedDateTime", "_removedDateTime").replace("_archived", "_removed")
 
 def decrypt(y):
