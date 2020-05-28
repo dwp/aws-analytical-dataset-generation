@@ -27,7 +27,7 @@ def main():
     secrets_response = retrieve_secrets()
     collections = get_collections(secrets_response)
     tables = get_tables(database_name)
-
+    database_name = get_staging_db_name()
     collection_objects = []
     for table_to_process in tables:
         collection_name = table_to_process.replace('_hbase','')
