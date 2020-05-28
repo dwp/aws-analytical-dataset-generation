@@ -9,31 +9,31 @@ from datetime import datetime
 def test_sanitisation_processor_removes_desired_chars_in_collections():
     input =  """{"fieldA":"a$\u0000","_archivedDateTime":"b","_archived":"c"}"""
     expected =  '{"fieldA":"ad_","_removedDateTime":"b","_removed":"c"}'
-    msg = {"decrypted":input, "db_name":"","collection_name":""}
-    actual = sanitize(msg.encode())
+    msg = {"decrypted":input.encode(), "db_name":"","collection_name":""}
+    actual = sanitize(msg)
     assert expected == actual
 
 # TODO Check how is this working in Kotlin """{"message":{"db":"penalties-and-deductions","collection":"sanction"},"data":{"carriage":"\\r","newline":"\\n","superEscaped":"\\\r\\\n"}}"""
 def test_sanitisation_processor_will_not_remove_multi_escaped_newlines():
     input =  """{"message":{"db":"penalties-and-deductions","collection":"sanction"},"data":{"carriage":"\\\\r","newline":"\\\\n","superEscaped":"\\\\r\\\\n"}}"""
-    msg = {"decrypted":input, "db_name":"penalties-and-deductions","collection_name":"sanction"}
-    actual = sanitize(msg.encode())
+    msg = {"decrypted":input.encode(), "db_name":"penalties-and-deductions","collection_name":"sanction"}
+    actual = sanitize(msg)
     assert input == actual
 
 
 def test_sanitisatio_processor_removes_desired_chars_from_specific_collections():
     input = json.dumps(get_input())
     expected = json.dumps(get_expected())
-    msg = {"decrypted":input, "db_name":"penalties-and-deductions","collection_name":"sanction"}
-    actual = sanitize(msg.encode())
+    msg = {"decrypted":input.encode(), "db_name":"penalties-and-deductions","collection_name":"sanction"}
+    actual = sanitize(msg)
     assert expected == actual
 
 
 def test_sanitisation_processor_does_not_remove_chars_from_other_collections():
     input = json.dumps(get_input())
     expected = json.dumps(get_expected())
-    msg = {"decrypted":input, "db_name":"","collection_name":""}
-    actual = sanitize(msg.encode())
+    msg = {"decrypted":input.encode(), "db_name":"","collection_name":""}
+    actual = sanitize(msg)
     assert expected != actual
 
 
