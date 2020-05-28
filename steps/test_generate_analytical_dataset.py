@@ -23,7 +23,7 @@ def test_sanitisation_processor_will_not_remove_multi_escaped_newlines():
 
 def test_sanitisatio_processor_removes_desired_chars_from_specific_collections():
     input = json.dumps(get_input())
-    expected = json.dumps(get_expected())
+    expected = (json.dumps(get_expected())).decode("utf-8")
     msg = {"decrypted":input, "db_name":"penalties-and-deductions","collection_name":"sanction"}
     actual = sanitize(msg)
     assert expected == actual
