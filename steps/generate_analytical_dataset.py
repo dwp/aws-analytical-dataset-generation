@@ -7,8 +7,6 @@ import ast
 import requests
 import re
 import os
-import time
-import itertools
 import concurrent.futures
 
 from Crypto.Cipher import AES
@@ -19,37 +17,32 @@ from datetime import datetime
 import logging
 import pytz
 
+class CollectionData:
+    def __init__(self, collection_name, staging_hive_table, tag_value):
+        self.collection_name = collection_name
+        self.staging_hive_table = staging_hive_table
+        self.tag_value = tag_value
 
 def main():
-    s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     secrets_response = retrieve_secrets()
     collections = get_collections(secrets_response)
-    published_database_name = get_published_db_name()
-    database_name = get_staging_db_name()
     tables = get_tables(database_name)
 
-
-    tag_values = []
-    collection_names = []
-    adg_hive_tables = []
-
+    collection_objects = []
     for table_to_process in tables:
         collection_name = table_to_process.replace('_hbase','')
         if collection_name in collections:
-            collection_names.append(collection_name)
-            adg_hive_table = database_name + "." + table_to_process
-            adg_hive_tables.append(adg_hive_table)
-            tag_values.append(collections[collection_name])
+            staging_hive_table = database_name + "." + table_to_process
+            tag_value = collections[collection_name]
+            collection_name_object = CollectionData(collection_name, staging_hive_table, tag_value)
+            collection_objects.append(collection_name_object)
         else:
             logging.error(table_to_process, 'from staging_db is not present in the collections list ')
-    length = len(collection_names)
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        results = executor.map(spark_process, itertools.repeat(s3_publish_bucket, length), collection_names,
-                               tag_values, itertools.repeat(published_database_name, length),
-                               adg_hive_tables)
+        results = executor.map(spark_process, collection_objects)
 
-def spark_process(s3_publish_bucket, collection_name, tag_value, published_database_name, adg_hive_table):
-    adg_hive_select_query = "select * from %s" % adg_hive_table
+def spark_process(collection):
+    adg_hive_select_query = "select * from %s" % collection.staging_hive_table
     df = get_dataframe_from_staging(adg_hive_select_query)
     keys_map = {}
     values = (
@@ -61,10 +54,10 @@ def spark_process(s3_publish_bucket, collection_name, tag_value, published_datab
             .map(lambda decrypted_db_obj: validate(decrypted_db_obj))
             .map(lambda decrypted_db_obj: sanitize(decrypted_db_obj))
     )
-    parquet_location = persist_parquet(s3_publish_bucket, collection_name, values)
-    prefix = "${file_location}/" + collection_name + '/' + collection_name + ".parquet"
-    tag_objects(s3_publish_bucket, prefix, tag_value=tag_value)
-    create_hive_on_published(parquet_location, published_database_name, collection_name)
+    parquet_location = persist_parquet(collection.collection_name, values)
+    prefix = "${file_location}/" + collection.collection_name + '/' + collection.collection_name + ".parquet"
+    tag_objects(prefix, tag_value=collection.tag_value)
+    create_hive_on_published(parquet_location, collection.collection_name)
 def retrieve_secrets():
     secret_name = "${secret_name}"
     # Create a Secrets Manager client
@@ -89,7 +82,7 @@ def get_collections(secrets_response):
     return collections
 
 
-def create_hive_on_published(parquet_location, published_database_name, collection_name):
+def create_hive_on_published(parquet_location, collection_name):
     src_hive_table = published_database_name + "." + collection_name
     src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
     src_hive_create_query = (
@@ -102,7 +95,7 @@ def create_hive_on_published(parquet_location, published_database_name, collecti
     spark.sql(src_hive_select_query).show()
 
 
-def persist_parquet(s3_publish_bucket, collection_name, values):
+def persist_parquet(collection_name, values):
     row = Row("val")
     datadf = values.map(row).toDF()
     datadf.show()
@@ -115,7 +108,7 @@ def persist_parquet(s3_publish_bucket, collection_name, values):
     datadf.write.mode("overwrite").parquet(parquet_location)
     return parquet_location
 
-def tag_objects(s3_publish_bucket, prefix, tag_value):
+def tag_objects(prefix, tag_value):
     session = boto3.session.Session()
     client_s3 = session.client(service_name='s3')
     default_value = 'default'
@@ -241,9 +234,7 @@ def sanitize(z):
             or (db_name == "core" and collection_name == "healthAndDisabilityDeclaration")
             or (db_name == "accepted-data" and collection_name == "healthAndDisabilityCircumstances")):
         decrypted = re.sub(r'(?<!\\)\\[r|n]', '', decrypted)
-        if type(decrypted) is bytes:
-            decrypted = decrypted.decode("utf-8")
-    return decrypted.replace("$", "d_").replace("\u0000", "").replace("_archivedDateTime", "_removedDateTime").replace("_archived", "_removed")
+    return decrypted.decode("utf-8").replace("$", "d_").replace("\u0000", "").replace("_archivedDateTime", "_removedDateTime").replace("_archived", "_removed")
 
 def decrypt(y):
     key = y['plain_text_key']
@@ -313,4 +304,7 @@ def get_tables(db_name):
 
 if __name__ == "__main__":
     spark = get_spark_session()
+    s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
+    published_database_name = get_published_db_name()
+    database_name = get_staging_db_name()
     main()
