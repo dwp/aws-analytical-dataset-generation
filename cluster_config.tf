@@ -53,8 +53,8 @@ resource "aws_s3_bucket_object" "configurations" {
       s3_ingest_bucket    = data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket
       hbase_root_path     = local.hbase_root_path
       proxy_no_proxy      = local.no_proxy
-      proxy_http_address  = data.terraform_remote_state.internet_egress.outputs.internet_proxy_service.http_address
-      proxy_https_address = data.terraform_remote_state.internet_egress.outputs.internet_proxy_service.https_address
+      proxy_http_address  = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
+      proxy_https_address = data.terraform_remote_state.internet_egress.outputs.internet_proxy.https_address
     }
   )
 }
