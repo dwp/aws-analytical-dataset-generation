@@ -96,4 +96,11 @@ locals {
     }
   }
 
+  keep_cluster_alive = {
+    development = true
+    qa          = false
+    integration = false
+    preprod     = false
+    production  = false
+  }
 }

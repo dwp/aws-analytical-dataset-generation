@@ -22,13 +22,14 @@ resource "aws_s3_bucket_object" "instances" {
   key    = "emr/adg/instances.yaml"
   content = templatefile("${path.module}/cluster_config/instances.yaml.tpl",
     {
-      add_master_sg     = aws_security_group.analytical_dataset_generation.id
-      add_slave_sg      = aws_security_group.analytical_dataset_generation.id
-      subnet_id         = data.terraform_remote_state.internal_compute.outputs.htme_subnet.ids[0]
-      master_sg         = aws_security_group.master_sg.id
-      slave_sg          = aws_security_group.slave_sg.id
-      service_access_sg = aws_security_group.service_access_sg.id
-      instance_type     = var.emr_instance_type[local.environment]
+      keep_cluster_alive = local.keep_cluster_alive[local.environment]
+      add_master_sg      = aws_security_group.analytical_dataset_generation.id
+      add_slave_sg       = aws_security_group.analytical_dataset_generation.id
+      subnet_id          = data.terraform_remote_state.internal_compute.outputs.htme_subnet.ids[0]
+      master_sg          = aws_security_group.master_sg.id
+      slave_sg           = aws_security_group.slave_sg.id
+      service_access_sg  = aws_security_group.service_access_sg.id
+      instance_type      = var.emr_instance_type[local.environment]
     }
   )
 }
@@ -53,8 +54,8 @@ resource "aws_s3_bucket_object" "configurations" {
       s3_ingest_bucket    = data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket
       hbase_root_path     = local.hbase_root_path
       proxy_no_proxy      = local.no_proxy
-      proxy_http_address  = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
-      proxy_https_address = data.terraform_remote_state.internet_egress.outputs.internet_proxy.https_address
+      proxy_http_address  = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
+      proxy_https_address = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
     }
   )
 }
