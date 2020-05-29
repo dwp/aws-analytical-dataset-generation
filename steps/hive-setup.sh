@@ -8,14 +8,7 @@ function log_wrapper_message() {
 
 log_wrapper_message "Copying create-hive-tables.py files from s3 to local"
 
-
 aws s3 cp "${hive-scripts-path}"  .
-
-# sleeping for 13 min, during the testing it was observed that the hbase read replica isn't ready for the spark job to run. This is
-# because the region server and hbase meta table of read replica cluster need some time to replicate the master cluster meta and all the
-# tables are made available.
-
-sleep 13m
 
 hbasetables=`echo 'list' | sudo -E hbase shell > current_hbase_tables`
 
@@ -28,10 +21,6 @@ aws s3 cp "${python_logger}" .
 log_wrapper_message "Running create-hive-tables.py "
 
 sudo -E /usr/bin/python3.6 create-hive-tables.py >> /var/log/adg/create-hive-tables.log 2>&1
-
-setcleaner=`echo "cleaner_chore_switch false" | sudo -E hbase shell `
-
-log_wrapper_message "Setting  hbase cleaner_chore_switch to false  $setcleaner "
 
 log_wrapper_message "Completed the hive-setup.sh step of the EMR Cluster"
 
