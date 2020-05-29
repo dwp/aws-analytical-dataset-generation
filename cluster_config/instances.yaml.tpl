@@ -1,5 +1,6 @@
 ---
 Instances:
+  KeepJobFlowAliveWhenNoSteps: ${keep_cluster_alive}
   AdditionalMasterSecurityGroups:
   - "${add_master_sg}"
   AdditionalSlaveSecurityGroups:
