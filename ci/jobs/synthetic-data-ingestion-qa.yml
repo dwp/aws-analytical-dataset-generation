@@ -3,7 +3,7 @@ jobs:
   plan:
   - aggregate:
     - get: aws-analytical-dataset-generation
-      trigger: true
+      trigger: false
     - get: aws-ingestion
       trigger: false
     - get: aws-internal-compute
