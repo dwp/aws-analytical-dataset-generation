@@ -1,26 +1,15 @@
 #!/usr/bin/env bash
-echo "Creating shared directory"
-sudo mkdir -p /opt/shared
-sudo mkdir -p /opt/emr
-sudo mkdir -p /var/log/adg
-sudo chown hadoop:hadoop /opt/emr
-sudo chown hadoop:hadoop /opt/shared
-sudo chown hadoop:hadoop /var/log/adg
-echo "${VERSION}" > /opt/emr/version
-echo "${ADG_LOG_LEVEL}" > /opt/emr/log_level
-echo "${ENVIRONMENT_NAME}" > /opt/emr/environment
-
-echo "Installing scripts"
-aws s3 cp "${S3_COMMON_LOGGING_SHELL}"   /opt/shared/common_logging.sh
-aws s3 cp "${S3_LOGGING_SHELL}"          /opt/emr/logging.sh
-
-
-echo "Changing the Permissions"
+echo "Installing logging helper scripts"
+sudo install -o hadoop -g hadoop -m 0700 -d /opt/emr /opt/shared /var/log/adg
+echo "${adg_version}" > /opt/emr/version
+echo "${adg_log_level}" > /opt/emr/log_level
+echo "${environment_name}" > /opt/emr/environment
+aws s3 cp "${s3_common_logging_shell}"   /opt/shared/common_logging.sh
+aws s3 cp "${s3_logging_shell}"          /opt/emr/logging.sh
 chmod u+x /opt/shared/common_logging.sh
 chmod u+x /opt/emr/logging.sh
 
 (
-# Import the logging functions
 source /opt/emr/logging.sh
 
 function log_wrapper_message() {
@@ -33,15 +22,9 @@ echo -n "Running as: "
 whoami
 
 export AWS_DEFAULT_REGION=${aws_default_region}
-
-FULL_PROXY="${full_proxy}"
-FULL_NO_PROXY="${full_no_proxy}"
-export http_proxy="$FULL_PROXY"
-export HTTP_PROXY="$FULL_PROXY"
-export https_proxy="$FULL_PROXY"
-export HTTPS_PROXY="$FULL_PROXY"
-export no_proxy="$FULL_NO_PROXY"
-export NO_PROXY="$FULL_NO_PROXY"
+export HTTP_PROXY="${http_proxy}"
+export HTTPS_PROXY="${http_proxy}"
+export NO_PROXY="${no_proxy}"
 
 log_wrapper_message "Getting the DKS Certificate Details "
 
