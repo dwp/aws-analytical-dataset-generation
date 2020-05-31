@@ -269,8 +269,8 @@ def call_dks(cek, kek):
         url,
         params=params,
         data=cek,
-        cert=("private_key.crt", "private_key.key"),
-        verify="analytical_ca.pem",
+        cert=("/etc/pki/tls/certs/adg.crt", " /etc/pki/tls/private/adg.key"),
+        verify=" /etc/pki/tls/certs/ca-bundle.crt",
     )
     content = result.json()
     return content["plaintextDataKey"]

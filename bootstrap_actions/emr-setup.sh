@@ -13,23 +13,16 @@ chmod u+x /opt/emr/logging.sh
 source /opt/emr/logging.sh
 
 function log_wrapper_message() {
-    log_adg_message "$${1}" "emr-setup.sh" "$${PID}" "$${@:2}" "Running as: ,$USER"
+    log_adg_message "$${1}" "emr-setup.sh" "$${PID}" "$${@:2}" "Running as: $USER"
 }
 
-log_wrapper_message "Setting up the Proxy"
-
-echo -n "Running as: "
-whoami
+log_wrapper_message "Retrieving TLS certficate"
 
 export AWS_DEFAULT_REGION=${aws_default_region}
 export HTTP_PROXY="${http_proxy}"
 export HTTPS_PROXY="${http_proxy}"
 export NO_PROXY="${no_proxy}"
-
-log_wrapper_message "Getting the DKS Certificate Details "
-
 export ACM_KEY_PASSWORD=$(uuidgen -r)
-log_wrapper_message "Retrieving the ACM Certificate details"
 
 sudo -E /usr/local/bin/acm-cert-retriever \
     --acm-cert-arn "${acm_cert_arn}" \
@@ -38,15 +31,8 @@ sudo -E /usr/local/bin/acm-cert-retriever \
     --truststore-aliases "${truststore_aliases}" \
     --truststore-certs "${truststore_certs}"  >> /var/log/adg/acm-cert-retriever.log 2>&1
 
-cd /etc/pki/ca-trust/source/anchors/
-sudo touch analytical_ca.pem
-sudo chown hadoop:hadoop /etc/pki/tls/private/"${private_key_alias}".key /etc/pki/tls/certs/"${private_key_alias}".crt /etc/pki/ca-trust/source/anchors/analytical_ca.pem
-TRUSTSTORE_ALIASES="${truststore_aliases}"
-for F in $(echo $TRUSTSTORE_ALIASES | sed "s/,/ /g"); do
- (sudo cat "$F.crt"; echo) >> analytical_ca.pem;
-done
+sudo chown hadoop:hadoop /etc/pki/tls/private/"${private_key_alias}".key
 
-
-log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
+log_wrapper_message "Completed cluster bootstrap actions"
 
 ) >> /var/log/adg/nohup.log 2>&1
