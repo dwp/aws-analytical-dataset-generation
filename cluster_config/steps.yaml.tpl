@@ -1,17 +1,9 @@
 ---
 BootstrapActions:
-- Name: "get-dks-cert"
+- Name: "setup-cluster"
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/emr-setup.sh"
 Steps:
-- Name: "copy-hbase-configuration"
-  HadoopJarStep:
-    Args:
-    - "bash"
-    - "-c"
-    - "sudo cp /etc/hbase/conf/hbase-site.xml /etc/spark/conf/"
-    Jar: "command-runner.jar"
-  ActionOnFailure: "CONTINUE"
 - Name: "hive-setup"
   HadoopJarStep:
     Args:
