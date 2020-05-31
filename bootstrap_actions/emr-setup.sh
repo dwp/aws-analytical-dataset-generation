@@ -39,6 +39,10 @@ sudo chown hadoop:hadoop /etc/pki/tls/private/"${private_key_alias}".key
 log_wrapper_message "Installing Python dependencies"
 sudo -E /usr/bin/pip-3.6 install boto3 requests pycrypto >> /var/log/adg/install-python-deps.log 2>&1
 
+log_wrapper_message "Installing helper scripts"
+aws s3 cp ${hive_scripts_path} .
+aws s3 cp ${python_logger} .
+
 log_wrapper_message "Configuring HBase for Spark"
 cp -a /etc/hbase/conf/hbase-site.xml /etc/spark/conf/
 

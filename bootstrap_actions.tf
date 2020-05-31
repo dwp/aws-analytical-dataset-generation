@@ -8,6 +8,8 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       environment_name        = local.environment
       s3_common_logging_shell = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, data.terraform_remote_state.common.outputs.application_logging_common_file.s3_id)
       s3_logging_shell        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logging_script.key)
+      hive_scripts_path       = format("s3://%s/%s", aws_s3_bucket_object.create_hive_tables.bucket, aws_s3_bucket_object.create_hive_tables.key)
+      python_logger           = format("s3://%s/%s", aws_s3_bucket_object.logger.bucket, aws_s3_bucket_object.logger.key)
       aws_default_region      = "eu-west-2"
       http_proxy              = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
       no_proxy                = local.no_proxy

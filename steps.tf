@@ -1,4 +1,4 @@
-resource "aws_s3_bucket_object" "create-hive-tables" {
+resource "aws_s3_bucket_object" "create_hive_tables" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/create-hive-tables.py"
   content = templatefile("${path.module}/steps/create-hive-tables.py",
@@ -25,14 +25,9 @@ resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
 }
 
 resource "aws_s3_bucket_object" "hive_setup_sh" {
-  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/analytical-dataset-generation/hive-setup.sh"
-  content = templatefile("${path.module}/steps/hive-setup.sh",
-    {
-      hive-scripts-path = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
-      python_logger     = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
-    }
-  )
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/hive-setup.sh"
+  content = templatefile("${path.module}/steps/hive-setup.sh", {})
 }
 
 resource "aws_s3_bucket_object" "logger" {
