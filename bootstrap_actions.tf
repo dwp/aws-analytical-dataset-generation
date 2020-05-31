@@ -18,17 +18,6 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
   })
 }
 
-resource "aws_s3_bucket_object" "installer_sh" {
-  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/analytical-dataset-generation/installer.sh"
-  content = templatefile("${path.module}/bootstrap_actions/installer.sh",
-    {
-      full_proxy    = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
-      full_no_proxy = local.no_proxy
-    }
-  )
-}
-
 resource "aws_s3_bucket_object" "logging_script" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
   key     = "component/analytical-dataset-generation/logging.sh"

@@ -3,9 +3,6 @@ BootstrapActions:
 - Name: "get-dks-cert"
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/emr-setup.sh"
-- Name: "installer"
-  ScriptBootstrapAction:
-    Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/installer.sh"
 Steps:
 - Name: "copy-hbase-configuration"
   HadoopJarStep:
@@ -34,4 +31,3 @@ Steps:
     - "spark.yarn.submit.waitAppCompletion=true"
     Jar: "command-runner.jar"
   ActionOnFailure: "CONTINUE"
-

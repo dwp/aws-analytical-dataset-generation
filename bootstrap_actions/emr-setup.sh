@@ -33,6 +33,12 @@ sudo -E /usr/local/bin/acm-cert-retriever \
 
 sudo chown hadoop:hadoop /etc/pki/tls/private/"${private_key_alias}".key
 
+# TODO: Find a better way of doing this; it doesn't pin to specific dependency versions
+# https://developerzen.com/best-practices-writing-production-grade-pyspark-jobs-cb688ac4d20f
+# has an approach that may work
+log_wrapper_message "Installing Python dependencies"
+sudo -E /usr/bin/pip-3.6 install boto3 requests pycrypto >> /var/log/adg/install-python-deps.log 2>&1
+
 log_wrapper_message "Completed cluster bootstrap actions"
 
 ) >> /var/log/adg/nohup.log 2>&1
