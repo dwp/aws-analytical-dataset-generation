@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 echo "Installing logging helper scripts"
 sudo install -o hadoop -g hadoop -m 0700 -d /opt/emr /opt/shared /var/log/adg
 echo "${adg_version}" > /opt/emr/version
