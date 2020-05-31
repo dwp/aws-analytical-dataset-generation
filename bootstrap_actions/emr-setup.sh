@@ -53,21 +53,6 @@ export KEYSTORE_PASSWORD=$(uuidgen -r)
 export PRIVATE_KEY_PASSWORD=$(uuidgen -r)
 export ACM_KEY_PASSWORD=$(uuidgen -r)
 
-#sudo mkdir -p /opt/emr
-#sudo chown hadoop:hadoop /opt/emr
-touch /opt/emr/dks.properties
-cat >> /opt/emr/dks.properties <<EOF
-identity.store.alias=${private_key_alias}
-identity.key.password=$PRIVATE_KEY_PASSWORD
-spark.ssl.fs.enabled=true
-spark.ssl.keyPassword=$KEYSTORE_PASSWORD
-identity.keystore=/opt/emr/keystore.jks
-identity.store.password=$KEYSTORE_PASSWORD
-trust.keystore=/opt/emr/truststore.jks
-trust.store.password=$TRUSTSTORE_PASSWORD
-data.key.service.url=${dks_endpoint}
-EOF
-
 log_wrapper_message "Retrieving the ACM Certificate details"
 
 /usr/local/bin/acm-cert-retriever \
