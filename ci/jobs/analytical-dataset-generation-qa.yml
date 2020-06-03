@@ -1,7 +1,7 @@
 jobs:
 - name: analytical-dataset-generation-qa
   plan:
-  - aggregate:
+  - in_parallel:
     - get: aws-analytical-dataset-generation
       trigger: true
     - get: emr-launcher-release

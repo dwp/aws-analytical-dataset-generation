@@ -1,7 +1,7 @@
 jobs:
 - name: synthetic-data-ingestion-dev
   plan:
-  - aggregate:
+  - in_parallel:
     - get: aws-analytical-dataset-generation
       trigger: false
     - get: aws-ingestion
