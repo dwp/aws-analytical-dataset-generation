@@ -103,4 +103,14 @@ locals {
     preprod     = false
     production  = false
   }
+
+  cw_agent_namespace                                    = "/app/analytical_dataset_generator"
+  cw_agent_log_group_name                               = "/app/analytical_dataset_generator"
+  cw_agent_metrics_collection_interval                  = 60
+  cw_agent_cpu_metrics_collection_interval              = 60
+  cw_agent_disk_measurement_metrics_collection_interval = 60
+  cw_agent_disk_io_metrics_collection_interval          = 60
+  cw_agent_mem_metrics_collection_interval              = 60
+  cw_agent_netstat_metrics_collection_interval          = 60
+
 }
