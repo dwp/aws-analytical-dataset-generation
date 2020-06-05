@@ -46,9 +46,7 @@ export NO_PROXY="$FULL_NO_PROXY"
 
 echo "Setup cloudwatch logs"
 /opt/emr/cloudwatch.sh \
-    "${cwa_metrics_collection_interval}" "${cwa_namespace}" "${cwa_cpu_metrics_collection_interval}" \
-    "${cwa_disk_measurement_metrics_collection_interval}" "${cwa_disk_io_metrics_collection_interval}" \
-    "${cwa_mem_metrics_collection_interval}" "${cwa_netstat_metrics_collection_interval}" "${cwa_log_group_name}" \
+    "${cwa_metrics_collection_interval}" "${cwa_namespace}"  "${cwa_log_group_name}" \
     "${aws_default_region}"
 
 export ACM_KEY_PASSWORD=$(uuidgen -r)
