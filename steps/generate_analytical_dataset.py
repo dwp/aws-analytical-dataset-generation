@@ -19,7 +19,7 @@ import pytz
 from logger import setup_logging
 
 
-the_logger = setup_logging("info", log_path = "/var/log/adg/generate_analytical_dataset_log")
+the_logger = setup_logging("DEBUG", log_path = "/var/log/adg/generate_analytical_dataset_log")
 
 class CollectionData:
     def __init__(self, collection_name, staging_hive_table, tag_value):
@@ -317,4 +317,8 @@ if __name__ == "__main__":
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     published_database_name = get_published_db_name()
     database_name = get_staging_db_name()
+    start_time = time.perf_counter()
     main()
+    end_time = time.perf_counter()
+    total_time = round(end_time - start_time, 2)
+    the_logger.info(f'time taken for all collections: {total_time}')
