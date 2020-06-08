@@ -2,7 +2,6 @@
 Configurations:
 - Classification: "yarn-site"
   Properties:
-    "yarn.log-aggregation.retain-seconds": "-1",
     "yarn.nodemanager.resource.cpu-vcores": "7",
     "yarn.log-aggregation-enable": "true",
     "yarn.nodemanager.remote-app-log-dir": "s3://${s3_log_bucket}/logs/yarn",
@@ -13,7 +12,7 @@ Configurations:
     "maximizeResourceAllocation": "false"
 - Classification: "spark-defaults"
   Properties:
-    "spark.executor.memory": "27000M",
+    "spark.executor.memory": "11000M",
     "spark.driver.cores": "5",
     "spark.yarn.jars": "/usr/lib/spark/jars/*,/usr/lib/hbase/*,/usr/lib/hive/lib/hive-hbase-handler.jar,/usr/lib/hive/lib/metrics-core-2.2.0.jar,/usr/lib/hive/lib/htrace-core-3.1.0-incubating.jar"
     "spark.sql.catalogImplementation": "hive"
@@ -24,8 +23,8 @@ Configurations:
     "spark.executor.extraJavaOptions": "-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=70 -XX:MaxHeapFreeRatio=70 -XX:+CMSClassUnloadingEnabled -XX:OnOutOfMemoryError='kill -9 %p' -Dhttp.proxyHost='${proxy_http_address}' -Dhttp.proxyPort='3128' -Dhttp.nonProxyHosts='${proxy_no_proxy}' -Dhttps.proxyHost='${proxy_http_address}' -Dhttps.proxyPort='3128'"
     "spark.driver.extraJavaOptions": "-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=70 -XX:MaxHeapFreeRatio=70 -XX:+CMSClassUnloadingEnabled -XX:OnOutOfMemoryError='kill -9 %p' -Dhttp.proxyHost='${proxy_http_address}' -Dhttp.proxyPort='3128' -Dhttp.nonProxyHosts='${proxy_no_proxy}' -Dhttps.proxyHost='${proxy_http_address}' -Dhttps.proxyPort='3128'"
     "spark.sql.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
-    "spark.executor.memoryOverhead": "4000M",
-    "spark.driver.memory": "2700M",
+    "spark.executor.memoryOverhead": "1200M",
+    "spark.driver.memory": "11000M",
     "spark.executor.instances": "5",
     "spark.dynamicAllocation.enabled": "false",
     "spark.default.parallelism": "30"
