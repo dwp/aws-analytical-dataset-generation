@@ -45,7 +45,7 @@ export no_proxy="$FULL_NO_PROXY"
 export NO_PROXY="$FULL_NO_PROXY"
 
 echo "Setup cloudwatch logs"
-/opt/emr/cloudwatch.sh \
+sudo /opt/emr/cloudwatch.sh \
     "${cwa_metrics_collection_interval}" "${cwa_namespace}"  "${cwa_log_group_name}" \
     "${aws_default_region}"
 
