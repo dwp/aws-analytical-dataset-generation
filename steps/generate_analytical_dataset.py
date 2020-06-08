@@ -15,14 +15,11 @@ from Crypto.Util import Counter
 from pyspark.sql.types import *
 from pyspark.sql import Row
 from datetime import datetime
-import logging
 import pytz
 from logger import setup_logging
 
-level = "info"
-logger_path = "/var/log/adg/generate_analytical_dataset_log.log"
-logger_format = "{ 'timestamp': '%(asctime)s', 'log_level': '%(levelname)s', 'message': '%(message)s' }"
-the_logger = setup_logging(level, logger_path , logger_format)
+
+the_logger = setup_logging("info", log_path = "/var/log/adg/generate_analytical_dataset_log")
 
 class CollectionData:
     def __init__(self, collection_name, staging_hive_table, tag_value):
@@ -67,7 +64,8 @@ def spark_process(collection):
     tag_objects(prefix, tag_value=collection.tag_value)
     create_hive_on_published(parquet_location, collection.collection_name)
     end_timer = time.perf_counter()
-    the_logger.info(f'time taken for {collection.collection_name}: {end_timer-start_timer}')
+    time_taken = round(end_timer - start_timer, 2)
+    the_logger.info(f'time taken for {collection.collection_name}: {time_taken}')
 def retrieve_secrets():
     secret_name = "${secret_name}"
     # Create a Secrets Manager client

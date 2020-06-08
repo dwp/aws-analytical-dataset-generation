@@ -1,11 +1,7 @@
 import boto3
 import ast
 from logger import setup_logging
-
-level = "info"
-logger_path = "/var/log/adg/hive_tables_creation_log.log"
-logger_format = "{ 'timestamp': '%(asctime)s', 'log_level': '%(levelname)s', 'message': '%(message)s' }"
-the_logger = setup_logging(level, logger_path , logger_format)
+the_logger = setup_logging("info", log_path = "/var/log/adg/hive_tables_creation_log")
 
 client = boto3.client("glue")
 # Create a Secrets Manager client
