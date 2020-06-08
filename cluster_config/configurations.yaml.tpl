@@ -2,12 +2,9 @@
 Configurations:
 - Classification: "yarn-site"
   Properties:
-    "yarn.log-aggregation.retain-seconds": "-1",
-    "yarn.nodemanager.resource.cpu-vcores": "7",
-    "yarn.log-aggregation-enable": "true",
-    "yarn.nodemanager.remote-app-log-dir": "s3://${s3_log_bucket}/logs/yarn",
-    "yarn.nodemanager.vmem-check-enabled":"false",
-    "yarn.nodemanager.pmem-check-enabled":"false"
+    "yarn.log-aggregation.retain-seconds": "-1"
+    "yarn.log-aggregation-enable": "true"
+    "yarn.nodemanager.remote-app-log-dir": "s3://${s3_log_bucket}/logs/yarn"
 - Classification: "spark"
   Properties:
     "maximizeResourceAllocation": "false"
@@ -21,15 +18,6 @@ Configurations:
     "spark.executor.extraJavaOptions": "-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=70 -XX:MaxHeapFreeRatio=70 -XX:+CMSClassUnloadingEnabled -XX:OnOutOfMemoryError='kill -9 %p' -Dhttp.proxyHost='${proxy_http_address}' -Dhttp.proxyPort='3128' -Dhttp.nonProxyHosts='${proxy_no_proxy}' -Dhttps.proxyHost='${proxy_http_address}' -Dhttps.proxyPort='3128'"
     "spark.driver.extraJavaOptions": "-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=70 -XX:MaxHeapFreeRatio=70 -XX:+CMSClassUnloadingEnabled -XX:OnOutOfMemoryError='kill -9 %p' -Dhttp.proxyHost='${proxy_http_address}' -Dhttp.proxyPort='3128' -Dhttp.nonProxyHosts='${proxy_no_proxy}' -Dhttps.proxyHost='${proxy_http_address}' -Dhttps.proxyPort='3128'"
     "spark.sql.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
-    "spark.executor.memoryOverhead": "1200M",
-    "spark.driver.memory": "1100M",
-    "spark.executor.memory": "1100M",
-    "spark.executor.cores": "5",
-    "spark.driver.cores": "5",
-    "spark.executor.instances": "5",
-    "spark.dynamicAllocation.enabled": "false",
-    "spark.default.parallelism": "30"
-
 - Classification: "spark-hive-site"
   Properties:
     "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
