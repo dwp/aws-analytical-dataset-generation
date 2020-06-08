@@ -8,6 +8,7 @@ import requests
 import re
 import os
 import concurrent.futures
+import time
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -16,6 +17,12 @@ from pyspark.sql import Row
 from datetime import datetime
 import logging
 import pytz
+from logger import setup_logging
+
+level = "info"
+logger_path = "/var/log/adg/generate_analytical_dataset_log.log"
+logger_format = "{ 'timestamp': '%(asctime)s', 'log_level': '%(levelname)s', 'message': '%(message)s' }"
+the_logger = setup_logging(level, logger_path , logger_format)
 
 class CollectionData:
     def __init__(self, collection_name, staging_hive_table, tag_value):
@@ -42,6 +49,7 @@ def main():
         results = executor.map(spark_process, collection_objects)
 
 def spark_process(collection):
+    start_timer = time.perf_counter()
     adg_hive_select_query = "select * from %s" % collection.staging_hive_table
     df = get_dataframe_from_staging(adg_hive_select_query)
     keys_map = {}
@@ -58,6 +66,8 @@ def spark_process(collection):
     prefix = "${file_location}/" + collection.collection_name + '/' + collection.collection_name + ".parquet"
     tag_objects(prefix, tag_value=collection.tag_value)
     create_hive_on_published(parquet_location, collection.collection_name)
+    end_timer = time.perf_counter()
+    the_logger.info(f'time taken for {collection.collection_name}: {end_timer-start_timer}')
 def retrieve_secrets():
     secret_name = "${secret_name}"
     # Create a Secrets Manager client
@@ -93,7 +103,7 @@ def create_hive_on_published(parquet_location, collection_name):
     spark.sql(src_hive_create_query)
     src_hive_select_query = "select * from %s" % src_hive_table
     spark.sql(src_hive_select_query).show()
-
+    return None
 
 def persist_parquet(collection_name, values):
     row = Row("val")
