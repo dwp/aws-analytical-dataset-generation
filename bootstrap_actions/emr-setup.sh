@@ -42,6 +42,7 @@ export https_proxy="$FULL_PROXY"
 export HTTPS_PROXY="$FULL_PROXY"
 export no_proxy="$FULL_NO_PROXY"
 export NO_PROXY="$FULL_NO_PROXY"
+export ENVIRONMENT_NAME="${ENVIRONMENT_NAME}"
 
 export ACM_KEY_PASSWORD=$(uuidgen -r)
 
