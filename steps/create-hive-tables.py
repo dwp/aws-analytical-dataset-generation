@@ -1,7 +1,8 @@
 import boto3
 import ast
 from logger import setup_logging
-the_logger = setup_logging("info", log_path = "/var/log/adg/hive_tables_creation_log")
+
+the_logger = setup_logging("info", log_path="/var/log/adg/hive_tables_creation_log")
 
 client = boto3.client("glue")
 # Create a Secrets Manager client
@@ -12,9 +13,15 @@ response = client_secret.get_secret_value(SecretId=secret_name)
 response_dict = response["SecretBinary"]
 collections_decoded = response_dict.decode("utf-8")
 collections_dict = ast.literal_eval(collections_decoded)["collections_all"]
-collections_hbase = {key.replace('db.','',1):value for (key,value) in collections_dict.items()}
-collections_hbase = {key.replace('-','_'):value for (key,value) in collections_hbase.items()}
-collections_hbase = {key.replace('.',':'):value for (key,value) in collections_hbase.items()}
+collections_hbase = {
+    key.replace("db.", "", 1): value for (key, value) in collections_dict.items()
+}
+collections_hbase = {
+    key.replace("-", "_"): value for (key, value) in collections_hbase.items()
+}
+collections_hbase = {
+    key.replace(".", ":"): value for (key, value) in collections_hbase.items()
+}
 
 DatabaseName = "analytical_dataset_generation_staging"
 with open("current_hbase_tables") as f:
@@ -26,9 +33,7 @@ for collection in collections_hbase:
         try:
             client.delete_table(DatabaseName=DatabaseName, Name=collection_staging)
         except client.exceptions.EntityNotFoundException as e:
-            the_logger.error(
-                    "Exception cannot delete table: " + str(e)
-                ) 
+            the_logger.error("Exception cannot delete table: " + str(e))
 
         try:
             client.create_table(
@@ -63,10 +68,8 @@ for collection in collections_hbase:
                 },
             )
         except Exception as e:
-                the_logger.error(
-                    "Exception cannot create table: " + collection_hbase + " " + str(e)
-                )  
+            the_logger.error(
+                "Exception cannot create table: " + collection_hbase + " " + str(e)
+            )
     else:
         the_logger.error(collection, " is not in HBase")
-
-
