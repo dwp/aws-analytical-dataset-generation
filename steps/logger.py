@@ -1,7 +1,9 @@
 import logging
+import os
 
 
-def setup_logging(log_level, log_path):
+def setup_logging(log_path):
+    log_level = os.getenv(ADG_LOG_LEVEL)
     the_logger = logging.getLogger()
     for old_handler in the_logger.handlers:
         the_logger.removeHandler(old_handler)
@@ -18,7 +20,6 @@ def setup_logging(log_level, log_path):
 
 
 if __name__ == "__main__":
-    level = "info"
     logger_path = "hive_tables_creation_log.txt"
     logger = setup_logging(level, logger_path)
     logger.info("Logging information")

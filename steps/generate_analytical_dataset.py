@@ -10,6 +10,7 @@ import os
 import concurrent.futures
 import time
 import datetime
+import os
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -21,7 +22,8 @@ from logger import setup_logging
 
 
 the_logger = setup_logging(
-    "DEBUG", log_path="/var/log/adg/generate_analytical_dataset_log"
+    log_level=os.getenv("LOG_LEVEL"),
+    log_path="/var/log/adg/generate_analytical_dataset_log",
 )
 
 
@@ -421,4 +423,3 @@ if __name__ == "__main__":
     total_time = round(end_time - start_time)
     total_time = str(datetime.timedelta(total_time))
     the_logger.info(f"time taken for all collections: {total_time}")
-
