@@ -4,7 +4,9 @@ import os
 from logger import setup_logging
 
 the_logger = setup_logging(
-    log_level = os.environ["ADG_LOG_LEVEL"].upper() if "ADG_LOG_LEVEL" in os.environ else "INFO"
+    log_level=os.environ["ADG_LOG_LEVEL"].upper()
+    if "ADG_LOG_LEVEL" in os.environ
+    else "INFO",
     log_path="/var/log/adg/hive_tables_creation_log",
 )
 
