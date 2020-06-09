@@ -9,6 +9,7 @@ import re
 import os
 import concurrent.futures
 import time
+import datetime
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -64,7 +65,8 @@ def spark_process(collection):
     tag_objects(prefix, tag_value=collection.tag_value)
     create_hive_on_published(parquet_location, collection.collection_name)
     end_timer = time.perf_counter()
-    time_taken = round(end_timer - start_timer, 2)
+    time_taken = round(end_timer - start_timer)
+    time_taken = str(datetime.timedelta(time_taken))
     the_logger.info(f'time taken for {collection.collection_name}: {time_taken}')
 def retrieve_secrets():
     secret_name = "${secret_name}"
@@ -320,5 +322,6 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
     main()
     end_time = time.perf_counter()
-    total_time = round(end_time - start_time, 2)
+    total_time = round(end_time - start_time)
+    total_time = str(datetime.timedelta(total_time))
     the_logger.info(f'time taken for all collections: {total_time}')
