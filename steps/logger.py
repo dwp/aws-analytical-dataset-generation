@@ -8,7 +8,7 @@ def setup_logging(log_level, log_path):
         the_logger.removeHandler(old_handler)
 
     if log_path is None:
-        new_handler = logging.StreamHandler(sys.stdout)
+        handler = logging.StreamHandler(sys.stdout)
     else:
         handler = logging.FileHandler(log_path)
 
