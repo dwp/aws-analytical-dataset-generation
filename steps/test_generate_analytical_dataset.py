@@ -604,9 +604,9 @@ def mock_get_dataframe_from_staging(adg_hive_select_query, spark):
         user_df.show()
         return user_df
 
-def mock_get_plaintext_key_calling_dks(r,keys_map):
-    r['plain_text_key'] = 'czMQLgW/OrzBZwFV9u4EBA=='
-    return r
+def mock_get_plaintext_key_calling_dks(encryptedKey, keyEncryptionkeyId):
+    plain_text_key = 'czMQLgW/OrzBZwFV9u4EBA=='
+    return plain_text_key
 
 def mock_persist_parquet(S3_PUBLISH_BUCKET, table_to_process, values):
     return ''
@@ -627,10 +627,6 @@ def mock_get_dataframe_from_staging(adg_hive_select_query, spark):
         user_df = spark.createDataFrame(data_rows)
         user_df.show()
         return user_df
-
-def mock_get_plaintext_key_calling_dks(r,keys_map):
-    r['plain_text_key'] = 'czMQLgW/OrzBZwFV9u4EBA=='
-    return r
 
 def mock_persist_parquet(S3_PUBLISH_BUCKET, table_to_process, values):
     return ''

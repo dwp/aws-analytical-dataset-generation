@@ -16,6 +16,7 @@ from pyspark.sql import Row
 from datetime import datetime
 import logging
 import pytz
+from pyspark.sql import functions as F
 
 class CollectionData:
     def __init__(self, collection_name, staging_hive_table, tag_value):
@@ -44,20 +45,27 @@ def main():
 def spark_process(collection):
     adg_hive_select_query = "select * from %s" % collection.staging_hive_table
     df = get_dataframe_from_staging(adg_hive_select_query)
-    keys_map = {}
-    values = (
-        df.select("data")
-            .rdd.map(lambda x: getTuple(x.data))
-            # TODO Is there a better way without tailing ?
-            .map(lambda decrypted_db_obj: get_plaintext_key_calling_dks(decrypted_db_obj,keys_map))
-            .map(lambda decrypted_db_obj: decrypt(decrypted_db_obj))
-            .map(lambda decrypted_db_obj: validate(decrypted_db_obj))
-            .map(lambda decrypted_db_obj: sanitize(decrypted_db_obj))
-    )
+    
+    raw_df  = df.select(F.get_json_object(df.data, "$.message.encryption.encryptedEncryptionKey").alias("encryptedKey"),
+    F.get_json_object(df.data, "$.message.encryption.keyEncryptionKeyId").alias("keyEncryptionKeyId"),
+    F.get_json_object(df.data, "$.message.encryption.initialisationVector").alias("iv"),
+    F.get_json_object(df.data, "$.message.dbObject").alias("dbObject"),
+    F.get_json_object(df.data, "$.message.db").alias("db_name"),
+    F.get_json_object(df.data, "$.message.collection").alias("collection_name"))
+     
+    raw_df =  raw_df.withColumn("key",get_plain_key(raw_df["encryptedKey"], raw_df["keyEncryptionKeyId"]))
+    decrypted_df = raw_df.withColumn("decrypted_db_object", decryption(raw_df["key"], raw_df["iv"], raw_df["dbObject"]))
+    validated_df = decrypted_df.withColumn("validated_db_object", validation(decrypted_df["decrypted_db_object"]))
+    sanitised_df = validated_df.withColumn("sanitised_db_object", sanitise(validated_df["validated_db_object"], validated_df["db_name"], validated_df["collection_name"]))
+    clean_df = sanitised_df.withColumnRenamed("sanitised_db_object", "val")
+    values = clean_df.select("val")
+    values.show()
+
     parquet_location = persist_parquet(collection.collection_name, values)
     prefix = "${file_location}/" + collection.collection_name + '/' + collection.collection_name + ".parquet"
     tag_objects(prefix, tag_value=collection.tag_value)
     create_hive_on_published(parquet_location, collection.collection_name)
+
 def retrieve_secrets():
     secret_name = "${secret_name}"
     # Create a Secrets Manager client
@@ -94,18 +102,15 @@ def create_hive_on_published(parquet_location, collection_name):
     src_hive_select_query = "select * from %s" % src_hive_table
     spark.sql(src_hive_select_query).show()
 
-
 def persist_parquet(collection_name, values):
-    row = Row("val")
-    datadf = values.map(row).toDF()
-    datadf.show()
+    values.show()
     adg_parquet_name = collection_name + "." + "parquet"
     parquet_location = "s3://%s/${file_location}/%s/%s" % (
         s3_publish_bucket,
         collection_name,
         adg_parquet_name
     )
-    datadf.write.mode("overwrite").parquet(parquet_location)
+    values.write.mode("overwrite").parquet(parquet_location)
     return parquet_location
 
 def tag_objects(prefix, tag_value):
@@ -145,15 +150,13 @@ def get_spark_session():
     spark.conf.set("spark.scheduler.mode", "FAIR")
     return spark
 
-def validate(p):
-    # TODO Can this decoding to an object happen at one place
-    decrypted = p['decrypted']
+def validate(decrypted):
     db_object = json.loads(decrypted)
     id = retrieve_id(db_object)
     if isinstance(id, str):
         db_object =  replace_element_value_wit_key_value_pair(db_object, '_id', '$oid', id)
-    wrap_dates(db_object)
-    return p
+    validated_db_obj = wrap_dates(db_object)
+    return validated_db_obj
 
 def retrieve_id(db_object):
     id = db_object['_id']
@@ -226,11 +229,8 @@ def get_valid_parsed_date_time(time_stamp_as_string):
     # TODO Think about the below exception later on
     raise Exception(f'Unparseable date found: {time_stamp_as_string} , did not match any supported date formats {valid_timestamps}')
 
-def sanitize(z):
-    decrypted = z['decrypted']
-    db_name = z['db_name']
-    collection_name = z['collection_name']
-    if ((db_name == "penalties-and-deductions" and collection_name == "sanction")
+    def sanitize(decrypted, db_name, collection_name):
+        if ((db_name == "penalties-and-deductions" and collection_name == "sanction")
             or (db_name == "core" and collection_name == "healthAndDisabilityDeclaration")
             or (db_name == "accepted-data" and collection_name == "healthAndDisabilityCircumstances")):
         decrypted = re.sub(r'(?<!\\)\\[r|n]', '', decrypted)
@@ -238,29 +238,25 @@ def sanitize(z):
         decrypted = decrypted.decode("utf-8")
     return decrypted.replace("$", "d_").replace("\u0000", "").replace("_archivedDateTime", "_removedDateTime").replace("_archived", "_removed")
 
-def decrypt(y):
-    key = y['plain_text_key']
-    iv = y['iv']
-    ciphertext = y['dbObject']
-    iv_int = int(binascii.hexlify(base64.b64decode(iv)), 16)
+def decrypt(plain_text_key, iv_key, dbObject):
+    iv_int = int(binascii.hexlify(base64.b64decode(iv_key)), 16)
     ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
-    aes = AES.new(base64.b64decode(key), AES.MODE_CTR, counter=ctr)
-    y['decrypted'] = aes.decrypt(base64.b64decode(ciphertext))
-    return y
+    aes = AES.new(base64.b64decode(plain_text_key), AES.MODE_CTR, counter=ctr)
+    decrypted = aes.decrypt(base64.b64decode(dbObject))
+    return decrypted
 
-def get_plaintext_key_calling_dks(r,keys_map):
-    cek = r['encryptedKey']
-    kek = r['keyEncryptionkeyId']
-    if keys_map.get(cek):
-        key = keys_map[cek]
+def get_plaintext_key_calling_dks(encryptedKey, keyEncryptionkeyId):
+    keys_map = {}
+    if keys_map.get(encryptedKey):
+        key = keys_map[encryptedKey]
         print("Found the key in cache")
-        r['plain_text_key'] = key
+        plain_text_key = key
     else:
         print("Didn't find the key in cache so calling dks")
-        key = call_dks(cek, kek)
-        keys_map[cek] = key
-        r['plain_text_key'] = key
-    return r
+        key = call_dks(encryptedKey, keyEncryptionkeyId)
+        keys_map[encryptedKey] = key
+    return key
+
 
 def call_dks(cek, kek):
     url = "${url}"
@@ -275,25 +271,6 @@ def call_dks(cek, kek):
     content = result.json()
     return content["plaintextDataKey"]
 
-def getTuple(json_string):
-    record = json.loads(json_string)
-    encryption = record["message"]["encryption"]
-    dbObject = record["message"]["dbObject"]
-    encryptedKey = encryption["encryptedEncryptionKey"]
-    keyEncryptionkeyId = encryption["keyEncryptionKeyId"]
-    iv = encryption["initialisationVector"]
-    # TODO  exception handling , what if the  below fields don't exist in the json
-    db_name = record['message']['db']
-    collection_name = record['message']['collection']
-    return {
-        "encryptedKey": encryptedKey,
-        "keyEncryptionkeyId":keyEncryptionkeyId,
-        "iv":iv,
-        "dbObject":dbObject,
-        "db_name":db_name,
-        "collection_name":collection_name
-    }
-
 def get_tables(db_name):
     table_list = []
     client = boto3.client("glue")
@@ -306,6 +283,10 @@ def get_tables(db_name):
 
 if __name__ == "__main__":
     spark = get_spark_session()
+    get_plain_key = F.udf(get_plaintext_key_calling_dks, StringType()) 
+    decryption = F.udf(decrypt, StringType()) 
+    validation = F.udf(validate, StringType()) 
+    sanitise = F.udf(sanitize, StringType()) 
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     published_database_name = get_published_db_name()
     database_name = get_staging_db_name()
