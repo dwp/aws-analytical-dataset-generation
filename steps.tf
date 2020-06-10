@@ -21,6 +21,7 @@ resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
       file_location      = "analytical-dataset"
       url                = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
       aws_default_region = "eu-west-2"
+      log_path          = "/var/log/adg/generate_analytical_dataset_log"
     }
   )
 }
@@ -33,7 +34,6 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
       hive-scripts-path = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
       python_logger     = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
       generate_analytical_dataset = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_analytical_dataset_script.key)
-      log_path          = "/var/log/adg/generate_analytical_dataset_log"
     }
   )
 }
