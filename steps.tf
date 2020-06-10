@@ -5,7 +5,7 @@ resource "aws_s3_bucket_object" "create-hive-tables" {
     {
       bucket      = aws_s3_bucket.published.id
       secret_name = local.secret_name
-      log_path    = "/var/log/adg/hive_tables_creation_log"
+      log_path    = "/var/log/adg/hive_tables_creation.log"
     }
   )
 }
@@ -21,7 +21,7 @@ resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
       file_location      = "analytical-dataset"
       url                = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
       aws_default_region = "eu-west-2"
-      log_path          = "/var/log/adg/generate_analytical_dataset_log"
+      log_path           = "/var/log/adg/generate_analytical_dataset.log"
     }
   )
 }
@@ -31,8 +31,8 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
   key    = "component/analytical-dataset-generation/hive-setup.sh"
   content = templatefile("${path.module}/steps/hive-setup.sh",
     {
-      hive-scripts-path = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
-      python_logger     = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
+      hive-scripts-path           = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
+      python_logger               = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
       generate_analytical_dataset = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_analytical_dataset_script.key)
     }
   )
