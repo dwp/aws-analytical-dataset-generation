@@ -69,15 +69,15 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/create_hive_tables.log",
+            "file_path": "/var/log/adg/create-hive-tables.log",
             "log_group_name": "${cwa_log_group_name}",
-            "log_stream_name": "create_hive_tables.log",
+            "log_stream_name": "create-hive-tables.log",
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/generate_analytical_dataset.log",
+            "file_path": "/var/log/adg/generate-analytical-dataset.log",
             "log_group_name": "${cwa_log_group_name}",
-            "log_stream_name": "generate_analytical_dataset.log",
+            "log_stream_name": "generate-analytical-dataset.log",
             "timezone": "UTC"
           },
           {
