@@ -10,7 +10,7 @@ def setup_logging(log_level, log_path):
     if log_path is None:
         handler = logging.Streamhandler(sys.stdout)
     else:
-        handler = logging.Filehandler(log_path)
+        handler = logging.FileHandler(log_path)
 
     json_format = "{ 'timestamp': '%(asctime)s', 'log_level': '%(levelname)s', 'message': '%(message)s' }"
     handler.setFormatter(logging.Formatter(json_format))
