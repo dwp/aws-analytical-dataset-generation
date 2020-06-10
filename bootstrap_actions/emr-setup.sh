@@ -13,11 +13,12 @@ echo "${ENVIRONMENT_NAME}" > /opt/emr/environment
 echo "Installing scripts"
 aws s3 cp "${S3_COMMON_LOGGING_SHELL}"   /opt/shared/common_logging.sh
 aws s3 cp "${S3_LOGGING_SHELL}"          /opt/emr/logging.sh
-
+aws s3 cp "${S3_CLOUDWATCH_SHELL}"       /opt/emr/cloudwatch.sh
 
 echo "Changing the Permissions"
 chmod u+x /opt/shared/common_logging.sh
 chmod u+x /opt/emr/logging.sh
+chmod u+x /opt/emr/cloudwatch.sh
 
 (
 # Import the logging functions
@@ -43,6 +44,11 @@ export HTTPS_PROXY="$FULL_PROXY"
 export no_proxy="$FULL_NO_PROXY"
 export NO_PROXY="$FULL_NO_PROXY"
 export ADG_LOG_LEVEL="${ADG_LOG_LEVEL}"
+
+echo "Setup cloudwatch logs"
+sudo /opt/emr/cloudwatch.sh \
+    "${cwa_metrics_collection_interval}" "${cwa_namespace}"  "${cwa_log_group_name}" \
+    "${aws_default_region}"
 
 export ACM_KEY_PASSWORD=$(uuidgen -r)
 
