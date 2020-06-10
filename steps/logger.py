@@ -2,10 +2,7 @@ import logging
 import os
 
 
-def setup_logging(log_path):
-    log_level = (
-        os.environ["ADG_LOG_LEVEL"].upper() if "ADG_LOG_LEVEL" in os.environ else "INFO"
-    )
+def setup_logging(log_level, log_path):
     the_logger = logging.getLogger()
     for old_handler in the_logger.handlers:
         the_logger.removeHandler(old_handler)
