@@ -5,16 +5,16 @@ import sys
 def setup_logging(log_level, log_path):
     the_logger = logging.getLogger()
     for old_handler in the_logger.handlers:
-        the_logger.removehandler(old_handler)
+        the_logger.removeHandler(old_handler)
 
     if log_path is None:
-        handler = logging.Streamhandler(sys.stdout)
+        new_handler = logging.StreamHandler(sys.stdout)
     else:
         handler = logging.FileHandler(log_path)
 
     json_format = "{ 'timestamp': '%(asctime)s', 'log_level': '%(levelname)s', 'message': '%(message)s' }"
     handler.setFormatter(logging.Formatter(json_format))
-    the_logger.addhandler(handler)
+    the_logger.addHandler(handler)
     new_level = logging.getLevelName(log_level.upper())
     the_logger.setLevel(new_level)
 
