@@ -25,7 +25,7 @@ the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
     if "ADG_LOG_LEVEL" in os.environ
     else "INFO",
-    log_path="/var/log/adg/generate_analytical_dataset_log",
+    log_path="${log_path}",
 )
 
 
