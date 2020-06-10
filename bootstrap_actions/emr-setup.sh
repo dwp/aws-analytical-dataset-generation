@@ -43,6 +43,7 @@ export https_proxy="$FULL_PROXY"
 export HTTPS_PROXY="$FULL_PROXY"
 export no_proxy="$FULL_NO_PROXY"
 export NO_PROXY="$FULL_NO_PROXY"
+export ADG_LOG_LEVEL="${ADG_LOG_LEVEL}"
 
 echo "Setup cloudwatch logs"
 sudo /opt/emr/cloudwatch.sh \

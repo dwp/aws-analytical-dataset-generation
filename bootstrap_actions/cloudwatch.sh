@@ -75,6 +75,12 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
+            "file_path": "/var/log/adg/generate-analytical-dataset.log",
+            "log_group_name": "${cwa_log_group_name}",
+            "log_stream_name": "generate-analytical-dataset.log",
+            "timezone": "UTC"
+          },
+          {
             "file_path": "/var/log/adg/nohup.log",
             "log_group_name": "${cwa_log_group_name}",
             "log_stream_name": "nohup.log",
