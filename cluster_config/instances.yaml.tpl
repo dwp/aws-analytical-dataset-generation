@@ -23,7 +23,7 @@ Instances:
       InstanceType: "${instance_type}"
   - InstanceFleetType: "CORE"
     Name: CORE
-    TargetOnDemandCapacity: 1
+    TargetOnDemandCapacity: 2
     InstanceTypeConfigs:
     - EbsConfiguration:
         EbsBlockDeviceConfigs:
