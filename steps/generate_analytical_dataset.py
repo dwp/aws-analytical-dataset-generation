@@ -18,6 +18,7 @@ import logging
 import pytz
 from pyspark.sql import functions as F
 
+keys_map = {} #For caching dks keys
 class CollectionData:
     def __init__(self, collection_name, staging_hive_table, tag_value):
         self.collection_name = collection_name
@@ -246,11 +247,9 @@ def decrypt(plain_text_key, iv_key, dbObject):
     return decrypted
 
 def get_plaintext_key_calling_dks(encryptedKey, keyEncryptionkeyId):
-    keys_map = {}
     if keys_map.get(encryptedKey):
         key = keys_map[encryptedKey]
         print("Found the key in cache")
-        plain_text_key = key
     else:
         print("Didn't find the key in cache so calling dks")
         key = call_dks(encryptedKey, keyEncryptionkeyId)
