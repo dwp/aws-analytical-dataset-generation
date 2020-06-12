@@ -8,3 +8,6 @@
 terraform.tf
 aviator_pipeline.yml
 .DS_Store
+.vscode
+**/__pycache__/
+*.pyc
