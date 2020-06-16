@@ -11,6 +11,7 @@ spruce:
     to: aviator_pipeline.yml
 fly:
   name: aws-analytical-dataset-generation
-  target: concourse
+  target: aws-concourse
   expose: false
+  check_creds: true
   config: aviator_pipeline.yml

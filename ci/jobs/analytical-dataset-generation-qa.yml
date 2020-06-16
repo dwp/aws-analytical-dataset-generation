@@ -1,7 +1,7 @@
 jobs:
 - name: analytical-dataset-generation-qa
   plan:
-  - aggregate:
+  - in_parallel:
     - get: aws-analytical-dataset-generation
       trigger: true
     - get: emr-launcher-release
@@ -9,7 +9,6 @@ jobs:
     - get: emr-ami
       trigger: true
   - .: (( inject meta.plan.terraform-bootstrap ))
-  - .: (( inject meta.plan.create-aws-profiles ))
     config:
       params:
         AWS_ACC: ((aws_account.qa))
