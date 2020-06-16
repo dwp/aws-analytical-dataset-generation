@@ -11,4 +11,4 @@ resource_types:
   - name: ami
     type: docker-image
     source:
-      repository: danhill2802/ami-resource
+      repository: chrisscottthomas/ami-resource

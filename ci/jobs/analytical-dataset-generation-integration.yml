@@ -15,7 +15,7 @@ jobs:
       passed:
       - analytical-dataset-generation-qa
   - .: (( inject meta.plan.terraform-bootstrap ))
-  - .: (( inject meta.plan.create-aws-profiles ))
+#  - .: (( inject meta.plan.create-aws-profiles ))
     config:
       params:
         AWS_ACC: ((aws_account.integration))

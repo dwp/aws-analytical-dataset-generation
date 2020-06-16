@@ -10,27 +10,23 @@ jobs:
         trigger: true
       - put: aws-analytical-dataset-generation-pr
         params:
-          context: $BUILD_JOB_NAME
           path: aws-analytical-dataset-generation-pr
           status: pending
       - .: (( inject meta.plan.terraform-bootstrap ))
         input_mapping:
           aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
-      - .: (( inject meta.plan.unit-tests ))
-        input_mapping:
-          aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
+#      - .: (( inject meta.plan.unit-tests ))
+#        input_mapping:
+#          aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
       - task: terraform-plan
         config:
           platform: linux
           image_resource:
             type: docker-image
             source:
-              repository: ((terraform.repository))
-              version: ((terraform12.version))
-              tag: ((terraform12.version))
+              repository: ((dataworks.terraform_repository))
+              tag: ((dataworks.terraform_version))
           params:
-            AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
-            AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
             TF_INPUT: false
             TF_CLI_ARGS_apply: -lock-timeout=300s
             TF_CLI_ARGS_plan: -lock-timeout=300s
@@ -58,13 +54,11 @@ jobs:
         on_failure:
           put: aws-analytical-dataset-generation-pr
           params:
-            context: $BUILD_JOB_NAME
             path: aws-analytical-dataset-generation-pr
             status: failure
         on_success:
           put: aws-analytical-dataset-generation-pr
           params:
-            context: $BUILD_JOB_NAME
             path: aws-analytical-dataset-generation-pr
             status: success
 

@@ -9,7 +9,6 @@ jobs:
     - get: emr-ami
       trigger: true
   - .: (( inject meta.plan.terraform-bootstrap ))
-  - .: (( inject meta.plan.create-aws-profiles ))
     config:
       params:
         AWS_ACC: ((aws_account.development))
