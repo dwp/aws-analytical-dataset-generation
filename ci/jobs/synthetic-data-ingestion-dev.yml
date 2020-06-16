@@ -12,7 +12,6 @@ jobs:
       trigger: false
     - get: aws-management-infrastructure
       trigger: false
-#  - .: (( inject meta.plan.create-aws-profiles ))
     config:
       params:
         AWS_ACC: ((aws_account.development))
