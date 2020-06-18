@@ -5,6 +5,9 @@ set -Eeuo pipefail
 cwa_metrics_collection_interval="$1"
 cwa_namespace="$2"
 cwa_log_group_name="$3"
+cwa_bootstrap_loggrp_name="$5"
+cwa_steps_loggrp_name="$6"
+cwa_yarnspark_loggrp_name="$7"
 
 export AWS_DEFAULT_REGION="${4}"
 
@@ -45,53 +48,66 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/hive_tables_creation_log.log",
-            "log_group_name": "${cwa_log_group_name}",
-            "log_stream_name": "hive_tables_creation_log.log",
+            "file_path": "/var/log/adg/acm-cert-retriever.log",
+            "log_group_name": "${cwa_bootstrap_loggrp_name}",
+            "log_stream_name": "acm-cert-retriever.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/nohup.log",
+            "log_group_name": "${cwa_bootstrap_loggrp_name}",
+            "log_stream_name": "nohup.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/install-pycrypto.log",
-            "log_group_name": "${cwa_log_group_name}",
+            "log_group_name": "${cwa_bootstrap_loggrp_name}",
             "log_stream_name": "install-pycrypto.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/install-requests.log",
-            "log_group_name": "${cwa_log_group_name}",
+            "log_group_name": "${cwa_bootstrap_loggrp_name}",
             "log_stream_name": "install-requests.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/install-boto3.log",
-            "log_group_name": "${cwa_log_group_name}",
+            "log_group_name": "${cwa_bootstrap_loggrp_name}",
             "log_stream_name": "install-boto3.log",
             "timezone": "UTC"
           },
           {
+            "file_path": "/var/log/adg/hive_tables_creation_log.log",
+            "log_group_name": "${cwa_steps_loggrp_name}",
+            "log_stream_name": "hive_tables_creation_log.log",
+            "timezone": "UTC"
+          },
+          {
             "file_path": "/var/log/adg/create-hive-tables.log",
-            "log_group_name": "${cwa_log_group_name}",
+            "log_group_name": "${cwa_steps_loggrp_name}",
             "log_stream_name": "create-hive-tables.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/generate-analytical-dataset.log",
-            "log_group_name": "${cwa_log_group_name}",
+            "log_group_name": "${cwa_steps_loggrp_name}",
             "log_stream_name": "generate-analytical-dataset.log",
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/nohup.log",
-            "log_group_name": "${cwa_log_group_name}",
-            "log_stream_name": "nohup.log",
+            "file_path": "/mnt/var/log/hadoop-yarn/containers/application_**/container_**",
+            "log_group_name": "${cwa_yarnspark_loggrp_name}",
+            "log_stream_name": spark_logs",
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/acm-cert-retriever.log",
-            "log_group_name": "${cwa_log_group_name}",
-            "log_stream_name": "acm-cert-retriever.log",
+            "file_path": "/mnt/var/log/hadoop-yarn/yarn-yarn-nodemanager**",
+            "log_group_name": "${cwa_yarnspark_loggrp_name}",
+            "log_stream_name": "yarn_nodemanager_logs",
             "timezone": "UTC"
           }
+
         ]
       }
     },
