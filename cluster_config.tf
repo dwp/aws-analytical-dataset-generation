@@ -9,8 +9,9 @@ resource "aws_s3_bucket_object" "cluster" {
   content = templatefile("${path.module}/cluster_config/cluster.yaml.tpl",
     {
       s3_log_bucket          = data.terraform_remote_state.security-tools.outputs.logstore_bucket.id
+      s3_log_prefix          = local.s3_log_prefix
       ami_id                 = var.emr_ami_id
-      service_role           = aws_iam_role.analytical_dataset_generator.arn
+      service_role           = aws_iam_role.adg_emr_service.arn
       instance_profile       = aws_iam_instance_profile.analytical_dataset_generator.arn
       security_configuration = aws_emr_security_configuration.emrfs_em.id
     }
@@ -23,12 +24,12 @@ resource "aws_s3_bucket_object" "instances" {
   content = templatefile("${path.module}/cluster_config/instances.yaml.tpl",
     {
       keep_cluster_alive = local.keep_cluster_alive[local.environment]
-      add_master_sg      = aws_security_group.analytical_dataset_generation.id
-      add_slave_sg       = aws_security_group.analytical_dataset_generation.id
+      add_master_sg      = aws_security_group.adg_common.id
+      add_slave_sg       = aws_security_group.adg_common.id
       subnet_id          = data.terraform_remote_state.internal_compute.outputs.htme_subnet.ids[0]
-      master_sg          = aws_security_group.master_sg.id
-      slave_sg           = aws_security_group.slave_sg.id
-      service_access_sg  = aws_security_group.service_access_sg.id
+      master_sg          = aws_security_group.adg_master.id
+      slave_sg           = aws_security_group.adg_slave.id
+      service_access_sg  = aws_security_group.adg_emr_service.id
       instance_type      = var.emr_instance_type[local.environment]
     }
   )
@@ -50,6 +51,7 @@ resource "aws_s3_bucket_object" "configurations" {
   content = templatefile("${path.module}/cluster_config/configurations.yaml.tpl",
     {
       s3_log_bucket       = data.terraform_remote_state.security-tools.outputs.logstore_bucket.id
+      s3_log_prefix       = local.s3_log_prefix
       s3_published_bucket = aws_s3_bucket.published.id
       s3_ingest_bucket    = data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket
       hbase_root_path     = local.hbase_root_path

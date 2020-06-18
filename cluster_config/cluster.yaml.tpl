@@ -6,7 +6,7 @@ Applications:
 - Name: "Ganglia"
 CustomAmiId: "${ami_id}"
 EbsRootVolumeSize: 100
-LogUri: "s3://${s3_log_bucket}/logs"
+LogUri: "s3://${s3_log_bucket}/${s3_log_prefix}"
 Name: "analytical-dataset-generator"
 ReleaseLabel: "emr-5.24.1"
 ScaleDownBehavior: "TERMINATE_AT_TASK_COMPLETION"
