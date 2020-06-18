@@ -66,6 +66,36 @@ resource "aws_security_group_rule" "egress_internet_proxy" {
   security_group_id = aws_security_group.adg_common.id
 }
 
+resource "aws_security_group_rule" "egress_hbase_zookeeper" {
+  description              = "Allow Ingest-HBase Zookeeper requests"
+  type                     = "egress"
+  from_port                = 2181
+  to_port                  = 2181
+  protocol                 = "tcp"
+  source_security_group_id = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
+  security_group_id        = aws_security_group.adg_common.id
+}
+
+resource "aws_security_group_rule" "egress_hbase_master" {
+  description              = "Allow Ingest-HBase Master requests"
+  type                     = "egress"
+  from_port                = 60000
+  to_port                  = 60000
+  protocol                 = "tcp"
+  source_security_group_id = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
+  security_group_id        = aws_security_group.adg_common.id
+}
+
+resource "aws_security_group_rule" "egress_hbase_regionserver" {
+  description              = "Allow Ingest-HBase RegionServer traffic"
+  type                     = "egress"
+  from_port                = 60020
+  to_port                  = 60020
+  protocol                 = "tcp"
+  source_security_group_id = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
+  security_group_id        = aws_security_group.adg_common.id
+}
+
 # DW-4134 - Rule for the dev Workspaces, gated to dev - "Ganglia"
 resource "aws_security_group_rule" "emr_server_ingress_workspaces_master_80" {
   count             = local.environment == "development" ? 1 : 0
