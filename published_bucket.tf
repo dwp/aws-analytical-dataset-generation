@@ -177,8 +177,6 @@ resource "aws_s3_bucket" "published" {
     }
   }
 
-  # TODO add back logging. DW-3608
-
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
@@ -234,8 +232,53 @@ resource "aws_s3_bucket_policy" "published_bucket_https_only" {
   policy = data.aws_iam_policy_document.published_bucket_https_only.json
 }
 
-resource "aws_iam_role" "analytical_dataset_generator" {
-  name               = "analytical_dataset_generator"
-  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
-  tags               = local.tags
+data "aws_iam_policy_document" "analytical_dataset_generator_write_parquet" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      aws_s3_bucket.published.arn,
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+      "s3:DeleteObject*",
+      "s3:PutObject*",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.published.arn}/*",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey",
+    ]
+
+    resources = [
+      "${aws_kms_key.published_bucket_cmk.arn}",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_generator_write_parquet" {
+  name        = "AnalyticalDatasetGeneratorWriteParquet"
+  description = "Allow writing of Analytical Dataset parquet files"
+  policy      = data.aws_iam_policy_document.analytical_dataset_generator_write_parquet.json
 }

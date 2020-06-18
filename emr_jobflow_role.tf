@@ -1,8 +1,3 @@
-resource "aws_iam_instance_profile" "analytical_dataset_generator" {
-  name = "analytical_dataset_generator"
-  role = aws_iam_role.analytical_dataset_generator.id
-}
-
 data "aws_iam_policy_document" "ec2_assume_role" {
   statement {
     effect = "Allow"
@@ -16,129 +11,63 @@ data "aws_iam_policy_document" "ec2_assume_role" {
   }
 }
 
-#        Attach AWS policies
-resource "aws_iam_role_policy_attachment" "emr_attachment" {
-  role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
-
+resource "aws_iam_role" "analytical_dataset_generator" {
+  name               = "analytical_dataset_generator"
+  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
+  tags               = local.tags
 }
 
-resource "aws_iam_role_policy_attachment" "emr_for_ec2_attachment" {
-  role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role"
-
+resource "aws_iam_instance_profile" "analytical_dataset_generator" {
+  name = "analytical_dataset_generator"
+  role = aws_iam_role.analytical_dataset_generator.id
 }
 
 resource "aws_iam_role_policy_attachment" "ec2_for_ssm_attachment" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
-
 }
 
-#        Create and attach custom policy
-data "aws_iam_policy_document" "analytical_dataset_gluetables" {
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "glue:CreateTable",
-      "glue:DeleteTable",
-    ]
-
-    resources = [
-      "arn:aws:glue:::database/aws_glue_catalog_database.analytical_dataset_generation_staging.name",
-      "arn:aws:glue:::database/aws_glue_catalog_database.analytical_dataset_generation.name",
-    ]
-  }
-}
-
-resource "aws_iam_policy" "analytical_dataset_gluetables" {
-  name        = "DatasetGeneratorGlueTables"
-  description = "Allow Dataset Generator clusters to create drop tables"
-  policy      = data.aws_iam_policy_document.analytical_dataset_gluetables.json
-}
-
-resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_gluetables" {
+resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {
   role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = aws_iam_policy.analytical_dataset_gluetables.arn
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_acm" {
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_ebs_cmk" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_ebs_cmk_encrypt.arn
+}
+
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_write_parquet" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_generator_write_parquet.arn
+}
+
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_gluetables" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_generator_gluetables_write.arn
+}
+
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_acm" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_acm.arn
 }
 
-# Create and attach custom policy to allow use of CMK for EBS encryption
-data "aws_iam_policy_document" "analytical_dataset_ebs_cmk" {
+resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_secretsmanager" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_secretsmanager.arn
+}
+
+data "aws_iam_policy_document" "analytical_dataset_generator_write_logs" {
   statement {
     effect = "Allow"
 
     actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
-    ]
-
-    resources = [data.terraform_remote_state.security-tools.outputs.ebs_cmk.arn]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = ["kms:CreateGrant"]
-
-    resources = [data.terraform_remote_state.security-tools.outputs.ebs_cmk.arn]
-
-    condition {
-      test     = "Bool"
-      variable = "kms:GrantIsForAWSResource"
-      values   = ["true"]
-    }
-  }
-}
-
-resource "aws_iam_policy" "analytical_dataset_ebs_cmk" {
-  name        = "DataGenerationEmrUseEbsCmk"
-  description = "Allow Analytical EMR cluster to use EB CMK for encryption"
-  policy      = data.aws_iam_policy_document.analytical_dataset_ebs_cmk.json
-}
-
-resource "aws_iam_role_policy_attachment" "analytical_dataset_ebs_cmk" {
-  role       = aws_iam_role.analytical_dataset_generator.id
-  policy_arn = aws_iam_policy.analytical_dataset_ebs_cmk.arn
-}
-
-data "aws_iam_policy_document" "analytical_dataset_write_s3" {
-
-  statement {
-    effect = "Allow"
-
-    actions = [
+      "s3:GetBucketLocation",
       "s3:ListBucket",
     ]
 
     resources = [
-      aws_s3_bucket.published.arn,
-      "${data.terraform_remote_state.common.outputs.config_bucket.arn}",
-      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket}",
-      "arn:aws:s3:::${data.terraform_remote_state.security-tools.outputs.logstore_bucket.id}",
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:GetObject*",
-      "s3:DeleteObject*",
-      "s3:PutObject*",
-    ]
-
-    resources = [
-      "${aws_s3_bucket.published.arn}/*",
-      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir}/data/hbase/meta_*",
+      data.terraform_remote_state.security-tools.outputs.logstore_bucket.arn,
     ]
   }
 
@@ -148,26 +77,13 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     actions = [
       "s3:GetObject*",
       "s3:PutObject*",
+
     ]
 
     resources = [
-      "arn:aws:s3:::${data.terraform_remote_state.security-tools.outputs.logstore_bucket.id}",
+      "${data.terraform_remote_state.security-tools.outputs.logstore_bucket.arn}/${local.s3_log_prefix}",
     ]
   }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:GetObject*",
-    ]
-
-    resources = [
-      "${data.terraform_remote_state.common.outputs.config_bucket.arn}/component/analytical-dataset-generation/*",
-      "arn:aws:s3:::${data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir}/*",
-    ]
-  }
-
 
   statement {
     effect = "Allow"
@@ -181,8 +97,45 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
     ]
 
     resources = [
-      "${aws_kms_key.published_bucket_cmk.arn}",
-      "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}",
+      data.terraform_remote_state.security-tools.outputs.logstore_bucket.arn,
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_generator_write_logs" {
+  name        = "AnalyticalDatasetGeneratorWriteLogs"
+  description = "Allow writing of Analytical Dataset logs"
+  policy      = data.aws_iam_policy_document.analytical_dataset_generator_write_logs.json
+}
+
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_write_logs" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_generator_write_logs.arn
+}
+
+data "aws_iam_policy_document" "analytical_dataset_generator_read_config" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      data.terraform_remote_state.common.outputs.config_bucket.arn,
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+    ]
+
+    resources = [
+      "${data.terraform_remote_state.common.outputs.config_bucket.arn}/*",
     ]
   }
 
@@ -196,40 +149,47 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
 
     resources = [
       "${data.terraform_remote_state.common.outputs.config_bucket_cmk.arn}",
-      "${data.terraform_remote_state.ingest.outputs.input_bucket_cmk.arn}",
     ]
   }
+}
 
+resource "aws_iam_policy" "analytical_dataset_generator_read_config" {
+  name        = "AnalyticalDatasetGeneratorReadConfig"
+  description = "Allow reading of Analytical Dataset config files"
+  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_config.json
+}
+
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_read_config" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_generator_read_config.arn
+}
+
+data "aws_iam_policy_document" "analytical_dataset_generator_read_artefacts" {
   statement {
-    sid    = "AllowUseDefaultEbsCmk"
     effect = "Allow"
 
     actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
+      "s3:ListBucket",
     ]
-    resources = [data.terraform_remote_state.security-tools.outputs.ebs_cmk.arn]
+
+    resources = [
+      data.terraform_remote_state.management_artefact.outputs.artefact_bucket.arn,
+    ]
   }
 
   statement {
-    sid       = "AllowAccessToArtefactBucket"
-    effect    = "Allow"
-    actions   = ["s3:GetBucketLocation"]
-    resources = [data.terraform_remote_state.management_artefact.outputs.artefact_bucket.arn]
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+    ]
+
+    resources = [
+      "${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.arn}/*",
+    ]
   }
 
   statement {
-    sid       = "AllowPullFromArtefactBucket"
-    effect    = "Allow"
-    actions   = ["s3:GetObject"]
-    resources = ["${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.arn}/*"]
-  }
-
-  statement {
-    sid    = "AllowDecryptArtefactBucket"
     effect = "Allow"
 
     actions = [
@@ -237,27 +197,19 @@ data "aws_iam_policy_document" "analytical_dataset_write_s3" {
       "kms:DescribeKey",
     ]
 
-    resources = [data.terraform_remote_state.management_artefact.outputs.artefact_bucket.cmk_arn]
+    resources = [
+      data.terraform_remote_state.management_artefact.outputs.artefact_bucket.cmk_arn,
+    ]
   }
 }
 
-resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  role       = aws_iam_role.analytical_dataset_generator.name
+resource "aws_iam_policy" "analytical_dataset_generator_read_artefacts" {
+  name        = "AnalyticalDatasetGeneratorReadArtefacts"
+  description = "Allow reading of Analytical Dataset software artefacts"
+  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_artefacts.json
 }
 
-resource "aws_iam_policy" "analytical_dataset_write_s3" {
-  name        = "DatasetGeneratorWriteS3"
-  description = "Allow Dataset Generator clusters to write to S3 buckets"
-  policy      = data.aws_iam_policy_document.analytical_dataset_write_s3.json
-}
-
-resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_write_s3" {
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_read_artefacts" {
   role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = aws_iam_policy.analytical_dataset_write_s3.arn
-}
-
-resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_secretsmanager" {
-  role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = aws_iam_policy.analytical_dataset_secretsmanager.arn
+  policy_arn = aws_iam_policy.analytical_dataset_generator_read_artefacts.arn
 }
