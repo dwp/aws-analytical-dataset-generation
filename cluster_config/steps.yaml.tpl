@@ -7,14 +7,6 @@ BootstrapActions:
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/installer.sh"
 Steps:
-- Name: "copy-hbase-configuration"
-  HadoopJarStep:
-    Args:
-    - "bash"
-    - "-c"
-    - "sudo cp /etc/hbase/conf/hbase-site.xml /etc/spark/conf/"
-    Jar: "command-runner.jar"
-  ActionOnFailure: "CONTINUE"
 - Name: "hive-setup"
   HadoopJarStep:
     Args:
