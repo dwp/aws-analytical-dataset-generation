@@ -46,14 +46,6 @@ locals {
     production  = "dataworks.dwp.gov.uk"
   }
 
-  emp_version = {
-    development = "0.0.6-all"
-    qa          = "0.0.6-all"
-    integration = "0.0.6-all"
-    preprod     = "0.0.6-all"
-    production  = "0.0.6-all"
-  }
-
   adg_emr_lambda_schedule = {
     development = "0 0 31 12 ? 2025"
     qa          = "0 0 31 12 ? 2025"
@@ -89,7 +81,7 @@ locals {
       AtRestEncryptionConfiguration = {
         S3EncryptionConfiguration = {
           EncryptionMode             = "CSE-Custom"
-          S3Object                   = "s3://${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id}/emr-encryption-materials-provider/encryption-materials-provider-${local.emp_version[local.environment]}.jar"
+          S3Object                   = "s3://${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id}/emr-encryption-materials-provider/encryption-materials-provider-all.jar"
           EncryptionKeyProviderClass = "uk.gov.dwp.dataworks.dks.encryptionmaterialsprovider.DKSEncryptionMaterialsProvider"
         }
       }
@@ -106,6 +98,9 @@ locals {
 
   cw_agent_namespace                   = "/app/analytical_dataset_generator"
   cw_agent_log_group_name              = "/app/analytical_dataset_generator"
+  cw_agent_bootstrap_loggrp_name       = "/app/analytical_dataset_generator/bootstrap_actions"
+  cw_agent_steps_loggrp_name           = "/app/analytical_dataset_generator/step_logs"
+  cw_agent_yarnspark_loggrp_name       = "/app/analytical_dataset_generator/yarn-spark_logs"
   cw_agent_metrics_collection_interval = 60
 
   s3_log_prefix = "emr/analytical_dataset_generator"

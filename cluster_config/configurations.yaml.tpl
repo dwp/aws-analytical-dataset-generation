@@ -19,7 +19,7 @@ Configurations:
     "spark.driver.extraJavaOptions": "-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=70 -XX:MaxHeapFreeRatio=70 -XX:+CMSClassUnloadingEnabled -XX:OnOutOfMemoryError='kill -9 %p' -Dhttp.proxyHost='${proxy_http_address}' -Dhttp.proxyPort='3128' -Dhttp.nonProxyHosts='${proxy_no_proxy}' -Dhttps.proxyHost='${proxy_http_address}' -Dhttps.proxyPort='3128'"
     "spark.sql.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
     "spark.dynamicAllocation.enabled": "true"
-    "spark.default.parallelism": "30"
+    "spark.default.parallelism": "30",
     "spark.dynamicAllocation.initialExecutors":"10"
     "spark.dynamicAllocation.minExecutors":"10"
     "spark.dynamicAllocation.maxExecutors":"20"
@@ -30,7 +30,7 @@ Configurations:
     "hbase.zookeeper.quorum": "${zookeeper_quorum}"
 - Classification: "hive-site"
   Properties:
-    "hive.metastore.schema.verification": "false",
+    "hive.metastore.schema.verification": "false"
     "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
     "hive.metastore.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
     "hbase.zookeeper.quorum": "${zookeeper_quorum}"

@@ -20,6 +20,9 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       cwa_namespace                   = local.cw_agent_namespace
       cwa_log_group_name              = aws_cloudwatch_log_group.analytical_dataset_generator.name
       S3_CLOUDWATCH_SHELL             = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.cloudwatch_sh.key)
+      cwa_bootstrap_loggrp_name       = aws_cloudwatch_log_group.adg_cw_bootstrap_loggroup.name
+      cwa_steps_loggrp_name           = aws_cloudwatch_log_group.adg_cw_steps_loggroup.name
+      cwa_yarnspark_loggrp_name       = aws_cloudwatch_log_group.adg_cw_yarnspark_loggroup.name
   })
 }
 
@@ -40,9 +43,26 @@ resource "aws_s3_bucket_object" "logging_script" {
   content = file("${path.module}/bootstrap_actions/logging.sh")
 }
 
-
 resource "aws_cloudwatch_log_group" "analytical_dataset_generator" {
   name              = local.cw_agent_log_group_name
+  retention_in_days = 180
+  tags              = local.common_tags
+}
+
+resource "aws_cloudwatch_log_group" "adg_cw_bootstrap_loggroup" {
+  name              = local.cw_agent_bootstrap_loggrp_name
+  retention_in_days = 180
+  tags              = local.common_tags
+}
+
+resource "aws_cloudwatch_log_group" "adg_cw_steps_loggroup" {
+  name              = local.cw_agent_steps_loggrp_name
+  retention_in_days = 180
+  tags              = local.common_tags
+}
+
+resource "aws_cloudwatch_log_group" "adg_cw_yarnspark_loggroup" {
+  name              = local.cw_agent_yarnspark_loggrp_name
   retention_in_days = 180
   tags              = local.common_tags
 }
