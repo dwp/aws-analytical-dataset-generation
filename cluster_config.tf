@@ -58,6 +58,7 @@ resource "aws_s3_bucket_object" "configurations" {
       proxy_no_proxy      = replace(replace(local.no_proxy, ",", "|"), ".s3", "*.s3")
       proxy_http_address  = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
       proxy_https_address = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
+      zookeeper_quorum    = data.terraform_remote_state.ingest.outputs.hbase_fqdn
     }
   )
 }

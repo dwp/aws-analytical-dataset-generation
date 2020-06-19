@@ -33,7 +33,7 @@ variable "emr_ami_id" {
 
 variable "emr_instance_type" {
   default = {
-    development = "m5.2xlarge"
+    development = "m5.8xlarge"
     qa          = "m5.2xlarge"
     integration = "m5.2xlarge"
     preprod     = "m5.2xlarge"
