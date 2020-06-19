@@ -84,7 +84,7 @@ data "aws_iam_policy_document" "adg_ebs_cmk" {
 
     principals {
       type        = "AWS"
-      identifiers = [aws_iam_role.analytical_dataset_generator.arn]
+      identifiers = [aws_iam_role.adg_emr_service.arn]
     }
 
     actions = [
