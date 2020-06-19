@@ -46,14 +46,6 @@ locals {
     production  = "dataworks.dwp.gov.uk"
   }
 
-  emp_version = {
-    development = "0.0.6-all"
-    qa          = "0.0.6-all"
-    integration = "0.0.6-all"
-    preprod     = "0.0.6-all"
-    production  = "0.0.6-all"
-  }
-
   adg_emr_lambda_schedule = {
     development = "0 0 31 12 ? 2025"
     qa          = "0 0 31 12 ? 2025"
@@ -89,7 +81,7 @@ locals {
       AtRestEncryptionConfiguration = {
         S3EncryptionConfiguration = {
           EncryptionMode             = "CSE-Custom"
-          S3Object                   = "s3://${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id}/emr-encryption-materials-provider/encryption-materials-provider-${local.emp_version[local.environment]}.jar"
+          S3Object                   = "s3://${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id}/emr-encryption-materials-provider/encryption-materials-provider-all.jar"
           EncryptionKeyProviderClass = "uk.gov.dwp.dataworks.dks.encryptionmaterialsprovider.DKSEncryptionMaterialsProvider"
         }
       }
