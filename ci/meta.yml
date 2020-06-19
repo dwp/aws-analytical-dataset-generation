@@ -199,12 +199,8 @@ meta:
           - name: terraform-output-ingest
           - name: terraform-config
           - name: terraform-output-management-infra
-          - name: .aws
           - name: terraform-output-internal-compute
       params:
-        AWS_DEFAULT_PROFILE: output
-        AWS_SHARED_CREDENTIALS_FILE: ../../.aws/credentials
-        AWS_CONFIG_FILE: ../../.aws/config
         E2E_TEST_TIMEOUT: 2700
         E2E_FEATURE_TAG_FILTER: '@synthetic-data-ingestion'
     unit-tests:
