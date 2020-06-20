@@ -32,6 +32,11 @@ resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_ebs_cmk" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_ebs_cmk_encrypt.arn
+}
+
 resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_write_parquet" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_generator_write_parquet.arn
