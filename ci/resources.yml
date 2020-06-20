@@ -4,7 +4,7 @@ resources:
     source:
       access_token: ((dataworks-secrets.concourse_github_pat))
       repository: dwp/aws-analytical-dataset-generation
-    check_every: 1m
+    check_every: 720h
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
   - name: aws-analytical-dataset-generation
@@ -13,7 +13,7 @@ resources:
       branch: master
       repository: dwp/aws-analytical-dataset-generation
       uri: https://github.com/dwp/aws-analytical-dataset-generation.git
-    check_every: 15m
+    check_every: 720h
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
   - name: aws-ingestion
