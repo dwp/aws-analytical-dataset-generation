@@ -22,7 +22,7 @@ resource "aws_iam_role_policy_attachment" "emr_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
 }
 
-resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_ebs_cmk" {
+resource "aws_iam_role_policy_attachment" "adg_emr_service_ebs_cmk" {
   role       = aws_iam_role.adg_emr_service.name
   policy_arn = aws_iam_policy.analytical_dataset_ebs_cmk_encrypt.arn
 }
