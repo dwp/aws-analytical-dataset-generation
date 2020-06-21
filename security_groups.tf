@@ -201,3 +201,7 @@ resource "aws_security_group_rule" "emr_server_ingress_workspaces_slave_region_s
   cidr_blocks       = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.cidr_block]
   security_group_id = aws_security_group.adg_slave.id
 }
+
+output "adg_common_sg" {
+  value = aws_security_group.adg_common
+}
