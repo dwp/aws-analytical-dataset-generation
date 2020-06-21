@@ -89,8 +89,8 @@ resource "aws_security_group_rule" "egress_hbase_zookeeper" {
 resource "aws_security_group_rule" "egress_hbase_master" {
   description              = "Allow Ingest-HBase Master requests"
   type                     = "egress"
-  from_port                = 60000
-  to_port                  = 60000
+  from_port                = 16000
+  to_port                  = 16000
   protocol                 = "tcp"
   source_security_group_id = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
   security_group_id        = aws_security_group.adg_common.id
@@ -99,8 +99,8 @@ resource "aws_security_group_rule" "egress_hbase_master" {
 resource "aws_security_group_rule" "egress_hbase_regionserver" {
   description              = "Allow Ingest-HBase RegionServer traffic"
   type                     = "egress"
-  from_port                = 60020
-  to_port                  = 60020
+  from_port                = 16020
+  to_port                  = 16020
   protocol                 = "tcp"
   source_security_group_id = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
   security_group_id        = aws_security_group.adg_common.id
