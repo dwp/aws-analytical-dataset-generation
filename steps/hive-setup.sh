@@ -1,38 +1,38 @@
+#!/bin/bash
+set -euo pipefail
 (
 # Import the logging functions
 source /opt/emr/logging.sh
 
 function log_wrapper_message() {
-    log_adg_message "$${1}" "hive-setup.sh" "$${PID}"  "Running as: ,$USER"
+    log_adg_message "$1" "hive-setup.sh" "$$" "Running as: $USER"
 }
 
 log_wrapper_message "Copying create-hive-tables.py files from s3 to local"
 
-
 aws s3 cp "${hive-scripts-path}" /opt/emr/.
 
-# sleeping for 13 min, during the testing it was observed that the hbase read replica isn't ready for the spark job to run. This is
-# because the region server and hbase meta table of read replica cluster need some time to replicate the master cluster meta and all the
-# tables are made available.
+log_wrapper_message "Configuring HBase shell to use ingest-hbase cluster"
+hbase_quorum=$(grep -A1 hbase.zookeeper.quorum /etc/hive/conf/hive-site.xml | grep value)
+cat > hbase-site.xml << EOF
+<configuration>
+<property>
+      <name>hbase.zookeeper.quorum</name>
+      $hbase_quorum
+</property>
+</configuration>
+EOF
+sudo mv hbase-site.xml /etc/hbase/conf/
 
-sleep 13m
-
-hbasetables=`echo 'list' | sudo -E hbase shell > current_hbase_tables`
-
-log_wrapper_message "Listing the tables in Hbase and exporting it to a file current_hbase_tables $hbasetables "
-
-sleep 10
+log_wrapper_message "Generating list of current HBase tables"
+hbasetables=`echo 'list' | hbase shell > current_hbase_tables`
 
 aws s3 cp "${python_logger}" /opt/emr/.
 aws s3 cp "${generate_analytical_dataset}" /opt/emr/.
 
-log_wrapper_message "Running create-hive-tables.py "
+log_wrapper_message "Creating hive tables"
 
-sudo -E /usr/bin/python3.6 /opt/emr/create-hive-tables.py >> /var/log/adg/create-hive-tables.log 2>&1
-
-setcleaner=`echo "cleaner_chore_switch false" | sudo -E hbase shell `
-
-log_wrapper_message "Setting  hbase cleaner_chore_switch to false  $setcleaner "
+/usr/bin/python3.6 /opt/emr/create-hive-tables.py >> /var/log/adg/create-hive-tables.log 2>&1
 
 log_wrapper_message "Completed the hive-setup.sh step of the EMR Cluster"
 
