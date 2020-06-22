@@ -48,7 +48,8 @@ export ADG_LOG_LEVEL="${ADG_LOG_LEVEL}"
 echo "Setup cloudwatch logs"
 sudo /opt/emr/cloudwatch.sh \
     "${cwa_metrics_collection_interval}" "${cwa_namespace}"  "${cwa_log_group_name}" \
-    "${aws_default_region}"
+    "${aws_default_region}" "${cwa_bootstrap_loggrp_name}" "${cwa_steps_loggrp_name}" \
+    "${cwa_yarnspark_loggrp_name}"
 
 export ACM_KEY_PASSWORD=$(uuidgen -r)
 
