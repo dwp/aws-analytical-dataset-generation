@@ -4,7 +4,7 @@ data "aws_iam_policy_document" "ec2_assume_role" {
 
     principals {
       type        = "Service"
-      identifiers = ["ec2.amazonaws.com", "elasticmapreduce.amazonaws.com"]
+      identifiers = ["ec2.amazonaws.com"]
     }
 
     actions = ["sts:AssumeRole"]
