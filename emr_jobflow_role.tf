@@ -213,3 +213,28 @@ resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_read_art
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_generator_read_artefacts.arn
 }
+
+data "aws_iam_policy_document" "analytical_dataset_generator_write_dynamodb" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:*",
+    ]
+
+    resources = [
+      "arn:aws:dynamodb:${var.region}:${local.account[local.environment]}:table/${local.emrfs_metadata_tablename}",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_generator_write_dynamodb" {
+  name        = "AnalyticalDatasetGeneratorDynamoDB"
+  description = "Allows read and write access to ADG's EMRFS DynamoDB table"
+  policy      = data.aws_iam_policy_document.analytical_dataset_generator_write_dynamodb.json
+}
+
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_dynamodb" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_generator_write_dynamodb.arn
+}

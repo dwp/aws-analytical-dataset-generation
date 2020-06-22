@@ -103,5 +103,6 @@ locals {
   cw_agent_yarnspark_loggrp_name       = "/app/analytical_dataset_generator/yarn-spark_logs"
   cw_agent_metrics_collection_interval = 60
 
-  s3_log_prefix = "emr/analytical_dataset_generator"
+  s3_log_prefix            = "emr/analytical_dataset_generator"
+  emrfs_metadata_tablename = "Analytical_Dataset_Generation_Metadata"
 }
