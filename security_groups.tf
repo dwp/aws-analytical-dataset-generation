@@ -66,6 +66,16 @@ resource "aws_security_group_rule" "egress_http_s3_endpoint" {
   security_group_id = aws_security_group.adg_common.id
 }
 
+resource "aws_security_group_rule" "egress_https_dynamodb_endpoint" {
+  description       = "Allow HTTPS access to DynamoDB via its endpoint (EMRFS)"
+  type              = "egress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  prefix_list_ids   = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.dynamodb_prefix_list_id]
+  security_group_id = aws_security_group.adg_common.id
+}
+
 resource "aws_security_group_rule" "egress_internet_proxy" {
   description       = "Allow Internet access via the proxy (for ACM-PCA)"
   type              = "egress"
@@ -108,8 +118,8 @@ resource "aws_security_group_rule" "egress_hbase_regionserver" {
 
 # The EMR service will automatically add the ingress equivalent of this rule,
 # but doesn't inject this egress counterpart
-resource "aws_security_group_rule" "emr_master_to_core_egress" {
-  description              = "Allow master nodes to send traffic to core nodes"
+resource "aws_security_group_rule" "emr_master_to_core_egress_tcp" {
+  description              = "Allow master nodes to send TCP traffic to core nodes"
   type                     = "egress"
   from_port                = 0
   to_port                  = 65535
@@ -120,12 +130,36 @@ resource "aws_security_group_rule" "emr_master_to_core_egress" {
 
 # The EMR service will automatically add the ingress equivalent of this rule,
 # but doesn't inject this egress counterpart
-resource "aws_security_group_rule" "emr_core_to_master_egress" {
-  description              = "Allow core nodes to send traffic to master nodes"
+resource "aws_security_group_rule" "emr_core_to_master_egress_tcp" {
+  description              = "Allow core nodes to send TCP traffic to master nodes"
   type                     = "egress"
   from_port                = 0
   to_port                  = 65535
   protocol                 = "tcp"
+  source_security_group_id = aws_security_group.adg_master.id
+  security_group_id        = aws_security_group.adg_slave.id
+}
+
+# The EMR service will automatically add the ingress equivalent of this rule,
+# but doesn't inject this egress counterpart
+resource "aws_security_group_rule" "emr_master_to_core_egress_udp" {
+  description              = "Allow master nodes to send UDP traffic to core nodes"
+  type                     = "egress"
+  from_port                = 0
+  to_port                  = 65535
+  protocol                 = "udp"
+  source_security_group_id = aws_security_group.adg_slave.id
+  security_group_id        = aws_security_group.adg_master.id
+}
+
+# The EMR service will automatically add the ingress equivalent of this rule,
+# but doesn't inject this egress counterpart
+resource "aws_security_group_rule" "emr_core_to_master_egress_udp" {
+  description              = "Allow core nodes to send UDP traffic to master nodes"
+  type                     = "egress"
+  from_port                = 0
+  to_port                  = 65535
+  protocol                 = "udp"
   source_security_group_id = aws_security_group.adg_master.id
   security_group_id        = aws_security_group.adg_slave.id
 }

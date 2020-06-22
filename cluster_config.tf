@@ -50,15 +50,16 @@ resource "aws_s3_bucket_object" "configurations" {
   key    = "emr/adg/configurations.yaml"
   content = templatefile("${path.module}/cluster_config/configurations.yaml.tpl",
     {
-      s3_log_bucket       = data.terraform_remote_state.security-tools.outputs.logstore_bucket.id
-      s3_log_prefix       = local.s3_log_prefix
-      s3_published_bucket = aws_s3_bucket.published.id
-      s3_ingest_bucket    = data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket
-      hbase_root_path     = local.hbase_root_path
-      proxy_no_proxy      = replace(replace(local.no_proxy, ",", "|"), ".s3", "*.s3")
-      proxy_http_address  = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
-      proxy_https_address = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
-      zookeeper_quorum    = data.terraform_remote_state.ingest.outputs.hbase_fqdn
+      s3_log_bucket            = data.terraform_remote_state.security-tools.outputs.logstore_bucket.id
+      s3_log_prefix            = local.s3_log_prefix
+      s3_published_bucket      = aws_s3_bucket.published.id
+      s3_ingest_bucket         = data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket
+      hbase_root_path          = local.hbase_root_path
+      proxy_no_proxy           = replace(replace(local.no_proxy, ",", "|"), ".s3", "*.s3")
+      proxy_http_address       = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
+      proxy_https_address      = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
+      zookeeper_quorum         = data.terraform_remote_state.ingest.outputs.hbase_fqdn
+      emrfs_metadata_tablename = local.emrfs_metadata_tablename
     }
   )
 }

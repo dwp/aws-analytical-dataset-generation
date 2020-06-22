@@ -43,7 +43,7 @@ Configurations:
     "fs.s3.consistent.retryPolicyType": "fixed"
     "fs.s3.consistent.retryPeriodSeconds": "2"
     "fs.s3.consistent.retryCount": "10"
-    "fs.s3.consistent.metadata.tableName": "Analytical_Dataset_Generation_Metadata"
+    "fs.s3.consistent.metadata.tableName": "${emrfs_metadata_tablename}"
 - Classification: "spark-env"
   Configurations:
   - Classification: "export"
