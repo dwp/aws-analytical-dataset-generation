@@ -84,22 +84,6 @@ data "aws_iam_policy_document" "analytical_dataset_generator_write_logs" {
       "${data.terraform_remote_state.security-tools.outputs.logstore_bucket.arn}/${local.s3_log_prefix}",
     ]
   }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
-    ]
-
-    resources = [
-      data.terraform_remote_state.security-tools.outputs.logstore_bucket.arn,
-    ]
-  }
 }
 
 resource "aws_iam_policy" "analytical_dataset_generator_write_logs" {
