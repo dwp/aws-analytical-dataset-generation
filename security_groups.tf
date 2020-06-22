@@ -142,6 +142,18 @@ resource "aws_security_group_rule" "emr_core_to_master_egress_tcp" {
 
 # The EMR service will automatically add the ingress equivalent of this rule,
 # but doesn't inject this egress counterpart
+resource "aws_security_group_rule" "emr_core_to_core_egress_tcp" {
+  description       = "Allow core nodes to send TCP traffic to other core nodes"
+  type              = "egress"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "tcp"
+  self              = true
+  security_group_id = aws_security_group.adg_slave.id
+}
+
+# The EMR service will automatically add the ingress equivalent of this rule,
+# but doesn't inject this egress counterpart
 resource "aws_security_group_rule" "emr_master_to_core_egress_udp" {
   description              = "Allow master nodes to send UDP traffic to core nodes"
   type                     = "egress"
@@ -162,6 +174,18 @@ resource "aws_security_group_rule" "emr_core_to_master_egress_udp" {
   protocol                 = "udp"
   source_security_group_id = aws_security_group.adg_master.id
   security_group_id        = aws_security_group.adg_slave.id
+}
+
+# The EMR service will automatically add the ingress equivalent of this rule,
+# but doesn't inject this egress counterpart
+resource "aws_security_group_rule" "emr_core_to_core_egress_udp" {
+  description       = "Allow core nodes to send UDP traffic to other core nodes"
+  type              = "egress"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "udp"
+  self              = true
+  security_group_id = aws_security_group.adg_slave.id
 }
 
 # DW-4134 - Rule for the dev Workspaces, gated to dev - "Ganglia"
