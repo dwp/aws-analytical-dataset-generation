@@ -14,126 +14,22 @@ data "aws_iam_role" "aws_config" {
   name = "aws_config"
 }
 
-#Create policy document
-data "aws_iam_policy_document" "published_bucket_kms_key" {
-
-  statement {
-    sid    = "EnableIAMPermissionsBreakglass"
-    effect = "Allow"
-
-    principals {
-      type        = "AWS"
-      identifiers = [data.aws_iam_user.breakglass.arn]
-    }
-
-    actions   = ["kms:*"]
-    resources = ["*"]
-  }
-
-  statement {
-    sid       = "EnableIAMPermissionsCI"
-    effect    = "Allow"
-    actions   = ["kms:*"]
-    resources = ["*"]
-
-    principals {
-      identifiers = [data.aws_iam_role.ci.arn]
-      type        = "AWS"
-    }
-  }
-
-  statement {
-    sid    = "DenyCIEncryptDecrypt"
-    effect = "Deny"
-
-    principals {
-      type        = "AWS"
-      identifiers = [data.aws_iam_role.ci.arn]
-    }
-
-    actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ImportKeyMaterial",
-      "kms:ReEncryptFrom",
-    ]
-
-    resources = ["*"]
-  }
-
-  statement {
-    sid    = "EnableIAMPermissionsAdministrator"
-    effect = "Allow"
-
-    principals {
-      type        = "AWS"
-      identifiers = [data.aws_iam_role.administrator.arn]
-    }
-
-    actions = [
-      "kms:Describe*",
-      "kms:List*",
-      "kms:Get*"
-    ]
-
-    resources = ["*"]
-  }
-
-  statement {
-    sid    = "EnableAWSConfigManagerScanForSecurityHub"
-    effect = "Allow"
-
-    principals {
-      type        = "AWS"
-      identifiers = [data.aws_iam_role.aws_config.arn]
-    }
-
-    actions = [
-      "kms:Describe*",
-      "kms:Get*",
-      "kms:List*"
-    ]
-
-    resources = ["*"]
-  }
-
-  statement {
-    sid    = "EnableIAMPermissionsAnalyticDatasetGen"
-    effect = "Allow"
-
-    principals {
-      type        = "AWS"
-      identifiers = [aws_iam_role.analytical_dataset_generator.arn]
-    }
-
-    actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey"
-    ]
-
-    resources = ["*"]
-
-  }
-}
-
 resource "aws_kms_key" "published_bucket_cmk" {
   description             = "UCFS published Bucket Master Key"
   deletion_window_in_days = 7
   is_enabled              = true
   enable_key_rotation     = true
-  policy                  = data.aws_iam_policy_document.published_bucket_kms_key.json
 
-
+  # ProtectsSensitiveData = "False" because, although this bucket is likely to
+  # contain PII, its primary form of protection should be CloudHSM-managed
+  # key material, meaning a default KMS key policy can be used
   tags = merge(
     local.tags,
     {
       Name = "published_bucket_cmk"
     },
     {
-      requires-custom-key-policy = "True"
+      ProtectsSensitiveData = "False"
     }
   )
 }
@@ -154,7 +50,12 @@ resource "random_id" "published_bucket" {
 }
 
 resource "aws_s3_bucket" "published" {
-  tags   = local.tags
+  tags = merge(
+    local.tags,
+    {
+      Name = "published_bucket"
+  })
+
   bucket = random_id.published_bucket.hex
   acl    = "private"
 
@@ -228,8 +129,9 @@ data "aws_iam_policy_document" "published_bucket_https_only" {
 }
 
 resource "aws_s3_bucket_policy" "published_bucket_https_only" {
-  bucket = aws_s3_bucket.published.id
-  policy = data.aws_iam_policy_document.published_bucket_https_only.json
+  bucket     = aws_s3_bucket.published.id
+  policy     = data.aws_iam_policy_document.published_bucket_https_only.json
+  depends_on = [aws_s3_bucket_public_access_block.published]
 }
 
 data "aws_iam_policy_document" "analytical_dataset_generator_write_parquet" {
