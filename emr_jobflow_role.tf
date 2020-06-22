@@ -153,6 +153,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_artefacts" {
     effect = "Allow"
 
     actions = [
+      "s3:GetBucketLocation",
       "s3:ListBucket",
     ]
 
