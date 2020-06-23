@@ -14,6 +14,20 @@ data "aws_iam_role" "aws_config" {
   name = "aws_config"
 }
 
+data "aws_iam_policy_document" "published_bucket_kms_key" {
+  statement {
+    sid       = "Enable root-delegated access control"
+    effect    = "Allow"
+    actions   = ["kms:*"]
+    resources = ["*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${local.account[local.environment]}:root"]
+    }
+  }
+}
+
 resource "aws_kms_key" "published_bucket_cmk" {
   description             = "UCFS published Bucket Master Key"
   deletion_window_in_days = 7
