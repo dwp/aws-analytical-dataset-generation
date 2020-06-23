@@ -78,9 +78,9 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/hive_tables_creation_log.log",
+            "file_path": "/var/log/adg/hive-tables-creation.log",
             "log_group_name": "${cwa_steps_loggrp_name}",
-            "log_stream_name": "hive_tables_creation_log.log",
+            "log_stream_name": "hive-tables-creation.log",
             "timezone": "UTC"
           },
           {
@@ -96,18 +96,23 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/hadoop-yarn/containers/application_**/container_**",
+            "file_path": "/var/log/hadoop-yarn/containers/application_*/container_*/stdout",
             "log_group_name": "${cwa_yarnspark_loggrp_name}",
-            "log_stream_name": spark_logs",
+            "log_stream_name": "spark-stdout.log",
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/hadoop-yarn/yarn-yarn-nodemanager**",
+            "file_path": "/var/log/hadoop-yarn/containers/application_*/container_*/stderr",
             "log_group_name": "${cwa_yarnspark_loggrp_name}",
-            "log_stream_name": "yarn_nodemanager_logs",
+            "log_stream_name": "spark-stderror.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/hadoop-yarn/yarn-yarn-nodemanager**.log",
+            "log_group_name": "${cwa_yarnspark_loggrp_name}",
+            "log_stream_name": "yarn_nodemanager.log",
             "timezone": "UTC"
           }
-
         ]
       }
     },
