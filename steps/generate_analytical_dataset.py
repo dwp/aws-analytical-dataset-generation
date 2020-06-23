@@ -299,7 +299,7 @@ def retrieve_date_time_element(key, db_object):
 def format_date_to_valid_outgoing_format(current_date_time):
     parsed_date_time = get_valid_parsed_date_time(current_date_time)
     parsed_date_time.astimezone(pytz.utc)
-    parsed_date_time = datetime.strftime(parsed_date_time, "%Y-%m-%dT%H:%M:%S.%f")
+    parsed_date_time = datetime.datetime.strftime(parsed_date_time, "%Y-%m-%dT%H:%M:%S.%f")
     (dt, micro) = parsed_date_time.split(".")
     dt = "%s.%03d%s" % (dt, int(micro) / 1000, "Z")
     return dt
@@ -309,7 +309,7 @@ def get_valid_parsed_date_time(time_stamp_as_string):
     valid_timestamps = ["%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%S.%f%z"]
     for time_stamp_fmt in valid_timestamps:
         try:
-            return datetime.strptime(time_stamp_as_string, time_stamp_fmt)
+            return datetime.datetime.strptime(time_stamp_as_string, time_stamp_fmt)
         except Exception:
             print(f"timestampAsString did not match valid format {time_stamp_fmt}")
 
