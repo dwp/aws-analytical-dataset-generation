@@ -96,13 +96,13 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/mnt/var/log/hadoop-yarn/containers/application_**/container_**",
+            "file_path": "/var/log/hadoop-yarn/containers/application_**/container_**",
             "log_group_name": "${cwa_yarnspark_loggrp_name}",
             "log_stream_name": spark_logs",
             "timezone": "UTC"
           },
           {
-            "file_path": "/mnt/var/log/hadoop-yarn/yarn-yarn-nodemanager**",
+            "file_path": "/var/log/hadoop-yarn/yarn-yarn-nodemanager**",
             "log_group_name": "${cwa_yarnspark_loggrp_name}",
             "log_stream_name": "yarn_nodemanager_logs",
             "timezone": "UTC"
