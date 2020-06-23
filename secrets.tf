@@ -18,6 +18,6 @@ data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
 
 resource "aws_iam_policy" "analytical_dataset_secretsmanager" {
   name        = "DatasetGeneratorSecretsManager"
-  description = "Allow Dataset Generator clusters to get secrets"
+  description = "Allow reading of ADG config values"
   policy      = data.aws_iam_policy_document.analytical_dataset_secretsmanager.json
 }
