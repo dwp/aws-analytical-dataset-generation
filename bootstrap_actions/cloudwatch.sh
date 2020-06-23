@@ -11,6 +11,8 @@ cwa_yarnspark_loggrp_name="$7"
 
 export AWS_DEFAULT_REGION="${4}"
 
+echo "testing the cloudwatch logs " > /var/log/hadoop-yarn/test.log
+
 # Create config file required for CloudWatch Agent
 mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
 cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGENTCONFIG
@@ -96,15 +98,21 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/mnt/var/log/hadoop-yarn/containers/application_**/container_**",
+            "file_path": "/var/log/hadoop-yarn/test.log",
             "log_group_name": "${cwa_yarnspark_loggrp_name}",
-            "log_stream_name": spark_logs",
+            "log_stream_name": test.log",
             "timezone": "UTC"
           },
           {
-            "file_path": "/mnt/var/log/hadoop-yarn/yarn-yarn-nodemanager**",
+            "file_path": "/var/log/hadoop-yarn/containers/application_*/container_*/**.gz",
             "log_group_name": "${cwa_yarnspark_loggrp_name}",
-            "log_stream_name": "yarn_nodemanager_logs",
+            "log_stream_name": spark.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/hadoop-yarn/yarn-yarn-nodemanager**.log",
+            "log_group_name": "${cwa_yarnspark_loggrp_name}",
+            "log_stream_name": "yarn_nodemanager.log",
             "timezone": "UTC"
           }
 
