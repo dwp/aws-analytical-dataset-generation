@@ -98,6 +98,16 @@ provider "aws" {
   }
 }
 
+provider "aws" {
+  alias = "crypto"
+  version = "~> 2.51.0"
+  region  = var.region
+
+  assume_role {
+    role_arn = "arn:aws:iam::${local.account[local.management_account[local.environment]]}:role/${var.assume_role}"
+  }
+}
+
 // Get AWS Account ID for credentials in use
 data "aws_caller_identity" "current" {}
 

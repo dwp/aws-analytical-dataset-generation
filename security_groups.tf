@@ -116,6 +116,27 @@ resource "aws_security_group_rule" "egress_hbase_regionserver" {
   security_group_id        = aws_security_group.adg_common.id
 }
 
+resource "aws_security_group_rule" "ingress_dks_from_adg" {
+  provider                 = aws.crypto
+  description              = "Allow requests from ADG"
+  type                     = "ingress"
+  from_port                = 8443
+  to_port                  = 8443
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.adg_common.id
+  security_group_id        = data.terraform_remote_state.crypto.outputs.dks_sg_id[local.environment]
+}
+
+resource "aws_security_group_rule" "egress_adg_to_dks" {
+  description              = "Allow requests to the DKS"
+  type                     = "egress"
+  from_port                = 8443
+  to_port                  = 8443
+  protocol                 = "tcp"
+  source_security_group_id = data.terraform_remote_state.crypto.outputs.dks_sg_id[local.environment]
+  security_group_id        = aws_security_group.adg_common.id
+}
+
 # The EMR service will automatically add the ingress equivalent of this rule,
 # but doesn't inject this egress counterpart
 resource "aws_security_group_rule" "emr_master_to_core_egress_tcp" {
