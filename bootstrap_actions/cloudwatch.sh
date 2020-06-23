@@ -132,3 +132,6 @@ rpm -U ./amazon-cloudwatch-agent.rpm
 usermod -s /sbin/nologin cwagent
 
 start amazon-cloudwatch-agent
+
+
+echo "Logging a test log " >> /var/log/hadoop-yarn/test.log
