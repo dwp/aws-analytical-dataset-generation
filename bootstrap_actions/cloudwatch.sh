@@ -11,8 +11,6 @@ cwa_yarnspark_loggrp_name="$7"
 
 export AWS_DEFAULT_REGION="${4}"
 
-echo "testing the cloudwatch logs " > /var/log/hadoop-yarn/test.log
-
 # Create config file required for CloudWatch Agent
 mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
 cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGENTCONFIG
@@ -80,9 +78,9 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/hive_tables_creation_log.log",
+            "file_path": "/var/log/adg/hive-tables-creation.log",
             "log_group_name": "${cwa_steps_loggrp_name}",
-            "log_stream_name": "hive_tables_creation_log.log",
+            "log_stream_name": "hive-tables-creation.log",
             "timezone": "UTC"
           },
           {
@@ -98,15 +96,15 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/hadoop-yarn/test.log",
+            "file_path": "/var/log/hadoop-yarn/containers/application_*/container_*/stdout",
             "log_group_name": "${cwa_yarnspark_loggrp_name}",
-            "log_stream_name": "test.log",
+            "log_stream_name": "spark-stdout.log",
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/hadoop-yarn/containers/application_*/container_*/**.gz",
+            "file_path": "/var/log/hadoop-yarn/containers/application_*/container_*/stderr",
             "log_group_name": "${cwa_yarnspark_loggrp_name}",
-            "log_stream_name": "spark.log",
+            "log_stream_name": "spark-stderror.log",
             "timezone": "UTC"
           },
           {
@@ -115,7 +113,6 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "log_stream_name": "yarn_nodemanager.log",
             "timezone": "UTC"
           }
-
         ]
       }
     },
@@ -132,6 +129,3 @@ rpm -U ./amazon-cloudwatch-agent.rpm
 usermod -s /sbin/nologin cwagent
 
 start amazon-cloudwatch-agent
-
-
-echo "Logging a test log " >> /var/log/hadoop-yarn/test.log
