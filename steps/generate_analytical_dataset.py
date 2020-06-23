@@ -17,7 +17,7 @@ from Crypto.Cipher import AES
 from Crypto.Util import Counter
 from pyspark.sql.types import *
 from pyspark.sql import Row
-from datetime import datetime
+import datetime
 import pytz
 from logger import setup_logging
 
@@ -91,7 +91,7 @@ def spark_process(collection):
     create_hive_on_published(parquet_location, collection.collection_name)
     end_timer = time.perf_counter()
     time_taken = round(end_timer - start_timer)
-    time_taken = str(datetime.timedelta(time_taken))
+    time_taken = str(datetime.timedelta(seconds=time_taken))
     the_logger.info(f"time taken for {collection.collection_name}: {time_taken}")
 
 
@@ -424,5 +424,5 @@ if __name__ == "__main__":
     main()
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
-    total_time = str(datetime.timedelta(total_time))
+    total_time = str(datetime.timedelta(seconds=total_time))
     the_logger.info(f"time taken for all collections: {total_time}")
