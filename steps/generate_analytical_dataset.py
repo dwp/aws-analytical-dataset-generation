@@ -1,26 +1,23 @@
-import json
-from pyspark.sql import SparkSession
+import ast
 import base64
 import binascii
-import boto3
-import ast
-import requests
-import re
-import os
 import concurrent.futures
-import time
 import datetime
-import os
+import json
 import logging
+import os
+import re
+import time
 
+import boto3
+import requests
+
+import pytz
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
-from pyspark.sql.types import *
-from pyspark.sql import Row
-from datetime import datetime
-import pytz
 from logger import setup_logging
-
+from pyspark.sql import Row, SparkSession
+from pyspark.sql.types import *
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -91,7 +88,7 @@ def spark_process(collection):
     create_hive_on_published(parquet_location, collection.collection_name)
     end_timer = time.perf_counter()
     time_taken = round(end_timer - start_timer)
-    time_taken = str(datetime.timedelta(time_taken))
+    time_taken = str(datetime.timedelta(seconds=time_taken))
     the_logger.info(f"time taken for {collection.collection_name}: {time_taken}")
 
 
@@ -302,7 +299,7 @@ def retrieve_date_time_element(key, db_object):
 def format_date_to_valid_outgoing_format(current_date_time):
     parsed_date_time = get_valid_parsed_date_time(current_date_time)
     parsed_date_time.astimezone(pytz.utc)
-    parsed_date_time = datetime.strftime(parsed_date_time, "%Y-%m-%dT%H:%M:%S.%f")
+    parsed_date_time = datetime.datetime.strftime(parsed_date_time, "%Y-%m-%dT%H:%M:%S.%f")
     (dt, micro) = parsed_date_time.split(".")
     dt = "%s.%03d%s" % (dt, int(micro) / 1000, "Z")
     return dt
@@ -312,7 +309,7 @@ def get_valid_parsed_date_time(time_stamp_as_string):
     valid_timestamps = ["%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%S.%f%z"]
     for time_stamp_fmt in valid_timestamps:
         try:
-            return datetime.strptime(time_stamp_as_string, time_stamp_fmt)
+            return datetime.datetime.strptime(time_stamp_as_string, time_stamp_fmt)
         except Exception:
             print(f"timestampAsString did not match valid format {time_stamp_fmt}")
 
@@ -424,5 +421,5 @@ if __name__ == "__main__":
     main()
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
-    total_time = str(datetime.timedelta(total_time))
+    total_time = str(datetime.timedelta(seconds=total_time))
     the_logger.info(f"time taken for all collections: {total_time}")
