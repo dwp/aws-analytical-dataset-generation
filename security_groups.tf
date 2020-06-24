@@ -96,6 +96,16 @@ resource "aws_security_group_rule" "egress_hbase_zookeeper" {
   security_group_id        = aws_security_group.adg_common.id
 }
 
+resource "aws_security_group_rule" "ingress_hbase_zookeeper" {
+  description              = "Allow ADG requests to ZooKeeper"
+  type                     = "ingress"
+  from_port                = 2181
+  to_port                  = 2181
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.adg_common.id
+  security_group_id        = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
+}
+
 resource "aws_security_group_rule" "egress_hbase_master" {
   description              = "Allow Ingest-HBase Master requests"
   type                     = "egress"
@@ -106,6 +116,16 @@ resource "aws_security_group_rule" "egress_hbase_master" {
   security_group_id        = aws_security_group.adg_common.id
 }
 
+resource "aws_security_group_rule" "ingress_hbase_master" {
+  description              = "Allow ADG requests to HBase Master"
+  type                     = "ingress"
+  from_port                = 16000
+  to_port                  = 16000
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.adg_common.id
+  security_group_id        = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
+}
+
 resource "aws_security_group_rule" "egress_hbase_regionserver" {
   description              = "Allow Ingest-HBase RegionServer traffic"
   type                     = "egress"
@@ -114,6 +134,16 @@ resource "aws_security_group_rule" "egress_hbase_regionserver" {
   protocol                 = "tcp"
   source_security_group_id = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
   security_group_id        = aws_security_group.adg_common.id
+}
+
+resource "aws_security_group_rule" "ingress_hbase_regionserver" {
+  description              = "Allow ADG requests to HBase Region Server"
+  type                     = "ingress"
+  from_port                = 16020
+  to_port                  = 16020
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.adg_common.id
+  security_group_id        = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
 }
 
 # Note that there is no ingress equivalent to this rule because HTME has already
