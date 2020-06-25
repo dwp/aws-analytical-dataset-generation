@@ -7,7 +7,7 @@ CustomAmiId: "${ami_id}"
 EbsRootVolumeSize: 100
 LogUri: "s3://${s3_log_bucket}/${s3_log_prefix}"
 Name: "analytical-dataset-generator"
-ReleaseLabel: "emr-5.30.0"
+ReleaseLabel: "emr-5.24.1"
 SecurityConfiguration: "${security_configuration}"
 ScaleDownBehavior: "TERMINATE_AT_TASK_COMPLETION"
 ServiceRole: "${service_role}"
