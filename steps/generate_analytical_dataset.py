@@ -77,13 +77,7 @@ def spark_process(collection):
         .map(lambda decrypted_db_obj: sanitize(decrypted_db_obj))
     )
     parquet_location = persist_parquet(collection.collection_name, values)
-    prefix = (
-        "${file_location}/"
-        + collection.collection_name
-        + "/"
-        + collection.collection_name
-        + ".parquet"
-    )
+    prefix = parquet_location.split(re.findall(r's3://\d+/', parquet_location)[0])[1]
     tag_objects(prefix, tag_value=collection.tag_value)
     create_hive_on_published(parquet_location, collection.collection_name)
     end_timer = time.perf_counter()

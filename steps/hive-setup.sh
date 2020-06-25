@@ -26,6 +26,7 @@ sudo mv hbase-site.xml /etc/hbase/conf/
 
 log_wrapper_message "Generating list of current HBase tables"
 hbasetables=`echo 'list' | hbase shell > current_hbase_tables`
+sudo mv current_hbase_tables /opt/emr/.
 
 aws s3 cp "${python_logger}" /opt/emr/.
 aws s3 cp "${generate_analytical_dataset}" /opt/emr/.
@@ -33,6 +34,7 @@ aws s3 cp "${generate_analytical_dataset}" /opt/emr/.
 log_wrapper_message "Creating hive tables"
 
 /usr/bin/python3.6 /opt/emr/create-hive-tables.py >> /var/log/adg/create-hive-tables.log 2>&1
+
 
 log_wrapper_message "Completed the hive-setup.sh step of the EMR Cluster"
 
