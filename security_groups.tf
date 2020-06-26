@@ -146,8 +146,6 @@ resource "aws_security_group_rule" "ingress_hbase_regionserver" {
   security_group_id        = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
 }
 
-# Note that there is no ingress equivalent to this rule because HTME has already
-# created it.
 resource "aws_security_group_rule" "egress_adg_to_dks" {
   description       = "Allow requests to the DKS"
   type              = "egress"
