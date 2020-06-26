@@ -203,6 +203,7 @@ meta:
       params:
         E2E_TEST_TIMEOUT: 2700
         E2E_FEATURE_TAG_FILTER: '@synthetic-data-ingestion'
+
     unit-tests:
       task: unit-tests
       config:
@@ -222,18 +223,6 @@ meta:
           - name: aws-analytical-dataset-generation
       input_mapping:
         aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
-      on_failure:
-        put: aws-analytical-dataset-generation-pr
-        params:
-          context: $BUILD_JOB_NAME
-          path: aws-analytical-dataset-generation-pr
-          status: failure
-      on_success:
-        put: aws-analytical-dataset-generation-pr
-        params:
-          context: $BUILD_JOB_NAME
-          path: aws-analytical-dataset-generation-pr
-          status: success
 
 #    create-aws-profiles:
 #      task: create-aws-profiles
