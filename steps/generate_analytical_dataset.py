@@ -134,8 +134,6 @@ def create_hive_on_published(parquet_location, collection_name):
     )
     spark.sql(src_hive_drop_query)
     spark.sql(src_hive_create_query)
-    src_hive_select_query = "select * from %s" % src_hive_table
-    spark.sql(src_hive_select_query).show()
     return None
 
 
