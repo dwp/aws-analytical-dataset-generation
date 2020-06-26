@@ -1,0 +1,24 @@
+{
+    "traceId": "3b195725-98e1-4d56-bcb8-945a244c2d45",
+    "unitOfWorkId": "ed9e614c-cd28-4860-b77d-ab5962a5599e",
+    "@type": "V4",
+    "message": {
+      "db": "core",
+      "collection": "addressDeclaration",
+      "_id": {
+        "declarationId": "b0269a34-2e37-4081-b67f-ae08d0e4d813"
+      },
+      "_timeBasedHash": "hashhhhhhhhhh",
+      "@type": "MONGO_INSERT",
+      "_lastModifiedDateTime": "2019-07-04T07:27:35.104+0000",
+      "encryption": {
+        "encryptionKeyId": "55556666-abcd-89ab-1234-1234567890ab",
+        "encryptedEncryptionKey": "bHJjhg2Jb0uyidkl867gtFkjl4fgh9Ab",
+        "initialisationVector": "YhsHYC4EdhsKD5xUPyNCpw==",
+        "keyEncryptionKeyId": "1234567890"
+      },
+      "dbObject": "gu8JJuv7I0g1mHhH+yI1aWugqlSAu2+T5kFGJYD5uYj4MxpEUeW2RZuDOZ36GVkhtljOoQJsX44EtfOnr7ZNOMRJgaFgWamwATwx37VvXvsFiMCrR8NGDCiA3tnLHL6idWTvhgylo5MxqL9Lz3sj3W7vkmgUPBxbI6GfU90+FXgD7uj9loi3vMuxgxs6Ydg6mRUE8QU27I5QVclERSg8PW+0ScbRPnqo4r547QhhMj5SIcnxtLR+GUyDm4hUWbgeOup2A7xGpwmDnbCYESiizOQ9M4PNDu4g8g2koxepDCaTucyxqPPd2zaJd5FFIwSuCw6BLNJ3f1UVNxAjprGEGdZoefn6Qjb5WpNbYliFDEePHhR5SbGIC+ozwMjeLLjhX6y6IDIHG6P5paLd/17N81gJTV8/aDrfrydacvT09iQVw+xUN1XjFAtPOZtqnq5CGn7+bCf2rtkjU7Gsf3sgmyh2RIE1AtumF1aIOhwXiAMnI/B1SYuJMJYa7OajB1XnD6CHmjR0fFVfYUgez5JIvJDCf1shm5qNSUjiY6FL97qxBlaJ0Vhmko58o3w6S/vjaTqYQCzL+c78JsBk1iA3K1kSu1brPxWZwVluqLVQuE9Rn0O7unryCaen1AogtZB8qwCI7LuIGYpfHKgJAc532cYDPuGcgu8fbpHJPE2l/vzySs1mXNOmIOLwY57fk0nskHmiP2oEnQML+aSaABxbIAKhLFEFCP5AlKMWSnusacO2NCqwQLz6b0KdJVHTbMEqxA71/bBePHNMmyi+y7xPNibicotQ3TuIm70l6/+3JdsnEImFitoKTzS5+iYmlwFjgeOYfXql5Go3voc4zJiwz20kGwP3F4M4CsRc3oMXlI4BzVD0j3U8KFPRkKMfMwGU/rrPGtFlnlQr7Bz/abiK+stzhzC409ulr2Zk7x8ODDkCglPFaH0E6I0pe/fY+gTawPPSel7YTAy/spUy7rwYzd7RyhAPNIqyG6I+DMn/wsoVnQdmsQOpj4V+EDZ20x1/aHkIp8oJnyYx4AoJ61PQXvRuhz66OJeIjnE="
+    },
+    "version": "core-4.master.9790",
+    "timestamp": "2019-07-04T07:27:35.104+0000"
+}
