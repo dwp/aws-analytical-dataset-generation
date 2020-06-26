@@ -30,7 +30,7 @@ def test_sanitisation_processor_does_not_remove_chars_from_other_collections():
     input = json.dumps(get_input())
     expected = json.dumps(get_expected())
     actual = sanitize(input, "", "")
-    assert expected != actual
+    assert expected == actual
 
 
 def get_input():
