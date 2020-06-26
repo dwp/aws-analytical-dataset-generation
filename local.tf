@@ -79,6 +79,12 @@ locals {
       EnableInTransitEncryption = false
       EnableAtRestEncryption    = true
       AtRestEncryptionConfiguration = {
+
+        S3EncryptionConfiguration = {
+          EncryptionMode             = "CSE-Custom"
+          S3Object                   = "s3://${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id}/emr-encryption-materials-provider/encryption-materials-provider-all.jar"
+          EncryptionKeyProviderClass = "uk.gov.dwp.dataworks.dks.encryptionmaterialsprovider.DKSEncryptionMaterialsProvider"
+      }        
         LocalDiskEncryptionConfiguration = {
           EnableEbsEncryption       = true
           EncryptionKeyProviderType = "AwsKms"
