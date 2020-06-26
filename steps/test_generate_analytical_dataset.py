@@ -9,31 +9,27 @@ from datetime import datetime
 def test_sanitisation_processor_removes_desired_chars_in_collections():
     input =  """{"fieldA":"a$\u0000","_archivedDateTime":"b","_archived":"c"}"""
     expected =  '{"fieldA":"ad_","_removedDateTime":"b","_removed":"c"}'
-    msg = {"decrypted":input, "db_name":"","collection_name":""}
-    actual = sanitize(msg)
+    actual = sanitize(input, "", "")
     assert expected == actual
 
 # TODO Check how is this working in Kotlin """{"message":{"db":"penalties-and-deductions","collection":"sanction"},"data":{"carriage":"\\r","newline":"\\n","superEscaped":"\\\r\\\n"}}"""
 def test_sanitisation_processor_will_not_remove_multi_escaped_newlines():
     input =  """{"message":{"db":"penalties-and-deductions","collection":"sanction"},"data":{"carriage":"\\\\r","newline":"\\\\n","superEscaped":"\\\\r\\\\n"}}"""
-    msg = {"decrypted":input, "db_name":"penalties-and-deductions","collection_name":"sanction"}
-    actual = sanitize(msg)
+    actual = sanitize(input,"penalties-and-deductions", "sanction" )
     assert input == actual
 
 
 def test_sanitisatio_processor_removes_desired_chars_from_specific_collections():
     input = json.dumps(get_input())
     expected = json.dumps(get_expected())
-    msg = {"decrypted":input, "db_name":"penalties-and-deductions","collection_name":"sanction"}
-    actual = sanitize(msg)
+    actual = sanitize(input, "penalties-and-deductions", "sanction")
     assert expected == actual
 
 
 def test_sanitisation_processor_does_not_remove_chars_from_other_collections():
     input = json.dumps(get_input())
     expected = json.dumps(get_expected())
-    msg = {"decrypted":input, "db_name":"","collection_name":""}
-    actual = sanitize(msg)
+    actual = sanitize(input, "", "")
     assert expected != actual
 
 
@@ -118,24 +114,22 @@ def test_if_decrypted_dbObject_is_a_valid_json():
     id = {"someId":"RANDOM_GUID","declarationId":1234}
     decrypted_object = {"_id": id, "type": "addressDeclaration", "contractId": 1234, "addressNumber": {"type": "AddressLine", "cryptoId": 1234}, "addressLine2": None, "townCity": {"type": "AddressLine", "cryptoId": 1234}, "postcode": "SM5 2LE", "processId": 1234, "effectiveDate": {"type": "SPECIFIC_EFFECTIVE_DATE", "date": 20150320, "knownDate": 20150320}, "paymentEffectiveDate": {"type": "SPECIFIC_EFFECTIVE_DATE", "date": 20150320, "knownDate": 20150320}, "createdDateTime": {"$date": "2015-03-20T12:23:25.183Z", "_archivedDateTime": "should be replaced by _removedDateTime"}, "_version": 2, "_archived": "should be replaced by _removed", "unicodeNull": "\u0000", "unicodeNullwithText": "some\u0000text", "lineFeedChar": "\n", "lineFeedCharWithText": "some\ntext", "carriageReturn": "\r", "carriageReturnWithText": "some\rtext", "carriageReturnLineFeed": "\r\n", "carriageReturnLineFeedWithText": "some\r\ntext", "_lastModifiedDateTime": "2019-07-04T07:27:35.104+0000"}
     decrypted_str = json.dumps(decrypted_object)
-    msg = {"decrypted":decrypted_str}
-    actual = validate(msg)
-    assert actual['decrypted'] is not None
+    actual_json = validate(decrypted_str)
+    actual = json.loads(actual_json)
+    assert actual is not None
 
 def test_if_decrypted_dbObject_is_a_valid_json_with_primitive_id():
     id = 'JSON_PRIMITIVE_STRING'
     decrypted_object = {"_id": id, "type": "addressDeclaration", "contractId": 1234, "addressNumber": {"type": "AddressLine", "cryptoId": 1234}, "addressLine2": None, "townCity": {"type": "AddressLine", "cryptoId": 1234}, "postcode": "SM5 2LE", "processId": 1234, "effectiveDate": {"type": "SPECIFIC_EFFECTIVE_DATE", "date": 20150320, "knownDate": 20150320}, "paymentEffectiveDate": {"type": "SPECIFIC_EFFECTIVE_DATE", "date": 20150320, "knownDate": 20150320}, "createdDateTime": {"$date": "2015-03-20T12:23:25.183Z", "_archivedDateTime": "should be replaced by _removedDateTime"}, "_version": 2, "_archived": "should be replaced by _removed", "unicodeNull": "\u0000", "unicodeNullwithText": "some\u0000text", "lineFeedChar": "\n", "lineFeedCharWithText": "some\ntext", "carriageReturn": "\r", "carriageReturnWithText": "some\rtext", "carriageReturnLineFeed": "\r\n", "carriageReturnLineFeedWithText": "some\r\ntext", "_lastModifiedDateTime": "2019-07-04T07:27:35.104+0000"}
     decrypted_str = json.dumps(decrypted_object)
-    msg = {"decrypted":decrypted_str}
-    actual = validate(msg)
+    actual = validate(decrypted_str)
     assert actual is not None
 
 def test_if_decrypted_dbObject_is_a_valid_json_with_object_id():
     id = {"someId":"RANDOM_GUID","declarationId":1234}
     decrypted_object = {"_id": id, "type": "addressDeclaration", "contractId": 1234, "addressNumber": {"type": "AddressLine", "cryptoId": 1234}, "addressLine2": None, "townCity": {"type": "AddressLine", "cryptoId": 1234}, "postcode": "SM5 2LE", "processId": 1234, "effectiveDate": {"type": "SPECIFIC_EFFECTIVE_DATE", "date": 20150320, "knownDate": 20150320}, "paymentEffectiveDate": {"type": "SPECIFIC_EFFECTIVE_DATE", "date": 20150320, "knownDate": 20150320}, "createdDateTime": {"$date": "2015-03-20T12:23:25.183Z", "_archivedDateTime": "should be replaced by _removedDateTime"}, "_version": 2, "_archived": "should be replaced by _removed", "unicodeNull": "\u0000", "unicodeNullwithText": "some\u0000text", "lineFeedChar": "\n", "lineFeedCharWithText": "some\ntext", "carriageReturn": "\r", "carriageReturnWithText": "some\rtext", "carriageReturnLineFeed": "\r\n", "carriageReturnLineFeedWithText": "some\r\ntext", "_lastModifiedDateTime": "2019-07-04T07:27:35.104+0000"}
     decrypted_str = json.dumps(decrypted_object)
-    msg = {"decrypted":decrypted_str}
-    actual = validate(msg)
+    actual = validate(decrypted_str)
     assert actual is not None
 
 # def Should_Log_Error_If_Decrypted_DbObject_Is_A_InValid_Json
