@@ -146,16 +146,6 @@ resource "aws_security_group_rule" "ingress_hbase_regionserver" {
   security_group_id        = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
 }
 
-resource "aws_security_group_rule" "egress_hbase_regionserver_info" {
-  description              = "Allow outbound requests to HBase RegionServer Info"
-  type                     = "egress"
-  from_port                = 16030
-  to_port                  = 16030
-  protocol                 = "tcp"
-  source_security_group_id = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
-  security_group_id        = aws_security_group.adg_common.id
-}
-
 # Note that there is no ingress equivalent to this rule because HTME has already
 # created it.
 resource "aws_security_group_rule" "egress_adg_to_dks" {
