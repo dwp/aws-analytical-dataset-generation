@@ -47,11 +47,11 @@ locals {
   }
 
   adg_emr_lambda_schedule = {
-    development = "0 0 31 12 ? ?"
-    qa          = "0 0 31 12 ? ?"
-    integration = "0 0 31 12 ? ?"
-    preprod     = "0 0 31 12 ? ?"
-    production  = "0 0 31 12 ? ?"
+    development = "0 0 31 12 ? *"
+    qa          = "0 0 31 12 ? *"
+    integration = "0 0 31 12 ? *"
+    preprod     = "0 0 31 12 ? *"
+    production  = "0 0 31 12 ? *"
   }
 
   adg_log_level = {
