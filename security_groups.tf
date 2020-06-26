@@ -146,6 +146,16 @@ resource "aws_security_group_rule" "ingress_hbase_regionserver" {
   security_group_id        = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
 }
 
+resource "aws_security_group_rule" "egress_hbase_regionserver_info" {
+  description              = "Allow outbound requests to HBase RegionServer Info"
+  type                     = "egress"
+  from_port                = 16030
+  to_port                  = 16030
+  protocol                 = "tcp"
+  source_security_group_id = data.terraform_remote_state.ingest.outputs.emr_common_sg.id
+  security_group_id        = aws_security_group.adg_common.id
+}
+
 # Note that there is no ingress equivalent to this rule because HTME has already
 # created it.
 resource "aws_security_group_rule" "egress_adg_to_dks" {
@@ -156,6 +166,19 @@ resource "aws_security_group_rule" "egress_adg_to_dks" {
   protocol          = "tcp"
   cidr_blocks       = data.terraform_remote_state.crypto.outputs.dks_subnet.cidr_blocks
   security_group_id = aws_security_group.adg_common.id
+}
+
+resource "aws_security_group_rule" "ingress_to_dks" {
+  provider    = aws.crypto
+  description = "Allow inbound requests to DKS from adg"
+  type        = "ingress"
+  protocol    = "tcp"
+  from_port   = 8443
+  to_port     = 8443
+
+  cidr_blocks = [data.terraform_remote_state.internal_compute.outputs.adg_subnet.cidr_blocks]
+
+  security_group_id = data.terraform_remote_state.crypto.outputs.dks_sg_id[local.environment]
 }
 
 # The EMR service will automatically add the ingress equivalent of this rule,
