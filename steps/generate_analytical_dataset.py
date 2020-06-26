@@ -11,7 +11,6 @@ import time
 
 import boto3
 import requests
-from datetime import datetime
 import pytz
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
