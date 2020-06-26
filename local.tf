@@ -47,11 +47,11 @@ locals {
   }
 
   adg_emr_lambda_schedule = {
-    development = "0 0 31 12 ? 2025"
-    qa          = "0 0 31 12 ? 2025"
-    integration = "0 0 31 12 ? 2025"
-    preprod     = "0 0 31 12 ? 2025"
-    production  = "0 0 31 12 ? 2025"
+    development = "0 0 31 12 ? ?"
+    qa          = "0 0 31 12 ? ?"
+    integration = "0 0 31 12 ? ?"
+    preprod     = "0 0 31 12 ? ?"
+    production  = "0 0 31 12 ? ?"
   }
 
   adg_log_level = {
@@ -79,6 +79,12 @@ locals {
       EnableInTransitEncryption = false
       EnableAtRestEncryption    = true
       AtRestEncryptionConfiguration = {
+
+        S3EncryptionConfiguration = {
+          EncryptionMode             = "CSE-Custom"
+          S3Object                   = "s3://${data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id}/emr-encryption-materials-provider/encryption-materials-provider-all.jar"
+          EncryptionKeyProviderClass = "uk.gov.dwp.dataworks.dks.encryptionmaterialsprovider.DKSEncryptionMaterialsProvider"
+        }
         LocalDiskEncryptionConfiguration = {
           EnableEbsEncryption       = true
           EncryptionKeyProviderType = "AwsKms"
