@@ -225,13 +225,11 @@ meta:
       on_failure:
         put: aws-analytical-dataset-generation-pr
         params:
-          context: $BUILD_JOB_NAME
           path: aws-analytical-dataset-generation-pr
           status: failure
       on_success:
         put: aws-analytical-dataset-generation-pr
         params:
-          context: $BUILD_JOB_NAME
           path: aws-analytical-dataset-generation-pr
           status: success
 

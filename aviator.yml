@@ -12,6 +12,6 @@ spruce:
 fly:
   name: aws-analytical-dataset-generation
   target: aws-concourse
-  expose: false
+  expose: true
   check_creds: true
   config: aviator_pipeline.yml
