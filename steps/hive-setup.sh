@@ -26,6 +26,7 @@ sudo mv hbase-site.xml /etc/hbase/conf/
 
 log_wrapper_message "Generating list of current HBase tables"
 hbasetables=`echo 'list' | hbase shell > current_hbase_tables`
+sudo mv current_hbase_tables /opt/emr/
 
 aws s3 cp "${python_logger}" /opt/emr/.
 aws s3 cp "${generate_analytical_dataset}" /opt/emr/.
