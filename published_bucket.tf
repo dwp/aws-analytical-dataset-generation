@@ -14,11 +14,26 @@ data "aws_iam_role" "aws_config" {
   name = "aws_config"
 }
 
+data "aws_iam_policy_document" "published_bucket_kms_key" {
+  statement {
+    sid       = "Enable root-delegated access control"
+    effect    = "Allow"
+    actions   = ["kms:*"]
+    resources = ["*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${local.account[local.environment]}:root"]
+    }
+  }
+}
+
 resource "aws_kms_key" "published_bucket_cmk" {
   description             = "UCFS published Bucket Master Key"
   deletion_window_in_days = 7
   is_enabled              = true
   enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.published_bucket_kms_key.json
 
   # ProtectsSensitiveData = "False" because, although this bucket is likely to
   # contain PII, its primary form of protection should be CloudHSM-managed
