@@ -77,13 +77,23 @@ resource "aws_security_group_rule" "egress_https_dynamodb_endpoint" {
 }
 
 resource "aws_security_group_rule" "egress_internet_proxy" {
-  description       = "Allow Internet access via the proxy (for ACM-PCA)"
-  type              = "egress"
-  from_port         = 3128
-  to_port           = 3128
-  protocol          = "tcp"
-  cidr_blocks       = data.terraform_remote_state.internet_egress.outputs.proxy_subnet.cidr_blocks
-  security_group_id = aws_security_group.adg_common.id
+  description              = "Allow Internet access via the proxy (for ACM-PCA)"
+  type                     = "egress"
+  from_port                = 3128
+  to_port                  = 3128
+  protocol                 = "tcp"
+  source_security_group_id = data.terraform_remote_state.internal_compute.outputs.internet_proxy.sg
+  security_group_id        = aws_security_group.adg_common.id
+}
+
+resource "aws_security_group_rule" "ingress_internet_proxy" {
+  description              = "Allow proxy access from ADG"
+  type                     = "ingress"
+  from_port                = 3128
+  to_port                  = 3128
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.adg_common.id
+  security_group_id        = data.terraform_remote_state.internal_compute.outputs.internet_proxy.sg
 }
 
 resource "aws_security_group_rule" "egress_hbase_zookeeper" {
