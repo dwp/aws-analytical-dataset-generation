@@ -31,7 +31,7 @@ resource "aws_s3_bucket_object" "installer_sh" {
   key    = "component/analytical-dataset-generation/installer.sh"
   content = templatefile("${path.module}/bootstrap_actions/installer.sh",
     {
-      full_proxy    = data.terraform_remote_state.internet_egress.outputs.internet_proxy.http_address
+      full_proxy    = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
       full_no_proxy = local.no_proxy
     }
   )
