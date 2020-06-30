@@ -42,6 +42,11 @@ resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_write_pa
   policy_arn = aws_iam_policy.analytical_dataset_generator_write_parquet.arn
 }
 
+resource "aws_iam_role_policy_attachment" "analytical_env_read_parquet" {
+  role       = data.terraform_remote_state.analytical-env.outputs.emrfs_iam_roles
+  policy_arn = aws_iam_policy.analytical_env_read_parquet.arn
+}
+
 resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_gluetables" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_generator_gluetables_write.arn

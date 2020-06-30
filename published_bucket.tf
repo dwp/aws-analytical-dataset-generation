@@ -184,3 +184,22 @@ resource "aws_iam_policy" "analytical_dataset_generator_write_parquet" {
   description = "Allow writing of Analytical Dataset parquet files"
   policy      = data.aws_iam_policy_document.analytical_dataset_generator_write_parquet.json
 }
+
+data "aws_iam_policy_document" "analytical_env_read_parquet" {
+  statement {
+    sid    = "Allow analytical env to read and decrypt files in published bucket"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+    ]
+    resources = [
+      aws_s3_bucket.published.arn,
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_env_read_parquet" {
+  name        = "AnalytivalEnvReadParqutaws-analytical-environment-app."
+  description = "Policy to allow use of KMS Key to access published bucket"
+  policy      = data.aws_iam_policy_document.analytical_env_read_parquet.json
+}
