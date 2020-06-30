@@ -158,7 +158,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_write_parquet" {
     ]
 
     resources = [
-      "${aws_s3_bucket.published.arn}/*",
+      "${aws_s3_bucket.published.arn}/analytical-dataset/*",
     ]
   }
 
@@ -183,4 +183,50 @@ resource "aws_iam_policy" "analytical_dataset_generator_write_parquet" {
   name        = "AnalyticalDatasetGeneratorWriteParquet"
   description = "Allow writing of Analytical Dataset parquet files"
   policy      = data.aws_iam_policy_document.analytical_dataset_generator_write_parquet.json
+}
+
+data "aws_iam_policy_document" "analytical_dataset_read_only" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      aws_s3_bucket.published.arn,
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.published.arn}/analytical-dataset/*",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+    ]
+
+    resources = [
+      "${aws_kms_key.published_bucket_cmk.arn}",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_read_only" {
+  name        = "AnalyticalDatasetReadOnly"
+  description = "Allow read access to the Analytical Dataset"
+  policy      = data.aws_iam_policy_document.analytical_dataset_read_only.json
 }
