@@ -199,7 +199,7 @@ data "aws_iam_policy_document" "analytical_env_read_parquet" {
 }
 
 resource "aws_iam_policy" "analytical_env_read_parquet" {
-  name        = "AnalytivalEnvReadParqutaws-analytical-environment-app."
+  name        = "AnalytivalEnvReadParquet"
   description = "Policy to allow use of KMS Key to access published bucket"
   policy      = data.aws_iam_policy_document.analytical_env_read_parquet.json
 }
