@@ -185,7 +185,7 @@ resource "aws_iam_policy" "analytical_dataset_generator_write_parquet" {
   policy      = data.aws_iam_policy_document.analytical_dataset_generator_write_parquet.json
 }
 
-data "aws_iam_policy_document" "analytical_dataset_generator_read_parquet" {
+data "aws_iam_policy_document" "analytical_dataset_generator_read_only" {
   statement {
     effect = "Allow"
 
@@ -225,8 +225,8 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_parquet" {
   }
 }
 
-resource "aws_iam_policy" "analytical_dataset_generator_read_parquet" {
-  name        = "AnalyticalDatasetGeneratorReadParquet"
-  description = "Allow reading of Analytical Dataset parquet files"
-  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_parquet.json
+resource "aws_iam_policy" "analytical_dataset_generator_read_only" {
+  name        = "AnalyticalDatasetReadOnly"
+  description = "Allow read access to the Analytical Dataset"
+  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_only.json
 }
