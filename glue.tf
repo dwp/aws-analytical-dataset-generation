@@ -29,7 +29,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_gluetables_write" {
       "glue:DeleteTable",
       "glue:GetDatabase*",
       "glue:GetUserDefinedFunctions",
-      "glue:GetTable*"
+      "glue:GetTable*",
     ]
 
     resources = [
