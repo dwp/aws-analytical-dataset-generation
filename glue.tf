@@ -27,6 +27,9 @@ data "aws_iam_policy_document" "analytical_dataset_generator_gluetables_write" {
     actions = [
       "glue:CreateTable",
       "glue:DeleteTable",
+      "glue:GetDatabase*",
+      "glue:GetUserDefinedFunctions",
+      "glue:GetTable*",
     ]
 
     resources = [
@@ -35,6 +38,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_gluetables_write" {
       "arn:aws:glue:${var.region}:${local.account[local.environment]}:database/${aws_glue_catalog_database.analytical_dataset_generation.name}",
       "arn:aws:glue:${var.region}:${local.account[local.environment]}:table/${aws_glue_catalog_database.analytical_dataset_generation.name}/*",
       "arn:aws:glue:${var.region}:${local.account[local.environment]}:catalog",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:default",
     ]
   }
 }
