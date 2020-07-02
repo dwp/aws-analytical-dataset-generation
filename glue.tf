@@ -25,7 +25,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_gluetables_write" {
     effect = "Allow"
 
     actions = [
-      "*",
+      "glue:*",
     ]
 
     resources = [
