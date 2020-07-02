@@ -49,7 +49,7 @@ locals {
   adg_emr_lambda_schedule = {
     development = "1 0 * * ? *"
     qa          = "1 0 * * ? *"
-    integration = "30 11 2 Jul ? 2020" # trigger one off temp increase for DW-4437 testing
+    integration = "30 14 2 Jul ? 2020" # trigger one off temp increase for DW-4437 testing
     preprod     = "1 0 * * ? *"
     production  = "1 0 * * ? 2025"
   }
