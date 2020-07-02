@@ -29,7 +29,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_gluetables_write" {
     ]
 
     resources = [
-      "*",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:*"
     ]
   }
 }
