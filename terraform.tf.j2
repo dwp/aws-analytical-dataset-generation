@@ -179,7 +179,7 @@ data "terraform_remote_state" "crypto" {
 
 data "terraform_remote_state" "mgmt_ca" {
   backend   = "s3"
-  workspace = "management-dev"
+  workspace = local.management_account[local.environment]
 
   config = {
     bucket         = "{{state_file_bucket}}"
@@ -193,7 +193,7 @@ data "terraform_remote_state" "mgmt_ca" {
 
 data "terraform_remote_state" "internet_egress" {
   backend   = "s3"
-  workspace = "default"
+  workspace = local.management_workspace[local.management_account[local.environment]]
 
   config = {
     bucket         = "{{state_file_bucket}}"
