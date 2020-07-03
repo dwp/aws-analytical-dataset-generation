@@ -56,8 +56,8 @@ resource "aws_s3_bucket_object" "configurations" {
       s3_ingest_bucket         = data.terraform_remote_state.ingest.outputs.s3_buckets.input_bucket
       hbase_root_path          = local.hbase_root_path
       proxy_no_proxy           = replace(replace(local.no_proxy, ",", "|"), ".s3", "*.s3")
-      proxy_http_address       = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
-      proxy_https_address      = data.terraform_remote_state.internet_egress.outputs.internet_proxy.dns_name
+      proxy_http_address       = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
+      proxy_https_address      = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
       zookeeper_quorum         = data.terraform_remote_state.ingest.outputs.hbase_fqdn
       emrfs_metadata_tablename = local.emrfs_metadata_tablename
     }
