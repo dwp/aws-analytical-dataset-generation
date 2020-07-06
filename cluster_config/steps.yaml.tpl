@@ -24,6 +24,8 @@ Steps:
     - "yarn"
     - "--conf"
     - "spark.yarn.submit.waitAppCompletion=true"
+    - "--files"
+    - "/etc/hbase/conf/hbase-site.xml"
     Jar: "command-runner.jar"
   ActionOnFailure: "CONTINUE"
 
