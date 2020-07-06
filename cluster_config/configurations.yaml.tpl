@@ -31,7 +31,7 @@ Configurations:
     "hbase.client.timeout.ms": "3600000"
     "hbase.scanner.timeout.ms": "1200000"
     "hbase.rpc.timeout.ms": "1800000"
-    "use.timeline.consistency":"true"
+    "use.timeline.consistency": "true"
 - Classification: "hive-site"
   Properties:
     "hive.metastore.schema.verification": "false"
@@ -41,7 +41,7 @@ Configurations:
     "hbase.client.timeout.ms": "3600000"
     "hbase.scanner.timeout.ms": "1200000"
     "hbase.rpc.timeout.ms": "1800000"
-    "use.timeline.consistency":"true"
+    "use.timeline.consistency": "true"
 - Classification: "emrfs-site"
   Properties:
     "fs.s3.consistent": "true"
