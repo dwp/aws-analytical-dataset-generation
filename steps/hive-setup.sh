@@ -20,9 +20,26 @@ cat > hbase-site.xml << EOF
       <name>hbase.zookeeper.quorum</name>
       $hbase_quorum
 </property>
+<property>
+      <name>hbase.client.timeout.ms</name>
+      <value>3600000</value>
+</property>
+<property>
+      <name>hbase.scanner.timeout.ms</name>
+      <value>1200000</value>
+</property>
+<property>
+      <name>hbase.rpc.timeout.ms</name>
+      <value>1800000</value>
+</property>
+<property>
+      <name>use.timeline.consistency</name>
+      <value>true</value>
+</property>
 </configuration>
 EOF
 sudo mv hbase-site.xml /etc/hbase/conf/
+sudo cp /etc/hbase/conf/hbase-site.xml /etc/spark/conf/
 
 log_wrapper_message "Generating list of current HBase tables"
 hbasetables=`echo 'list' | hbase shell > current_hbase_tables`
