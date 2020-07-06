@@ -25,11 +25,26 @@ data "aws_iam_policy_document" "analytical_dataset_generator_gluetables_write" {
     effect = "Allow"
 
     actions = [
-      "glue:*",
+      "glue:GetTable*",
+      "glue:GetDatabase*",
+      "glue:DeleteTable",
+      "glue:CreateTable",
+      "glue:GetPartitions",
+      "glue:GetUserDefinedFunctions"
     ]
 
     resources = [
-      "arn:aws:glue:${var.region}:${local.account[local.environment]}:*"
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:table/analytical_dataset_generation_staging/*",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:table/analytical_dataset_generation/*",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:database/default",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:table/default/*",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:database/analytical_dataset_generation_staging",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:database/analytical_dataset_generation",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:database/global_temp",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:catalog",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:userDefinedFunction/analytical_dataset_generation_staging/*",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:userDefinedFunction/analytical_dataset_generation/*",
+      "arn:aws:glue:${var.region}:${local.account[local.environment]}:userDefinedFunction/default/*"
     ]
   }
 }

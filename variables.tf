@@ -37,6 +37,6 @@ variable "emr_instance_type" {
     qa          = "m5.2xlarge"
     integration = "m5.8xlarge"  # temp increase for DW-4437 testing
     preprod     = "m5.2xlarge"
-    production  = "m5.2xlarge"
+    production  = "m5.8xlarge"
   }
 }
