@@ -303,8 +303,9 @@ def get_valid_parsed_date_time(time_stamp_as_string):
     for time_stamp_fmt in valid_timestamps:
         try:
             return datetime.datetime.strptime(time_stamp_as_string, time_stamp_fmt)
-        except Exception:
-            print(f"timestampAsString did not match valid format {time_stamp_fmt}")
+        except:
+            pass
+            #print(f"timestampAsString did not match valid format {time_stamp_fmt}")
 
     # TODO Think about the below exception later on
     raise Exception(
