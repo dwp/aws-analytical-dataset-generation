@@ -21,20 +21,16 @@ cat > hbase-site.xml << EOF
       $hbase_quorum
 </property>
 <property>
-      <name>hbase.client.timeout.ms</name>
+      <name>hbase.client.operation.timeout</name>
       <value>3600000</value>
 </property>
 <property>
-      <name>hbase.scanner.timeout.ms</name>
+      <name>hbase.client.scanner.timeout.period</name>
       <value>1200000</value>
 </property>
 <property>
-      <name>hbase.rpc.timeout.ms</name>
+      <name>hbase.rpc.timeout</name>
       <value>1800000</value>
-</property>
-<property>
-      <name>use.timeline.consistency</name>
-      <value>true</value>
 </property>
 </configuration>
 EOF
