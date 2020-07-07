@@ -34,3 +34,8 @@ Neither present a metrics endpoint natively.  The [Python Client](https://github
 • Hive writes (Gauge)  
 • Parquet writes (Gauge)  
 • Exit (Counter)  
+
+**_GLUE_**
+
+• writes (Gauge) 
+• reads (Gauge)  
