@@ -318,5 +318,5 @@ meta:
               set +x
               for CLUSTER_ID in $(aws emr list-clusters --active | jq -r '.Clusters[] | select(.Name | test("analytical-dataset-generator")) | .Id');
               do
-                aws emr terminate-clusters --cluster-ids $INSTANCE_ID
+                aws emr terminate-clusters --cluster-ids $CLUSTER_ID
               done
