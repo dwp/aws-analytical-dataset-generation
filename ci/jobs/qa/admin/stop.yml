@@ -1,0 +1,9 @@
+jobs:
+  - name: qa-start-cluster
+    plan:
+      - get: aws-analytical-dataset-generation
+        trigger: false
+      - .: (( inject meta.plan.stop-cluster ))
+        config:
+          params:
+            AWS_ROLE_ARN: arn:aws:iam::((dataworks.aws_qa_acc)):role/ci

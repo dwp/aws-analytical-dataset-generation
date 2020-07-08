@@ -122,8 +122,8 @@ meta:
       params:
         TF_CLI_ARGS_plan: -lock-timeout=300s
         TF_INPUT: "false"
-#        AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
-#        AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
+    #        AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
+    #        AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
 
     terraform-output-ingest:
       task: terraform-output-ingest
@@ -202,7 +202,7 @@ meta:
           - name: terraform-output-internal-compute
       params:
         E2E_TEST_TIMEOUT: 2700
-        E2E_FEATURE_TAG_FILTER: '@synthetic-data-ingestion'
+        E2E_FEATURE_TAG_FILTER: "@synthetic-data-ingestion"
 
     unit-tests:
       task: unit-tests
@@ -224,50 +224,99 @@ meta:
       input_mapping:
         aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
 
-#    create-aws-profiles:
-#      task: create-aws-profiles
-#      config:
-#        platform: linux
-#        image_resource:
-#          type: docker-image
-#          source:
-#            repository: ((dataworks.docker_awscli_repository))
-#            tag: ((dataworks.docker_awscli_version))
-#        outputs:
-#          - name: .aws
-#        params:
-#          AWS_ROLE_ARN: arn:aws:iam::((dataworks.aws_management_acc)):role/ci
-#          AWS_DEFAULT_REGION: ((dataworks.aws_region))
-#          AWS_ACC:
-#          AWS_ROLE: ci
-#        run:
-#          path: sh
-#          args:
-#            - -exc
-#            - |
-#              /assume-role
-#              cat <<EOF> .aws/credentials
-#              [default]
-#              aws_access_key_id = $AWS_ACCESS_KEY_ID
-#              aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
-#              EOF
-#              cat <<EOF> .aws/config
-#              [default]
-#              region = eu-west-2
-#              [profile output]
-#              role_arn = arn:aws:iam::$AWS_ACC:role/$AWS_ROLE
-#              source_profile = default
-#              region = eu-west-2
-#              s3 =
-#                max_concurrent_requests = 5
-#                signature_version = s3v4
-#                addressing_style = virtual
-#              [profile input]
-#              role_arn = arn:aws:iam::$SYNTHETIC_RAWDATA_AWS_ACC:role/$AWS_ROLE
-#              source_profile = default
-#              region = eu-west-2
-#              s3 =
-#                max_concurrent_requests = 5
-#                signature_version = s3v4
-#                addressing_style = virtual
-#              EOF
+    #    create-aws-profiles:
+    #      task: create-aws-profiles
+    #      config:
+    #        platform: linux
+    #        image_resource:
+    #          type: docker-image
+    #          source:
+    #            repository: ((dataworks.docker_awscli_repository))
+    #            tag: ((dataworks.docker_awscli_version))
+    #        outputs:
+    #          - name: .aws
+    #        params:
+    #          AWS_ROLE_ARN: arn:aws:iam::((dataworks.aws_management_acc)):role/ci
+    #          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+    #          AWS_ACC:
+    #          AWS_ROLE: ci
+    #        run:
+    #          path: sh
+    #          args:
+    #            - -exc
+    #            - |
+    #              /assume-role
+    #              cat <<EOF> .aws/credentials
+    #              [default]
+    #              aws_access_key_id = $AWS_ACCESS_KEY_ID
+    #              aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+    #              EOF
+    #              cat <<EOF> .aws/config
+    #              [default]
+    #              region = eu-west-2
+    #              [profile output]
+    #              role_arn = arn:aws:iam::$AWS_ACC:role/$AWS_ROLE
+    #              source_profile = default
+    #              region = eu-west-2
+    #              s3 =
+    #                max_concurrent_requests = 5
+    #                signature_version = s3v4
+    #                addressing_style = virtual
+    #              [profile input]
+    #              role_arn = arn:aws:iam::$SYNTHETIC_RAWDATA_AWS_ACC:role/$AWS_ROLE
+    #              source_profile = default
+    #              region = eu-west-2
+    #              s3 =
+    #                max_concurrent_requests = 5
+    #                signature_version = s3v4
+    #                addressing_style = virtual
+    #              EOF
+
+    start-cluster:
+      task: start-cluster
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.docker_awscli_repository))
+            version: ((dataworks.docker_awscli_version))
+            tag: ((dataworks.docker_awscli_version))
+        params:
+          AWS_ROLE_ARN: arn:aws:iam::((dataworks.aws_management_acc)):role/ci
+          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              export AWS_DEFAULT_REGION
+              source /assume-role
+              set +x
+              aws lambda invoke --function-name adg_emr_launcher outfile
+
+    stop-cluster:
+      task: stop-cluster
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.docker_awscli_repository))
+            version: ((dataworks.docker_awscli_version))
+            tag: ((dataworks.docker_awscli_version))
+        params:
+          AWS_ROLE_ARN: arn:aws:iam::((dataworks.aws_management_acc)):role/ci
+          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              export AWS_DEFAULT_REGION
+              source /assume-role
+              set +x
+              for INSTANCE_ID in $(aws emr list-clusters --active | jq -r '.Clusters[].Id');
+              do
+                aws emr terminate-clusters --cluster-ids $INSTANCE_ID
+              done
