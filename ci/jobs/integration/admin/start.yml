@@ -6,4 +6,4 @@ jobs:
       - .: (( inject meta.plan.start-cluster ))
         config:
           params:
-            AWS_ROLE_ARN: arn:aws:iam::((dataworks.aws_inegration_acc)):role/ci
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
