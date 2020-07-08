@@ -316,7 +316,7 @@ meta:
               export AWS_DEFAULT_REGION
               source /assume-role
               set +x
-              for INSTANCE_ID in $(aws emr list-clusters --active | jq -r '.Clusters[] | select(.Name | test("analytical-dataset-generator")) | .Id');
+              for CLUSTER_ID in $(aws emr list-clusters --active | jq -r '.Clusters[] | select(.Name | test("analytical-dataset-generator")) | .Id');
               do
                 aws emr terminate-clusters --cluster-ids $INSTANCE_ID
               done
