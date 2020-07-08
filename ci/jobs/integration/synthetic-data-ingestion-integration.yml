@@ -12,10 +12,6 @@ jobs:
       trigger: false
     - get: aws-management-infrastructure
       trigger: false
-    config:
-      params:
-        AWS_ACC: ((aws_account.integration))
-        SYNTHETIC_RAWDATA_AWS_ACC: ((aws_account.management-dev))
   - .: (( inject meta.plan.terraform-bootstrap ))
     params:
       TF_WORKSPACE: integration

@@ -12,10 +12,6 @@ jobs:
             trigger: false
           - get: aws-management-infrastructure
             trigger: false
-        config:
-          params:
-            AWS_ACC: ((aws_account.development))
-            SYNTHETIC_RAWDATA_AWS_ACC: ((aws_account.management-dev))
       - .: (( inject meta.plan.terraform-bootstrap ))
       - .: (( inject meta.plan.terraform-output-ingest ))
       - .: (( inject meta.plan.terraform-output-internal-compute ))
