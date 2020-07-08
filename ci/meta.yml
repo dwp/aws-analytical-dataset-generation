@@ -19,6 +19,7 @@ meta:
       task: terraform-bootstrap
       .: (( inject meta.plan.terraform-common-config ))
       config:
+        platform: linux
         run:
           path: sh
           args:

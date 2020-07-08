@@ -1,30 +1,30 @@
 jobs:
-- name: synthetic-data-ingestion-dev
-  plan:
-  - in_parallel:
-    - get: aws-analytical-dataset-generation
-      trigger: false
-    - get: aws-ingestion
-      trigger: false
-    - get: aws-internal-compute
-      trigger: false
-    - get: aws-dataworks-e2e-framework
-      trigger: false
-    - get: aws-management-infrastructure
-      trigger: false
-    config:
-      params:
-        AWS_ACC: ((aws_account.development))
-        SYNTHETIC_RAWDATA_AWS_ACC: ((aws_account.management-dev))
-  - .: (( inject meta.plan.terraform-bootstrap ))
-  - .: (( inject meta.plan.terraform-output-ingest ))
-  - .: (( inject meta.plan.terraform-output-internal-compute ))
-  - .: (( inject meta.plan.terraform-output-management-infra ))
-  - .: (( inject meta.plan.synthetic-data-ingestion ))
-    config:
-      params:
-        AWS_ACC: ((aws_account.development))
-        SYNTHETIC_RAWDATA_AWS_ACC: ((aws_account.management-dev))
-        SYNTHETIC_RAWDATA_PREFIX: "synthetic-data/raw"
-        SYNTHETIC_ENCDATA_PREFIX: "synthetic-data/encrypted"
-        IS_SYNTHETIC_DATA_INGESTION: "TRUE"
+  - name: synthetic-data-ingestion-dev
+    plan:
+      - in_parallel:
+          - get: aws-analytical-dataset-generation
+            trigger: false
+          - get: aws-ingestion
+            trigger: false
+          - get: aws-internal-compute
+            trigger: false
+          - get: aws-dataworks-e2e-framework
+            trigger: false
+          - get: aws-management-infrastructure
+            trigger: false
+        config:
+          params:
+            AWS_ACC: ((aws_account.development))
+            SYNTHETIC_RAWDATA_AWS_ACC: ((aws_account.management-dev))
+      - .: (( inject meta.plan.terraform-bootstrap ))
+      - .: (( inject meta.plan.terraform-output-ingest ))
+      - .: (( inject meta.plan.terraform-output-internal-compute ))
+      - .: (( inject meta.plan.terraform-output-management-infra ))
+      - .: (( inject meta.plan.synthetic-data-ingestion ))
+        config:
+          params:
+            AWS_ACC: ((aws_account.development))
+            SYNTHETIC_RAWDATA_AWS_ACC: ((aws_account.management-dev))
+            SYNTHETIC_RAWDATA_PREFIX: "synthetic-data/raw"
+            SYNTHETIC_ENCDATA_PREFIX: "synthetic-data/encrypted"
+            IS_SYNTHETIC_DATA_INGESTION: "TRUE"
