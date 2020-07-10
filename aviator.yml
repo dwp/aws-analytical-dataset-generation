@@ -17,7 +17,7 @@ spruce:
       - with_in: ci/jobs/production/admin/
     to: aviator_pipeline.yml
 fly:
-  name: aws-analytical-dataset-generation
+  name: analytical-dataset-generation
   target: aws-concourse
   expose: true
   check_creds: true
