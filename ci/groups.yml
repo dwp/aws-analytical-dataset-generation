@@ -14,4 +14,19 @@ groups:
       - synthetic-data-ingestion-dev
       - synthetic-data-ingestion-integration
       - synthetic-data-ingestion-qa
-
+  - name: admin-qa
+    jobs:
+      - qa-start-cluster
+      - qa-stop-cluster
+  - name: admin-int
+    jobs:
+      - int-start-cluster
+      - int-stop-cluster
+  - name: admin-preprod
+    jobs:
+      - preprod-start-cluster
+      - preprod-stop-cluster
+  - name: admin-prod
+    jobs:
+      - prod-start-cluster
+      - prod-stop-cluster

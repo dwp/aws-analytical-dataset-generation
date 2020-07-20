@@ -285,5 +285,71 @@ data "aws_iam_policy_document" "analytical_dataset_crown_read_only" {
 resource "aws_iam_policy" "analytical_dataset_crown_read_only" {
   name        = "AnalyticalDatasetCrownReadOnly"
   description = "Allow read access to the Crown-specific subset of the Analytical Dataset"
-  policy      = data.aws_iam_policy_document.analytical_dataset_read_only.json
+  policy      = data.aws_iam_policy_document.analytical_dataset_crown_read_only.json
+}
+
+data "aws_iam_policy_document" "analytical_dataset_crown_read_only_non_pii" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      aws_s3_bucket.published.arn,
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:Get*",
+      "s3:List*",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.published.arn}/analytical-dataset/*",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "s3:ExistingObjectTag/Pii"
+
+      values = [
+        "false"
+      ]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "s3:ExistingObjectTag/collection_tag"
+
+      values = [
+        "crown"
+      ]
+
+    }
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+    ]
+
+    resources = [
+      "${aws_kms_key.published_bucket_cmk.arn}",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_crown_read_only_non_pii" {
+  name        = "AnalyticalDatasetCrownReadOnlyNonPii"
+  description = "Allow read access to the Crown-specific subset of the Analytical Dataset"
+  policy      = data.aws_iam_policy_document.analytical_dataset_crown_read_only_non_pii.json
 }

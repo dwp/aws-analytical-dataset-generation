@@ -6,11 +6,18 @@ spruce:
       - with_in: ci/
         regexp: ".*yml"
       - with_in: ci/jobs/
-        except:
-        - synthetic-data-ingestion-dev.yml.j2
+      - with_in: ci/jobs/dev/
+      - with_in: ci/jobs/qa/
+      - with_in: ci/jobs/qa/admin/
+      - with_in: ci/jobs/integration/
+      - with_in: ci/jobs/integration/admin/
+      - with_in: ci/jobs/preprod/
+      - with_in: ci/jobs/preprod/admin/
+      - with_in: ci/jobs/production/
+      - with_in: ci/jobs/production/admin/
     to: aviator_pipeline.yml
 fly:
-  name: aws-analytical-dataset-generation
+  name: analytical-dataset-generation
   target: aws-concourse
   expose: true
   check_creds: true
