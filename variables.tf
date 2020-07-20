@@ -34,9 +34,40 @@ variable "emr_ami_id" {
 variable "emr_instance_type" {
   default = {
     development = "m5.8xlarge"
-    qa          = "m5.2xlarge"
-    integration = "m5.8xlarge" # temp increase for DW-4437 testing
-    preprod     = "m5.2xlarge"
-    production  = "m5.8xlarge"
+    qa = "m5.2xlarge"
+    integration = "m5.8xlarge"
+    # temp increase for DW-4437 testing
+    preprod = "m5.2xlarge"
+    production = "m5.24xlarge"
+  }
+}
+
+variable "emr_no_core_nodes" {
+    default = {
+      development = "2"
+      qa          = "2"
+      integration = "2"
+      preprod     = "2"
+      production  = "20"
+    }
+}
+
+variable "emr_maxExecutors" {
+  default = {
+    development = "20"
+    qa          = "20"
+    integration = "20"
+    preprod     = "20"
+    production  = "1900"
+  }
+}
+
+variable "emr_minExecutors" {
+  default = {
+    development = "10"
+    qa          = "10"
+    integration = "10"
+    preprod     = "10"
+    production  = "100"
   }
 }
