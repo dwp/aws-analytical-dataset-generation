@@ -31,6 +31,7 @@ resource "aws_s3_bucket_object" "instances" {
       slave_sg           = aws_security_group.adg_slave.id
       service_access_sg  = aws_security_group.adg_emr_service.id
       instance_type      = var.emr_instance_type[local.environment]
+      no_core_nodes      = var.emr_no_core_nodes[local.environment]
     }
   )
 }
@@ -62,6 +63,9 @@ resource "aws_s3_bucket_object" "configurations" {
       proxy_https_port         = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
       zookeeper_quorum         = data.terraform_remote_state.ingest.outputs.hbase_fqdn
       emrfs_metadata_tablename = local.emrfs_metadata_tablename
+      maxExecutors             = var.emr_maxExecutors[local.environment]
+      minExecutors             = var.emr_minExecutors[local.environment]
+
     }
   )
 }
