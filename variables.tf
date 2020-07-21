@@ -42,13 +42,13 @@ variable "emr_instance_type" {
   }
 }
 
-variable "emr_no_core_nodes" {
+  variable "emr_no_core_nodes" {
   default = {
     development = "2"
     qa          = "2"
     integration = "2"
     preprod     = "2"
-    production  = "20"
+    production  = "12"
   }
 }
 
@@ -58,7 +58,7 @@ variable "emr_maxExecutors" {
     qa          = "20"
     integration = "20"
     preprod     = "20"
-    production  = "1900"
+    production  = "1100"
   }
 }
 
@@ -100,7 +100,7 @@ variable "emr_weightedcapacity_1" {
     qa          = "2"
     integration = "2"
     preprod     = "2"
-    production  = "20"
+    production  = "12"
   }
 }
 
@@ -110,7 +110,7 @@ variable "emr_weightedcapacity_2" {
     qa          = "2"
     integration = "2"
     preprod     = "2"
-    production  = "40"
+    production  = "24"
   }
 }
 
