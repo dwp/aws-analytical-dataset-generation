@@ -41,4 +41,4 @@ Instances:
             VolumeType: "gp2"
           VolumesPerInstance: 1
       InstanceType: "${core_instance_type_2}"
-      WeightedCapacity : ${weightedcapacity_2}
+      WeightedCapacity: ${weightedcapacity_2}
