@@ -25,7 +25,7 @@ Instances:
     Name: CORE
     TargetOnDemandCapacity: ${no_core_nodes}
     InstanceTypeConfigs:
-      EbsConfiguration:
+    - EbsConfiguration:
         EbsBlockDeviceConfigs:
         - VolumeSpecification:
             SizeInGB: 250

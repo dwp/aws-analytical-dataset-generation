@@ -42,7 +42,7 @@ variable "emr_instance_type" {
   }
 }
 
-  variable "emr_no_core_nodes" {
+variable "emr_no_core_nodes" {
   default = {
     development = "2"
     qa          = "2"
