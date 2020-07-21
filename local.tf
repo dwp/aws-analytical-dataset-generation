@@ -52,7 +52,7 @@ locals {
   }
 
   adg_emr_lambda_schedule = {
-    development = "1 0 * * ? *"
+    development = "1 0 * * ? 2099"
     qa          = "1 0 * * ? *"
     integration = "00 14 6 Jul ? 2020" # trigger one off temp increase for DW-4437 testing
     preprod     = "1 0 * * ? *"
@@ -100,7 +100,7 @@ locals {
   }
 
   keep_cluster_alive = {
-    development = true
+    development = false
     qa          = false
     integration = false
     preprod     = false
