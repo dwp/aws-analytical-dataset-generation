@@ -113,10 +113,3 @@ variable "emr_weightedcapacity_2" {
     production  = "24"
   }
 }
-
-
-
-
-
-
-
