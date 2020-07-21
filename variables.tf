@@ -71,3 +71,52 @@ variable "emr_minExecutors" {
     production  = "100"
   }
 }
+
+variable "emr_core_instance_type_1" {
+  default = {
+    development = "m5.8xlarge"
+    qa          = "m5.2xlarge"
+    integration = "m5.8xlarge"
+    preprod     = "m5.2xlarge"
+    production  = "m5.24xlarge"
+  }
+}
+
+
+variable "emr_core_instance_type_2" {
+  default = {
+    development = "m5.8xlarge"
+    qa          = "m5.2xlarge"
+    integration = "m5.8xlarge"
+    preprod     = "m5.2xlarge"
+    production  = "m5.12xlarge"
+  }
+}
+
+
+variable "emr_weightedcapacity_1" {
+  default = {
+    development = "2"
+    qa          = "2"
+    integration = "2"
+    preprod     = "2"
+    production  = "20"
+  }
+}
+
+variable "emr_weightedcapacity_2" {
+  default = {
+    development = "2"
+    qa          = "2"
+    integration = "2"
+    preprod     = "2"
+    production  = "40"
+  }
+}
+
+
+
+
+
+
+
