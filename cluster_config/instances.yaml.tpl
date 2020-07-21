@@ -34,11 +34,11 @@ Instances:
       InstanceType: "${core_instance_type_1}"
       WeightedCapacity: ${weightedcapacity_1}
     InstanceTypeConfigs:
-          EbsConfiguration:
-            EbsBlockDeviceConfigs:
-            - VolumeSpecification:
-                SizeInGB: 250
-                VolumeType: "gp2"
-              VolumesPerInstance: 1
-          InstanceType: "${core_instance_type_2}"
-          WeightedCapacity : ${weightedcapacity_2}
+    - EbsConfiguration:
+        EbsBlockDeviceConfigs:
+        - VolumeSpecification:
+            SizeInGB: 250
+            VolumeType: "gp2"
+          VolumesPerInstance: 1
+      InstanceType: "${core_instance_type_2}"
+      WeightedCapacity : ${weightedcapacity_2}
