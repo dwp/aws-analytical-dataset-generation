@@ -20,9 +20,9 @@ Configurations:
     "spark.sql.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
     "spark.dynamicAllocation.enabled": "true"
     "spark.default.parallelism": "30"
-    "spark.dynamicAllocation.initialExecutors": "10"
-    "spark.dynamicAllocation.minExecutors": "10"
-    "spark.dynamicAllocation.maxExecutors": "20"
+    "spark.dynamicAllocation.initialExecutors": "${minExecutors}"
+    "spark.dynamicAllocation.minExecutors": "${minExecutors}"
+    "spark.dynamicAllocation.maxExecutors": "${maxExecutors}"
 
 - Classification: "spark-hive-site"
   Properties:
@@ -31,6 +31,10 @@ Configurations:
     "hbase.client.scanner.timeout.period": "1200000"
     "hbase.rpc.timeout": "1800000"
     "hbase.client.operation.timeout": "3600000"
+    "hbase.scan.cache": "1000000"
+    "hbase.scan.cacheblock": "false"
+    "hbase.scan.batch": "2"
+
 - Classification: "hive-site"
   Properties:
     "hive.metastore.schema.verification": "false"
