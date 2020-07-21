@@ -31,6 +31,10 @@ Configurations:
     "hbase.client.scanner.timeout.period": "1200000"
     "hbase.rpc.timeout": "1800000"
     "hbase.client.operation.timeout": "3600000"
+    "hbase.scan.cache": "1000000"
+    "hbase.scan.cacheblock": "false"
+    "hbase.scan.batch": "2"
+
 - Classification: "hive-site"
   Properties:
     "hive.metastore.schema.verification": "false"
