@@ -42,13 +42,13 @@ variable "emr_instance_type" {
   }
 }
 
-variable "emr_no_core_nodes" {
+variable "emr_no_vcpus" {
   default = {
-    development = "2"
-    qa          = "2"
-    integration = "2"
-    preprod     = "2"
-    production  = "20"
+    development = "64"
+    qa          = "16"
+    integration = "64"
+    preprod     = "16"
+    production  = "1920"
   }
 }
 
