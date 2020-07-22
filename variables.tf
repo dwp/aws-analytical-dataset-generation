@@ -86,9 +86,9 @@ variable "emr_core_instance_type_1" {
 variable "emr_core_instance_type_2" {
   default = {
     development = "m5.4xlarge"
-    qa          = "m5.2xlarge"
+    qa          = "m5.xlarge"
     integration = "m5.4xlarge"
-    preprod     = "m5.2xlarge"
+    preprod     = "m5.xlarge"
     production  = "m5.12xlarge"
   }
 }
@@ -107,9 +107,9 @@ variable "emr_weightedcapacity_1" {
 variable "emr_weightedcapacity_2" {
   default = {
     development = "16"
-    qa          = "8"
+    qa          = "4"
     integration = "16"
-    preprod     = "8"
+    preprod     = "4"
     production  = "48"
   }
 }
