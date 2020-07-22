@@ -96,20 +96,20 @@ variable "emr_core_instance_type_2" {
 
 variable "emr_weightedcapacity_1" {
   default = {
-    development = "2"
-    qa          = "2"
-    integration = "2"
-    preprod     = "2"
-    production  = "20"
+    development = "32"
+    qa          = "8"
+    integration = "32"
+    preprod     = "8"
+    production  = "96"
   }
 }
 
 variable "emr_weightedcapacity_2" {
   default = {
-    development = "4"
-    qa          = "4"
-    integration = "4"
-    preprod     = "4"
-    production  = "40"
+    development = "16"
+    qa          = "8"
+    integration = "16"
+    preprod     = "8"
+    production  = "48"
   }
 }
