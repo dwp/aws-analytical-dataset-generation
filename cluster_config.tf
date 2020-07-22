@@ -31,7 +31,7 @@ resource "aws_s3_bucket_object" "instances" {
       slave_sg             = aws_security_group.adg_slave.id
       service_access_sg    = aws_security_group.adg_emr_service.id
       instance_type        = var.emr_instance_type[local.environment]
-      no_core_nodes        = var.emr_no_vcpus[local.environment]
+      no_vcpus             = var.emr_no_vcpus[local.environment]
       core_instance_type_1 = var.emr_core_instance_type_1[local.environment]
       core_instance_type_2 = var.emr_core_instance_type_2[local.environment]
       weightedcapacity_1   = var.emr_weightedcapacity_1[local.environment]
