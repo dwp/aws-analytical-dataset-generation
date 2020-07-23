@@ -23,7 +23,7 @@ Instances:
       InstanceType: "${instance_type}"
   - InstanceFleetType: "CORE"
     Name: CORE
-    TargetOnDemandCapacity: ${no_core_nodes}
+    TargetOnDemandCapacity: ${no_vcpus}
     InstanceTypeConfigs:
     - EbsConfiguration:
         EbsBlockDeviceConfigs:
@@ -31,4 +31,14 @@ Instances:
             SizeInGB: 250
             VolumeType: "gp2"
           VolumesPerInstance: 1
-      InstanceType: "${instance_type}"
+      InstanceType: "${core_instance_type_1}"
+      WeightedCapacity: ${weightedcapacity_1}
+    InstanceTypeConfigs:
+    - EbsConfiguration:
+        EbsBlockDeviceConfigs:
+        - VolumeSpecification:
+            SizeInGB: 250
+            VolumeType: "gp2"
+          VolumesPerInstance: 1
+      InstanceType: "${core_instance_type_2}"
+      WeightedCapacity: ${weightedcapacity_2}

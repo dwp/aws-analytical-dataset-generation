@@ -23,15 +23,19 @@ resource "aws_s3_bucket_object" "instances" {
   key    = "emr/adg/instances.yaml"
   content = templatefile("${path.module}/cluster_config/instances.yaml.tpl",
     {
-      keep_cluster_alive = local.keep_cluster_alive[local.environment]
-      add_master_sg      = aws_security_group.adg_common.id
-      add_slave_sg       = aws_security_group.adg_common.id
-      subnet_ids         = join(",", data.terraform_remote_state.internal_compute.outputs.adg_subnet.ids)
-      master_sg          = aws_security_group.adg_master.id
-      slave_sg           = aws_security_group.adg_slave.id
-      service_access_sg  = aws_security_group.adg_emr_service.id
-      instance_type      = var.emr_instance_type[local.environment]
-      no_core_nodes      = var.emr_no_core_nodes[local.environment]
+      keep_cluster_alive   = local.keep_cluster_alive[local.environment]
+      add_master_sg        = aws_security_group.adg_common.id
+      add_slave_sg         = aws_security_group.adg_common.id
+      subnet_ids           = join(",", data.terraform_remote_state.internal_compute.outputs.adg_subnet.ids)
+      master_sg            = aws_security_group.adg_master.id
+      slave_sg             = aws_security_group.adg_slave.id
+      service_access_sg    = aws_security_group.adg_emr_service.id
+      instance_type        = var.emr_instance_type[local.environment]
+      no_vcpus             = var.emr_no_vcpus[local.environment]
+      core_instance_type_1 = var.emr_core_instance_type_1[local.environment]
+      core_instance_type_2 = var.emr_core_instance_type_2[local.environment]
+      weightedcapacity_1   = var.emr_weightedcapacity_1[local.environment]
+      weightedcapacity_2   = var.emr_weightedcapacity_2[local.environment]
     }
   )
 }
