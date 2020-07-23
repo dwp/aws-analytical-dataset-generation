@@ -78,16 +78,16 @@ def spark_process(collection):
     sanitised_df = validated_df.withColumn("sanitised_db_object", sanitise(validated_df["validated_db_object"], validated_df["db_name"], validated_df["collection_name"]))
     clean_df = sanitised_df.withColumnRenamed("sanitised_db_object", "val")
     values = clean_df.select("val")
-    parquet_location = persist_parquet(collection.collection_name, values)
+    json_location = persist_json(collection.collection_name, values)
     prefix = (
         "${file_location}/"
         + collection.collection_name
         + "/"
         + collection.collection_name
-        + ".parquet"
+        + ".json"
     )
     tag_objects(prefix, tag_value=collection.tag_value)
-    create_hive_on_published(parquet_location, collection.collection_name)
+    create_hive_on_published(json_location, collection.collection_name)
     end_timer = time.perf_counter()
     time_taken = round(end_timer - start_timer)
     time_taken = str(datetime.timedelta(seconds=time_taken))
@@ -125,27 +125,27 @@ def get_collections(secrets_response):
     return collections
 
 
-def create_hive_on_published(parquet_location, collection_name):
+def create_hive_on_published(json_location, collection_name):
     src_hive_table = published_database_name + "." + collection_name
     src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
     src_hive_create_query = (
-        """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS PARQUET LOCATION "%s" """
-        % (src_hive_table, parquet_location)
+        """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS TEXTFILE LOCATION "%s" """
+        % (src_hive_table, json_location)
     )
     spark.sql(src_hive_drop_query)
     spark.sql(src_hive_create_query)
     return None
 
 
-def persist_parquet(collection_name, values):
-    adg_parquet_name = collection_name + "." + "parquet"
-    parquet_location = "s3://%s/${file_location}/%s/%s" % (
+def persist_json(collection_name, values):
+    adg_json_name = collection_name + "." + "json"
+    json_location = "s3://%s/${file_location}/%s/%s" % (
         s3_publish_bucket,
         collection_name,
-        adg_parquet_name,
+        adg_json_name,
     )
-    values.write.mode("overwrite").parquet(parquet_location)
-    return parquet_location
+    values.write.mode("overwrite").text(json_location)
+    return json_location
 
 
 def tag_objects(prefix, tag_value):
