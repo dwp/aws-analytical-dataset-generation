@@ -553,7 +553,7 @@ def test_main(monkeypatch):
     monkeypatch.setattr(generate_analytical_dataset, 'get_spark_session', mock_get_spark_session)
     monkeypatch.setattr(generate_analytical_dataset, 'get_dataframe_from_staging', mock_get_dataframe_from_staging)
     monkeypatch.setattr(generate_analytical_dataset, 'get_plaintext_key_calling_dks', mock_get_plaintext_key_calling_dks)
-    monkeypatch.setattr(generate_analytical_dataset, 'persist_parquet', mock_persist_parquet)
+    monkeypatch.setattr(generate_analytical_dataset, 'persist_json', mock_persist_json)
     monkeypatch.setattr(generate_analytical_dataset, 'create_hive_on_published', mock_create_hive_on_published)
     monkeypatch.setattr(generate_analytical_dataset, 'retrieve_secrets', mock_retrieve_secrets)
     monkeypatch.setattr(generate_analytical_dataset, 'get_collections', mock_get_collections)
@@ -602,7 +602,7 @@ def mock_get_plaintext_key_calling_dks(r,keys_map):
     r['plain_text_key'] = 'czMQLgW/OrzBZwFV9u4EBA=='
     return r
 
-def mock_persist_parquet(S3_PUBLISH_BUCKET, table_to_process, values):
+def mock_persist_json(S3_PUBLISH_BUCKET, table_to_process, values):
     return ''
 
 def mock_create_hive_on_published(parquet_location, published_database_name, spark, table_to_process):
