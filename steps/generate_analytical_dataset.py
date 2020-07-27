@@ -91,7 +91,7 @@ def spark_process(collection):
     end_timer = time.perf_counter()
     time_taken = round(end_timer - start_timer)
     time_taken = str(datetime.timedelta(seconds=time_taken))
-    the_logger.info(f"time taken for {collection.collection_name}: {time_taken}")
+    the_logger.info(f"time taken for {collection.collection_name}: {time_taken} ")
 
 
 def retrieve_secrets():
@@ -104,7 +104,6 @@ def retrieve_secrets():
     response_decoded = response_binary.decode("utf-8")
     response_dict = ast.literal_eval(response_decoded)
     return response_dict
-
 
 def get_collections(secrets_response):
     try:
