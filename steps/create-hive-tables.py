@@ -35,13 +35,16 @@ with open("current_hbase_tables") as f:
 
 for collection in collections_hbase:
     if collection in hbase_tables:
+        the_logger.info("Processing collection: " + collection)
         collection_staging = collection.replace(":", "_") + "_hbase"
+        the_logger.info("Deleting table : " + collection_staging)
         try:
             client.delete_table(DatabaseName=DatabaseName, Name=collection_staging)
         except client.exceptions.EntityNotFoundException as e:
             the_logger.error("Exception cannot delete table: " + str(e))
 
         try:
+            the_logger.info("Creating table : " + collection_staging)
             client.create_table(
                 DatabaseName=DatabaseName,
                 TableInput={
@@ -78,4 +81,4 @@ for collection in collections_hbase:
                 "Exception cannot create table: " + collection_hbase + " " + str(e)
             )
     else:
-        the_logger.error(collection, " is not in HBase")
+        the_logger.error(collection + " is not in HBase")

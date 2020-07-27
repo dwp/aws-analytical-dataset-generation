@@ -17,3 +17,26 @@ cluster; a PySpark step run on the cluster reads HBase Storefiles from the
 1. The PySpark step then creates external Hive tables over those S3 objects,
 storing the table definitions in a Glue database
 1. Once processing is complete, the `ADG Cluster` terminates.
+
+
+## Using AWS Insights for Analytical Dataset Generation analysis
+
+As our logs go to cloudwatch, we can use AWS Insights to gather data and metrics about the ADG runs.
+
+_Make sure you set the time range or you'll get odd results_
+
+### Saving Insights for future use.
+
+You can't. However, you can see previously used insights in the account (useful as you can't save them per se) by going to:
+   > "CloudWatch | Logs | Insights (left menu bar) | Actions (button) | View query history for this account"
+
+If you put a comment as the first line of a query it can do for a proxy title.
+
+### Time taken for each Collection & Overall time taken for all Collections :
+   ```
+   # Time taken for each & all colletions   
+   fields @timestamp , @message
+   | parse @message "{ 'timestamp':* 'log_level':* 'message': 'time taken for*:*'" as timestamp ,log_level, collection, timetaken
+   | display collection, timetaken
+   | sort timetaken desc 
+   ```
