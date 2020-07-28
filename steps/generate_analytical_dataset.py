@@ -90,8 +90,8 @@ def spark_process(collection):
     create_hive_on_published(json_location, collection.collection_name)
     end_timer = time.perf_counter()
     time_taken = round(end_timer - start_timer)
-    time_taken = str(datetime.timedelta(seconds=time_taken))
-    the_logger.info(f"time taken for {collection.collection_name}: {time_taken} ")
+    time_taken = str(time_taken)
+    the_logger.info(f"time taken in seconds for {collection.collection_name}: {time_taken} ")
 
 
 def retrieve_secrets():
@@ -381,5 +381,5 @@ if __name__ == "__main__":
     main()
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
-    total_time = str(datetime.timedelta(seconds=total_time))
-    the_logger.info(f"time taken for all collections: {total_time}")
+    total_time = str(total_time)
+    the_logger.info(f"time taken in seconds for all collections: {total_time} ")
