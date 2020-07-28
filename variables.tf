@@ -24,7 +24,7 @@ variable "keep_flow_alive" {
 variable "truststore_aliases" {
   description = "comma seperated truststore aliases"
   type        = list(string)
-  default     = ["dataworks_root_ca", "dataworks_mgt_root_ca", "ca_cert", "mgmt_cert", "root_ca"]
+  default     = ["dataworks_root_ca", "dataworks_mgt_root_ca"]
 }
 
 variable "emr_ami_id" {
