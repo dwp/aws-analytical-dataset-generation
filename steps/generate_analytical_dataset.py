@@ -53,7 +53,7 @@ def main():
             collection_objects.append(collection_name_object)
         else:
             logging.error(
-                table_to_process,
+                table_to_process +
                 "from staging_db is not present in the collections list ",
             )
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -63,6 +63,7 @@ def main():
 def spark_process(collection):
     start_timer = time.perf_counter()
     adg_hive_select_query = "select * from %s" % collection.staging_hive_table
+    the_logger.info("Processing table : " + collection.staging_hive_table)
     df = get_dataframe_from_staging(adg_hive_select_query)
     raw_df  = df.select(df.data,F.get_json_object(df.data, "$.message.encryption.encryptedEncryptionKey").alias("encryptedKey"),
     F.get_json_object(df.data, "$.message.encryption.keyEncryptionKeyId").alias("keyEncryptionKeyId"),
@@ -78,6 +79,7 @@ def spark_process(collection):
     sanitised_df = validated_df.withColumn("sanitised_db_object", sanitise(validated_df["validated_db_object"], validated_df["db_name"], validated_df["collection_name"]))
     clean_df = sanitised_df.withColumnRenamed("sanitised_db_object", "val")
     values = clean_df.select("val")
+    the_logger.info("Persisting Json : " + collection.collection_name)
     json_location = persist_json(collection.collection_name, values)
     prefix = (
         "${file_location}/"
