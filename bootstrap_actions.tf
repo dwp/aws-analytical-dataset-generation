@@ -1,3 +1,9 @@
+resource "aws_s3_bucket_object" "metadata_script" {
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/metadata.sh"
+  content = file("${path.module}/bootstrap_actions/metadata.sh")
+}
+
 resource "aws_s3_bucket_object" "emr_setup_sh" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/emr-setup.sh"
