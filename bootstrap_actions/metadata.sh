@@ -10,5 +10,6 @@ if [[ $RESPONSE == '200' ]]; then
     aws ec2 modify-instance-metadata-options \
     --region $REGION \
     --instance-id $INSTANCE_ID \
+    --http-tokens required \
     --http-endpoint enabled
 fi
