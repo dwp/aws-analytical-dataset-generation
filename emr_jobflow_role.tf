@@ -223,3 +223,28 @@ resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_dynamodb
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_generator_write_dynamodb.arn
 }
+
+data "aws_iam_policy_document" "analytical_dataset_generator_metadata_change" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ec2:ModifyInstanceMetadataOptions",
+    ]
+
+    resources = [
+      "arn:aws:ec2:${var.region}:${local.account[local.environment]}:instance/*",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_generator_metadata_change" {
+  name        = "AnalyticalDatasetGeneratorMetadataOptions"
+  description = "Allow editing of Metadata Options"
+  policy      = data.aws_iam_policy_document.analytical_dataset_generator_metadata_change.json
+}
+
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_metadata_change" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_generator_metadata_change.arn
+}

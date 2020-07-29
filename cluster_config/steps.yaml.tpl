@@ -1,5 +1,8 @@
 ---
 BootstrapActions:
+- Name: "metadata"
+  ScriptBootstrapAction:
+    Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/metadata.sh"
 - Name: "get-dks-cert"
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/emr-setup.sh"
