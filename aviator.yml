@@ -7,6 +7,7 @@ spruce:
         regexp: ".*yml"
       - with_in: ci/jobs/
       - with_in: ci/jobs/dev/
+      - with_in: ci/jobs/dev/admin/
       - with_in: ci/jobs/qa/
       - with_in: ci/jobs/qa/admin/
       - with_in: ci/jobs/integration/
