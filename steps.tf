@@ -34,6 +34,7 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
       hive-scripts-path           = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
       python_logger               = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
       generate_analytical_dataset = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_analytical_dataset_script.key)
+      metrics_properties          = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_properties.key)
     }
   )
 }
@@ -42,4 +43,14 @@ resource "aws_s3_bucket_object" "logger" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
   key     = "component/analytical-dataset-generation/logger.py"
   content = file("${path.module}/steps/logger.py")
+}
+
+resource "aws_s3_bucket_object" "metrics_properties" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "component/analytical-dataset-generation/metrics.properties"
+  content = templatefile("${path.module}/steps/metrics.properties",
+    {
+      adg_pushgateway_hostname = data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname
+    }
+  )
 }

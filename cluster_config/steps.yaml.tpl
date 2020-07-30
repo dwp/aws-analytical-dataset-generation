@@ -27,6 +27,7 @@ Steps:
     - "yarn"
     - "--conf"
     - "spark.yarn.submit.waitAppCompletion=true"
+    - "spark.metrics.conf=/opt/emr/metrics.properties"
     - "--files"
     - "/etc/hbase/conf/hbase-site.xml"
     Jar: "command-runner.jar"
