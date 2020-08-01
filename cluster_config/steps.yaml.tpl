@@ -16,6 +16,12 @@ Steps:
     - "s3://${s3_config_bucket}/component/analytical-dataset-generation/hive-setup.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "CONTINUE"
+- Name: "metrics-setup"
+  HadoopJarStep:
+    Args:
+    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/metrics-setup.sh"
+    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+  ActionOnFailure: "CONTINUE"
 - Name: "submit-job"
   HadoopJarStep:
     Args:
@@ -27,9 +33,7 @@ Steps:
     - "yarn"
     - "--conf"
     - "spark.yarn.submit.waitAppCompletion=true"
-    - "spark.metrics.conf=/opt/emr/metrics.properties"
     - "--files"
     - "/etc/hbase/conf/hbase-site.xml"
     Jar: "command-runner.jar"
   ActionOnFailure: "CONTINUE"
-

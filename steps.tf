@@ -34,7 +34,6 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
       hive-scripts-path           = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
       python_logger               = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
       generate_analytical_dataset = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_analytical_dataset_script.key)
-      metrics_properties          = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_properties.key)
     }
   )
 }
@@ -45,12 +44,34 @@ resource "aws_s3_bucket_object" "logger" {
   content = file("${path.module}/steps/logger.py")
 }
 
+resource "aws_s3_bucket_object" "metrics_setup_sh" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key    = "component/analytical-dataset-generation/metrics-setup.sh"
+  content = templatefile("${path.module}/steps/metrics-setup.sh",
+    {
+      proxy_url                   = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
+      metrics_properties          = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_properties.key)
+      metrics_pom                 = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_pom.key)
+    }
+  )
+}
+
 resource "aws_s3_bucket_object" "metrics_properties" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/analytical-dataset-generation/metrics.properties"
-  content = templatefile("${path.module}/steps/metrics.properties",
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key    = "component/analytical-dataset-generation/metrics/metrics.properties"
+  content = templatefile("${path.module}/steps/metrics_config/metrics.properties",
     {
       adg_pushgateway_hostname = data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname
     }
   )
 }
+
+resource "aws_s3_bucket_object" "metrics_pom" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key    = "component/analytical-dataset-generation/metrics/pom.xml"
+  content = file("${path.module}/steps/metrics_config/pom.xml")
+}
+

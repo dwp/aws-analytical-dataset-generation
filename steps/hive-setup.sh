@@ -42,7 +42,6 @@ hbasetables=`echo 'list' | hbase shell > current_hbase_tables`
 
 aws s3 cp "${python_logger}" /opt/emr/.
 aws s3 cp "${generate_analytical_dataset}" /opt/emr/.
-aws s3 cp "${metrics_properties}" /opt/emr/.
 
 log_wrapper_message "Creating hive tables"
 
