@@ -248,3 +248,54 @@ resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_metadata
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_generator_metadata_change.arn
 }
+
+data "aws_iam_policy_document" "analytical_dataset_generator_read_htme" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      data.terraform_remote_state.ingest.outputs.s3_buckets.htme_bucket,
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+    ]
+
+    resources = [
+       format("%s/%s/*", data.terraform_remote_state.ingest.outputs.s3_buckets.htme_bucket,data.terraform_remote_state.ingest.outputs.s3_buckets.htme_prefix)
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+    ]
+
+    resources = [
+      "${data.terraform_remote_state.internal_compute.outputs.compaction_bucket_cmk.arn}",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_generator_read_htme" {
+  name        = "AnalyticalDatasetGeneratorReadHTMEOutputFiles"
+  description = "Allow reading of HTME output files"
+  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_htme.json
+}
+
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_read_htme" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_generator_read_htme.arn
+}
