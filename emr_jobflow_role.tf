@@ -249,8 +249,6 @@ resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_metadata
   policy_arn = aws_iam_policy.analytical_dataset_generator_metadata_change.arn
 }
 
-
-
 data "aws_iam_policy_document" "analytical_dataset_generator_read_htme" {
   statement {
     effect = "Allow"
