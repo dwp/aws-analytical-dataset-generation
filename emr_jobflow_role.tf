@@ -284,7 +284,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_htme" {
     ]
 
     resources = [
-      "${data.terraform_remote_state.internal_compute.outputs.compaction_bucket_cmk}",
+      "${data.terraform_remote_state.internal_compute.outputs.compaction_bucket_cmk.arn}",
     ]
   }
 }
