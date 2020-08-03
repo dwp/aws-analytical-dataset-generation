@@ -271,7 +271,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_htme" {
     ]
 
     resources = [
-       format("arn:aws:s3:::%s/%s", data.terraform_remote_state.ingest.outputs.s3_buckets.htme_bucket,data.terraform_remote_state.ingest.outputs.s3_buckets.htme_prefix)
+       format("arn:aws:s3:::%s/%s/*", data.terraform_remote_state.ingest.outputs.s3_buckets.htme_bucket,data.terraform_remote_state.ingest.outputs.s3_buckets.htme_prefix)
     ]
   }
 
