@@ -11,9 +11,9 @@ import binascii
 import os
 
 from itertools import groupby
-from pyspark.sql import functions as F
 from pyspark.sql import Row, SparkSession
 from pyspark.sql.types import *
+from pyspark.sql import functions as F
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
 from logger import setup_logging
@@ -22,7 +22,6 @@ the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
     if "ADG_LOG_LEVEL" in os.environ
     else "INFO",
-    #log_path="${log_path}",
     log_path="${log_path}",
 )
 
@@ -94,8 +93,6 @@ def consolidate_rdd_per_collection(list_of_dicts):
                         + collection_name
                         + ".json"
                 )
-                #print("Prefix==============" + prefix)
-                #print("tag_value==============" + tag_value)
                 the_logger.info("Applying Tags for prefix : " + prefix)
                 tag_objects(prefix,tag_value)
                 the_logger.info("Creating Hive tables for : " + collection_name)
