@@ -42,7 +42,7 @@ def get_list_keys_for_prefix():
 
 
 def group_keys_by_collection(keys):
-    file_key_dict = { key.split("/")[4] : key for key in keys }
+    file_key_dict = { key.split("/")[-1] : key for key in keys }
     file_names    = list(file_key_dict.keys())
     file_pattern = 'db.[\w-]+\.[\w]+'
     grouped_files = []
