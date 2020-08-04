@@ -60,3 +60,4 @@ Configurations:
     Properties:
       "PYSPARK_PYTHON": "/usr/bin/python3"
       "S3_PUBLISH_BUCKET": "${s3_published_bucket}"
+      "S3_HTME_BUCKET": "${s3_htme_bucket}"
