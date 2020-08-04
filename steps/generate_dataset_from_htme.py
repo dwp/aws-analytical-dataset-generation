@@ -12,7 +12,6 @@ import os
 
 from itertools import groupby
 from pyspark.sql import Row, SparkSession
-from pyspark.sql.types import *
 from pyspark.sql import functions as F
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -139,12 +138,12 @@ def tag_objects(prefix, tag_value):
             Tagging={"TagSet": [{"Key": "collection_tag", "Value": tag_value}]},
         )
 
-def get_plaintext_key_calling_dks(encryptedKey, keyEncryptionkeyId):
-    if keys_map.get(encryptedKey):
-        key = keys_map[encryptedKey]
+def get_plaintext_key_calling_dks(encryptedkey, keyencryptionkeyid):
+    if keys_map.get(encryptedkey):
+        key = keys_map[encryptedkey]
     else:
-        key = call_dks(encryptedKey, keyEncryptionkeyId)
-        keys_map[encryptedKey] = key
+        key = call_dks(encryptedkey, keyencryptionkeyid)
+        keys_map[encryptedkey] = key
     return key
 
 def call_dks(cek, kek):
@@ -197,7 +196,7 @@ def get_collections(secrets_response):
     try:
         collections = secrets_response["collections_all"]
         collections = {k.lower(): v.lower() for k, v in collections.items()}
-    except Exception as e:
+    except:
         logging.error("Problem with collections list")
     return collections
 
