@@ -26,14 +26,12 @@ Steps:
   HadoopJarStep:
     Args:
     - "spark-submit"
-    - "/opt/emr/generate_analytical_dataset.py"
+    - "/opt/emr/generate_dataset_from_htme.py"
     - "--deploy-mode"
     - "cluster"
     - "--master"
     - "yarn"
     - "--conf"
     - "spark.yarn.submit.waitAppCompletion=true"
-    - "--files"
-    - "/etc/hbase/conf/hbase-site.xml"
     Jar: "command-runner.jar"
   ActionOnFailure: "CONTINUE"
