@@ -237,7 +237,3 @@ if __name__ == "__main__":
     s3_client = get_client("s3")
     keys_map = {}
     main()
-
-
-
-
