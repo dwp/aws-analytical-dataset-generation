@@ -75,7 +75,7 @@ def consolidate_rdd_per_collection(list_of_dicts):
                     datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
                     iv = metadata["iv"]
                     plain_text_key = get_plaintext_key_calling_dks(ciphertext,datakeyencryptionkeyid)
-                    decrypted = encrypted.mapValues(lambda val: decrypt(plain_text_key=plain_text_key,iv=iv,val=val))
+                    decrypted = encrypted.mapValues(lambda val: decrypt(plain_text_key,iv,val))
                     decompressed = decrypted.mapValues(decompress)
                     initial_rdd = initial_rdd.union(decompressed)
                 decoded_rdd = initial_rdd.mapValues(lambda txt: txt.decode("utf-8"))
