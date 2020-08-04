@@ -48,7 +48,7 @@ variable "emr_no_vcpus" {
     qa          = "16"
     integration = "64"
     preprod     = "16"
-    production  = "192"
+    production  = "1200"
   }
 }
 
@@ -58,7 +58,7 @@ variable "emr_maxExecutors" {
     qa          = "20"
     integration = "20"
     preprod     = "20"
-    production  = "190"
+    production  = "240"
   }
 }
 
@@ -68,7 +68,7 @@ variable "emr_minExecutors" {
     qa          = "10"
     integration = "10"
     preprod     = "10"
-    production  = "10"
+    production  = "100"
   }
 }
 
