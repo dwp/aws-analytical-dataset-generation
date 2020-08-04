@@ -69,6 +69,7 @@ resource "aws_s3_bucket_object" "configurations" {
       emrfs_metadata_tablename = local.emrfs_metadata_tablename
       maxExecutors             = var.emr_maxExecutors[local.environment]
       minExecutors             = var.emr_minExecutors[local.environment]
+      s3_htme_bucket           = data.terraform_remote_state.ingest.outputs.s3_buckets.htme_bucket
     }
   )
 }
