@@ -75,7 +75,7 @@ def consolidate_rdd_per_collection(list_of_dicts):
                     datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
                     iv = metadata["iv"]
                     plain_text_key = get_plaintext_key_calling_dks(ciphertext,datakeyencryptionkeyid)
-                    decrypted = encrypted.mapValues(lambda val: decrypt(plain_text_key,iv,val))
+                    decrypted = encrypted.mapValues(lambda val: decrypt(plain_text_key=plain_text_key,iv=iv,val=val))
                     decompressed = decrypted.mapValues(decompress)
                     initial_rdd = initial_rdd.union(decompressed)
                 decoded_rdd = initial_rdd.mapValues(lambda txt: txt.decode("utf-8"))
@@ -198,7 +198,7 @@ def get_collections(secrets_response):
         collections = secrets_response["collections_all"]
         collections = {k.lower(): v.lower() for k, v in collections.items()}
     except Exception as e:
-        logging.error("Problem with collections list", e)
+        logging.error("Problem with collections list")
     return collections
 
 def create_hive_on_published(json_location, collection_name):
