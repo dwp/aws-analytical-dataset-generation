@@ -1,21 +1,18 @@
-import boto3
 import ast
-import requests
-import datetime
-import json
-import logging
-import re
-import zlib
 import base64
-import binascii
+import boto3
+import logging
 import os
+import re
+import requests
+import zlib
 
-from itertools import groupby
-from pyspark.sql import Row, SparkSession
-from pyspark.sql import functions as F
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
+from itertools import groupby
 from logger import setup_logging
+from pyspark.sql import Row, SparkSession
+from pyspark.sql import functions as F
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -24,38 +21,44 @@ the_logger = setup_logging(
     log_path="${log_path}",
 )
 
+
 def main():
     keys = get_list_keys_for_prefix()
     list_of_dicts = group_keys_by_collection(keys)
     consolidate_rdd_per_collection(list_of_dicts)
 
+
 def get_client(service_name):
     client = boto3.client(service_name)
     return client
 
+
 def get_list_keys_for_prefix():
-    keys =[]
-    response = s3_client.list_objects_v2(Bucket=s3_htme_bucket,Prefix=s3_prefix)
-    for obj in response.get('Contents', []):
-        keys.append(obj['Key'])
+    keys = []
+    response = s3_client.list_objects_v2(Bucket=s3_htme_bucket, Prefix=s3_prefix)
+    for obj in response.get("Contents", []):
+        keys.append(obj["Key"])
     return keys
 
 
 def group_keys_by_collection(keys):
-    file_key_dict = { key.split("/")[4] : key for key in keys }
-    file_names    = list(file_key_dict.keys())
-    file_pattern = 'db.[\w-]+\.[\w]+'
+    file_key_dict = {key.split("/")[-1]: key for key in keys}
+    file_names = list(file_key_dict.keys())
+    file_pattern = "^\w+\.([\w-]+)\.([\w-]+)"
     grouped_files = []
-    for pattern, group in groupby(file_names, lambda x : re.match(file_pattern, x).group()):
-        grouped_files.append({pattern:list(group)})
+    for pattern, group in groupby(
+        file_names, lambda x: re.match(file_pattern, x).group()
+    ):
+        grouped_files.append({pattern: list(group)})
     list_of_dicts = []
     for x in grouped_files:
         for k, v in x.items():
             gh = []
             for x in v:
                 gh.append(file_key_dict[x])
-        list_of_dicts.append({k:gh})
+        list_of_dicts.append({k: gh})
     return list_of_dicts
+
 
 def consolidate_rdd_per_collection(list_of_dicts):
     secrets_response = retrieve_secrets()
@@ -65,50 +68,70 @@ def consolidate_rdd_per_collection(list_of_dicts):
             if collection_name.lower() in secrets_collections:
                 the_logger.info("Processing collection : " + collection_name)
                 tag_value = secrets_collections[collection_name.lower()]
-                print(f'Processing Collection {collection_name}')
+                print(f"Processing Collection {collection_name}")
                 initial_rdd = spark.sparkContext.emptyRDD()
                 for collection_file_key in collection_files_keys:
-                    encrypted = read_binary(f"s3://{s3_htme_bucket}/{collection_file_key}")
+                    encrypted = read_binary(
+                        f"s3://{s3_htme_bucket}/{collection_file_key}"
+                    )
                     metadata = get_metadatafor_key(collection_file_key)
                     ciphertext = metadata["ciphertext"]
                     datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
                     iv = metadata["iv"]
-                    plain_text_key = get_plaintext_key_calling_dks(ciphertext,datakeyencryptionkeyid)
-                    decrypted = encrypted.mapValues(lambda val: decrypt(plain_text_key,iv,val))
+                    plain_text_key = get_plaintext_key_calling_dks(
+                        ciphertext, datakeyencryptionkeyid
+                    )
+                    decrypted = encrypted.mapValues(
+                        lambda val: decrypt(plain_text_key, iv, val)
+                    )
                     decompressed = decrypted.mapValues(decompress)
                     initial_rdd = initial_rdd.union(decompressed)
                 decoded_rdd = initial_rdd.mapValues(lambda txt: txt.decode("utf-8"))
                 row = Row("val")
-                decoded_df = decoded_rdd.flatMap(lambda x: x[1].split("\n")).map(row).toDF()
-                #decoded_df.show()
-                the_logger.info(f'No of records in collection : {collection_name} is  {decoded_df.count()}')
-                print(f'No of records in collection : {collection_name} is  {decoded_df.count()}')
+                decoded_df = (
+                    decoded_rdd.flatMap(lambda x: x[1].split("\n")).map(row).toDF()
+                )
+                # decoded_df.show()
+                the_logger.info(
+                    f"No of records in collection : {collection_name} is  {decoded_df.count()}"
+                )
+                print(
+                    f"No of records in collection : {collection_name} is  {decoded_df.count()}"
+                )
                 the_logger.info("Persisting Json : " + collection_name)
-                json_location = persist_json(collection_name,decoded_df)
+                json_location = persist_json(collection_name, decoded_df)
                 prefix = (
-                        "${file_location}/"
-                        + collection_name
-                        + "/"
-                        + collection_name
-                        + ".json"
+                    "${file_location}/"
+                    + collection_name
+                    + "/"
+                    + collection_name
+                    + ".json"
                 )
                 the_logger.info("Applying Tags for prefix : " + prefix)
-                tag_objects(prefix,tag_value)
+                tag_objects(prefix, tag_value)
                 the_logger.info("Creating Hive tables for : " + collection_name)
                 create_hive_on_published(json_location, collection_name)
             else:
-                logging.error(collection_name + " is not present in the collections list ",)
+                logging.error(
+                    collection_name + " is not present in the collections list "
+                )
                 print(collection_name + " is not present in the collections list ")
+
 
 def get_metadatafor_key(key):
     s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
-    #print(s3_object)
-    iv  = s3_object["Metadata"]["iv"]
+    # print(s3_object)
+    iv = s3_object["Metadata"]["iv"]
     ciphertext = s3_object["Metadata"]["ciphertext"]
     datakeyencryptionkeyid = s3_object["Metadata"]["datakeyencryptionkeyid"]
-    #print ( "iv " + iv + "ciphertext" + ciphertext + "datakeyencryptionkeyid " + datakeyencryptionkeyid )
-    metadata = {"iv":iv , "ciphertext":ciphertext,"datakeyencryptionkeyid" :datakeyencryptionkeyid }
+    # print ( "iv " + iv + "ciphertext" + ciphertext + "datakeyencryptionkeyid " + datakeyencryptionkeyid )
+    metadata = {
+        "iv": iv,
+        "ciphertext": ciphertext,
+        "datakeyencryptionkeyid": datakeyencryptionkeyid,
+    }
     return metadata
+
 
 def retrieve_secrets():
     secret_name = "${secret_name}"
@@ -138,6 +161,7 @@ def tag_objects(prefix, tag_value):
             Tagging={"TagSet": [{"Key": "collection_tag", "Value": tag_value}]},
         )
 
+
 def get_plaintext_key_calling_dks(encryptedkey, keyencryptionkeyid):
     if keys_map.get(encryptedkey):
         key = keys_map[encryptedkey]
@@ -146,6 +170,7 @@ def get_plaintext_key_calling_dks(encryptedkey, keyencryptionkeyid):
         keys_map[encryptedkey] = key
     return key
 
+
 def call_dks(cek, kek):
     url = "${url}"
     params = {"keyId": kek}
@@ -153,11 +178,15 @@ def call_dks(cek, kek):
         url,
         params=params,
         data=cek,
-        cert=("/etc/pki/tls/certs/private_key.crt", "/etc/pki/tls/private/private_key.key"),
-        verify="/etc/pki/ca-trust/source/anchors/analytical_ca.pem"
+        cert=(
+            "/etc/pki/tls/certs/private_key.crt",
+            "/etc/pki/tls/private/private_key.key",
+        ),
+        verify="/etc/pki/ca-trust/source/anchors/analytical_ca.pem",
     )
     content = result.json()
     return content["plaintextDataKey"]
+
 
 def read_binary(file_path):
     return spark.sparkContext.binaryFiles(file_path)
@@ -170,8 +199,10 @@ def decrypt(plain_text_key, iv_key, data):
     decrypted = aes.decrypt(data)
     return decrypted
 
+
 def decompress(compressed_text):
     return zlib.decompress(compressed_text, 16 + zlib.MAX_WBITS)
+
 
 def persist_json(collection_name, values):
     adg_json_name = collection_name + "." + "json"
@@ -184,13 +215,19 @@ def persist_json(collection_name, values):
     return json_location
 
 
-
 def get_collection(collection_name):
-    return collection_name.replace("db.", "", 1).replace(".", "_").replace("-", "_").lower()
+    return (
+        collection_name.replace("db.", "", 1)
+        .replace(".", "_")
+        .replace("-", "_")
+        .lower()
+    )
+
 
 def get_published_db_name():
     published_database_name = "${published_db}"
     return published_database_name
+
 
 def get_collections(secrets_response):
     try:
@@ -200,29 +237,32 @@ def get_collections(secrets_response):
         logging.error("Problem with collections list")
     return collections
 
+
 def create_hive_on_published(json_location, collection_name):
-    hive_table_name  = get_collection(collection_name)
+    hive_table_name = get_collection(collection_name)
     src_hive_table = published_database_name + "." + hive_table_name
-    #print(f'src_hive_table ======={hive_table_name}')
+    # print(f'src_hive_table ======={hive_table_name}')
     the_logger.info("Creating Hive tables  : " + src_hive_table)
     src_hive_drop_query = "DROP TABLE IF EXISTS %s" % src_hive_table
     src_hive_create_query = (
-            """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS TEXTFILE LOCATION "%s" """
-            % (src_hive_table, json_location)
+        """CREATE EXTERNAL TABLE IF NOT EXISTS %s(val STRING) STORED AS TEXTFILE LOCATION "%s" """
+        % (src_hive_table, json_location)
     )
     spark.sql(src_hive_drop_query)
     spark.sql(src_hive_create_query)
     return None
 
+
 def get_spark_session():
     spark = (
         SparkSession.builder.master("yarn")
-            .appName("spike")
-            .enableHiveSupport()
-            .getOrCreate()
+        .appName("spike")
+        .enableHiveSupport()
+        .getOrCreate()
     )
     spark.conf.set("spark.scheduler.mode", "FAIR")
     return spark
+
 
 if __name__ == "__main__":
     spark = get_spark_session()
