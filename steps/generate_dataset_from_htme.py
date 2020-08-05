@@ -121,7 +121,7 @@ def consolidate_rdd_per_collection(list_of_dicts):
                 logging.error(
                     collection_name + " is not present in the collections list "
                 )
-                    print(collection_name + " is not present in the collections list ")
+                print(collection_name + " is not present in the collections list ")
 
 
 def get_metadatafor_key(key):
