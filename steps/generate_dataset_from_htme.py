@@ -38,7 +38,11 @@ def get_list_keys_for_prefix():
     response = s3_client.list_objects_v2(Bucket=s3_htme_bucket, Prefix=s3_prefix)
     for obj in response.get("Contents", []):
         keys.append(obj["Key"])
-    keys.remove(s3_prefix)
+    print(keys)
+    print(s3_htme_bucket)
+    print(s3_prefix)
+    if s3_prefix in keys:
+        keys.remove(s3_prefix)
     return keys
 
 
