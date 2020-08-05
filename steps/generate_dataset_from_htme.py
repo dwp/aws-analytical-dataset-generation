@@ -266,6 +266,7 @@ def get_spark_session():
 
 if __name__ == "__main__":
     spark = get_spark_session()
+    print(spark.sparkContext.getConf().getAll())
     published_database_name = get_published_db_name()
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_prefix = "${s3_prefix}"
