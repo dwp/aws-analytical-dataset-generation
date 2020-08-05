@@ -1,21 +1,18 @@
-import boto3
 import ast
-import requests
-import datetime
-import json
-import logging
-import re
-import zlib
 import base64
-import binascii
+import boto3
+import logging
 import os
+import re
+import requests
+import zlib
 
-from itertools import groupby
-from pyspark.sql import Row, SparkSession
-from pyspark.sql import functions as F
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
+from itertools import groupby
 from logger import setup_logging
+from pyspark.sql import Row, SparkSession
+from pyspark.sql import functions as F
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
