@@ -97,13 +97,6 @@ def consolidate_rdd_per_collection(list_of_dicts):
                 decoded_df = (
                     decoded_rdd.flatMap(lambda x: x[1].split("\n")).map(row).toDF()
                 )
-                # decoded_df.show()
-                the_logger.info(
-                    f"No of records in collection : {collection_name} is  {decoded_df.count()}"
-                )
-                print(
-                    f"No of records in collection : {collection_name} is  {decoded_df.count()}"
-                )
                 the_logger.info("Persisting Json : " + collection_name)
                 json_location = persist_json(collection_name, decoded_df)
                 prefix = (
@@ -117,6 +110,7 @@ def consolidate_rdd_per_collection(list_of_dicts):
                 tag_objects(prefix, tag_value)
                 the_logger.info("Creating Hive tables for : " + collection_name)
                 create_hive_on_published(json_location, collection_name)
+                the_logger.info("Completed Processing : " + collection_name)
             else:
                 logging.error(
                     collection_name + " is not present in the collections list "
