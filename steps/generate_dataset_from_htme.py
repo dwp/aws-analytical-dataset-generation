@@ -38,13 +38,14 @@ def get_list_keys_for_prefix():
     response = s3_client.list_objects_v2(Bucket=s3_htme_bucket, Prefix=s3_prefix)
     for obj in response.get("Contents", []):
         keys.append(obj["Key"])
+    keys.remove(s3_prefix)
     return keys
 
 
 def group_keys_by_collection(keys):
-    file_key_dict = {key.split("/")[-1]: key for key in keys}
+    file_key_dict = {key.split("/")[5]: key for key in keys}
     file_names = list(file_key_dict.keys())
-    file_pattern = "^\w+\.([\w-]+)\.([\w-]+)"
+    file_pattern = "^\w+\.([\w-]+)\.([\w]+)"
     grouped_files = []
     for pattern, group in groupby(
         file_names, lambda x: re.match(file_pattern, x).group()
