@@ -97,9 +97,6 @@ def consolidate_rdd_per_collection(list_of_dicts):
                 decoded_df = (
                     decoded_rdd.flatMap(lambda x: x[1].split("\n")).map(row).toDF()
                 )
-                #decoded_df.show()
-                #the_logger.info(f"No of records in collection : {collection_name} is  {decoded_df.count()}")
-                #print(f"No of records in collection : {collection_name} is  {decoded_df.count()}")
                 the_logger.info("Persisting Json : " + collection_name)
                 json_location = persist_json(collection_name, decoded_df)
                 prefix = (
