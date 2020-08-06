@@ -256,6 +256,7 @@ def create_hive_on_published(json_location, collection_name):
 def get_spark_session():
     spark = (
         SparkSession.builder.master("yarn")
+        .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
         .appName("spike")
         .enableHiveSupport()
         .getOrCreate()
