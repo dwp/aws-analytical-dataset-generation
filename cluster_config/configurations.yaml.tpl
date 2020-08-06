@@ -24,6 +24,8 @@ Configurations:
     "spark.dynamicAllocation.initialExecutors": "${minExecutors}"
     "spark.dynamicAllocation.minExecutors": "${minExecutors}"
     "spark.dynamicAllocation.maxExecutors": "${maxExecutors}"
+    "spark.executor.memory": "10g"
+    "spark.driver.memory": "10g"
 
 - Classification: "spark-hive-site"
   Properties:
