@@ -65,7 +65,6 @@ resource "aws_s3_bucket_object" "configurations" {
       proxy_http_port          = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
       proxy_https_host         = data.terraform_remote_state.internal_compute.outputs.internet_proxy.host
       proxy_https_port         = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
-      zookeeper_quorum         = data.terraform_remote_state.ingest.outputs.hbase_fqdn
       emrfs_metadata_tablename = local.emrfs_metadata_tablename
       maxExecutors             = var.emr_maxExecutors[local.environment]
       minExecutors             = var.emr_minExecutors[local.environment]
