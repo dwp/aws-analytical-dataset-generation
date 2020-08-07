@@ -30,7 +30,6 @@ Configurations:
 - Classification: "spark-hive-site"
   Properties:
     "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
-    "hbase.zookeeper.quorum": "${zookeeper_quorum}"
     "hbase.client.scanner.timeout.period": "1200000"
     "hbase.rpc.timeout": "1800000"
     "hbase.client.operation.timeout": "3600000"
@@ -43,7 +42,6 @@ Configurations:
     "hive.metastore.schema.verification": "false"
     "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
     "hive.metastore.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
-    "hbase.zookeeper.quorum": "${zookeeper_quorum}"
     "hbase.client.scanner.timeout.period": "1200000"
     "hbase.rpc.timeout": "1800000"
     "hbase.client.operation.timeout": "3600000"
