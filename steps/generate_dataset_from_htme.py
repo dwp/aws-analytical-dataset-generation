@@ -6,6 +6,7 @@ import os
 import re
 import requests
 import zlib
+import concurrent.futures
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -25,8 +26,21 @@ the_logger = setup_logging(
 def main():
     keys = get_list_keys_for_prefix()
     list_of_dicts = group_keys_by_collection(keys)
-    consolidate_rdd_per_collection(list_of_dicts)
+    list_of_dicts_filtered = get_collections_in_secrets (list_of_dicts)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = executor.map(consolidate_rdd_per_collection, list_of_dicts_filtered)
 
+def get_collections_in_secrets(list_of_dicts):
+    filtered_list = []
+    for collection_dict in list_of_dicts:
+        for collection_name, collection_files_keys in collection_dict.items():
+            if collection_name.lower() in secrets_collections:
+                filtered_list.append(collection_dict)
+            else:
+                logging.error(
+                    collection_name + " is not present in the collections list "
+                )
+    return filtered_list
 
 def get_client(service_name):
     client = boto3.client(service_name)
@@ -41,9 +55,6 @@ def get_list_keys_for_prefix():
             keys.append(obj["Key"])
     if s3_prefix in keys:
         keys.remove(s3_prefix)
-    print(keys)
-    print(s3_htme_bucket)
-    print(s3_prefix)
     return keys
 
 
@@ -65,57 +76,50 @@ def group_keys_by_collection(keys):
         list_of_dicts.append({k: gh})
     return list_of_dicts
 
+def chunks(l, n):
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
-def consolidate_rdd_per_collection(list_of_dicts):
-    secrets_response = retrieve_secrets()
-    secrets_collections = get_collections(secrets_response)
-    for collection_dict in list_of_dicts:
-        for collection_name, collection_files_keys in collection_dict.items():
-            if collection_name.lower() in secrets_collections:
-                the_logger.info("Processing collection : " + collection_name)
-                tag_value = secrets_collections[collection_name.lower()]
-                print(f"Processing Collection {collection_name}")
-                initial_rdd = spark.sparkContext.emptyRDD()
-                for collection_file_key in collection_files_keys:
-                    encrypted = read_binary(
-                        f"s3://{s3_htme_bucket}/{collection_file_key}"
-                    )
-                    metadata = get_metadatafor_key(collection_file_key)
-                    ciphertext = metadata["ciphertext"]
-                    datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
-                    iv = metadata["iv"]
-                    plain_text_key = get_plaintext_key_calling_dks(
-                        ciphertext, datakeyencryptionkeyid
-                    )
-                    decrypted = encrypted.mapValues(
-                        lambda val: decrypt(plain_text_key, iv, val)
-                    )
-                    decompressed = decrypted.mapValues(decompress)
-                    initial_rdd = initial_rdd.union(decompressed)
-                decoded_rdd = initial_rdd.mapValues(lambda txt: txt.decode("utf-8"))
-                row = Row("val")
-                decoded_df = (
-                    decoded_rdd.flatMap(lambda x: x[1].split("\n")).map(row).toDF()
+def consolidate_rdd_per_collection(collection):
+    for collection_name, collection_files_keys in collection.items():
+        the_logger.info("Processing collection : " + collection_name)
+        tag_value = secrets_collections[collection_name.lower()]
+        print(f"Processing Collection {collection_name}")
+        for paginated_collection_file_keys  in chunks(collection_files_keys,100):
+            initial_rdd = spark.sparkContext.emptyRDD()
+            for collection_file_key in paginated_collection_file_keys:
+                encrypted = read_binary(
+                    f"s3://{s3_htme_bucket}/{collection_file_key}"
                 )
-                the_logger.info("Persisting Json : " + collection_name)
-                json_location = persist_json(collection_name, decoded_df)
-                prefix = (
+                metadata = get_metadatafor_key(collection_file_key)
+                ciphertext = metadata["ciphertext"]
+                datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
+                iv = metadata["iv"]
+                plain_text_key = get_plaintext_key_calling_dks(
+                    ciphertext, datakeyencryptionkeyid
+                )
+                decrypted = encrypted.mapValues(
+                    lambda val: decrypt(plain_text_key, iv, val)
+                )
+                decompressed = decrypted.mapValues(decompress)
+                decoded = decompressed.mapValues(lambda txt: txt.decode("utf-8"))
+                initial_rdd = initial_rdd.union(decoded)
+            row = Row("val")
+            decoded_df = initial_rdd.flatMap(lambda x: x[1]).map(row).toDF()
+            the_logger.info("Persisting Json : " + collection_name)
+            json_location = persist_json(collection_name, decoded_df)
+            prefix = (
                     "${file_location}/"
                     + collection_name
                     + "/"
                     + collection_name
                     + ".json"
-                )
-                the_logger.info("Applying Tags for prefix : " + prefix)
-                tag_objects(prefix, tag_value)
-                the_logger.info("Creating Hive tables for : " + collection_name)
-                create_hive_on_published(json_location, collection_name)
-                the_logger.info("Completed Processing : " + collection_name)
-            else:
-                logging.error(
-                    collection_name + " is not present in the collections list "
-                )
-                print(collection_name + " is not present in the collections list ")
+            )
+            the_logger.info("Applying Tags for prefix : " + prefix)
+            tag_objects(prefix, tag_value)
+        the_logger.info("Creating Hive tables for : " + collection_name)
+        create_hive_on_published(json_location, collection_name)
+        the_logger.info("Completed Processing : " + collection_name)
 
 
 def get_metadatafor_key(key):
@@ -267,11 +271,12 @@ def get_spark_session():
 
 if __name__ == "__main__":
     spark = get_spark_session()
-    print(spark.sparkContext.getConf().getAll())
     published_database_name = get_published_db_name()
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_prefix = "${s3_prefix}"
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_client("s3")
+    secrets_response = retrieve_secrets()
+    secrets_collections = get_collections(secrets_response)
     keys_map = {}
     main()
