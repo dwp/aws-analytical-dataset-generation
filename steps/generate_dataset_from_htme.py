@@ -101,7 +101,9 @@ def consolidate_rdd_per_collection(collection):
                 decrypted = encrypted.mapValues(
                     lambda val: decrypt(plain_text_key, iv, val)
                 )
-                initial_rdd = initial_rdd.union(decrypted)
+                decompressed = decrypted.mapValues(decompress)
+                decoded = decompressed.mapValues(lambda txt: txt.decode("utf-8"))
+                initial_rdd = initial_rdd.union(decoded)
             row = Row("val")
             decoded_df = initial_rdd.flatMap(lambda x: x[1]).map(row).toDF()
             the_logger.info("Persisting Json : " + collection_name)
@@ -201,6 +203,11 @@ def decrypt(plain_text_key, iv_key, data):
     decrypted = aes.decrypt(data)
     return decrypted
 
+
+def decompress(compressed_text):
+    return zlib.decompress(compressed_text, 16 + zlib.MAX_WBITS)
+
+
 def persist_json(collection_name, values):
     adg_json_name = collection_name + ".json.gz"
     json_location = "s3://%s/${file_location}/%s/%s" % (
@@ -208,7 +215,7 @@ def persist_json(collection_name, values):
         collection_name,
         adg_json_name,
     )
-    values.write.mode("overwrite").text(json_location)
+    values.write.mode("overwrite").option("compression","gzip").text(json_location)
     return json_location
 
 
