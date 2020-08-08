@@ -113,7 +113,7 @@ def consolidate_rdd_per_collection(collection):
                     + collection_name
                     + "/"
                     + collection_name
-                    + ".json"
+                    + ".json.gz"
             )
             the_logger.info("Applying Tags for prefix : " + prefix)
             tag_objects(prefix, tag_value)
