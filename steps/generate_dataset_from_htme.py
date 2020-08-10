@@ -113,7 +113,7 @@ def consolidate_rdd_per_collection(collection):
                     + collection_name
                     + "/"
                     + collection_name
-                    + ".json"
+                    + ".json.gz"
             )
             the_logger.info("Applying Tags for prefix : " + prefix)
             tag_objects(prefix, tag_value)
@@ -209,13 +209,13 @@ def decompress(compressed_text):
 
 
 def persist_json(collection_name, values):
-    adg_json_name = collection_name + "." + "json"
+    adg_json_name = collection_name + ".json.gz"
     json_location = "s3://%s/${file_location}/%s/%s" % (
         s3_publish_bucket,
         collection_name,
         adg_json_name,
     )
-    values.write.mode("overwrite").text(json_location)
+    values.write.mode("overwrite").option("compression","gzip").text(json_location)
     return json_location
 
 
