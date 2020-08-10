@@ -31,6 +31,15 @@ variable "emr_ami_id" {
   description = "AMI ID to use for the HBase EMR nodes"
 }
 
+variable "analytical_dataset_generation_exporter_jar" {
+  type = map(string)
+
+  default = {
+    base_path = ""
+    version   = ""
+  }
+}
+
 variable "emr_instance_type" {
   default = {
     development = "m5.8xlarge"

@@ -16,6 +16,7 @@ mkdir -p /opt/emr/metrics
 
 aws s3 cp "${metrics_pom}" $METRICS_FILEPATH/pom.xml
 aws s3 cp "${metrics_properties}" $METRICS_FILEPATH/metrics.properties
+aws s3 cp "${metrics_jar}" /tmp/adg-exporter.b64
 
 log_wrapper_message "Fetching and unzipping maven"
 
@@ -40,5 +41,8 @@ PROXY_PORT=$(echo "${proxy_url}" | sed 's|.*:||')
 
 export MAVEN_OPTS="-DproxyHost=$PROXY_HOST -DproxyPort=$PROXY_PORT"
 $METRICS_FILEPATH/$MAVEN/bin/mvn -f $METRICS_FILEPATH/pom.xml dependency:copy-dependencies -DoutputDirectory="$METRICS_FILEPATH/dependencies"
+
+cat /tmp/adg-exporter.b64 | base64 -d > $METRICS_FILEPATH/dependencies/adg-exporter.jar
+rm /tmp/adg-exporter.b64
 
 ) >> /var/log/adg/nohup.log 2>&1

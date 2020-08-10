@@ -37,7 +37,7 @@ resource "aws_s3_bucket_object" "generate_dataset_from_htme_script" {
     url                = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
     aws_default_region = "eu-west-2"
     log_path           = "/var/log/adg/generate-analytical-dataset.log"
-    s3_prefix          = "businessdata/mongo/ucdata/2020-07-26/full/"
+    s3_prefix          = "businessdata/mongo/ucdata/2020.07-26/full/"
   }
   )
 }
@@ -69,6 +69,7 @@ resource "aws_s3_bucket_object" "metrics_setup_sh" {
       proxy_url                   = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
       metrics_properties          = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_properties.key)
       metrics_pom                 = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_pom.key)
+      metrics_jar                 = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_jar.key)
     }
   )
 }
@@ -91,3 +92,9 @@ resource "aws_s3_bucket_object" "metrics_pom" {
   content = file("${path.module}/steps/metrics_config/pom.xml")
 }
 
+resource "aws_s3_bucket_object" "metrics_jar" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key    = "component/analytical-dataset-generation/metrics/adg-exporter.jar"
+  content = filebase64("${var.analytical_dataset_generation_exporter_jar.base_path}/exporter-${analytical_dataset_generation_exporter_jar.version}.jar")
+}
