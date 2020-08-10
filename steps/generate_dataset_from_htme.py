@@ -7,6 +7,7 @@ import re
 import requests
 import zlib
 import concurrent.futures
+import time
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -280,4 +281,10 @@ if __name__ == "__main__":
     secrets_response = retrieve_secrets()
     secrets_collections = get_collections(secrets_response)
     keys_map = {}
+    start_time = time.perf_counter()
     main()
+    end_time = time.perf_counter()
+    total_time = round(end_time - start_time)
+    total_time = str(total_time)
+    with open("/opt/emr/metrics/processing_times.csv", "w") as f:
+        f.write("all_collections," + total_time)
