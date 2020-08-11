@@ -270,7 +270,7 @@ def add_metric(collection_name, value):
         lines = f.readlines()
     with open(metrics_path, "w") as f:
         for line in lines:
-            if not (line.startswith(get_collection(collection_name)))   :
+            if not (line.startswith(get_collection(collection_name))):
                 f.write(line)
         f.write(get_collection(collection_name) + "," + value + "\n")
 
