@@ -217,7 +217,7 @@ def persist_json(collection_name, values):
         collection_name,
         adg_json_name,
     )
-    values.write.mode("overwrite").option("compression","gzip").text(json_location)
+    values.write.mode("overwrite").text(json_location)
     return json_location
 
 
