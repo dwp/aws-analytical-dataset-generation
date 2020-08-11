@@ -78,54 +78,50 @@ def group_keys_by_collection(keys):
         list_of_dicts.append({k: gh})
     return list_of_dicts
 
-def chunks(l, n):
-    for i in range(0, len(l), n):
-        yield l[i:i + n]
-
 def consolidate_rdd_per_collection(collection):
     for collection_name, collection_files_keys in collection.items():
         the_logger.info("Processing collection : " + collection_name)
         tag_value = secrets_collections[collection_name.lower()]
         print(f"Processing Collection {collection_name}")
         start_time = time.perf_counter()
-        for paginated_collection_file_keys  in chunks(collection_files_keys,100):
-            initial_rdd = spark.sparkContext.emptyRDD()
-            for collection_file_key in paginated_collection_file_keys:
-                encrypted = read_binary(
-                    f"s3://{s3_htme_bucket}/{collection_file_key}"
-                )
-                metadata = get_metadatafor_key(collection_file_key)
-                ciphertext = metadata["ciphertext"]
-                datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
-                iv = metadata["iv"]
-                plain_text_key = get_plaintext_key_calling_dks(
-                    ciphertext, datakeyencryptionkeyid
-                )
-                decrypted = encrypted.mapValues(
-                    lambda val: decrypt(plain_text_key, iv, val)
-                )
-                decompressed = decrypted.mapValues(decompress)
-                decoded = decompressed.mapValues(lambda txt: txt.decode("utf-8"))
-                initial_rdd = initial_rdd.union(decoded)
-            row = Row("val")
-            decoded_df = initial_rdd.flatMap(lambda x: x[1]).map(row).toDF()
-            the_logger.info("Persisting Json : " + collection_name)
-            json_location = persist_json(collection_name, decoded_df)
-            prefix = (
-                    "${file_location}/"
-                    + collection_name
-                    + "/"
-                    + collection_name
-                    + ".json.gz"
+        rdd_list = []
+        for collection_file_key in collection_files_keys:
+            encrypted = read_binary(
+                f"s3://{s3_htme_bucket}/{collection_file_key}"
             )
-            the_logger.info("Applying Tags for prefix : " + prefix)
-            tag_objects(prefix, tag_value)
-        the_logger.info("Creating Hive tables for : " + collection_name)
-        create_hive_on_published(json_location, collection_name)
-        end_time = time.perf_counter()
-        total_time = round(end_time - start_time)
-        add_metric(collection_name, str(total_time))
-        the_logger.info("Completed Processing : " + collection_name)
+            metadata = get_metadatafor_key(collection_file_key)
+            ciphertext = metadata["ciphertext"]
+            datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
+            iv = metadata["iv"]
+            plain_text_key = get_plaintext_key_calling_dks(
+                ciphertext, datakeyencryptionkeyid
+            )
+            decrypted = encrypted.mapValues(
+                lambda val: decrypt(plain_text_key, iv, val)
+            )
+            decompressed = decrypted.mapValues(decompress)
+            decoded = decompressed.mapValues(lambda txt: txt.decode("utf-8"))
+            rdd_list.append(decoded)
+        row = Row("val")
+        consolidated_rdd = spark.sparkContext.union(rdd_list)
+        decoded_df = consolidated_rdd.map(lambda x: x[1]).map(row).toDF()
+        the_logger.info("Persisting Json : " + collection_name)
+        json_location = persist_json(get_collection(collection_name), decoded_df)
+        prefix = (
+                "${file_location}/"
+                + collection_name
+                + "/"
+                + collection_name
+                + ".json"
+        )
+        the_logger.info("Applying Tags for prefix : " + prefix)
+        tag_objects(prefix, tag_value)
+    the_logger.info("Creating Hive tables for : " + collection_name)
+    create_hive_on_published(json_location, collection_name)
+    end_time = time.perf_counter()
+    total_time = round(end_time - start_time)
+    add_metric(collection_name, str(total_time))
+    the_logger.info("Completed Processing : " + collection_name)
 
 
 def get_metadatafor_key(key):
@@ -215,7 +211,7 @@ def decompress(compressed_text):
 
 
 def persist_json(collection_name, values):
-    adg_json_name = collection_name + ".json.gz"
+    adg_json_name = collection_name + ".json"
     json_location = "s3://%s/${file_location}/%s/%s" % (
         s3_publish_bucket,
         collection_name,
