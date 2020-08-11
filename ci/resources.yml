@@ -59,6 +59,14 @@ resources:
     check_every: 1h
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
+  - name: analytical-dataset-generation-exporter-release
+    type: github-release
+    source:
+      owner: dwp
+      repository: analytical-dataset-generation-exporter
+    check_every: 1h
+    webhook_token: ((dataworks.concourse_github_webhook_token))
+
   - name: emr-ami
     type: ami
     check_every: 1h

@@ -186,6 +186,7 @@ def get_spark_session():
         SparkSession.builder.master("yarn")
         .config("spark.sql.parquet.binaryAsString", "true")
         .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
+        .config("spark.metrics.namespace", "adg")
         .appName("aws-analytical-dataset-generator")
         .enableHiveSupport()
         .getOrCreate()

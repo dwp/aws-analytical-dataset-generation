@@ -7,6 +7,8 @@ jobs:
           version: every
         - get: emr-launcher-release
           trigger: true
+        - get: analytical-dataset-generation-exporter-release
+          trigger: true
         - get: emr-ami
           trigger: true
       - put: aws-analytical-dataset-generation-pr
@@ -47,6 +49,7 @@ jobs:
                 cp ../terraform-config/terraform.tfvars .
                 export TF_VAR_emr_ami_id=$(cat ../emr-ami/id)
                 export TF_VAR_adg_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
+                export TF_VAR_analytical_dataset_generation_exporter_jar="{base_path = \"../analytical-dataset-generation-exporter-release\", version = \"$(ls ../analytical-dataset-generation-exporter-release/*.jar | sed -e 's/^.*exporter-//' -e 's/.jar$//')\"}"
                 terraform init
                 terraform workspace show
                 terraform plan
@@ -54,6 +57,7 @@ jobs:
             - name: aws-analytical-dataset-generation
             - name: terraform-config
             - name: emr-launcher-release
+            - name: analytical-dataset-generation-exporter-release
             - name: emr-ami
         input_mapping:
           aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr

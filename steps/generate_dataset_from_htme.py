@@ -7,6 +7,7 @@ import re
 import requests
 import zlib
 import concurrent.futures
+import time
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -21,6 +22,7 @@ the_logger = setup_logging(
     else "INFO",
     log_path="${log_path}",
 )
+
 
 
 def main():
@@ -85,6 +87,7 @@ def consolidate_rdd_per_collection(collection):
         the_logger.info("Processing collection : " + collection_name)
         tag_value = secrets_collections[collection_name.lower()]
         print(f"Processing Collection {collection_name}")
+        start_time = time.perf_counter()
         for paginated_collection_file_keys  in chunks(collection_files_keys,100):
             initial_rdd = spark.sparkContext.emptyRDD()
             for collection_file_key in paginated_collection_file_keys:
@@ -119,6 +122,9 @@ def consolidate_rdd_per_collection(collection):
             tag_objects(prefix, tag_value)
         the_logger.info("Creating Hive tables for : " + collection_name)
         create_hive_on_published(json_location, collection_name)
+        end_time = time.perf_counter()
+        total_time = round(end_time - start_time)
+        add_metric(collection_name, str(total_time))
         the_logger.info("Completed Processing : " + collection_name)
 
 
@@ -256,11 +262,23 @@ def create_hive_on_published(json_location, collection_name):
     spark.sql(src_hive_create_query)
     return None
 
+def add_metric(collection_name, value):
+    metrics_path = "/opt/emr/metrics/processing_times.csv"
+    if not os.path.exists(metrics_path):
+        os.mknod(metrics_path)
+    with open(metrics_path, "r") as f:
+        lines = f.readlines()
+    with open(metrics_path, "w") as f:
+        for line in lines:
+            if not (line.startswith(get_collection(collection_name))):
+                f.write(line)
+        f.write(get_collection(collection_name) + "," + value + "\n")
 
 def get_spark_session():
     spark = (
         SparkSession.builder.master("yarn")
         .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
+        .config("spark.metrics.namespace", "adg")
         .appName("spike")
         .enableHiveSupport()
         .getOrCreate()
@@ -279,4 +297,8 @@ if __name__ == "__main__":
     secrets_response = retrieve_secrets()
     secrets_collections = get_collections(secrets_response)
     keys_map = {}
+    start_time = time.perf_counter()
     main()
+    end_time = time.perf_counter()
+    total_time = round(end_time - start_time)
+    add_metric("all_collections", str(total_time))
