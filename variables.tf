@@ -57,7 +57,7 @@ variable "emr_no_vcpus" {
     qa          = "16"
     integration = "64"
     preprod     = "16"
-    production  = "1200"
+    production  = "1152"
   }
 }
 
