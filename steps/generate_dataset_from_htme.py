@@ -97,7 +97,7 @@ def consolidate_rdd_per_collection(collection):
                 ciphertext, datakeyencryptionkeyid
             )
             decrypted = encrypted.mapValues(
-                lambda val: decrypt(plain_text_key, iv, val)
+                lambda val, plain_text_key = plain_text_key, iv = iv: decrypt(plain_text_key, iv, val)
             )
             decompressed = decrypted.mapValues(decompress)
             decoded = decompressed.mapValues(lambda txt: txt.decode("utf-8"))
