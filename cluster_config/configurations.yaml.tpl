@@ -5,6 +5,7 @@ Configurations:
     "yarn.log-aggregation-enable": "true"
     "yarn.nodemanager.remote-app-log-dir": "s3://${s3_log_bucket}/${s3_log_prefix}/yarn"
     "yarn.nodemanager.vmem-check-enabled": "false"
+    "yarn.nodemanager.pmem-check-enabled": "false"
 - Classification: "spark"
   Properties:
     "maximizeResourceAllocation": "false"
