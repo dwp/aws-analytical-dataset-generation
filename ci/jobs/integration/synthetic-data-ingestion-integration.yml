@@ -1,32 +1,36 @@
 jobs:
-- name: synthetic-data-ingestion-integration
-  plan:
-  - in_parallel:
-    - get: aws-analytical-dataset-generation
-      trigger: false
-    - get: aws-ingestion
-      trigger: false
-    - get: aws-internal-compute
-      trigger: false
-    - get: aws-dataworks-e2e-framework
-      trigger: false
-    - get: aws-management-infrastructure
-      trigger: false
-  - .: (( inject meta.plan.terraform-bootstrap ))
-    params:
-      TF_WORKSPACE: integration
-  - .: (( inject meta.plan.terraform-output-ingest ))
-    params:
-      TF_WORKSPACE: integration
-  - .: (( inject meta.plan.terraform-output-internal-compute ))
-    params:
-      TF_WORKSPACE: integration
-  - .: (( inject meta.plan.terraform-output-management-infra ))
-  - .: (( inject meta.plan.synthetic-data-ingestion ))
-    config:
-      params:
-        AWS_ACC: ((aws_account.integration))
-        SYNTHETIC_RAWDATA_AWS_ACC: ((aws_account.management-dev))
-        SYNTHETIC_RAWDATA_PREFIX: "synthetic-data/raw"
-        SYNTHETIC_ENCDATA_PREFIX: "synthetic-data/encrypted"
-        IS_SYNTHETIC_DATA_INGESTION: "TRUE"
+  - name: synthetic-data-ingestion-integration
+    plan:
+      - in_parallel:
+          - get: aws-analytical-dataset-generation
+            trigger: false
+          - get: aws-ingestion
+            trigger: false
+          - get: aws-internal-compute
+            trigger: false
+          - get: aws-dataworks-e2e-framework
+            trigger: false
+          - get: aws-management-infrastructure
+            trigger: false
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        config:
+          params:
+            TF_WORKSPACE: integration
+      - .: (( inject meta.plan.terraform-output-ingest ))
+        config:
+          params:
+            TF_WORKSPACE: integration
+      - .: (( inject meta.plan.terraform-output-internal-compute ))
+        config:
+          params:
+            TF_WORKSPACE: integration
+      - .: (( inject meta.plan.terraform-output-management-infra ))
+      - .: (( inject meta.plan.synthetic-data-ingestion ))
+        config:
+          params:
+            AWS_ACC: ((aws_account.integration))
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
+            SYNTHETIC_RAWDATA_AWS_ACC: ((aws_account.management-dev))
+            SYNTHETIC_RAWDATA_PREFIX: "synthetic-data/raw"
+            SYNTHETIC_ENCDATA_PREFIX: "synthetic-data/encrypted"
+            IS_SYNTHETIC_DATA_INGESTION: "TRUE"
