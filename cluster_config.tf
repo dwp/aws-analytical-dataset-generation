@@ -51,7 +51,7 @@ locals {
   spark_executor_cores                = 5
   spark_num_cores_per_core_instance   = var.emr_num_cores_per_core_instance[local.environment] - 1
   spark_num_executors_per_instance    = floor(local.spark_num_cores_per_core_instance / local.spark_executor_cores)
-  spark_executor_total_memory         = floor(var.emr_memory_gb_per_core_instance[local.environment] / local.spark_num_executors_per_instance)
+  spark_executor_total_memory         = floor(var.emr_yarn_memory_gb_per_core_instance[local.environment] / local.spark_num_executors_per_instance)
   spark_executor_memory               = floor(local.spark_executor_total_memory * 0.9)
   spark_yarn_executor_memory_overhead = local.spark_executor_total_memory - local.spark_executor_memory
   spark_driver_memory                 = local.spark_executor_memory

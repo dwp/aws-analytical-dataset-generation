@@ -43,10 +43,10 @@ variable "analytical_dataset_generation_exporter_jar" {
 variable "emr_instance_type" {
   default = {
     development = "m5.8xlarge"
-    qa          = "m5.2xlarge"
+    qa          = "m5.8xlarge"
     integration = "m5.8xlarge"
-    preprod     = "m5.2xlarge"
-    production  = "m5.24xlarge"
+    preprod     = "m5.12xlarge"
+    production  = "m5.12xlarge"
   }
 }
 
@@ -62,20 +62,24 @@ variable "emr_core_instance_count" {
 
 variable "emr_num_cores_per_core_instance" {
   default = {
-    development = "16"
-    qa          = "16"
-    integration = "16"
+    development = "32"
+    qa          = "32"
+    integration = "32"
     preprod     = "48"
     production  = "48"
   }
 }
 
-variable "emr_memory_gb_per_core_instance" {
+# Note this isn't the amount of RAM the instance has; it's the maximum amount
+# that EMR automatically configures for YARN. See
+# https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-hadoop-task-config.html
+# (search for yarn.nodemanager.resource.memory-mb)
+variable "emr_yarn_memory_gb_per_core_instance" {
   default = {
-    development = "64"
-    qa          = "64"
-    integration = "64"
-    preprod     = "192"
-    production  = "192"
+    development = "120"
+    qa          = "120"
+    integration = "120"
+    preprod     = "184"
+    production  = "184"
   }
 }
