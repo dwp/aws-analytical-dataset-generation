@@ -67,7 +67,7 @@ variable "emr_maxExecutors" {
     qa          = "20"
     integration = "20"
     preprod     = "20"
-    production  = "100"
+    production  = "50"
   }
 }
 
@@ -77,7 +77,7 @@ variable "emr_minExecutors" {
     qa          = "10"
     integration = "10"
     preprod     = "10"
-    production  = "100"
+    production  = "50"
   }
 }
 
