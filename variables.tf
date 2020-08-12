@@ -67,7 +67,7 @@ variable "emr_maxExecutors" {
     qa          = "20"
     integration = "20"
     preprod     = "20"
-    production  = "500"
+    production  = "100"
   }
 }
 
