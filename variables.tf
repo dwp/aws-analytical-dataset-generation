@@ -45,80 +45,37 @@ variable "emr_instance_type" {
     development = "m5.8xlarge"
     qa          = "m5.2xlarge"
     integration = "m5.8xlarge"
-    # temp increase for DW-4437 testing
-    preprod    = "m5.2xlarge"
-    production = "m5.24xlarge"
-  }
-}
-
-variable "emr_no_vcpus" {
-  default = {
-    development = "64"
-    qa          = "16"
-    integration = "64"
-    preprod     = "16"
-    production  = "1152"
-  }
-}
-
-variable "emr_maxExecutors" {
-  default = {
-    development = "20"
-    qa          = "20"
-    integration = "20"
-    preprod     = "20"
-    production  = "50"
-  }
-}
-
-variable "emr_minExecutors" {
-  default = {
-    development = "10"
-    qa          = "10"
-    integration = "10"
-    preprod     = "10"
-    production  = "50"
-  }
-}
-
-variable "emr_core_instance_type_1" {
-  default = {
-    development = "m5.8xlarge"
-    qa          = "m5.2xlarge"
-    integration = "m5.8xlarge"
     preprod     = "m5.2xlarge"
     production  = "m5.24xlarge"
   }
 }
 
-
-variable "emr_core_instance_type_2" {
+variable "emr_core_instance_count" {
   default = {
-    development = "m5.4xlarge"
-    qa          = "m5.xlarge"
-    integration = "m5.4xlarge"
-    preprod     = "m5.xlarge"
-    production  = "m5.12xlarge"
+    development = "2"
+    qa          = "2"
+    integration = "2"
+    preprod     = "25"
+    production  = "25"
   }
 }
 
-
-variable "emr_weightedcapacity_1" {
-  default = {
-    development = "32"
-    qa          = "8"
-    integration = "32"
-    preprod     = "8"
-    production  = "96"
-  }
-}
-
-variable "emr_weightedcapacity_2" {
+variable "emr_num_cores_per_core_instance" {
   default = {
     development = "16"
-    qa          = "4"
+    qa          = "16"
     integration = "16"
-    preprod     = "4"
+    preprod     = "48"
     production  = "48"
+  }
+}
+
+variable "emr_memory_gb_per_core_instance" {
+  default = {
+    development = "64"
+    qa          = "64"
+    integration = "64"
+    preprod     = "192"
+    production  = "192"
   }
 }
