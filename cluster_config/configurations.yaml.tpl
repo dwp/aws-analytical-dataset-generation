@@ -26,6 +26,7 @@ Configurations:
     "spark.driver.cores": "${spark_driver_cores}"
     "spark.executor.instances": "${spark_executor_instances}"
     "spark.default.parallelism": "${spark_default_parallelism}"
+    "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
 
 - Classification: "spark-hive-site"
   Properties:
