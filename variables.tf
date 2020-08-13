@@ -80,6 +80,17 @@ variable "emr_num_cores_per_core_instance" {
   }
 }
 
+variable "spark_kyro_buffer" {
+  default = {
+    development = "128"
+    qa          = "128"
+    integration = "128"
+    preprod     = "1024"
+    production  = "1024"
+  }
+}
+
+
 # Note this isn't the amount of RAM the instance has; it's the maximum amount
 # that EMR automatically configures for YARN. See
 # https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-hadoop-task-config.html
