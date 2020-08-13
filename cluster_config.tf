@@ -49,15 +49,15 @@ resource "aws_s3_bucket_object" "steps" {
 
 # See https://aws.amazon.com/blogs/big-data/best-practices-for-successfully-managing-memory-for-apache-spark-applications-on-amazon-emr/
 locals {
-  spark_executor_cores                = 5
+  spark_executor_cores                = 1
   spark_num_cores_per_core_instance   = var.emr_num_cores_per_core_instance[local.environment] - 1
-  spark_num_executors_per_instance    = floor(local.spark_num_cores_per_core_instance / local.spark_executor_cores)
+  spark_num_executors_per_instance    = 5
   spark_executor_total_memory         = floor(var.emr_yarn_memory_gb_per_core_instance[local.environment] / local.spark_num_executors_per_instance)
-  spark_executor_memory               = floor(local.spark_executor_total_memory * 0.9)
-  spark_yarn_executor_memory_overhead = local.spark_executor_total_memory - local.spark_executor_memory
-  spark_driver_memory                 = local.spark_executor_memory
+  spark_executor_memory               = 35
+  spark_yarn_executor_memory_overhead = 10
+  spark_driver_memory                 = 10
   spark_driver_cores                  = local.spark_executor_cores
-  spark_executor_instances            = (local.spark_num_executors_per_instance * var.emr_core_instance_count[local.environment]) - 1
+  spark_executor_instances            = 5
   spark_default_parallelism           = local.spark_executor_instances * local.spark_executor_cores * 2
   spark_kyro_buffer                   = var.spark_kyro_buffer[local.environment]
 }
