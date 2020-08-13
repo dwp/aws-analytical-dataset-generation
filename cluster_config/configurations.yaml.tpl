@@ -27,7 +27,7 @@ Configurations:
     "spark.executor.instances": "${spark_executor_instances}"
     "spark.default.parallelism": "${spark_default_parallelism}"
     "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
-    "spark.kryoserializer.buffer.mb": "${spark_kyro_buffer}"
+    "spark.kryoserializer.buffer.max": "${spark_kyro_buffer}"
 
 - Classification: "spark-hive-site"
   Properties:

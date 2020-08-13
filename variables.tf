@@ -85,8 +85,8 @@ variable "spark_kyro_buffer" {
     development = "128"
     qa          = "128"
     integration = "128"
-    preprod     = "1024"
-    production  = "1024"
+    preprod     = "2047m"
+    production  = "2047m"
   }
 }
 
