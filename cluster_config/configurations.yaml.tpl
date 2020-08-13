@@ -28,7 +28,7 @@ Configurations:
     "spark.default.parallelism": "${spark_default_parallelism}"
     "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
     "spark.kryoserializer.buffer.max": "${spark_kyro_buffer}"
-    "spark.driver.maxResultSize": 0
+    "spark.driver.maxResultSize": "0"
 
 - Classification: "spark-hive-site"
   Properties:
