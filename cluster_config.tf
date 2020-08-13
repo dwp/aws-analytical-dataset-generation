@@ -59,6 +59,7 @@ locals {
   spark_driver_cores                  = local.spark_executor_cores
   spark_executor_instances            = (local.spark_num_executors_per_instance * var.emr_core_instance_count[local.environment]) - 1
   spark_default_parallelism           = local.spark_executor_instances * local.spark_executor_cores * 2
+  spark_kyro_buffer                   = var.spark_kyro_buffer[local.environment]
 }
 
 resource "aws_s3_bucket_object" "configurations" {
@@ -85,6 +86,7 @@ resource "aws_s3_bucket_object" "configurations" {
       spark_driver_cores                  = local.spark_driver_cores
       spark_executor_instances            = local.spark_executor_instances
       spark_default_parallelism           = local.spark_default_parallelism
+      spark_kyro_buffer                   = local.spark_kyro_buffer
     }
   )
 }
