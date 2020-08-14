@@ -89,6 +89,7 @@ def consolidate_rdd_per_collection(collection):
             encrypted = read_binary(
                 f"s3://{s3_htme_bucket}/{collection_file_key}"
             )
+            add_filesize_metric(collection_name, s3_htme_bucket, collection_file_key)
             metadata = get_metadatafor_key(collection_file_key)
             ciphertext = metadata["ciphertext"]
             datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
@@ -119,7 +120,7 @@ def consolidate_rdd_per_collection(collection):
     create_hive_on_published(json_location, collection_name)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
-    add_metric(collection_name, str(total_time))
+    add_metric("processing_times.csv", collection_name, str(total_time))
     the_logger.info("Completed Processing : " + collection_name)
 
 def decode(txt):
@@ -262,8 +263,12 @@ def create_hive_on_published(json_location, collection_name):
     spark.sql(src_hive_create_query)
     return None
 
-def add_metric(collection_name, value):
-    metrics_path = "/opt/emr/metrics/processing_times.csv"
+def add_filesize_metric(collection_name, s3_htme_bucket, collection_file_key):
+    metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
+    add_metric("collection_size.csv", collection_name, metadata['ResponseMetadata']['HTTPHeaders']['content-length'])
+
+def add_metric(metrics_file, collection_name, value):
+    metrics_path = "/opt/emr/metrics/" + metrics_file
     if not os.path.exists(metrics_path):
         os.mknod(metrics_path)
     with open(metrics_path, "r") as f:
@@ -301,4 +306,4 @@ if __name__ == "__main__":
     main()
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
-    add_metric("all_collections", str(total_time))
+    add_metric("processing_times.csv", "all_collections", str(total_time))
