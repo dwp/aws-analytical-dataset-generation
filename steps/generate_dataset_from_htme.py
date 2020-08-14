@@ -265,7 +265,7 @@ def create_hive_on_published(json_location, collection_name):
 
 def add_filesize_metric(collection_name, s3_htme_bucket, collection_file_key):
     metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
-    add_metric("collection_size.csv", collection_name, metadata['ContentLength'])
+    add_metric("collection_size.csv", collection_name, metadata['ResponseMetadata']['HTTPHeaders']['content-length'])
 
 def add_metric(metrics_file, collection_name, value):
     metrics_path = "/opt/emr/metrics/" + metrics_file
