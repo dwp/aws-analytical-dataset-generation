@@ -100,9 +100,8 @@ def consolidate_rdd_per_collection(collection):
             decrypted = encrypted.mapValues(
                 lambda val, plain_text_key = plain_text_key, iv = iv: decrypt(plain_text_key, iv, val)
             )
-            decompressed = decrypted.mapValues(decompress)
-            decoded = decompressed.mapValues(lambda txt: txt.decode("utf-8"))
-            rdd_list.append(decoded)
+            b64encoded = decrypted.mapValues(decode)
+            rdd_list.append(b64encoded)
         row = Row("val")
         consolidated_rdd = spark.sparkContext.union(rdd_list)
         decoded_df = consolidated_rdd.map(lambda x: x[1]).map(row).toDF()
@@ -124,6 +123,11 @@ def consolidate_rdd_per_collection(collection):
     add_metric("processing_times.csv", collection_name, str(total_time))
     the_logger.info("Completed Processing : " + collection_name)
 
+def decode(txt):
+    print(f"length before decoding {len(txt)}")
+    decoded = base64.b64encode(txt).decode()
+    print(f"length after decoding {len(decoded)}")
+    return decoded
 
 def get_metadatafor_key(key):
     s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
