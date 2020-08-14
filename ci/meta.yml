@@ -37,6 +37,7 @@ meta:
 
     terraform-apply:
       task: terraform-apply
+      .: (( inject meta.plan.terraform-common-config ))
       config:
         platform: linux
         image_resource:
@@ -44,9 +45,6 @@ meta:
           source:
             repository: ((dataworks.terraform_repository))
             tag: ((dataworks.terraform_version))
-        params:
-          TF_INPUT: false
-          TF_CLI_ARGS_apply: -lock-timeout=300s
         run:
           path: sh
           dir: aws-analytical-dataset-generation
@@ -71,6 +69,7 @@ meta:
 
     terraform-plan:
       task: terraform-plan
+      .: (( inject meta.plan.terraform-common-config ))
       config:
         platform: linux
         image_resource:
@@ -78,9 +77,6 @@ meta:
           source:
             repository: ((dataworks.terraform_repository))
             tag: ((dataworks.terraform_version))
-        params:
-          TF_INPUT: false
-          TF_CLI_ARGS_plan: -lock-timeout=300s
         run:
           path: sh
           dir: aws-analytical-dataset-generation
@@ -104,6 +100,7 @@ meta:
 
     terraform-output-internal-compute:
       task: terraform-output-internal-compute
+      .: (( inject meta.plan.terraform-common-config ))
       config:
         platform: linux
         image_resource:
@@ -124,14 +121,10 @@ meta:
           - name: aws-internal-compute
         outputs:
           - name: terraform-output-internal-compute
-      params:
-        TF_CLI_ARGS_plan: -lock-timeout=300s
-        TF_INPUT: "false"
-    #        AWS_ACCESS_KEY_ID: ((ci.aws_access_key_id))
-    #        AWS_SECRET_ACCESS_KEY: ((ci.aws_secret_access_key))
 
     terraform-output-ingest:
       task: terraform-output-ingest
+      .: (( inject meta.plan.terraform-common-config ))
       config:
         platform: linux
         image_resource:
@@ -152,12 +145,10 @@ meta:
           - name: aws-ingestion
         outputs:
           - name: terraform-output-ingest
-      params:
-        TF_CLI_ARGS_plan: -lock-timeout=300s
-        TF_INPUT: "false"
 
     terraform-output-management-infra:
       task: terraform-output-management-infra
+      .: (( inject meta.plan.terraform-common-config ))
       config:
         platform: linux
         image_resource:
@@ -178,9 +169,6 @@ meta:
           - name: aws-management-infrastructure
         outputs:
           - name: terraform-output-management-infra
-      params:
-        TF_CLI_ARGS_plan: -lock-timeout=300s
-        TF_INPUT: "false"
 
     synthetic-data-ingestion:
       task: synthetic-data-ingestion
@@ -190,13 +178,16 @@ meta:
           type: docker-image
           source:
             repository: ((dataworks.docker_python_boto_behave_repository))
-            tag: ((dataworks.docker_python_boto_behave_version))
+            version: 0.0.24
+            tag: 0.0.24
         run:
           dir: aws-dataworks-e2e-framework
           path: sh
           args:
             - -exc
             - |
+              source /assume-role
+              set +x
               cd src/runners
               ./run-ci.sh "" "../../../terraform-output-ingest/outputs.json" "../../../terraform-output-internal-compute/outputs.json" "" "../../../terraform-output-management-infra/outputs.json"
         inputs:
@@ -205,9 +196,12 @@ meta:
           - name: terraform-config
           - name: terraform-output-management-infra
           - name: terraform-output-internal-compute
-      params:
-        E2E_TEST_TIMEOUT: 2700
-        E2E_FEATURE_TAG_FILTER: "@synthetic-data-ingestion"
+        params:
+          AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+          AWS_REGION: ((dataworks.aws_region))
+          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+          E2E_TEST_TIMEOUT: 2700
+          E2E_FEATURE_TAG_FILTER: "@synthetic-data-ingestion"
 
     unit-tests:
       task: unit-tests
@@ -228,54 +222,6 @@ meta:
           - name: aws-analytical-dataset-generation
       input_mapping:
         aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
-
-    #    create-aws-profiles:
-    #      task: create-aws-profiles
-    #      config:
-    #        platform: linux
-    #        image_resource:
-    #          type: docker-image
-    #          source:
-    #            repository: ((dataworks.docker_awscli_repository))
-    #            tag: ((dataworks.docker_awscli_version))
-    #        outputs:
-    #          - name: .aws
-    #        params:
-    #          AWS_ROLE_ARN: arn:aws:iam::((dataworks.aws_management_acc)):role/ci
-    #          AWS_DEFAULT_REGION: ((dataworks.aws_region))
-    #          AWS_ACC:
-    #          AWS_ROLE: ci
-    #        run:
-    #          path: sh
-    #          args:
-    #            - -exc
-    #            - |
-    #              /assume-role
-    #              cat <<EOF> .aws/credentials
-    #              [default]
-    #              aws_access_key_id = $AWS_ACCESS_KEY_ID
-    #              aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
-    #              EOF
-    #              cat <<EOF> .aws/config
-    #              [default]
-    #              region = eu-west-2
-    #              [profile output]
-    #              role_arn = arn:aws:iam::$AWS_ACC:role/$AWS_ROLE
-    #              source_profile = default
-    #              region = eu-west-2
-    #              s3 =
-    #                max_concurrent_requests = 5
-    #                signature_version = s3v4
-    #                addressing_style = virtual
-    #              [profile input]
-    #              role_arn = arn:aws:iam::$SYNTHETIC_RAWDATA_AWS_ACC:role/$AWS_ROLE
-    #              source_profile = default
-    #              region = eu-west-2
-    #              s3 =
-    #                max_concurrent_requests = 5
-    #                signature_version = s3v4
-    #                addressing_style = virtual
-    #              EOF
 
     start-cluster:
       task: start-cluster
