@@ -8,6 +8,7 @@ import requests
 import zlib
 import concurrent.futures
 import time
+from datetime import datetime
 
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -100,22 +101,24 @@ def consolidate_rdd_per_collection(collection):
             decrypted = encrypted.mapValues(
                 lambda val, plain_text_key = plain_text_key, iv = iv: decrypt(plain_text_key, iv, val)
             )
-            b64encoded = decrypted.mapValues(decode)
-            rdd_list.append(b64encoded)
-        row = Row("val")
+            decompressed = decrypted.mapValues(decompress)
+            decoded = decompressed.mapValues(decode)
+            rdd_list.append(decoded)
         consolidated_rdd = spark.sparkContext.union(rdd_list)
-        decoded_df = consolidated_rdd.map(lambda x: x[1]).map(row).toDF()
+        consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
         the_logger.info("Persisting Json : " + collection_name)
-        json_location = persist_json(get_collection(collection_name), decoded_df)
-        prefix = (
-                "${file_location}/"
-                + collection_name
-                + "/"
-                + collection_name
-                + ".json"
+        json_location_prefix = "${file_location}/%s/%s/%s" % (
+            datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
+            get_collection(collection_name),
+            get_collection(collection_name) + ".json"
         )
-        the_logger.info("Applying Tags for prefix : " + prefix)
-        tag_objects(prefix, tag_value)
+        json_location = "s3://%s/%s" % (
+            s3_publish_bucket,
+            json_location_prefix
+        )
+        persist_json(json_location, consolidated_rdd_mapped)
+        the_logger.info("Applying Tags for prefix : " + json_location_prefix)
+        tag_objects(json_location_prefix, tag_value)
     the_logger.info("Creating Hive tables for : " + collection_name)
     create_hive_on_published(json_location, collection_name)
     end_time = time.perf_counter()
@@ -123,11 +126,9 @@ def consolidate_rdd_per_collection(collection):
     add_metric("processing_times.csv", collection_name, str(total_time))
     the_logger.info("Completed Processing : " + collection_name)
 
+
 def decode(txt):
-    print(f"length before decoding {len(txt)}")
-    decoded = base64.b64encode(txt).decode()
-    print(f"length after decoding {len(decoded)}")
-    return decoded
+    return  txt.decode("utf-8")
 
 def get_metadatafor_key(key):
     s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
@@ -215,15 +216,8 @@ def decompress(compressed_text):
     return zlib.decompress(compressed_text, 16 + zlib.MAX_WBITS)
 
 
-def persist_json(collection_name, values):
-    adg_json_name = collection_name + ".json"
-    json_location = "s3://%s/${file_location}/%s/%s" % (
-        s3_publish_bucket,
-        collection_name,
-        adg_json_name,
-    )
-    values.write.mode("overwrite").text(json_location)
-    return json_location
+def persist_json(json_location, values):
+    values.saveAsTextFile(json_location)
 
 
 def get_collection(collection_name):
