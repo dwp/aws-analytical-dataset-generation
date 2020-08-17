@@ -108,7 +108,7 @@ def consolidate_rdd_per_collection(collection):
         consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
         the_logger.info("Persisting Json : " + collection_name)
         json_location_prefix = "${file_location}/%s/%s/%s" % (
-            datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
+            run_time_stamp,
             get_collection(collection_name),
             get_collection(collection_name) + ".json"
         )
@@ -288,6 +288,7 @@ def get_spark_session():
 
 if __name__ == "__main__":
     spark = get_spark_session()
+    run_time_stamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     published_database_name = get_published_db_name()
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_prefix = "${s3_prefix}"
