@@ -29,6 +29,7 @@ Configurations:
     "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
     "spark.kryoserializer.buffer.max": "${spark_kyro_buffer}"
     "spark.driver.maxResultSize": "0"
+    "spark.dynamicAllocation.enabled": "false"
 
 - Classification: "spark-hive-site"
   Properties:
