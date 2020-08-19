@@ -57,7 +57,7 @@ locals {
   spark_yarn_executor_memory_overhead = 5
   spark_driver_memory                 = 10
   spark_driver_cores                  = 1
-  spark_executor_instances            = 50
+  spark_executor_instances            = 125
   spark_default_parallelism           = local.spark_executor_instances * local.spark_executor_cores * 2
   spark_kyro_buffer                   = var.spark_kyro_buffer[local.environment]
 }
