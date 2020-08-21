@@ -55,8 +55,8 @@ variable "emr_instance_type" {
     development = "m5.8xlarge"
     qa          = "m5.8xlarge"
     integration = "m5.8xlarge"
-    preprod     = "m5.12xlarge"
-    production  = "m5.12xlarge"
+    preprod     = "m5.8xlarge"
+    production  = "m5.8xlarge"
   }
 }
 
