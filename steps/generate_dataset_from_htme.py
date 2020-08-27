@@ -14,7 +14,7 @@ import boto3
 import requests
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
-from logger import setup_logging
+from steps.logger import setup_logging
 from pyspark.sql import SparkSession
 
 the_logger = setup_logging(

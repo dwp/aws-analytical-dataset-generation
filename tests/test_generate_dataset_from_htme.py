@@ -1,7 +1,8 @@
 import zlib
 
 import boto3
-import generate_dataset_from_htme
+import steps
+from steps import generate_dataset_from_htme
 from moto import mock_s3
 
 
@@ -78,10 +79,10 @@ def test_consolidate_rdd_per_collection(spark, monkeypatch, handle_server, aws_c
     s3_client.create_bucket(Bucket=s3_publish_bucket)
     s3_client.put_object(Body=zlib.compress(test_data), Bucket=s3_htme_bucket, Key=f'{s3_prefix}/{file_name}',
                          Metadata={'iv': '123', 'ciphertext': 'test_ciphertext', 'datakeyencryptionkeyid': '123'})
-    monkeypatch.setattr(generate_dataset_from_htme, 'add_metric', mock_add_metric)
-    monkeypatch.setattr(generate_dataset_from_htme, 'decompress', mock_decompress)
-    monkeypatch.setattr(generate_dataset_from_htme, 'decrypt', mock_decrypt)
-    monkeypatch.setattr(generate_dataset_from_htme, 'call_dks', mock_call_dks)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, 'add_metric', mock_add_metric)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, 'decompress', mock_decompress)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
     generate_dataset_from_htme.main(spark, s3_client, s3_htme_bucket, s3_prefix, secrets_collections, keys_map,
                                     run_time_stamp, s3_publish_bucket, published_database_name)
     generate_dataset_from_htme.consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
