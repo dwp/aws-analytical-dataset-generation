@@ -11,3 +11,8 @@ aviator_pipeline.yml
 .vscode
 **/__pycache__/
 *.pyc
+*.iml
+${log_path}
+**/.venv/**
+derby.log
+metastore_db/
