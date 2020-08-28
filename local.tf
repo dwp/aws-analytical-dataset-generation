@@ -116,4 +116,20 @@ locals {
 
   s3_log_prefix            = "emr/analytical_dataset_generator"
   emrfs_metadata_tablename = "Analytical_Dataset_Generation_Metadata"
+
+  hive_metastore_instance_type = {
+    development = "db.t3.small"
+    qa          = "db.t3.small"
+    integration = "db.t3.small"
+    preprod     = "db.t3.small"
+    production  = "db.t3.small"
+  }
+
+  hive_metastore_instance_count = {
+    development = length(data.aws_availability_zones.available.names)
+    qa          = length(data.aws_availability_zones.available.names)
+    integration = length(data.aws_availability_zones.available.names)
+    preprod     = length(data.aws_availability_zones.available.names)
+    production  = length(data.aws_availability_zones.available.names)
+  }
 }
