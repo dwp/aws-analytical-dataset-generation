@@ -10,8 +10,9 @@ FILE_NAME = 'db.core.contract.01002.4040.gz.enc'
 S3_PREFIX = 'mongo/ucdata'
 S3_HTME_BUCKET = 'test'
 S3_PUBLISH_BUCKET = 'target'
+DB_CORE_CONTRACT = 'db.core.contract'
 SECRETS ="{'collections_all': {'db.core.contract': 'crown'}}"
-SECRETS_COLLECTIONS = {'db.core.contract': 'crown'}
+SECRETS_COLLECTIONS = {f'{DB_CORE_CONTRACT}': 'crown'}
 
 def test_retrieve_secrets(monkeypatch, aws_credentials):
     class MockSession:
@@ -49,13 +50,13 @@ def test_group_keys_by_collection():
             f'{S3_PREFIX}/db.core.accounts.01002.4040.gz.enc']
     assert (
             generate_dataset_from_htme.group_keys_by_collection(keys) ==
-            [{'db.core.contract': [f'{S3_PREFIX}/{FILE_NAME}']},
+            [{f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{FILE_NAME}']},
              {'db.core.accounts': [f'{S3_PREFIX}/db.core.accounts.01002.4040.gz.enc']}]
     )
 
 
 def test_get_collections_in_secrets():
-    list_of_dicts = [{'db.core.contract': [f'{S3_PREFIX}/{FILE_NAME}']},
+    list_of_dicts = [{f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{FILE_NAME}']},
                      {'db.core.accounts': [f'{S3_PREFIX}/db.core.accounts.01002.4040.gz.enc']}]
     expected_list_of_dicts = [{'db.core.contract': [f'{S3_PREFIX}/{FILE_NAME}']}]
     assert generate_dataset_from_htme.get_collections_in_secrets(list_of_dicts,
@@ -64,7 +65,7 @@ def test_get_collections_in_secrets():
 
 @mock_s3
 def test_consolidate_rdd_per_collection(spark, monkeypatch, handle_server, aws_credentials):
-    collection = {'db.core.contract': [f'{S3_PREFIX}/{FILE_NAME}']}
+    collection = {f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{FILE_NAME}']}
     collection_name = "core_contract"
     keys_map = {"test_ciphertext": "test_key"}
     run_time_stamp = "10-10-2000_10-10-10"
