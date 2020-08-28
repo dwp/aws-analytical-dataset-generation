@@ -50,7 +50,7 @@ resource "aws_rds_cluster" "hive_metastore" {
   db_subnet_group_name    = aws_db_subnet_group.internal_compute.name
   database_name           = "hive_metastore"
   master_username         = "hive"
-  master_password         = "hive"
+  master_password         = "hivepassword"
   backup_retention_period = 7
   vpc_security_group_ids  = [aws_security_group.hive_metastore.id]
   storage_encrypted       = true
