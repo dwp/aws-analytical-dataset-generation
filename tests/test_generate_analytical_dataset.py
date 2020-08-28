@@ -8,34 +8,34 @@ from datetime import datetime
 
 
 def test_sanitisation_processor_removes_desired_chars_in_collections():
-    input =  """{"fieldA":"a$\u0000","_archivedDateTime":"b","_archived":"c"}"""
+    input_collection =  """{"fieldA":"a$\u0000","_archivedDateTime":"b","_archived":"c"}"""
     expected =  '{"fieldA":"ad_","_removedDateTime":"b","_removed":"c"}'
-    actual = sanitize(input, "", "")
+    actual = sanitize(input_collection, "", "")
     assert expected == actual
 
 # TODO Check how is this working in Kotlin """{"message":{"db":"penalties-and-deductions","collection":"sanction"},"data":{"carriage":"\\r","newline":"\\n","superEscaped":"\\\r\\\n"}}"""
 def test_sanitisation_processor_will_not_remove_multi_escaped_newlines():
-    input =  """{"message":{"db":"penalties-and-deductions","collection":"sanction"},"data":{"carriage":"\\\\r","newline":"\\\\n","superEscaped":"\\\\r\\\\n"}}"""
-    actual = sanitize(input,"penalties-and-deductions", "sanction" )
-    assert input == actual
+    input_json =  """{"message":{"db":"penalties-and-deductions","collection":"sanction"},"data":{"carriage":"\\\\r","newline":"\\\\n","superEscaped":"\\\\r\\\\n"}}"""
+    actual = sanitize(input_json,"penalties-and-deductions", "sanction" )
+    assert input_json == actual
 
 
 def test_sanitisatio_processor_removes_desired_chars_from_specific_collections(input_json, expected_json):
-    input = json.dumps(input_json)
+    input_json_dump = json.dumps(input_json)
     expected = json.dumps(expected_json)
-    actual = sanitize(input, "penalties-and-deductions", "sanction")
+    actual = sanitize(input_json_dump, "penalties-and-deductions", "sanction")
     assert expected == actual
 
 
 def test_sanitisation_processor_does_not_remove_chars_from_other_collections(input_json, expected_json):
-    input = json.dumps(input_json)
+    input_json_dump = json.dumps(input_json)
     expected = json.dumps(expected_json)
-    actual = sanitize(input, "", "")
+    actual = sanitize(input_json_dump, "", "")
     assert expected != actual
 
 @pytest.fixture(scope="module")
 def input_json():
-    input = """{
+    input_string = """{
               "_id": {
                 "declarationId": "47a4fad9-49af-4cb2-91b0-0056e2ac0eef\\r"
               },
@@ -70,7 +70,7 @@ def input_json():
                 "$date": "2016-06-23T05:12:29.624Z"
               }
         }"""
-    input_json = json.loads(input)
+    input_json = json.loads(input_string)
     return input_json
 
 @pytest.fixture(scope="module")
@@ -592,13 +592,12 @@ def mock_get_staging_db_name():
     return 'staging'
 
 def mock_get_dataframe_from_staging(adg_hive_select_query, spark):
-    spark = mock_get_spark_session()
     with open('test_message.json', 'r') as file:
         data = json.load(file)
         dt_string = json.dumps(data)
         data_row = Row('data')
         data_rows =[ data_row(dt_string)]
-        user_df = spark.createDataFrame(data_rows)
+        user_df = mock_get_spark_session().createDataFrame(data_rows)
         user_df.show()
         return user_df
 
@@ -616,13 +615,12 @@ def mock_get_staging_db_name():
     return 'staging'
 
 def mock_get_dataframe_from_staging(adg_hive_select_query, spark):
-    spark = mock_get_spark_session()
     with open('test_message.json', 'r') as file:
         data = json.load(file)
         dt_string = json.dumps(data)
         data_row = Row('data')
         data_rows =[ data_row(dt_string)]
-        user_df = spark.createDataFrame(data_rows)
+        user_df = mock_get_spark_session().createDataFrame(data_rows)
         user_df.show()
         return user_df
 
