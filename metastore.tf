@@ -54,7 +54,7 @@ resource "aws_rds_cluster" "hive_metastore" {
   backup_retention_period = 7
   vpc_security_group_ids  = [aws_security_group.hive_metastore.id]
   storage_encrypted       = true
-  kms_key_id              = aws_kms_key.hive_metastore.id
+  kms_key_id              = aws_kms_key.hive_metastore.arn
   tags                    = merge(local.common_tags, { Name = "hive-metastore" })
 }
 
