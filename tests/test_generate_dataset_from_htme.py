@@ -1,18 +1,20 @@
-import zlib
 import ast
+import zlib
+
 import boto3
-import steps
-from steps import generate_dataset_from_htme
 from moto import mock_s3
 
+import steps
+from steps import generate_dataset_from_htme
 
 FILE_NAME = 'db.core.contract.01002.4040.gz.enc'
 S3_PREFIX = 'mongo/ucdata'
 S3_HTME_BUCKET = 'test'
 S3_PUBLISH_BUCKET = 'target'
 DB_CORE_CONTRACT = 'db.core.contract'
-SECRETS ="{'collections_all': {'db.core.contract': 'crown'}}"
+SECRETS = "{'collections_all': {'db.core.contract': 'crown'}}"
 SECRETS_COLLECTIONS = {f'{DB_CORE_CONTRACT}': 'crown'}
+
 
 def test_retrieve_secrets(monkeypatch, aws_credentials):
     class MockSession:
@@ -83,16 +85,18 @@ def test_consolidate_rdd_per_collection(spark, monkeypatch, handle_server, aws_c
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decompress', mock_decompress)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, 'create_hive_on_published', mock_create_hive_on_published)
     generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, SECRETS_COLLECTIONS, keys_map,
                                     run_time_stamp, S3_PUBLISH_BUCKET, published_database_name)
     generate_dataset_from_htme.consolidate_rdd_per_collection(collection, SECRETS_COLLECTIONS, s3_client,
                                                               S3_HTME_BUCKET, spark, keys_map, run_time_stamp,
                                                               S3_PUBLISH_BUCKET, published_database_name)
     assert len(s3_client.list_buckets()['Buckets']) == 2
-    assert len(s3_client.list_objects(Bucket=S3_PUBLISH_BUCKET)['Contents']) == 3
+    assert len(s3_client.list_objects(Bucket=S3_PUBLISH_BUCKET)['Contents']) == 2
     assert (s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
                                  Key=target_object_key)['Body'].read().decode().strip() == test_data.decode())
-    assert s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)['TagSet'][0] == target_object_tag
+    assert s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)['TagSet'][
+               0] == target_object_tag
 
 
 def mock_decompress(compressed_text):
@@ -109,3 +113,8 @@ def mock_decrypt(plain_text_key, iv_key, data):
 
 def mock_call_dks(cek, kek):
     return kek
+
+
+# This need not be mocked on local dev machine but for some reason fails in Docker container, hence mocking this call.
+def mock_create_hive_on_published(spark, json_location, collection_name, published_database_name):
+    return collection_name

@@ -14,8 +14,9 @@ import boto3
 import requests
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
-from steps.logger import setup_logging
 from pyspark.sql import SparkSession
+
+from steps.logger import setup_logging
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()

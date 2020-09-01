@@ -16,3 +16,6 @@ ${log_path}
 **/.venv/**
 derby.log
 metastore_db/
+hsperfdata_root/
+liblz4-java*.so
+root/
