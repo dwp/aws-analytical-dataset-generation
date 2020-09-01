@@ -49,8 +49,8 @@ resource "aws_rds_cluster" "hive_metastore" {
   availability_zones      = data.aws_availability_zones.available.names
   db_subnet_group_name    = aws_db_subnet_group.internal_compute.name
   database_name           = "hive_metastore"
-  master_username         = "hive"
-  master_password         = "hivepassword"
+  master_username         = jsondecode(data.aws_secretsmanager_secret_version.adg_secret.secret_binary)["hive_username"]
+  master_password         = jsondecode(data.aws_secretsmanager_secret_version.adg_secret.secret_binary)["hive_password"]
   backup_retention_period = 7
   vpc_security_group_ids  = [aws_security_group.hive_metastore.id]
   storage_encrypted       = true
@@ -67,4 +67,8 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   engine               = aws_rds_cluster.hive_metastore.engine
   engine_version       = aws_rds_cluster.hive_metastore.engine_version
   tags                 = merge(local.common_tags, { Name = "hive-metastore" })
+}
+
+output "rds_cluster_endpoint" {
+  value = "${aws_rds_cluster_instance.cluster_instances.endpoint}"
 }
