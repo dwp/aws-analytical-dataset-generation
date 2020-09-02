@@ -217,7 +217,7 @@ meta:
           args:
             - -exc
             - |
-              pytest tests
+              pytest -vs tests
         inputs:
           - name: aws-analytical-dataset-generation
       input_mapping:
