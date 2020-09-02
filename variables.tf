@@ -104,3 +104,13 @@ variable "emr_yarn_memory_gb_per_core_instance" {
     production  = "184"
   }
 }
+
+variable "metadata_store_master_username" {
+  description = "Username for metadata store master RDS user"
+  default     = "master"
+}
+
+variable "metadata_store_datareader_username" {
+  description = "Username for metadata store readonly RDS user"
+  default     = "datareader"
+}

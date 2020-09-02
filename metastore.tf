@@ -40,6 +40,9 @@ resource "aws_kms_alias" "hive_metastore" {
   target_key_id = aws_kms_key.hive_metastore.id
 }
 
+resource "random_id" "password_salt" {
+  byte_length = 16
+}
 // TODO: Convert username/password to secrets after the spike
 resource "aws_rds_cluster" "hive_metastore" {
   cluster_identifier      = "hive-metastore"
@@ -49,8 +52,8 @@ resource "aws_rds_cluster" "hive_metastore" {
   availability_zones      = data.aws_availability_zones.available.names
   db_subnet_group_name    = aws_db_subnet_group.internal_compute.name
   database_name           = "hive_metastore"
-  master_username         = jsondecode(data.aws_secretsmanager_secret_version.adg_secret.secret_binary)["hive_username"]
-  master_password         = jsondecode(data.aws_secretsmanager_secret_version.adg_secret.secret_binary)["hive_password"]
+  master_username         = var.metadata_store_master_username
+  master_password         = "password_already_rotated_${substr(random_id.password_salt.hex, 0, 16)}"
   backup_retention_period = 7
   vpc_security_group_ids  = [aws_security_group.hive_metastore.id]
   storage_encrypted       = true
@@ -71,4 +74,16 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
 
 output "rds_cluster_endpoint" {
   value = "${aws_rds_cluster_instance.cluster_instances.endpoint}"
+}
+
+resource "aws_secretsmanager_secret" "metadata_store_master" {
+  name        = "metadata-store-${var.metadata_store_master_username}"
+  description = "Metadata Store master password"
+}
+
+# Create entries for additional SQL users
+resource "aws_secretsmanager_secret" "metadata_store_datareader" {
+  name        = "metadata-store-${var.metadata_store_datareader_username}"
+  description = "${var.metadata_store_datareader_username} SQL user for Metadata Store"
+  tags        = local.common_tags
 }
