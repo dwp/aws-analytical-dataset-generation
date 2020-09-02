@@ -19,3 +19,4 @@ metastore_db/
 hsperfdata_root/
 liblz4-java*.so
 root/
+spark-*/
