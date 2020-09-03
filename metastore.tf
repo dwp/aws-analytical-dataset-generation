@@ -72,8 +72,14 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   tags                 = merge(local.common_tags, { Name = "hive-metastore" })
 }
 
-output "rds_cluster_endpoint" {
-  value = "${aws_rds_cluster_instance.cluster_instances[count.index].endpoint}"
+resource "aws_rds_cluster_endpoint" "writer_endpoint" {
+  cluster_identifier          = aws_rds_cluster_instance.cluster_instances.id
+  cluster_endpoint_identifier = "writer"
+  custom_endpoint_type        = "WRITER"
+}
+
+output "writer_endpoint" {
+  value = "${aws_rds_cluster_instance.cluster_instances.*.endpoint}"
 }
 
 resource "aws_secretsmanager_secret" "metadata_store_master" {
