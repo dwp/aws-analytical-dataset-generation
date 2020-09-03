@@ -73,7 +73,7 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
 }
 
 resource "aws_rds_cluster_endpoint" "writer_endpoint" {
-  cluster_identifier          = aws_rds_cluster_instance.cluster_instances.id
+  cluster_identifier          = aws_rds_cluster_instance.cluster_instances[count.index].id
   cluster_endpoint_identifier = "writer"
   custom_endpoint_type        = "WRITER"
 }
