@@ -32,6 +32,7 @@ def spark():
     os.environ["PYSPARK_SUBMIT_ARGS"] = (
         '--packages "org.apache.hadoop:hadoop-aws:2.7.3" pyspark-shell'
     )
+
     os.environ["PYSPARK_PYTHON"] = ('python3')
     os.environ["PYSPARK_DRIVER_PYTHON"] = ('python3')
     spark = (
