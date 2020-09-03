@@ -32,4 +32,4 @@ jobs:
       TF_WORKSPACE: preprod
   - .: (( inject meta.plan.terraform-plan ))
     params:
-      TF_WORKSPACE: default
+      TF_WORKSPACE: preprod
