@@ -37,7 +37,7 @@ resource "aws_iam_role_policy_attachment" "lambda_manage_mysql_user_vpcaccess" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
-data "aws_iam_policy_document" "lambda_manage_mysql_user" {
+data "aws_iam_policy_document" "lambda_manage_mysql_user_adg" {
   statement {
     sid    = "AllowUpdatePassword"
     effect = "Allow"
@@ -54,9 +54,9 @@ data "aws_iam_policy_document" "lambda_manage_mysql_user" {
   }
 }
 
-resource "aws_iam_role_policy" "lambda_manage_mysql_user" {
+resource "aws_iam_role_policy" "lambda_manage_mysql_user_adg" {
   role   = aws_iam_role.lambda_manage_mysql_user_adg.name
-  policy = data.aws_iam_policy_document.lambda_manage_mysql_user.json
+  policy = data.aws_iam_policy_document.lambda_manage_mysql_user_adg.json
 }
 
 resource "aws_lambda_function" "manage_mysql_user" {
