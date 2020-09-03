@@ -64,7 +64,7 @@ meta:
               cat output.json | jq -eC "if .errorMessage? then error(.errorMessage) else true end"
 
     rotate-datareader-password:
-      .: (( inject inject meta.plan.rotate-mysql-password ))
+      .: (( inject meta.plan.rotate-mysql-password ))
       config:
         params:
           USERNAME: "datareader"

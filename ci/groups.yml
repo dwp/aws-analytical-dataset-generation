@@ -41,10 +41,10 @@ groups:
       - rotate-mysql-password-datareader-integration
       - rotate-mysql-password-datareader-preprod
       - rotate-mysql-password-datareader-production
-  - name: rotate-passwords-datawriter
+  - name: rotate-passwords-writer
     jobs:
-      - rotate-mysql-password-datareader-development
-      - rotate-mysql-password-datareader-qa
-      - rotate-mysql-password-datareader-integration
-      - rotate-mysql-password-datareader-preprod
-      - rotate-mysql-password-datareader-production
+      - rotate-mysql-password-writer-development
+      - rotate-mysql-password-writer-qa
+      - rotate-mysql-password-writer-integration
+      - rotate-mysql-password-writer-preprod
+      - rotate-mysql-password-writer-production

@@ -2,6 +2,11 @@ jobs:
 - name: analytical-dataset-generation-qa
   plan:
   - in_parallel:
+    - get: manage-mysql-user-release
+      trigger: true
+      params:
+        globs:
+          - "*.zip"
     - get: aws-analytical-dataset-generation
       trigger: true
     - get: emr-launcher-release
@@ -19,10 +24,4 @@ jobs:
       TF_WORKSPACE: qa
   - .: (( inject meta.plan.terraform-plan ))
     params:
-      TF_WORKSPACE: qa
-      - get: manage-mysql-user-release
-        trigger: true
-        params:
-          TF_WORKSPACE: default
-          globs:
-            - "*.zip"
+      TF_WORKSPACE: default

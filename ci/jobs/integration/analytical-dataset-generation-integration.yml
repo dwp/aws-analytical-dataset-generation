@@ -2,6 +2,11 @@ jobs:
 - name: analytical-dataset-generation-integration
   plan:
   - in_parallel:
+    - get: manage-mysql-user-release
+      trigger: true
+      params:
+        globs:
+          - "*.zip"
     - get: aws-analytical-dataset-generation
       trigger: true
       passed:
@@ -27,10 +32,4 @@ jobs:
       TF_WORKSPACE: integration
   - .: (( inject meta.plan.terraform-plan ))
     params:
-      TF_WORKSPACE: integration
-      - get: manage-mysql-user-release
-        trigger: true
-        params:
-          TF_WORKSPACE: default
-          globs:
-            - "*.zip"
+      TF_WORKSPACE: default
