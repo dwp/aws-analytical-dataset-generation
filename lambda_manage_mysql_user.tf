@@ -1,4 +1,4 @@
-variable "manage_mysql_user_lambda_zip" {
+variable "manage_mysql_user_adg_lambda_zip" {
   type = map(string)
 
   default = {
