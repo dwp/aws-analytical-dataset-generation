@@ -118,3 +118,10 @@ def mock_call_dks(cek, kek):
 # This need not be mocked on local dev machine but for some reason fails in Docker container, hence mocking this call.
 def mock_create_hive_on_published(spark, json_location, collection_name, published_database_name):
     return collection_name
+
+def test_create_hive_on_published(spark, handle_server, aws_credentials):
+    json_location = "s3://test/t"
+    collection_name = 'tabtest'
+    published_database_name = 'test_db'
+    steps.generate_dataset_from_htme.create_hive_on_published(spark=spark, json_location=json_location, collection_name=collection_name, published_database_name=published_database_name)
+    assert steps.generate_dataset_from_htme.get_collection(collection_name) in [x.name for x in spark.catalog.listTables(published_database_name)]
