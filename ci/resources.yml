@@ -78,3 +78,11 @@ resources:
         is-public: false
         state: available
         name: dw-emr-ami-*
+
+  - name: manage-mysql-user-release
+    type: github-release
+    source:
+      owner: dwp
+      repository: manage-mysql-user
+      access_token: ((dataworks-secrets.concourse_github_pat))
+    check_every: 1h

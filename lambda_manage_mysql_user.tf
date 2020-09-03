@@ -26,14 +26,14 @@ data "aws_iam_policy_document" "lambda_assume_policy" {
   }
 }
 
-resource "aws_iam_role" "lambda_manage_mysql_user" {
-  name               = "lambda_manage_mysql_user"
+resource "aws_iam_role" "lambda_manage_mysql_user_adg" {
+  name               = "lambda_manage_mysql_user_adg"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_policy.json
   tags               = local.common_tags
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_manage_mysql_user_vpcaccess" {
-  role       = aws_iam_role.lambda_manage_mysql_user.name
+  role       = aws_iam_role.lambda_manage_mysql_user_adg.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
@@ -55,14 +55,14 @@ data "aws_iam_policy_document" "lambda_manage_mysql_user" {
 }
 
 resource "aws_iam_role_policy" "lambda_manage_mysql_user" {
-  role   = aws_iam_role.lambda_manage_mysql_user.name
+  role   = aws_iam_role.lambda_manage_mysql_user_adg.name
   policy = data.aws_iam_policy_document.lambda_manage_mysql_user.json
 }
 
 resource "aws_lambda_function" "manage_mysql_user" {
   filename      = "${var.manage_mysql_user_lambda_zip["base_path"]}/manage-mysql-user-${var.manage_mysql_user_lambda_zip["version"]}.zip"
   function_name = "manage-mysql-user"
-  role          = aws_iam_role.lambda_manage_mysql_user.arn
+  role          = aws_iam_role.lambda_manage_mysql_user_adg.arn
   handler       = "manage-mysql-user.handler"
   runtime       = "python3.7"
   source_code_hash = filebase64sha256(

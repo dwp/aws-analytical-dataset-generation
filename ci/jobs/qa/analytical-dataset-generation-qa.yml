@@ -20,3 +20,9 @@ jobs:
   - .: (( inject meta.plan.terraform-plan ))
     params:
       TF_WORKSPACE: qa
+      - get: manage-mysql-user-release
+        trigger: true
+        params:
+          TF_WORKSPACE: default
+          globs:
+            - "*.zip"
