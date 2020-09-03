@@ -76,6 +76,7 @@ resource "aws_lambda_function" "manage_mysql_user" {
 
   vpc_config {
     subnet_ids = data.terraform_remote_state.internal_compute.outputs.pdm_subnet.ids
+    security_group_ids = [aws_security_group.adg_common.id]
   }
 
   timeout                        = 300
