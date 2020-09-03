@@ -73,7 +73,7 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
 }
 
 output "rds_cluster_endpoint" {
-  value = "${aws_rds_cluster_instance.cluster_instances.endpoint}"
+  value = "${aws_rds_cluster_instance.cluster_instances[count.index].endpoint}"
 }
 
 resource "aws_secretsmanager_secret" "metadata_store_master" {
