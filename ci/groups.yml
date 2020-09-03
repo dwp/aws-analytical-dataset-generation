@@ -34,3 +34,10 @@ groups:
     jobs:
       - prod-start-cluster
       - prod-stop-cluster
+  - name: rotate-passwords-datareader
+    jobs:
+      - rotate-mysql-password-datareader-development
+      - rotate-mysql-password-datareader-qa
+      - rotate-mysql-password-datareader-integration
+      - rotate-mysql-password-datareader-preprod
+      - rotate-mysql-password-datareader-production
