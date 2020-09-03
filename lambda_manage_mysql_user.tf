@@ -66,16 +66,16 @@ resource "aws_lambda_function" "manage_mysql_user" {
   handler       = "manage-mysql-user.handler"
   runtime       = "python3.7"
   source_code_hash = filebase64sha256(
-  format(
-  "%s/manage-mysql-user-%s.zip",
-  var.manage_mysql_user_lambda_zip["base_path"],
-  var.manage_mysql_user_lambda_zip["version"],
-  ),
+    format(
+      "%s/manage-mysql-user-%s.zip",
+      var.manage_mysql_user_lambda_zip["base_path"],
+      var.manage_mysql_user_lambda_zip["version"],
+    ),
   )
   publish = false
 
   vpc_config {
-    subnet_ids         = data.terraform_remote_state.internal_compute.outputs.pdm_subnet.ids
+    subnet_ids = data.terraform_remote_state.internal_compute.outputs.pdm_subnet.ids
   }
 
   timeout                        = 300
@@ -97,13 +97,13 @@ resource "aws_lambda_function" "manage_mysql_user" {
   }
 
   tags = merge(
-  local.common_tags,
-  {
-    "Name" = "manage-mysql-user"
-  },
-  {
-    "ProtectsSensitiveData" = "False"
-  },
+    local.common_tags,
+    {
+      "Name" = "manage-mysql-user"
+    },
+    {
+      "ProtectsSensitiveData" = "False"
+    },
   )
 
   depends_on = [aws_cloudwatch_log_group.manage_mysql_user]
