@@ -69,6 +69,12 @@ meta:
         params:
           USERNAME: "datareader"
           PARAM_NAME: "metadata-store-datareader"
+    rotate-writer-password:
+      .: (( inject meta.plan.rotate-mysql-password ))
+      config:
+        params:
+          USERNAME: "writer"
+          PARAM_NAME: "metadata-store-writer"
     terraform-apply:
       task: terraform-apply
       .: (( inject meta.plan.terraform-common-config ))
