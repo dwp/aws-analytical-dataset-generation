@@ -37,7 +37,7 @@ def spark():
     os.environ["PYSPARK_DRIVER_PYTHON"] = ('python3')
     spark = (
         SparkSession.builder.master("local")
-            .appName("test")
+            .appName("adg-test")
             .enableHiveSupport()
             .getOrCreate()
     )
