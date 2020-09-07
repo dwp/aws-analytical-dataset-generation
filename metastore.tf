@@ -87,3 +87,10 @@ resource "aws_secretsmanager_secret" "metadata_store_adg_reader" {
   description = "${var.metadata_store_adg_reader_username} SQL user for Metadata Store"
   tags        = local.common_tags
 }
+
+resource "aws_secretsmanager_secret" "metadata_store_adg_writer" {
+  name        = "metadata-store-${var.metadata_store_adg_writer_username}"
+  description = "${var.metadata_store_adg_writer_username} SQL user for Metadata Store"
+  tags        = local.common_tags
+}
+

@@ -50,6 +50,7 @@ data "aws_iam_policy_document" "lambda_manage_mysql_user_adg" {
     resources = [
       aws_secretsmanager_secret.metadata_store_master.arn,
       aws_secretsmanager_secret.metadata_store_adg_reader.arn,
+      aws_secretsmanager_secret.metadata_store_adg_writer.arn,
     ]
   }
 }
