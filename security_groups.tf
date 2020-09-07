@@ -26,7 +26,7 @@ resource "aws_security_group" "adg_emr_service" {
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
 }
 
-resource "aws_security_group" "adg_rds_lambda" {
+resource "aws_security_group" "metastore_rds_user_lambda" {
   name                   = "ADG RDS password rotator"
   description            = "Contains rules for the lambda used for rotating Aurora passwords"
   revoke_rules_on_delete = true
