@@ -40,7 +40,7 @@ resource "aws_security_group_rule" "ingress_aurora_lambda" {
   security_group_id        = aws_security_group.hive_metastore.id
   to_port                  = 3306
   type                     = "ingress"
-  source_security_group_id = aws_security_group.metastore_rds_user_lambdaa.id
+  source_security_group_id = aws_security_group.metastore_rds_user_lambda.id
 }
 
 resource "aws_security_group_rule" "egress_aurora_lambda" {
