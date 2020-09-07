@@ -58,7 +58,7 @@ resource "aws_security_group_rule" "egress_pdm" {
   protocol                 = "tcp"
   security_group_id        = data.terraform_remote_state.pdm.outputs.pdm_common_sg.id
   to_port                  = 3306
-  type                     = "engress"
+  type                     = "egress"
   source_security_group_id = aws_security_group.hive_metastore.id
 }
 resource "aws_kms_key" "hive_metastore" {
