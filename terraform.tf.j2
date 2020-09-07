@@ -207,7 +207,7 @@ data "terraform_remote_state" "management_artefact" {
 
 data "terraform_remote_state" "pdm" {
   backend   = "s3"
-  workspace = "management"
+  workspace = terraform.workspace
 
   config = {
     bucket         = "{{state_file_bucket}}"
