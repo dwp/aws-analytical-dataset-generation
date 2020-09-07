@@ -82,10 +82,6 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   tags                 = merge(local.common_tags, { Name = "hive-metastore" })
 }
 
-output "writer_endpoint" {
-  value = "${aws_rds_cluster.hive_metastore.endpoint}"
-}
-
 resource "aws_secretsmanager_secret" "metadata_store_master" {
   name        = "metadata-store-${var.metadata_store_master_username}"
   description = "Metadata Store master password"
@@ -112,7 +108,8 @@ resource "aws_secretsmanager_secret" "metadata_store_pdm_writer" {
 
 output "hive_metastore" {
   value = {
-    sg_id = aws_security_group.hive_metastore.id
+    security_group = aws_security_group.hive_metastore
+    rds_cluster    = aws_rds_cluster.hive_metastore
   }
 }
 
