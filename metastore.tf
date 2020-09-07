@@ -82,8 +82,8 @@ resource "aws_secretsmanager_secret" "metadata_store_master" {
 }
 
 # Create entries for additional SQL users
-resource "aws_secretsmanager_secret" "metadata_store_datareader" {
-  name        = "metadata-store-${var.metadata_store_datareader_username}"
-  description = "${var.metadata_store_datareader_username} SQL user for Metadata Store"
+resource "aws_secretsmanager_secret" "metadata_store_adg_reader" {
+  name        = "metadata-store-${var.metadata_store_adg_reader_username}"
+  description = "${var.metadata_store_adg_reader_username} SQL user for Metadata Store"
   tags        = local.common_tags
 }

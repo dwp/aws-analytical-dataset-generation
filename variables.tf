@@ -110,7 +110,7 @@ variable "metadata_store_master_username" {
   default     = "master"
 }
 
-variable "metadata_store_datareader_username" {
+variable "metadata_store_adg_reader_username" {
   description = "Username for metadata store readonly RDS user"
-  default     = "datareader"
+  default     = "adg_reader"
 }

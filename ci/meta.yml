@@ -63,18 +63,18 @@ meta:
               aws lambda invoke --function-name manage-mysql-user --invocation-type RequestResponse --payload file://manifest.json --cli-connect-timeout 600 --cli-read-timeout 600 output.json
               cat output.json | jq -eC "if .errorMessage? then error(.errorMessage) else true end"
 
-    rotate-datareader-password:
+    rotate-adg_reader-password:
       .: (( inject meta.plan.rotate-mysql-password ))
       config:
         params:
-          USERNAME: "datareader"
-          PARAM_NAME: "metadata-store-datareader"
-    rotate-writer-password:
+          USERNAME: "adg_reader"
+          PARAM_NAME: "metadata-store-adg_reader"
+    rotate-adg_writer-password:
       .: (( inject meta.plan.rotate-mysql-password ))
       config:
         params:
-          USERNAME: "writer"
-          PARAM_NAME: "metadata-store-writer"
+          USERNAME: "adg_writer"
+          PARAM_NAME: "metadata-store-adg_writer"
     terraform-apply:
       task: terraform-apply
       .: (( inject meta.plan.terraform-common-config ))
