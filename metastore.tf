@@ -68,3 +68,9 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   engine_version       = aws_rds_cluster.hive_metastore.engine_version
   tags                 = merge(local.common_tags, { Name = "hive-metastore" })
 }
+
+output "hive_metastore" {
+  value = {
+    sg_id = aws_security_group.hive_metastore.id
+  }
+}
