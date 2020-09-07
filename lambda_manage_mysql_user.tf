@@ -26,18 +26,18 @@ data "aws_iam_policy_document" "lambda_assume_policy" {
   }
 }
 
-resource "aws_iam_role" "lambda_manage_mysql_user_adg" {
-  name               = "lambda_manage_mysql_user_adg"
+resource "aws_iam_role" "manage_hive_metastore_mysql_users" {
+  name               = "manage_hive_metastore_mysql_users"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_policy.json
   tags               = local.common_tags
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_manage_mysql_user_vpcaccess" {
-  role       = aws_iam_role.lambda_manage_mysql_user_adg.name
+resource "aws_iam_role_policy_attachment" "manage_hive_metastore_mysql_users_vpcaccess" {
+  role       = aws_iam_role.manage_hive_metastore_mysql_users.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
-data "aws_iam_policy_document" "lambda_manage_mysql_user_adg" {
+data "aws_iam_policy_document" "manage_hive_metastore_mysql_users" {
   statement {
     sid    = "AllowUpdatePassword"
     effect = "Allow"
@@ -56,15 +56,15 @@ data "aws_iam_policy_document" "lambda_manage_mysql_user_adg" {
   }
 }
 
-resource "aws_iam_role_policy" "lambda_manage_mysql_user_adg" {
-  role   = aws_iam_role.lambda_manage_mysql_user_adg.name
-  policy = data.aws_iam_policy_document.lambda_manage_mysql_user_adg.json
+resource "aws_iam_role_policy" "manage_hive_metastore_mysql_users" {
+  role   = aws_iam_role.manage_hive_metastore_mysql_users.name
+  policy = data.aws_iam_policy_document.manage_hive_metastore_mysql_users.json
 }
 
 resource "aws_lambda_function" "manage_mysql_user" {
   filename      = "${var.manage_mysql_user_lambda_zip["base_path"]}/manage-mysql-user-${var.manage_mysql_user_lambda_zip["version"]}.zip"
-  function_name = "manage-mysql-user"
-  role          = aws_iam_role.lambda_manage_mysql_user_adg.arn
+  function_name = "manage-hive-metastore-mysql-users"
+  role          = aws_iam_role.manage_hive_metastore_mysql_users.arn
   handler       = "manage-mysql-user.handler"
   runtime       = "python3.7"
   source_code_hash = filebase64sha256(
