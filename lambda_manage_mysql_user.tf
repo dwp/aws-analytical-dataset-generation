@@ -1,4 +1,4 @@
-variable "manage_mysql_user_adg_lambda_zip" {
+variable "manage_mysql_user_lambda_zip" {
   type = map(string)
 
   default = {
@@ -60,7 +60,7 @@ resource "aws_iam_role_policy" "lambda_manage_mysql_user_adg" {
 }
 
 resource "aws_lambda_function" "manage_mysql_user" {
-  filename      = "${var.manage_mysql_user_adg_lambda_zip["base_path"]}/manage-mysql-user-${var.manage_mysql_user_adg_lambda_zip["version"]}.zip"
+  filename      = "${var.manage_mysql_user_lambda_zip["base_path"]}/manage-mysql-user-${var.manage_mysql_user_lambda_zip["version"]}.zip"
   function_name = "manage-mysql-user"
   role          = aws_iam_role.lambda_manage_mysql_user_adg.arn
   handler       = "manage-mysql-user.handler"
@@ -68,8 +68,8 @@ resource "aws_lambda_function" "manage_mysql_user" {
   source_code_hash = filebase64sha256(
     format(
       "%s/manage-mysql-user-%s.zip",
-      var.manage_mysql_user_adg_lambda_zip["base_path"],
-      var.manage_mysql_user_adg_lambda_zip["version"],
+      var.manage_mysql_user_lambda_zip["base_path"],
+      var.manage_mysql_user_lambda_zip["version"],
     ),
   )
   publish = false
