@@ -63,7 +63,7 @@ resource "aws_iam_role_policy" "lambda_manage_mysql_user_adg" {
 
 resource "aws_lambda_function" "manage_mysql_user" {
   filename      = "${var.manage_mysql_user_lambda_zip["base_path"]}/manage-mysql-user-${var.manage_mysql_user_lambda_zip["version"]}.zip"
-  function_name = "manage-mysql-user"
+  function_name = "manage-hive-metastore-mysql-user"
   role          = aws_iam_role.lambda_manage_mysql_user_adg.arn
   handler       = "manage-mysql-user.handler"
   runtime       = "python3.7"
