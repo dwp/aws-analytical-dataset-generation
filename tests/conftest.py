@@ -38,6 +38,7 @@ def spark():
     spark = (
         SparkSession.builder.master("local")
             .appName("adg-test")
+            .config("spark.local.dir", "spark-temp")
             .enableHiveSupport()
             .getOrCreate()
     )
@@ -50,4 +51,6 @@ def spark():
     hadoop_conf.set("fs.s3a.endpoint", "http://127.0.0.1:5000")
 
     spark.sql("create database if not exists test_db")
-    return spark
+    yield spark
+    print("Stopping Spark")
+    spark.stop()

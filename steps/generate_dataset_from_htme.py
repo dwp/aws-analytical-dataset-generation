@@ -35,6 +35,7 @@ def main(spark, s3_client, s3_htme_bucket,
     with concurrent.futures.ThreadPoolExecutor() as executor:
         _ = executor.map(consolidate_rdd_per_collection, list_of_dicts_filtered,
                          itertools.repeat(secrets_collections),
+                         itertools.repeat(s3_client),
                          itertools.repeat(s3_htme_bucket),
                          itertools.repeat(spark),
                          itertools.repeat(keys_map),
