@@ -107,10 +107,10 @@ resource "aws_lambda_function" "manage_mysql_user" {
     },
   )
 
-  depends_on = [aws_cloudwatch_log_group.manage_mysql_user]
+  depends_on = [aws_cloudwatch_log_group.manage_mysql_user_adg]
 }
 
-resource "aws_cloudwatch_log_group" "manage_mysql_user" {
-  name              = "/aws/lambda/manage-mysql-user"
+resource "aws_cloudwatch_log_group" "manage_mysql_user_adg" {
+  name              = "/aws/lambda/manage-mysql-user_adg"
   retention_in_days = 180
 }
