@@ -44,7 +44,7 @@ resource "aws_security_group_rule" "ingress_aurora_lambda" {
 }
 
 resource "aws_security_group_rule" "egress_aurora_lambda" {
-  description              = "Allow mysql traffic to Aurora RDS from ADG"
+  description              = "Allow traffic to Aurora RDS from mysql manager lambda"
   from_port                = 3306
   protocol                 = "tcp"
   security_group_id        = aws_security_group.metastore_rds_user_lambda.id
