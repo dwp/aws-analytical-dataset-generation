@@ -22,6 +22,45 @@ resource "aws_security_group_rule" "allow_all_hive_metastore_ingress" {
   protocol          = "tcp"
 }
 
+resource "aws_security_group_rule" "ingress_adg" {
+  description              = "Allow mysql traffic to Aurora RDS from ADG"
+  from_port                = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.hive_metastore.id
+  to_port                  = 3306
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.adg_common.id
+}
+
+resource "aws_security_group_rule" "egress_adg" {
+  description              = "Allow mysql traffic to Aurora RDS from ADG"
+  from_port                = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.adg_common.id
+  to_port                  = 3306
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.hive_metastore.id
+}
+
+resource "aws_security_group_rule" "ingress_pdm" {
+  description              = "Allow mysql traffic to Aurora RDS from PDM"
+  from_port                = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.hive_metastore.id
+  to_port                  = 3306
+  type                     = "ingress"
+  source_security_group_id = data.terraform_remote_state.pdm.outputs.pdm_common_sg.id
+}
+
+resource "aws_security_group_rule" "egress_pdm" {
+  description              = "Allow mysql traffic to Aurora RDS from PDM"
+  from_port                = 3306
+  protocol                 = "tcp"
+  security_group_id        = data.terraform_remote_state.pdm.outputs.pdm_common_sg.id
+  to_port                  = 3306
+  type                     = "engress"
+  source_security_group_id = aws_security_group.hive_metastore.id
+}
 resource "aws_kms_key" "hive_metastore" {
   description             = "Protects the Hive Metastore database"
   enable_key_rotation     = true
@@ -91,6 +130,12 @@ resource "aws_secretsmanager_secret" "metadata_store_adg_reader" {
 resource "aws_secretsmanager_secret" "metadata_store_adg_writer" {
   name        = "metadata-store-${var.metadata_store_adg_writer_username}"
   description = "${var.metadata_store_adg_writer_username} SQL user for Metadata Store"
+  tags        = local.common_tags
+}
+
+resource "aws_secretsmanager_secret" "metadata_store_pdm_writer" {
+  name        = "metadata-store-${var.metadata_store_pdm_writer_username}"
+  description = "${var.metadata_store_pdm_writer_username} SQL user for Metadata Store"
   tags        = local.common_tags
 }
 

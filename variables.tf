@@ -119,3 +119,8 @@ variable "metadata_store_adg_writer_username" {
   description = "Username for metadata store writer RDS user"
   default     = "adg_writer"
 }
+
+variable "metadata_store_pdm_writer_username" {
+  description = "Username for metadata store writer RDS user"
+  default     = "adg_writer"
+}
