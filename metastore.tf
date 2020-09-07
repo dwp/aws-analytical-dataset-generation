@@ -139,3 +139,9 @@ resource "aws_secretsmanager_secret" "metadata_store_pdm_writer" {
   tags        = local.common_tags
 }
 
+output "hive_metastore" {
+  value = {
+    sg_id = aws_security_group.hive_metastore.id
+  }
+}
+
