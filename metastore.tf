@@ -42,7 +42,7 @@ resource "aws_security_group_rule" "egress_adg" {
   source_security_group_id = aws_security_group.hive_metastore.id
 }
 
-resource "aws_security_group_rule" "ingress_pdm" {
+resource "aws_security_group_rule" "ingress_pdm_hive_metastore" {
   description              = "Allow mysql traffic to Aurora RDS from PDM"
   from_port                = 3306
   protocol                 = "tcp"
@@ -52,7 +52,7 @@ resource "aws_security_group_rule" "ingress_pdm" {
   source_security_group_id = data.terraform_remote_state.pdm.outputs.pdm_common_sg.id
 }
 
-resource "aws_security_group_rule" "egress_pdm" {
+resource "aws_security_group_rule" "egress_pdm_hive_metastore" {
   description              = "Allow mysql traffic to Aurora RDS from PDM"
   from_port                = 3306
   protocol                 = "tcp"

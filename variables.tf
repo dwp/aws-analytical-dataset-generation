@@ -112,15 +112,15 @@ variable "metadata_store_master_username" {
 
 variable "metadata_store_adg_reader_username" {
   description = "Username for metadata store readonly RDS user"
-  default     = "adg_reader"
+  default     = "adg-reader"
 }
 
 variable "metadata_store_adg_writer_username" {
   description = "Username for metadata store writer RDS user"
-  default     = "adg_writer"
+  default     = "adg-writer"
 }
 
 variable "metadata_store_pdm_writer_username" {
   description = "Username for metadata store writer RDS user"
-  default     = "adg_writer"
+  default     = "pdm-writer"
 }
