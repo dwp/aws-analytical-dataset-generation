@@ -35,22 +35,42 @@ resource "aws_security_group" "metastore_rds_user_lambda" {
 
 resource "aws_security_group_rule" "ingress_aurora_lambda" {
   description              = "Allow traffic to Aurora RDS from mysql manager lambda"
-  from_port                = 3306
+  from_port                = 443
   protocol                 = "tcp"
   security_group_id        = aws_security_group.hive_metastore.id
-  to_port                  = 3306
+  to_port                  = 443
   type                     = "ingress"
   source_security_group_id = aws_security_group.metastore_rds_user_lambda.id
 }
 
 resource "aws_security_group_rule" "egress_aurora_lambda" {
   description              = "Allow traffic to Aurora RDS from mysql manager lambda"
-  from_port                = 3306
+  from_port                = 443
   protocol                 = "tcp"
   security_group_id        = aws_security_group.metastore_rds_user_lambda.id
-  to_port                  = 3306
+  to_port                  = 443
   type                     = "egress"
   source_security_group_id = aws_security_group.hive_metastore.id
+}
+
+resource "aws_security_group_rule" "egress_aurora_https_to_vpc_endpoints" {
+  description              = "Allow HTTPS traffic to VPC endpoints"
+  from_port                = 443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.metastore_rds_user_lambda.id
+  to_port                  = 443
+  type                     = "egress"
+  source_security_group_id = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.interface_vpce_sg_id
+}
+
+resource "aws_security_group_rule" "ingress_aurora_https_vpc_endpoints_from_emr" {
+  description              = "Allow HTTPS traffic from hive metastore"
+  from_port                = 443
+  protocol                 = "tcp"
+  security_group_id        = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.interface_vpce_sg_id
+  to_port                  = 443
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.metastore_rds_user_lambda.id
 }
 
 resource "aws_security_group_rule" "egress_https_to_vpc_endpoints" {
