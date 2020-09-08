@@ -33,7 +33,7 @@ resource "aws_security_group" "metastore_rds_user_lambda" {
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
 }
 
-resource "aws_security_group_rule" "ingress_aurora_lambda" {
+resource "aws_security_group_rule" "ingress_aurora_lambda_https" {
   description              = "Allow traffic to Aurora RDS from mysql manager lambda"
   from_port                = 443
   protocol                 = "tcp"
