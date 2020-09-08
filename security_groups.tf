@@ -53,7 +53,7 @@ resource "aws_security_group_rule" "egress_aurora_lambda" {
   source_security_group_id = aws_security_group.hive_metastore.id
 }
 
-resource "aws_security_group_rule" "egress_aurora_https_to_vpc_endpoints" {
+resource "aws_security_group_rule" "egress_lambda_https_to_vpc_endpoints" {
   description              = "Allow HTTPS traffic to VPC endpoints"
   from_port                = 443
   protocol                 = "tcp"
@@ -63,8 +63,8 @@ resource "aws_security_group_rule" "egress_aurora_https_to_vpc_endpoints" {
   source_security_group_id = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.interface_vpce_sg_id
 }
 
-resource "aws_security_group_rule" "ingress_aurora_https_vpc_endpoints_from_emr" {
-  description              = "Allow HTTPS traffic from hive metastore"
+resource "aws_security_group_rule" "ingress_lambda_https_vpc_endpoints_from_emr" {
+  description              = "Allow HTTPS traffic from rds password rotator lambda"
   from_port                = 443
   protocol                 = "tcp"
   security_group_id        = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.interface_vpce_sg_id
