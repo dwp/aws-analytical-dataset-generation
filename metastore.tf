@@ -12,16 +12,6 @@ resource "aws_security_group" "hive_metastore" {
   tags        = merge(local.common_tags, { Name = "hive-metastore" })
 }
 
-// TODO: Lock this down to ADG, PDM & analytical-env after the spike
-resource "aws_security_group_rule" "allow_all_hive_metastore_ingress" {
-  security_group_id = aws_security_group.hive_metastore.id
-  type              = "ingress"
-  cidr_blocks       = ["0.0.0.0/0"]
-  from_port         = 0
-  to_port           = 3306
-  protocol          = "tcp"
-}
-
 resource "aws_security_group_rule" "ingress_adg" {
   description              = "Allow mysql traffic to Aurora RDS from ADG"
   from_port                = 3306
@@ -42,25 +32,6 @@ resource "aws_security_group_rule" "egress_adg" {
   source_security_group_id = aws_security_group.hive_metastore.id
 }
 
-resource "aws_security_group_rule" "ingress_pdm_hive_metastore" {
-  description              = "Allow mysql traffic to Aurora RDS from PDM"
-  from_port                = 3306
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.hive_metastore.id
-  to_port                  = 3306
-  type                     = "ingress"
-  source_security_group_id = data.terraform_remote_state.pdm.outputs.pdm_common_sg.id
-}
-
-resource "aws_security_group_rule" "egress_pdm_hive_metastore" {
-  description              = "Allow mysql traffic to Aurora RDS from PDM"
-  from_port                = 3306
-  protocol                 = "tcp"
-  security_group_id        = data.terraform_remote_state.pdm.outputs.pdm_common_sg.id
-  to_port                  = 3306
-  type                     = "egress"
-  source_security_group_id = aws_security_group.hive_metastore.id
-}
 resource "aws_kms_key" "hive_metastore" {
   description             = "Protects the Hive Metastore database"
   enable_key_rotation     = true
@@ -111,10 +82,6 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   tags                 = merge(local.common_tags, { Name = "hive-metastore" })
 }
 
-output "writer_endpoint" {
-  value = "${aws_rds_cluster.hive_metastore.endpoint}"
-}
-
 resource "aws_secretsmanager_secret" "metadata_store_master" {
   name        = "metadata-store-${var.metadata_store_master_username}"
   description = "Metadata Store master password"
@@ -141,7 +108,8 @@ resource "aws_secretsmanager_secret" "metadata_store_pdm_writer" {
 
 output "hive_metastore" {
   value = {
-    sg_id = aws_security_group.hive_metastore.id
+    security_group = aws_security_group.hive_metastore
+    rds_cluster    = aws_rds_cluster.hive_metastore
   }
 }
 

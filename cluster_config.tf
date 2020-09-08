@@ -62,11 +62,6 @@ locals {
   spark_kyro_buffer                   = var.spark_kyro_buffer[local.environment]
 }
 
-data "aws_secretsmanager_secret_version" "rds_aurora_secrets" {
-  provider  = aws
-  secret_id = "/concourse/dataworks/dataworks-secrets"
-}
-
 resource "aws_s3_bucket_object" "configurations" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "emr/adg/configurations.yaml"

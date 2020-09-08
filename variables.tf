@@ -107,7 +107,7 @@ variable "emr_yarn_memory_gb_per_core_instance" {
 
 variable "metadata_store_master_username" {
   description = "Username for metadata store master RDS user"
-  default     = "master"
+  default     = "hive"
 }
 
 variable "metadata_store_adg_reader_username" {
