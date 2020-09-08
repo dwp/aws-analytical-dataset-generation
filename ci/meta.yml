@@ -60,7 +60,7 @@ meta:
               jq -n --arg Username "$USERNAME" --arg Paramname "$PARAM_NAME" '{mysql_user_username: $Username, mysql_user_password_secret_name: $Paramname}' > manifest.json
               echo "Manifest is:"
               cat manifest.json
-              aws lambda invoke --function-name manage-mysql-user --invocation-type RequestResponse --payload file://manifest.json --cli-connect-timeout 600 --cli-read-timeout 600 output.json
+              aws lambda invoke --function-name manage-hive-metastore-mysql-users --invocation-type RequestResponse --payload file://manifest.json --cli-connect-timeout 600 --cli-read-timeout 600 output.json
               cat output.json | jq -eC "if .errorMessage? then error(.errorMessage) else true end"
 
     rotate-adg-reader-password:
@@ -81,6 +81,12 @@ meta:
         params:
           USERNAME: "pdm-writer"
           PARAM_NAME: "metadata-store-pdm-writer"
+    rotate-master-password:
+      .: (( inject meta.plan.rotate-mysql-password ))
+      config:
+        params:
+          USERNAME: "hive"
+          PARAM_NAME: "metadata-store-hive"
     terraform-apply:
       task: terraform-apply
       .: (( inject meta.plan.terraform-common-config ))
