@@ -90,7 +90,7 @@ resource "aws_lambda_function" "manage_mysql_user" {
       RDS_DATABASE_NAME               = aws_rds_cluster.hive_metastore.database_name
       RDS_MASTER_USERNAME             = var.metadata_store_master_username
       RDS_MASTER_PASSWORD_SECRET_NAME = aws_secretsmanager_secret.metadata_store_master.name
-      RDS_CA_CERT                     = "/var/task/AmazonRootCA1.pem" # For Aurora serverless
+      RDS_CA_CERT                     = "/var/task/rds-ca-2019-2015-root.pem"
       LOG_LEVEL                       = "DEBUG"
     }
   }
