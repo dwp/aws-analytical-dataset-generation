@@ -93,7 +93,7 @@ resource "aws_secretsmanager_secret" "metadata_store_master" {
 
 resource "aws_secretsmanager_secret_version" "metadata_store_master" {
   secret_id = aws_secretsmanager_secret.metadata_store_master.id
-  secret_string = jsonencode("{\"username\": \"hive\", \"password\": \"${aws_rds_cluster.hive_metastore.master_password}\"}")
+  secret_string = jsonencode({"username"="hive", "password"="${aws_rds_cluster.hive_metastore.master_password}"})
 
   lifecycle {
     ignore_changes = [secret_string]
