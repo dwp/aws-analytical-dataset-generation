@@ -88,9 +88,6 @@ def test_consolidate_rdd_per_collection(spark, monkeypatch, handle_server, aws_c
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'create_hive_on_published', mock_create_hive_on_published)
     generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, SECRETS_COLLECTIONS, keys_map,
                                     run_time_stamp, S3_PUBLISH_BUCKET, published_database_name)
-    generate_dataset_from_htme.consolidate_rdd_per_collection(collection, SECRETS_COLLECTIONS, s3_client,
-                                                              S3_HTME_BUCKET, spark, keys_map, run_time_stamp,
-                                                              S3_PUBLISH_BUCKET, published_database_name)
     assert len(s3_client.list_buckets()['Buckets']) == 2
     assert len(s3_client.list_objects(Bucket=S3_PUBLISH_BUCKET)['Contents']) == 2
     assert (s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
