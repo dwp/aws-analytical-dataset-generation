@@ -33,22 +33,40 @@ Configurations:
 
 - Classification: "spark-hive-site"
   Properties:
-    "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
     "hbase.client.scanner.timeout.period": "1200000"
     "hbase.rpc.timeout": "1800000"
     "hbase.client.operation.timeout": "3600000"
     "hbase.scan.cache": "1000000"
     "hbase.scan.cacheblock": "false"
     "hbase.scan.batch": "2"
+    "hive.txn.manager": "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager"
+    "hive.enforce.bucketing": "true"
+    "hive.exec.dynamic.partition.mode": "nostrict"
+    "hive.compactor.initiator.on": "true"
+    "hive.compactor.worker.threads": "1"
+    "hive.support.concurrency": "true"
+    "javax.jdo.option.ConnectionURL": "jdbc:mysql://${hive_metastore_endpoint}:3306/hive?createDatabaseIfNotExist=true"
+    "javax.jdo.option.ConnectionDriverName": "org.mariadb.jdbc.Driver"
+    "javax.jdo.option.ConnectionUserName": ${hive_metsatore_username}
+    "javax.jdo.option.ConnectionPassword": ${hive_metastore_pwd}
 
 - Classification: "hive-site"
   Properties:
     "hive.metastore.schema.verification": "false"
-    "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
     "hive.metastore.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
     "hbase.client.scanner.timeout.period": "1200000"
     "hbase.rpc.timeout": "1800000"
     "hbase.client.operation.timeout": "3600000"
+    "hive.txn.manager": "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager"
+    "hive.enforce.bucketing": "true"
+    "hive.exec.dynamic.partition.mode": "nostrict"
+    "hive.compactor.initiator.on": "true"
+    "hive.compactor.worker.threads": "1"
+    "hive.support.concurrency": "true"
+    "javax.jdo.option.ConnectionURL": "jdbc:mysql://${hive_metastore_endpoint}:3306/hive?createDatabaseIfNotExist=true"
+    "javax.jdo.option.ConnectionDriverName": "org.mariadb.jdbc.Driver"
+    "javax.jdo.option.ConnectionUserName": ${hive_metsatore_username}
+    "javax.jdo.option.ConnectionPassword": ${hive_metastore_pwd}
 - Classification: "emrfs-site"
   Properties:
     "fs.s3.consistent": "true"
