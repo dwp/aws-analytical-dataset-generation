@@ -69,6 +69,10 @@ resource "aws_rds_cluster" "hive_metastore" {
   storage_encrypted       = true
   kms_key_id              = aws_kms_key.hive_metastore.arn
   tags                    = merge(local.common_tags, { Name = "hive-metastore" })
+
+  lifecycle {
+    ignore_changes = [master_password]
+  }
 }
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
@@ -85,6 +89,15 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
 resource "aws_secretsmanager_secret" "metadata_store_master" {
   name        = "metadata-store-${var.metadata_store_master_username}"
   description = "Metadata Store master password"
+}
+
+resource "aws_secretsmanager_secret_version" "metadata_store_master" {
+  secret_id = aws_secretsmanager_secret.metadata_store_master.id
+  secret_string = jsonencode({"username"="${var.metadata_store_master_username}", "password"="${aws_rds_cluster.hive_metastore.master_password}"})
+
+//  lifecycle {
+//    ignore_changes = [secret_string]
+//  }
 }
 
 # Create entries for additional SQL users
