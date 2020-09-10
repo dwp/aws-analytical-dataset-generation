@@ -45,7 +45,7 @@ Configurations:
     "hive.compactor.initiator.on": "true"
     "hive.compactor.worker.threads": "1"
     "hive.support.concurrency": "true"
-    "javax.jdo.option.ConnectionURL": "jdbc:mysql://${hive_metastore_endpoint}:3306/hive?createDatabaseIfNotExist=true"
+    "javax.jdo.option.ConnectionURL": "jdbc:mysql://${hive_metastore_endpoint}:3306/${hive_metastore_database_name}?createDatabaseIfNotExist=true"
     "javax.jdo.option.ConnectionDriverName": "org.mariadb.jdbc.Driver"
     "javax.jdo.option.ConnectionUserName": ${hive_metsatore_username}
     "javax.jdo.option.ConnectionPassword": ${hive_metastore_pwd}
@@ -63,7 +63,7 @@ Configurations:
     "hive.compactor.initiator.on": "true"
     "hive.compactor.worker.threads": "1"
     "hive.support.concurrency": "true"
-    "javax.jdo.option.ConnectionURL": "jdbc:mysql://${hive_metastore_endpoint}:3306/hive?createDatabaseIfNotExist=true"
+    "javax.jdo.option.ConnectionURL": "jdbc:mysql://${hive_metastore_endpoint}:3306/${hive_metastore_database_name}?createDatabaseIfNotExist=true"
     "javax.jdo.option.ConnectionDriverName": "org.mariadb.jdbc.Driver"
     "javax.jdo.option.ConnectionUserName": ${hive_metsatore_username}
     "javax.jdo.option.ConnectionPassword": ${hive_metastore_pwd}
