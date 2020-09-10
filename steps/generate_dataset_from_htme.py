@@ -29,19 +29,25 @@ the_logger = setup_logging(
 def main(spark, s3_client, s3_htme_bucket,
          s3_prefix, secrets_collections, keys_map,
          run_time_stamp, s3_publish_bucket, published_database_name):
-    keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix)
-    list_of_dicts = group_keys_by_collection(keys)
-    list_of_dicts_filtered = get_collections_in_secrets(list_of_dicts, secrets_collections)
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        _ = executor.map(consolidate_rdd_per_collection, list_of_dicts_filtered,
-                         itertools.repeat(secrets_collections),
-                         itertools.repeat(s3_client),
-                         itertools.repeat(s3_htme_bucket),
-                         itertools.repeat(spark),
-                         itertools.repeat(keys_map),
-                         itertools.repeat(run_time_stamp),
-                         itertools.repeat(s3_publish_bucket),
-                         itertools.repeat(published_database_name))
+    try:
+        keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix)
+        list_of_dicts = group_keys_by_collection(keys)
+        list_of_dicts_filtered = get_collections_in_secrets(list_of_dicts, secrets_collections)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            all_processed_collections = executor.map(consolidate_rdd_per_collection, list_of_dicts_filtered,
+                                                     itertools.repeat(secrets_collections),
+                                                     itertools.repeat(s3_client),
+                                                     itertools.repeat(s3_htme_bucket),
+                                                     itertools.repeat(spark),
+                                                     itertools.repeat(keys_map),
+                                                     itertools.repeat(run_time_stamp),
+                                                     itertools.repeat(s3_publish_bucket))
+    except Exception as ex:
+        logging.error("Some error occured, stopping Spark" + str(ex))
+        spark.stop()
+        raise ex
+    # Create hive tables for all the collections processed successfully
+    create_hive_tables_on_published(spark, all_processed_collections, published_database_name)
 
 
 def get_collections_in_secrets(list_of_dicts, secrets_collections):
@@ -93,51 +99,56 @@ def group_keys_by_collection(keys):
 
 def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                                    s3_htme_bucket, spark, keys_map, run_time_stamp,
-                                   s3_publish_bucket, published_database_name):
-    for collection_name, collection_files_keys in collection.items():
-        the_logger.info("Processing collection : %s" % collection_name)
-        tag_value = secrets_collections[collection_name.lower()]
-        start_time = time.perf_counter()
-        rdd_list = []
-        for collection_file_key in collection_files_keys:
-            encrypted = read_binary(spark,
-                                    f"s3://{s3_htme_bucket}/{collection_file_key}"
-                                    )
-            add_filesize_metric(collection_name, s3_client, s3_htme_bucket, collection_file_key)
-            metadata = get_metadatafor_key(collection_file_key, s3_client, s3_htme_bucket)
-            ciphertext = metadata["ciphertext"]
-            datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
-            iv = metadata["iv"]
-            plain_text_key = get_plaintext_key_calling_dks(
-                ciphertext, datakeyencryptionkeyid, keys_map
+                                   s3_publish_bucket):
+    try:
+        for collection_name, collection_files_keys in collection.items():
+            the_logger.info("Processing collection : %s" % collection_name)
+            tag_value = secrets_collections[collection_name.lower()]
+            start_time = time.perf_counter()
+            rdd_list = []
+            for collection_file_key in collection_files_keys:
+                encrypted = read_binary(spark,
+                                        f"s3://{s3_htme_bucket}/{collection_file_key}"
+                                        )
+                add_filesize_metric(collection_name, s3_client, s3_htme_bucket, collection_file_key)
+                metadata = get_metadatafor_key(collection_file_key, s3_client, s3_htme_bucket)
+                ciphertext = metadata["ciphertext"]
+                datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
+                iv = metadata["iv"]
+                plain_text_key = get_plaintext_key_calling_dks(
+                    ciphertext, datakeyencryptionkeyid, keys_map
+                )
+                decrypted = encrypted.mapValues(
+                    lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(plain_text_key, iv, val)
+                )
+                decompressed = decrypted.mapValues(decompress)
+                decoded = decompressed.mapValues(decode)
+                rdd_list.append(decoded)
+            consolidated_rdd = spark.sparkContext.union(rdd_list)
+            consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
+            the_logger.info("Persisting Json : %s" % collection_name)
+            json_location_prefix = "${file_location}/%s/%s/%s" % (
+                run_time_stamp,
+                get_collection(collection_name),
+                get_collection(collection_name) + ".json"
             )
-            decrypted = encrypted.mapValues(
-                lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(plain_text_key, iv, val)
+            json_location = "s3://%s/%s" % (
+                s3_publish_bucket,
+                json_location_prefix
             )
-            decompressed = decrypted.mapValues(decompress)
-            decoded = decompressed.mapValues(decode)
-            rdd_list.append(decoded)
-        consolidated_rdd = spark.sparkContext.union(rdd_list)
-        consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
-        the_logger.info("Persisting Json : %s" % collection_name)
-        json_location_prefix = "${file_location}/%s/%s/%s" % (
-            run_time_stamp,
-            get_collection(collection_name),
-            get_collection(collection_name) + ".json"
-        )
-        json_location = "s3://%s/%s" % (
-            s3_publish_bucket,
-            json_location_prefix
-        )
-        persist_json(json_location, consolidated_rdd_mapped)
-        the_logger.info("Applying Tags for prefix : " + json_location_prefix)
-        tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
-    the_logger.info("Creating Hive tables for : %s" % collection_name)
-    create_hive_on_published(spark, json_location, collection_name, published_database_name)
-    end_time = time.perf_counter()
-    total_time = round(end_time - start_time)
-    add_metric("processing_times.csv", collection_name, str(total_time))
-    the_logger.info("Completed Processing : %s" % collection_name)
+            persist_json(json_location, consolidated_rdd_mapped)
+            the_logger.info("Applying Tags for prefix : " + json_location_prefix)
+            tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
+        the_logger.info("Creating Hive tables for : %s" % collection_name)
+        end_time = time.perf_counter()
+        total_time = round(end_time - start_time)
+        add_metric("processing_times.csv", collection_name, str(total_time))
+        the_logger.info("Completed Processing : %s" % collection_name)
+    except BaseException as ex:
+        logging.error(f"Error processing collection {collection_name}, stopping Spark" + str(ex))
+        spark.stop()
+        raise ex
+    return (collection_name, json_location)
 
 
 def decode(txt):
@@ -194,19 +205,24 @@ def get_plaintext_key_calling_dks(encryptedkey, keyencryptionkeyid, keys_map):
 
 
 def call_dks(cek, kek):
-    url = "${url}"
-    params = {"keyId": kek}
-    result = requests.post(
-        url,
-        params=params,
-        data=cek,
-        cert=(
-            "/etc/pki/tls/certs/private_key.crt",
-            "/etc/pki/tls/private/private_key.key",
-        ),
-        verify="/etc/pki/ca-trust/source/anchors/analytical_ca.pem",
-    )
-    content = result.json()
+    try:
+        url = "${url}"
+        params = {"keyId": kek}
+        result = requests.post(
+            url,
+            params=params,
+            data=cek,
+            cert=(
+                "/etc/pki/tls/certs/private_key.crt",
+                "/etc/pki/tls/private/private_key.key",
+            ),
+            verify="/etc/pki/ca-trust/source/anchors/analytical_ca.pem",
+        )
+        content = result.json()
+    except BaseException as ex:
+        logging.error("Problem calling DKS, stopping Spark" + str(ex))
+        spark.stop()
+        raise ex
     return content["plaintextDataKey"]
 
 
@@ -215,10 +231,15 @@ def read_binary(spark, file_path):
 
 
 def decrypt(plain_text_key, iv_key, data):
-    iv_int = int(base64.b64decode(iv_key).hex(), 16)
-    ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
-    aes = AES.new(base64.b64decode(plain_text_key), AES.MODE_CTR, counter=ctr)
-    decrypted = aes.decrypt(data)
+    try:
+        iv_int = int(base64.b64decode(iv_key).hex(), 16)
+        ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
+        aes = AES.new(base64.b64decode(plain_text_key), AES.MODE_CTR, counter=ctr)
+        decrypted = aes.decrypt(data)
+    except BaseException as ex:
+        logging.error("Problem decrypting data, stopping Spark" + str(ex))
+        spark.stop()
+        raise ex
     return decrypted
 
 
@@ -243,21 +264,24 @@ def get_collections(secrets_response):
     try:
         collections = secrets_response["collections_all"]
         collections = {k.lower(): v.lower() for k, v in collections.items()}
-    except:
-        logging.error("Problem with collections list")
+    except BaseException as ex:
+        logging.error("Problem with collections list, stopping Spark" + str(ex))
+        spark.stop()
+        raise ex
     return collections
 
 
-def create_hive_on_published(spark, json_location, collection_name, published_database_name):
-    hive_table_name = get_collection(collection_name)
-    src_hive_table = published_database_name + "." + hive_table_name
-    the_logger.info("Creating Hive tables  : " + src_hive_table)
-    src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
-    src_hive_create_query = (
-        f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{json_location}" """
-    )
-    spark.sql(src_hive_drop_query)
-    spark.sql(src_hive_create_query)
+def create_hive_tables_on_published(spark, all_processed_collections, published_database_name):
+    for (collection_name, collection_json_location) in all_processed_collections:
+        hive_table_name = get_collection(collection_name)
+        src_hive_table = published_database_name + "." + hive_table_name
+        the_logger.info("Creating Hive tables  : " + src_hive_table)
+        src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
+        src_hive_create_query = (
+            f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+        )
+        spark.sql(src_hive_drop_query)
+        spark.sql(src_hive_create_query)
 
 
 def add_filesize_metric(collection_name, s3_client, s3_htme_bucket, collection_file_key):
@@ -303,8 +327,8 @@ if __name__ == "__main__":
     secrets_collections = get_collections(secrets_response)
     keys_map = {}
     start_time = time.perf_counter()
-    main(spark, s3_client, s3_htme_bucket, s3_prefix, secrets_collections, keys_map, run_time_stamp, s3_publish_bucket,
-         published_database_name)
+    main(spark, s3_client, s3_htme_bucket, s3_prefix, secrets_collections, keys_map,
+         run_time_stamp, s3_publish_bucket, published_database_name)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
     add_metric("processing_times.csv", "all_collections", str(total_time))

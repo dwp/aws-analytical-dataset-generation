@@ -2,18 +2,24 @@ import ast
 import zlib
 
 import boto3
+import pytest
 from moto import mock_s3
 
 import steps
 from steps import generate_dataset_from_htme
 
-FILE_NAME = 'db.core.contract.01002.4040.gz.enc'
+DB_CORE_CONTRACT_FILE_NAME = 'db.core.contract.01002.4040.gz.enc'
+DB_CORE_ACCOUNTS_FILE_NAME = 'db.core.accounts.01002.4040.gz.enc'
 S3_PREFIX = 'mongo/ucdata'
 S3_HTME_BUCKET = 'test'
 S3_PUBLISH_BUCKET = 'target'
 DB_CORE_CONTRACT = 'db.core.contract'
+DB_CORE_ACCOUNTS = 'db.core.accounts'
 SECRETS = "{'collections_all': {'db.core.contract': 'crown'}}"
-SECRETS_COLLECTIONS = {f'{DB_CORE_CONTRACT}': 'crown'}
+SECRETS_COLLECTIONS = {DB_CORE_CONTRACT: 'crown'}
+KEYS_MAP = {"test_ciphertext": "test_key"}
+RUN_TIME_STAMP = "10-10-2000_10-10-10"
+PUBLISHED_DATABASE_NAME = "test_db"
 
 
 def test_retrieve_secrets(monkeypatch, aws_credentials):
@@ -39,61 +45,110 @@ def test_get_collections():
 def test_get_list_keys_for_prefix(aws_credentials):
     s3_client = boto3.client('s3')
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
-    s3_client.put_object(Body="test", Bucket=S3_HTME_BUCKET, Key=f'{S3_PREFIX}/{FILE_NAME}')
+    s3_client.put_object(Body="test", Bucket=S3_HTME_BUCKET, Key=f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}')
 
     assert (
             generate_dataset_from_htme.get_list_keys_for_prefix(s3_client, S3_HTME_BUCKET, S3_PREFIX) ==
-            [f"{S3_PREFIX}/{FILE_NAME}"]
+            [f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}"]
     )
 
 
 def test_group_keys_by_collection():
-    keys = [f'{S3_PREFIX}/{FILE_NAME}',
+    keys = [f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}',
             f'{S3_PREFIX}/db.core.accounts.01002.4040.gz.enc']
     assert (
             generate_dataset_from_htme.group_keys_by_collection(keys) ==
-            [{f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{FILE_NAME}']},
+            [{f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}']},
              {'db.core.accounts': [f'{S3_PREFIX}/db.core.accounts.01002.4040.gz.enc']}]
     )
 
 
 def test_get_collections_in_secrets():
-    list_of_dicts = [{f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{FILE_NAME}']},
+    list_of_dicts = [{f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}']},
                      {'db.core.accounts': [f'{S3_PREFIX}/db.core.accounts.01002.4040.gz.enc']}]
-    expected_list_of_dicts = [{'db.core.contract': [f'{S3_PREFIX}/{FILE_NAME}']}]
+    expected_list_of_dicts = [{'db.core.contract': [f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}']}]
     assert generate_dataset_from_htme.get_collections_in_secrets(list_of_dicts,
                                                                  SECRETS_COLLECTIONS) == expected_list_of_dicts
 
 
 @mock_s3
-def test_consolidate_rdd_per_collection(spark, monkeypatch, handle_server, aws_credentials):
-    collection = {f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{FILE_NAME}']}
+def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, handle_server, aws_credentials):
     collection_name = "core_contract"
-    keys_map = {"test_ciphertext": "test_key"}
-    run_time_stamp = "10-10-2000_10-10-10"
-    published_database_name = "test_db"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
-    target_object_key = f'${{file_location}}/{run_time_stamp}/{collection_name}/{collection_name}.json/part-00000'
+    target_object_key = f'${{file_location}}/{RUN_TIME_STAMP}/{collection_name}/{collection_name}.json/part-00000'
     target_object_tag = {'Key': 'collection_tag', 'Value': 'crown'}
     s3_client = boto3.client("s3", endpoint_url="http://127.0.0.1:5000")
-
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
-    s3_client.put_object(Body=zlib.compress(test_data), Bucket=S3_HTME_BUCKET, Key=f'{S3_PREFIX}/{FILE_NAME}',
+    s3_client.put_object(Body=zlib.compress(test_data), Bucket=S3_HTME_BUCKET,
+                         Key=f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}',
                          Metadata={'iv': '123', 'ciphertext': 'test_ciphertext', 'datakeyencryptionkeyid': '123'})
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'add_metric', mock_add_metric)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decompress', mock_decompress)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, 'create_hive_on_published', mock_create_hive_on_published)
-    generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, SECRETS_COLLECTIONS, keys_map,
-                                    run_time_stamp, S3_PUBLISH_BUCKET, published_database_name)
+    generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, SECRETS_COLLECTIONS, KEYS_MAP,
+                                    RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME)
     assert len(s3_client.list_buckets()['Buckets']) == 2
-    assert len(s3_client.list_objects(Bucket=S3_PUBLISH_BUCKET)['Contents']) == 2
     assert (s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
                                  Key=target_object_key)['Body'].read().decode().strip() == test_data.decode())
     assert s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)['TagSet'][
                0] == target_object_tag
+    assert collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
+
+
+@mock_s3
+def test_consolidate_rdd_per_collection_with_multiple_collections(spark, monkeypatch, handle_server, aws_credentials):
+    core_contract_collection_name = "core_contract"
+    core_accounts_collection_name = "core_accounts"
+    test_data = '{"name":"abcd"}\n{"name":"xyz"}'
+    secret_collections = SECRETS_COLLECTIONS
+    secret_collections[DB_CORE_ACCOUNTS] = 'crown'
+    s3_client = boto3.client("s3", endpoint_url="http://127.0.0.1:5000")
+    s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
+    s3_publish_bucket_for_multiple_collections = f"{S3_PUBLISH_BUCKET}-2"
+    s3_client.create_bucket(Bucket=s3_publish_bucket_for_multiple_collections)
+    s3_client.put_object(Body=zlib.compress(str.encode(test_data)), Bucket=S3_HTME_BUCKET,
+                         Key=f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}',
+                         Metadata={'iv': '123', 'ciphertext': 'test_ciphertext', 'datakeyencryptionkeyid': '123'})
+    s3_client.put_object(Body=zlib.compress(str.encode(test_data)), Bucket=S3_HTME_BUCKET,
+                         Key=f'{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}',
+                         Metadata={'iv': '123', 'ciphertext': 'test_ciphertext', 'datakeyencryptionkeyid': '123'})
+    monkeypatch.setattr(steps.generate_dataset_from_htme, 'add_metric', mock_add_metric)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, 'decompress', mock_decompress)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
+    generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, secret_collections, KEYS_MAP,
+                                    RUN_TIME_STAMP, s3_publish_bucket_for_multiple_collections, PUBLISHED_DATABASE_NAME)
+    assert core_contract_collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
+    assert core_accounts_collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
+
+
+def test_create_hive_on_published(spark, handle_server, aws_credentials):
+    json_location = "s3://test/t"
+    collection_name = 'tabtest'
+    all_processed_collections = [(collection_name, json_location)]
+    steps.generate_dataset_from_htme.create_hive_tables_on_published(spark, all_processed_collections,
+                                                                     PUBLISHED_DATABASE_NAME)
+    assert generate_dataset_from_htme.get_collection(collection_name) in [x.name for x in
+                                                                          spark.catalog.listTables(
+                                                                              PUBLISHED_DATABASE_NAME)]
+
+
+@mock_s3
+def test_exception_when_decompression_fails(spark, monkeypatch, handle_server, aws_credentials):
+    with pytest.raises(Exception) as ex:
+        s3_client = boto3.client("s3", endpoint_url="http://127.0.0.1:5000")
+        s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
+        s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
+        s3_client.put_object(Body=zlib.compress(b"test data"), Bucket=S3_HTME_BUCKET,
+                             Key=f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}',
+                             Metadata={'iv': '123', 'ciphertext': 'test_ciphertext', 'datakeyencryptionkeyid': '123'})
+        monkeypatch.setattr(steps.generate_dataset_from_htme, 'add_metric', mock_add_metric)
+        monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
+        monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
+        generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, SECRETS_COLLECTIONS, KEYS_MAP,
+                                        RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME)
 
 
 def mock_decompress(compressed_text):
@@ -112,13 +167,5 @@ def mock_call_dks(cek, kek):
     return kek
 
 
-# This need not be mocked on local dev machine but for some reason fails in Docker container, hence mocking this call.
-def mock_create_hive_on_published(spark, json_location, collection_name, published_database_name):
-    return collection_name
-
-def test_create_hive_on_published(spark, handle_server, aws_credentials):
-    json_location = "s3://test/t"
-    collection_name = 'tabtest'
-    published_database_name = 'test_db'
-    steps.generate_dataset_from_htme.create_hive_on_published(spark=spark, json_location=json_location, collection_name=collection_name, published_database_name=published_database_name)
-    assert steps.generate_dataset_from_htme.get_collection(collection_name) in [x.name for x in spark.catalog.listTables(published_database_name)]
+def mock_create_hive_tables_on_published(spark, all_processed_collections, published_database_name):
+    return published_database_name
