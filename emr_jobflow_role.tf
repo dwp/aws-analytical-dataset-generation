@@ -42,11 +42,6 @@ resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_write_pa
   policy_arn = aws_iam_policy.analytical_dataset_generator_write_parquet.arn
 }
 
-resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_gluetables" {
-  role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = aws_iam_policy.analytical_dataset_generator_gluetables_write.arn
-}
-
 resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_acm" {
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_acm.arn
