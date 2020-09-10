@@ -71,9 +71,9 @@ resource "aws_rds_cluster" "hive_metastore" {
   tags                    = merge(local.common_tags, { Name = "hive-metastore" })
   apply_immediately       = false
 
-    lifecycle {
-      ignore_changes = [master_password]
-    }
+  lifecycle {
+    ignore_changes = [master_password]
+  }
 }
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
@@ -85,7 +85,7 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   engine               = aws_rds_cluster.hive_metastore.engine
   engine_version       = aws_rds_cluster.hive_metastore.engine_version
   tags                 = merge(local.common_tags, { Name = "hive-metastore" })
-  apply_immediately       = false
+  apply_immediately    = false
 }
 
 resource "aws_secretsmanager_secret" "metadata_store_master" {
@@ -100,9 +100,9 @@ resource "aws_secretsmanager_secret_version" "metadata_store_master" {
     "password" = "${aws_rds_cluster.hive_metastore.master_password}",
   })
 
-    lifecycle {
-      ignore_changes = [secret_string]
-    }
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
 }
 
 # Create entries for additional SQL users
