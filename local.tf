@@ -132,4 +132,6 @@ locals {
     preprod     = length(data.aws_availability_zones.available.names)
     production  = length(data.aws_availability_zones.available.names)
   }
+
+  published_db = "analytical_dataset_generation"
 }
