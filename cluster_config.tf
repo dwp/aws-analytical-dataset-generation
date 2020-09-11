@@ -96,6 +96,7 @@ resource "aws_s3_bucket_object" "configurations" {
       hive_metastore_pwd                  = jsondecode(data.aws_secretsmanager_secret_version.rds_aurora_secrets.secret_string)["password"]
       hive_metastore_endpoint             = aws_rds_cluster.hive_metastore.endpoint
       hive_metastore_database_name        = aws_rds_cluster.hive_metastore.database_name
+      hive_metastore_backend              = local.hive_metastore_backend[local.environment]
     }
   )
 }
