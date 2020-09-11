@@ -9,8 +9,6 @@ function log_wrapper_message() {
 }
 aws s3 cp "${python_logger}" /opt/emr/.
 aws s3 cp "${generate_analytical_dataset}" /opt/emr/.
-hive -e "CREATE DATABASE IF NOT EXISTS ${published_db}"
-
 ) >> /var/log/adg/nohup.log 2>&1
 
 
