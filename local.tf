@@ -134,4 +134,12 @@ locals {
   }
 
   published_db = "analytical_dataset_generation"
+
+  hive_metastore_backend = {
+    development = "aurora"
+    qa          = "glue"
+    integration = "glue"
+    preprod     = "glue"
+    production  = "glue"
+  }
 }
