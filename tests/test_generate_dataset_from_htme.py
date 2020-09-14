@@ -8,13 +8,13 @@ from moto import mock_s3
 import steps
 from steps import generate_dataset_from_htme
 
-DB_CORE_CONTRACT_FILE_NAME = 'db.core.contract.01002.4040.gz.enc'
-DB_CORE_ACCOUNTS_FILE_NAME = 'db.core.accounts.01002.4040.gz.enc'
+DB_CORE_CONTRACT = 'db.core.contract'
+DB_CORE_ACCOUNTS = 'db.core.accounts'
+DB_CORE_CONTRACT_FILE_NAME = f'{DB_CORE_CONTRACT}.01002.4040.gz.enc'
+DB_CORE_ACCOUNTS_FILE_NAME = f'{DB_CORE_ACCOUNTS}.01002.4040.gz.enc'
 S3_PREFIX = 'mongo/ucdata'
 S3_HTME_BUCKET = 'test'
 S3_PUBLISH_BUCKET = 'target'
-DB_CORE_CONTRACT = 'db.core.contract'
-DB_CORE_ACCOUNTS = 'db.core.accounts'
 SECRETS = "{'collections_all': {'db.core.contract': 'crown'}}"
 SECRETS_COLLECTIONS = {DB_CORE_CONTRACT: 'crown'}
 KEYS_MAP = {"test_ciphertext": "test_key"}
@@ -22,7 +22,7 @@ RUN_TIME_STAMP = "10-10-2000_10-10-10"
 PUBLISHED_DATABASE_NAME = "test_db"
 
 
-def test_retrieve_secrets(monkeypatch, aws_credentials):
+def test_retrieve_secrets(monkeypatch):
     class MockSession:
         class Session:
             def client(self, service_name):
@@ -55,18 +55,18 @@ def test_get_list_keys_for_prefix(aws_credentials):
 
 def test_group_keys_by_collection():
     keys = [f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}',
-            f'{S3_PREFIX}/db.core.accounts.01002.4040.gz.enc']
+            f'{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}']
     assert (
             generate_dataset_from_htme.group_keys_by_collection(keys) ==
             [{f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}']},
-             {'db.core.accounts': [f'{S3_PREFIX}/db.core.accounts.01002.4040.gz.enc']}]
+             {f'{DB_CORE_ACCOUNTS}': [f'{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}']}]
     )
 
 
 def test_get_collections_in_secrets():
     list_of_dicts = [{f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}']},
-                     {'db.core.accounts': [f'{S3_PREFIX}/db.core.accounts.01002.4040.gz.enc']}]
-    expected_list_of_dicts = [{'db.core.contract': [f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}']}]
+                     {f'{DB_CORE_ACCOUNTS}': [f'{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}']}]
+    expected_list_of_dicts = [{f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}']}]
     assert generate_dataset_from_htme.get_collections_in_secrets(list_of_dicts,
                                                                  SECRETS_COLLECTIONS) == expected_list_of_dicts
 

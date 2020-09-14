@@ -42,12 +42,12 @@ def main(spark, s3_client, s3_htme_bucket,
                                                      itertools.repeat(keys_map),
                                                      itertools.repeat(run_time_stamp),
                                                      itertools.repeat(s3_publish_bucket))
+        # Create hive tables for all the collections processed successfully
+        create_hive_tables_on_published(spark, all_processed_collections, published_database_name)
     except Exception as ex:
         logging.error("Some error occured, stopping Spark" + str(ex))
         spark.stop()
         raise ex
-    # Create hive tables for all the collections processed successfully
-    create_hive_tables_on_published(spark, all_processed_collections, published_database_name)
 
 
 def get_collections_in_secrets(list_of_dicts, secrets_collections):
