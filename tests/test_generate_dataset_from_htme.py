@@ -8,6 +8,8 @@ from moto import mock_s3
 import steps
 from steps import generate_dataset_from_htme
 
+MOTO_SERVER_URL = "http://127.0.0.1:5000"
+
 DB_CORE_CONTRACT = 'db.core.contract'
 DB_CORE_ACCOUNTS = 'db.core.accounts'
 DB_CORE_CONTRACT_FILE_NAME = f'{DB_CORE_CONTRACT}.01002.4040.gz.enc'
@@ -77,7 +79,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, 
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
     target_object_key = f'${{file_location}}/{RUN_TIME_STAMP}/{collection_name}/{collection_name}.json/part-00000'
     target_object_tag = {'Key': 'collection_tag', 'Value': 'crown'}
-    s3_client = boto3.client("s3", endpoint_url="http://127.0.0.1:5000")
+    s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
     s3_client.put_object(Body=zlib.compress(test_data), Bucket=S3_HTME_BUCKET,
@@ -104,7 +106,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(spark, monkeyp
     test_data = '{"name":"abcd"}\n{"name":"xyz"}'
     secret_collections = SECRETS_COLLECTIONS
     secret_collections[DB_CORE_ACCOUNTS] = 'crown'
-    s3_client = boto3.client("s3", endpoint_url="http://127.0.0.1:5000")
+    s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
     s3_publish_bucket_for_multiple_collections = f"{S3_PUBLISH_BUCKET}-2"
     s3_client.create_bucket(Bucket=s3_publish_bucket_for_multiple_collections)
@@ -138,7 +140,7 @@ def test_create_hive_on_published(spark, handle_server, aws_credentials):
 @mock_s3
 def test_exception_when_decompression_fails(spark, monkeypatch, handle_server, aws_credentials):
     with pytest.raises(Exception) as ex:
-        s3_client = boto3.client("s3", endpoint_url="http://127.0.0.1:5000")
+        s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
         s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
         s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
         s3_client.put_object(Body=zlib.compress(b"test data"), Bucket=S3_HTME_BUCKET,
