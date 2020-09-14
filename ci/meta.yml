@@ -269,11 +269,11 @@ meta:
             repository: dwpdigital/python3-pyspark-pytest
         run:
           path: sh
-          dir: aws-analytical-dataset-generation/steps
+          dir: aws-analytical-dataset-generation
           args:
             - -exc
             - |
-              pytest .
+              pytest -vs tests
         inputs:
           - name: aws-analytical-dataset-generation
       input_mapping:
