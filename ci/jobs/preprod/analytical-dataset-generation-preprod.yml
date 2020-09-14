@@ -2,6 +2,11 @@ jobs:
 - name: analytical-dataset-generation-preprod
   plan:
   - in_parallel:
+    - get: manage-mysql-user-release
+      trigger: true
+      params:
+        globs:
+          - "*.zip"
     - get: aws-analytical-dataset-generation
       trigger: true
       passed:

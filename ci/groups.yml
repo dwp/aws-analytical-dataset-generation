@@ -34,3 +34,23 @@ groups:
     jobs:
       - prod-start-cluster
       - prod-stop-cluster
+  - name: rotate-passwords-adg-reader
+    jobs:
+      - rotate-mysql-password-adg-reader-development
+      - rotate-mysql-password-adg-reader-qa
+      - rotate-mysql-password-adg-reader-integration
+      - rotate-mysql-password-adg-reader-preprod
+  - name: rotate-passwords-adg-writer
+    jobs:
+      - rotate-mysql-password-adg-writer-development
+      - rotate-mysql-password-adg-writer-qa
+      - rotate-mysql-password-adg-writer-integration
+      - rotate-mysql-password-adg-writer-preprod
+      - rotate-mysql-password-adg-writer-production
+  - name: rotate-passwords-pdm-writer
+    jobs:
+      - rotate-mysql-password-pdm-writer-development
+      - rotate-mysql-password-pdm-writer-qa
+      - rotate-mysql-password-pdm-writer-integration
+      - rotate-mysql-password-pdm-writer-preprod
+      - rotate-mysql-password-pdm-writer-production

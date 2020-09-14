@@ -1,43 +1,15 @@
-resource "aws_s3_bucket_object" "create-hive-tables" {
-  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/analytical-dataset-generation/create-hive-tables.py"
-  content = templatefile("${path.module}/steps/create-hive-tables.py",
-    {
-      bucket      = aws_s3_bucket.published.id
-      secret_name = local.secret_name
-      log_path    = "/var/log/adg/hive-tables-creation.log"
-    }
-  )
-}
-
-resource "aws_s3_bucket_object" "generate_analytical_dataset_script" {
-  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/analytical-dataset-generation/generate_analytical_dataset.py"
-  content = templatefile("${path.module}/steps/generate_analytical_dataset.py",
-    {
-      secret_name        = local.secret_name
-      staging_db         = "analytical_dataset_generation_staging"
-      published_db       = "analytical_dataset_generation"
-      file_location      = "analytical-dataset"
-      url                = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
-      aws_default_region = "eu-west-2"
-      log_path           = "/var/log/adg/generate-analytical-dataset.log"
-    }
-  )
-}
-
 resource "aws_s3_bucket_object" "generate_dataset_from_htme_script" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/generate_dataset_from_htme.py"
   content = templatefile("${path.module}/steps/generate_dataset_from_htme.py",
     {
       secret_name        = local.secret_name
-      published_db       = "analytical_dataset_generation"
+      published_db       = local.published_db
       file_location      = "analytical-dataset"
       url                = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
       aws_default_region = "eu-west-2"
       log_path           = "/var/log/adg/generate-analytical-dataset.log"
-      s3_prefix          = "businessdata/mongo/ucdata/2020-07-26/full/"
+      s3_prefix          = var.htme_data_location[local.environment]
     }
   )
 }
@@ -47,9 +19,9 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
   key    = "component/analytical-dataset-generation/hive-setup.sh"
   content = templatefile("${path.module}/steps/hive-setup.sh",
     {
-      hive-scripts-path           = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create-hive-tables.key)
       python_logger               = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
       generate_analytical_dataset = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_dataset_from_htme_script.key)
+      published_db                = local.published_db
     }
   )
 }

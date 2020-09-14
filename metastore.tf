@@ -12,14 +12,24 @@ resource "aws_security_group" "hive_metastore" {
   tags        = merge(local.common_tags, { Name = "hive-metastore" })
 }
 
-// TODO: Lock this down to ADG, PDM & analytical-env after the spike
-resource "aws_security_group_rule" "allow_all_hive_metastore_ingress" {
-  security_group_id = aws_security_group.hive_metastore.id
-  type              = "ingress"
-  cidr_blocks       = ["0.0.0.0/0"]
-  from_port         = 0
-  to_port           = 3306
-  protocol          = "tcp"
+resource "aws_security_group_rule" "ingress_adg" {
+  description              = "Allow mysql traffic to Aurora RDS from ADG"
+  from_port                = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.hive_metastore.id
+  to_port                  = 3306
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.adg_common.id
+}
+
+resource "aws_security_group_rule" "egress_adg" {
+  description              = "Allow mysql traffic to Aurora RDS from ADG"
+  from_port                = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.adg_common.id
+  to_port                  = 3306
+  type                     = "ingress"
+  source_security_group_id = aws_security_group.hive_metastore.id
 }
 
 resource "aws_kms_key" "hive_metastore" {
@@ -40,6 +50,9 @@ resource "aws_kms_alias" "hive_metastore" {
   target_key_id = aws_kms_key.hive_metastore.id
 }
 
+resource "random_id" "password_salt" {
+  byte_length = 16
+}
 // TODO: Convert username/password to secrets after the spike
 resource "aws_rds_cluster" "hive_metastore" {
   cluster_identifier      = "hive-metastore"
@@ -49,13 +62,18 @@ resource "aws_rds_cluster" "hive_metastore" {
   availability_zones      = data.aws_availability_zones.available.names
   db_subnet_group_name    = aws_db_subnet_group.internal_compute.name
   database_name           = "hive_metastore"
-  master_username         = "hive"
-  master_password         = "hivepassword"
+  master_username         = var.metadata_store_master_username
+  master_password         = "password_already_rotated_${substr(random_id.password_salt.hex, 0, 16)}"
   backup_retention_period = 7
   vpc_security_group_ids  = [aws_security_group.hive_metastore.id]
   storage_encrypted       = true
   kms_key_id              = aws_kms_key.hive_metastore.arn
   tags                    = merge(local.common_tags, { Name = "hive-metastore" })
+  apply_immediately       = false
+
+  lifecycle {
+    ignore_changes = [master_password]
+  }
 }
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
@@ -67,4 +85,49 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   engine               = aws_rds_cluster.hive_metastore.engine
   engine_version       = aws_rds_cluster.hive_metastore.engine_version
   tags                 = merge(local.common_tags, { Name = "hive-metastore" })
+  apply_immediately    = false
+}
+
+resource "aws_secretsmanager_secret" "metadata_store_master" {
+  name        = "metadata-store-${var.metadata_store_master_username}"
+  description = "Metadata Store master password"
+}
+
+resource "aws_secretsmanager_secret_version" "metadata_store_master" {
+  secret_id = aws_secretsmanager_secret.metadata_store_master.id
+  secret_string = jsonencode({
+    "username" = "${var.metadata_store_master_username}",
+    "password" = "${aws_rds_cluster.hive_metastore.master_password}",
+  })
+
+  lifecycle {
+    ignore_changes = [secret_string]
+  }
+}
+
+# Create entries for additional SQL users
+resource "aws_secretsmanager_secret" "metadata_store_adg_reader" {
+  name        = "metadata-store-${var.metadata_store_adg_reader_username}"
+  description = "${var.metadata_store_adg_reader_username} SQL user for Metadata Store"
+  tags        = local.common_tags
+}
+
+resource "aws_secretsmanager_secret" "metadata_store_adg_writer" {
+  name        = "metadata-store-${var.metadata_store_adg_writer_username}"
+  description = "${var.metadata_store_adg_writer_username} SQL user for Metadata Store"
+  tags        = local.common_tags
+}
+
+resource "aws_secretsmanager_secret" "metadata_store_pdm_writer" {
+  name        = "metadata-store-${var.metadata_store_pdm_writer_username}"
+  description = "${var.metadata_store_pdm_writer_username} SQL user for Metadata Store"
+  tags        = local.common_tags
+}
+
+output "hive_metastore" {
+  value = {
+    security_group = aws_security_group.hive_metastore
+    rds_cluster    = aws_rds_cluster.hive_metastore
+    database_name  = aws_rds_cluster.hive_metastore.database_name
+  }
 }

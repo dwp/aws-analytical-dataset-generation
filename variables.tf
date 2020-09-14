@@ -104,3 +104,33 @@ variable "emr_yarn_memory_gb_per_core_instance" {
     production  = "184"
   }
 }
+
+variable "metadata_store_master_username" {
+  description = "Username for metadata store master RDS user"
+  default     = "hive"
+}
+
+variable "metadata_store_adg_reader_username" {
+  description = "Username for metadata store readonly RDS user"
+  default     = "adg-reader"
+}
+
+variable "metadata_store_adg_writer_username" {
+  description = "Username for metadata store writer RDS user"
+  default     = "adg-writer"
+}
+
+variable "metadata_store_pdm_writer_username" {
+  description = "Username for metadata store writer RDS user"
+  default     = "pdm-writer"
+}
+
+variable "htme_data_location" {
+  default = {
+    development = "businessdata/mongo/ucdata/2020-07-06/full/"
+    qa          = "businessdata/mongo/ucdata/2020-07-06/full/"
+    integration = "businessdata/mongo/ucdata/2020-07-06/full/"
+    preprod     = "businessdata/mongo/ucdata/2020-07-06/full/"
+    production  = "businessdata/mongo/ucdata/2020-07-26/full/"
+  }
+}

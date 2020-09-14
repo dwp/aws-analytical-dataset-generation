@@ -10,6 +10,11 @@ jobs:
       trigger: true
     - get: emr-ami
       trigger: true
+    - get: manage-mysql-user-release
+      trigger: true
+      params:
+       globs:
+         - "*.zip"
   - .: (( inject meta.plan.terraform-bootstrap ))
     config:
       params:
