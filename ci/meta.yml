@@ -273,6 +273,8 @@ meta:
           args:
             - -exc
             - |
+              unset http_proxy
+              unset https_proxy
               pytest -vs tests
         inputs:
           - name: aws-analytical-dataset-generation
