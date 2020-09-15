@@ -57,7 +57,7 @@ resource "random_id" "password_salt" {
 resource "aws_rds_cluster" "hive_metastore" {
   cluster_identifier      = "hive-metastore"
   engine                  = "aurora-mysql"
-  engine_version          = "5.7.mysql_aurora.2.08.1"
+  engine_version          = local.emr_engine_version[local.environment]
   engine_mode             = "provisioned"
   availability_zones      = data.aws_availability_zones.available.names
   db_subnet_group_name    = aws_db_subnet_group.internal_compute.name
