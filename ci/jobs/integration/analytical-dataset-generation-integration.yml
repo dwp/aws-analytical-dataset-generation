@@ -7,6 +7,10 @@ jobs:
       params:
         globs:
           - "*.zip"
+    - get: secrets-management
+      trigger: false
+      passed:
+        - analytical-dataset-generation-qa
     - get: aws-analytical-dataset-generation
       trigger: true
       passed:

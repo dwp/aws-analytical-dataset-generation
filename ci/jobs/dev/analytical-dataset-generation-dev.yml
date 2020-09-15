@@ -8,6 +8,8 @@ jobs:
       trigger: true
     - get: analytical-dataset-generation-exporter-release
       trigger: true
+    - get: secrets-management
+      trigger: false
     - get: emr-ami
       trigger: true
     - get: manage-mysql-user-release

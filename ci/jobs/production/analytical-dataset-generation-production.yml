@@ -11,6 +11,10 @@ jobs:
       trigger: true
       passed:
       - analytical-dataset-generation-preprod
+    - get: secrets-management
+      trigger: false
+      passed:
+        - analytical-dataset-generation-preprod
     - get: emr-launcher-release
       trigger: true
       passed:
