@@ -27,7 +27,7 @@ jobs:
   - .: (( inject meta.plan.rotate-mysql-master-password ))
     params:
       TF_WORKSPACE: qa
-      AWS_ACC: ((aws_account.development))
+      AWS_ACC: ((aws_account.qa))
       AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
       inputs:
         - name: secrets-management

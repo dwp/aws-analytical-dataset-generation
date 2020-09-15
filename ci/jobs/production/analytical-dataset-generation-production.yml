@@ -39,7 +39,7 @@ jobs:
       TF_WORKSPACE: production
   - .: (( inject meta.plan.rotate-mysql-master-password ))
     params:
-      TF_WORKSPACE: default
+      TF_WORKSPACE: production
       AWS_ACC: ((aws_account.production))
       AWS_ROLE_ARN: arn:aws:iam::((aws_account.production)):role/ci
       inputs:

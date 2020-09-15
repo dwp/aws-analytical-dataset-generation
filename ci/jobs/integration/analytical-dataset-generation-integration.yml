@@ -39,7 +39,7 @@ jobs:
       TF_WORKSPACE: integration
   - .: (( inject meta.plan.rotate-mysql-master-password ))
     params:
-      TF_WORKSPACE: default
+      TF_WORKSPACE: integration
       AWS_ACC: ((aws_account.integration))
       AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
       inputs:
