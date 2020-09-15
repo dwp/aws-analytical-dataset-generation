@@ -82,10 +82,8 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   cluster_identifier   = aws_rds_cluster.hive_metastore.id
   instance_class       = local.hive_metastore_instance_type[local.environment]
   db_subnet_group_name = aws_rds_cluster.hive_metastore.db_subnet_group_name
-  engine               = aws_rds_cluster.hive_metastore.engine
-  engine_version       = aws_rds_cluster.hive_metastore.engine_version
   tags                 = merge(local.common_tags, { Name = "hive-metastore" })
-  apply_immediately    = false
+  apply_immediately    = true
 }
 
 resource "aws_secretsmanager_secret" "metadata_store_master" {
