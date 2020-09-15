@@ -33,5 +33,7 @@ Steps:
     - "yarn"
     - "--conf"
     - "spark.yarn.submit.waitAppCompletion=true"
+    - "--py-files"
+    - "/opt/emr/steps.zip"
     Jar: "command-runner.jar"
   ActionOnFailure: "CONTINUE"
