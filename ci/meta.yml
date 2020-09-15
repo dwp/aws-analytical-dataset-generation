@@ -104,6 +104,12 @@ meta:
         params:
           USERNAME: "pdm-writer"
           PARAM_NAME: "metadata-store-pdm-writer"
+    rotate-master-password:
+      .: (( inject meta.plan.rotate-mysql-master-password ))
+      config:
+        params:
+          USERNAME: "hive"
+          PARAM_NAME: "metadata-store-hive"
     terraform-apply:
       task: terraform-apply
       .: (( inject meta.plan.terraform-common-config ))
