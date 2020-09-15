@@ -69,7 +69,7 @@ resource "aws_rds_cluster" "hive_metastore" {
   storage_encrypted       = true
   kms_key_id              = aws_kms_key.hive_metastore.arn
   tags                    = merge(local.common_tags, { Name = "hive-metastore" })
-  apply_immediately       = false
+  apply_immediately       = true
 
   lifecycle {
     ignore_changes = [master_password]
