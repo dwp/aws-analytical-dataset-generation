@@ -86,8 +86,8 @@ meta:
               pip install boto3
               ./rotate_rds_master_user_password_update_secrets_manager $AWS_ACCOUNT_ID $AWS_REGION ci hive-metastore $PARAM_NAME
           dir: secrets-management
-#        inputs:
-#          - name: secrets-management
+        inputs:
+          - name: secrets-management
     rotate-adg-reader-password:
       .: (( inject meta.plan.rotate-mysql-password ))
       config:
