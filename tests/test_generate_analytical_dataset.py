@@ -1,40 +1,41 @@
-import generate_analytical_dataset
-from generate_analytical_dataset import sanitize, validate, retrieve_id, retrieve_last_modified_date_time, retrieve_date_time_element, replace_element_value_wit_key_value_pair, wrap_dates,get_valid_parsed_date_time,format_date_to_valid_outgoing_format
+from steps import generate_analytical_dataset
+from steps.generate_analytical_dataset import sanitize, validate, retrieve_id, retrieve_last_modified_date_time, retrieve_date_time_element, replace_element_value_wit_key_value_pair, wrap_dates,get_valid_parsed_date_time,format_date_to_valid_outgoing_format
 from pyspark.sql import SparkSession
 import json
+import pytest
 from pyspark.sql import Row
 from datetime import datetime
 
 
 def test_sanitisation_processor_removes_desired_chars_in_collections():
-    input =  """{"fieldA":"a$\u0000","_archivedDateTime":"b","_archived":"c"}"""
+    input_collection =  """{"fieldA":"a$\u0000","_archivedDateTime":"b","_archived":"c"}"""
     expected =  '{"fieldA":"ad_","_removedDateTime":"b","_removed":"c"}'
-    actual = sanitize(input, "", "")
+    actual = sanitize(input_collection, "", "")
     assert expected == actual
 
 # TODO Check how is this working in Kotlin """{"message":{"db":"penalties-and-deductions","collection":"sanction"},"data":{"carriage":"\\r","newline":"\\n","superEscaped":"\\\r\\\n"}}"""
 def test_sanitisation_processor_will_not_remove_multi_escaped_newlines():
-    input =  """{"message":{"db":"penalties-and-deductions","collection":"sanction"},"data":{"carriage":"\\\\r","newline":"\\\\n","superEscaped":"\\\\r\\\\n"}}"""
-    actual = sanitize(input,"penalties-and-deductions", "sanction" )
-    assert input == actual
+    input_json =  """{"message":{"db":"penalties-and-deductions","collection":"sanction"},"data":{"carriage":"\\\\r","newline":"\\\\n","superEscaped":"\\\\r\\\\n"}}"""
+    actual = sanitize(input_json,"penalties-and-deductions", "sanction" )
+    assert input_json == actual
 
 
-def test_sanitisatio_processor_removes_desired_chars_from_specific_collections():
-    input = json.dumps(get_input())
-    expected = json.dumps(get_expected())
-    actual = sanitize(input, "penalties-and-deductions", "sanction")
+def test_sanitisatio_processor_removes_desired_chars_from_specific_collections(input_json, expected_json):
+    input_json_dump = json.dumps(input_json)
+    expected = json.dumps(expected_json)
+    actual = sanitize(input_json_dump, "penalties-and-deductions", "sanction")
     assert expected == actual
 
 
-def test_sanitisation_processor_does_not_remove_chars_from_other_collections():
-    input = json.dumps(get_input())
-    expected = json.dumps(get_expected())
-    actual = sanitize(input, "", "")
+def test_sanitisation_processor_does_not_remove_chars_from_other_collections(input_json, expected_json):
+    input_json_dump = json.dumps(input_json)
+    expected = json.dumps(expected_json)
+    actual = sanitize(input_json_dump, "", "")
     assert expected != actual
 
-
-def get_input():
-    input = """{
+@pytest.fixture(scope="module")
+def input_json():
+    input_string = """{
               "_id": {
                 "declarationId": "47a4fad9-49af-4cb2-91b0-0056e2ac0eef\\r"
               },
@@ -69,9 +70,11 @@ def get_input():
                 "$date": "2016-06-23T05:12:29.624Z"
               }
         }"""
-    return json.loads(input)
+    input_json = json.loads(input_string)
+    return input_json
 
-def get_expected():
+@pytest.fixture(scope="module")
+def expected_json():
     expected =  """
               {
               "_id": {
@@ -108,7 +111,8 @@ def get_expected():
                "d_date": "2016-06-23T05:12:29.624Z"
               }
               }"""
-    return json.loads(expected)
+    expected_json = json.loads(expected)
+    return expected_json
 
 def test_if_decrypted_dbObject_is_a_valid_json():
     id = {"someId":"RANDOM_GUID","declarationId":1234}
@@ -588,13 +592,12 @@ def mock_get_staging_db_name():
     return 'staging'
 
 def mock_get_dataframe_from_staging(adg_hive_select_query, spark):
-    spark = mock_get_spark_session()
     with open('test_message.json', 'r') as file:
         data = json.load(file)
         dt_string = json.dumps(data)
         data_row = Row('data')
         data_rows =[ data_row(dt_string)]
-        user_df = spark.createDataFrame(data_rows)
+        user_df = mock_get_spark_session().createDataFrame(data_rows)
         user_df.show()
         return user_df
 
@@ -612,13 +615,12 @@ def mock_get_staging_db_name():
     return 'staging'
 
 def mock_get_dataframe_from_staging(adg_hive_select_query, spark):
-    spark = mock_get_spark_session()
     with open('test_message.json', 'r') as file:
         data = json.load(file)
         dt_string = json.dumps(data)
         data_row = Row('data')
         data_rows =[ data_row(dt_string)]
-        user_df = spark.createDataFrame(data_rows)
+        user_df = mock_get_spark_session().createDataFrame(data_rows)
         user_df.show()
         return user_df
 

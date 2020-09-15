@@ -57,7 +57,7 @@ resource "random_id" "password_salt" {
 resource "aws_rds_cluster" "hive_metastore" {
   cluster_identifier      = "hive-metastore"
   engine                  = "aurora-mysql"
-  engine_version          = "5.7.mysql_aurora.2.08.1"
+  engine_version          = local.emr_engine_version[local.environment]
   engine_mode             = "provisioned"
   availability_zones      = data.aws_availability_zones.available.names
   db_subnet_group_name    = aws_db_subnet_group.internal_compute.name
@@ -69,7 +69,7 @@ resource "aws_rds_cluster" "hive_metastore" {
   storage_encrypted       = true
   kms_key_id              = aws_kms_key.hive_metastore.arn
   tags                    = merge(local.common_tags, { Name = "hive-metastore" })
-  apply_immediately       = false
+  apply_immediately       = true
 
   lifecycle {
     ignore_changes = [master_password]
@@ -82,10 +82,9 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   cluster_identifier   = aws_rds_cluster.hive_metastore.id
   instance_class       = local.hive_metastore_instance_type[local.environment]
   db_subnet_group_name = aws_rds_cluster.hive_metastore.db_subnet_group_name
-  engine               = aws_rds_cluster.hive_metastore.engine
-  engine_version       = aws_rds_cluster.hive_metastore.engine_version
   tags                 = merge(local.common_tags, { Name = "hive-metastore" })
-  apply_immediately    = false
+  engine               = aws_rds_cluster.hive_metastore.engine
+  apply_immediately    = true
 }
 
 resource "aws_secretsmanager_secret" "metadata_store_master" {

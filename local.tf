@@ -75,6 +75,14 @@ locals {
     production  = "0.0.1"
   }
 
+  emr_engine_version = {
+    development = "5.7.mysql_aurora.2.08.2"
+    qa          = "5.7.mysql_aurora.2.08.1"
+    integration = "5.7.mysql_aurora.2.08.1"
+    preprod     = "5.7.mysql_aurora.2.08.1"
+    production  = "5.7.mysql_aurora.2.08.1"
+  }
+
   amazon_region_domain = "${data.aws_region.current.name}.amazonaws.com"
   endpoint_services    = ["dynamodb", "ec2", "ec2messages", "glue", "kms", "logs", "monitoring", ".s3", "s3", "secretsmanager", "ssm", "ssmmessages"]
   no_proxy             = "169.254.169.254,${join(",", formatlist("%s.%s", local.endpoint_services, local.amazon_region_domain))},${data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname}"
