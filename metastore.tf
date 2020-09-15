@@ -83,7 +83,7 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   instance_class       = local.hive_metastore_instance_type[local.environment]
   db_subnet_group_name = aws_rds_cluster.hive_metastore.db_subnet_group_name
   tags                 = merge(local.common_tags, { Name = "hive-metastore" })
-  engine               = "aurora-mysql"
+  engine               = aws_rds_cluster.hive_metastore.engine
   apply_immediately    = true
 }
 
