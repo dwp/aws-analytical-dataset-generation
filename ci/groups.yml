@@ -57,7 +57,7 @@ groups:
   - name: rotate-passwords-master
     jobs:
       - rotate-mysql-password-master-development
-#      - rotate-mysql-password-master-qa
-#      - rotate-mysql-password-master-integration
-#      - rotate-mysql-password-master-preprod
-#      - rotate-mysql-password-master-production
+      - rotate-mysql-password-master-qa
+      - rotate-mysql-password-master-integration
+      - rotate-mysql-password-master-preprod
+      - rotate-mysql-password-master-production
