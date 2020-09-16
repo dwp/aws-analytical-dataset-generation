@@ -302,8 +302,6 @@ meta:
               pytest -vs tests
         inputs:
           - name: aws-analytical-dataset-generation
-      input_mapping:
-        aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
 
     start-cluster:
       task: start-cluster

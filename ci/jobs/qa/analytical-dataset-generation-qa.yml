@@ -17,6 +17,7 @@ jobs:
       trigger: true
     - get: emr-ami
       trigger: true
+  - .: (( inject meta.plan.unit-tests))
   - .: (( inject meta.plan.terraform-bootstrap ))
     config:
       params:
