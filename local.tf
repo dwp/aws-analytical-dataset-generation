@@ -144,7 +144,7 @@ locals {
   published_db = "analytical_dataset_generation"
 
   hive_metastore_backend = {
-    development = "aurora"
+    development = "glue"
     qa          = "glue"
     integration = "glue"
     preprod     = "glue"
