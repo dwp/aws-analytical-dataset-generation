@@ -90,8 +90,8 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
 resource "aws_secretsmanager_secret" "metadata_store_master" {
   name        = "metadata-store-${var.metadata_store_master_username}"
   description = "Metadata Store master password"
-  tags = local.common_tags
-  policy = data.aws_iam_policy_document.admin_access_to_metadata_secrets.json
+  tags        = local.common_tags
+  policy      = data.aws_iam_policy_document.admin_access_to_metadata_secrets.json
 }
 
 resource "aws_secretsmanager_secret_version" "metadata_store_master" {
@@ -109,24 +109,24 @@ resource "aws_secretsmanager_secret_version" "metadata_store_master" {
 # Create entries for additional SQL users
 data "aws_iam_policy_document" "admin_access_to_metadata_secrets" {
   statement {
-    sid = "DelegateToIAM"
-    effect = "Allow"
+    sid       = "DelegateToIAM"
+    effect    = "Allow"
     resources = ["*"]
-    actions = ["secretsmanager:*"]
+    actions   = ["secretsmanager:*"]
     principals {
       identifiers = ["arn:aws:iam::${local.account[local.environment]}:root"]
-      type = "AWS"
+      type        = "AWS"
     }
   }
 
   statement {
-    sid = "GrantAdminsSecretValueAccess"
-    effect = "Allow"
+    sid       = "GrantAdminsSecretValueAccess"
+    effect    = "Allow"
     resources = ["*"]
-    actions = ["secretsmanager:GetSecretValue"]
+    actions   = ["secretsmanager:GetSecretValue"]
     principals {
       identifiers = ["arn:aws:iam::${local.account[local.environment]}:role/administrator"]
-      type = "AWS"
+      type        = "AWS"
     }
   }
 }
@@ -141,7 +141,7 @@ resource "aws_secretsmanager_secret" "metadata_store_adg_writer" {
   name        = "metadata-store-${var.metadata_store_adg_writer_username}"
   description = "${var.metadata_store_adg_writer_username} SQL user for Metadata Store"
   tags        = local.common_tags
-  policy = data.aws_iam_policy_document.admin_access_to_metadata_secrets.json
+  policy      = data.aws_iam_policy_document.admin_access_to_metadata_secrets.json
 }
 
 resource "aws_secretsmanager_secret" "metadata_store_pdm_writer" {
