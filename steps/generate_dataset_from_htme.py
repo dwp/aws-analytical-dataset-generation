@@ -42,12 +42,16 @@ def main(spark, s3_client, s3_htme_bucket,
                                                      itertools.repeat(keys_map),
                                                      itertools.repeat(run_time_stamp),
                                                      itertools.repeat(s3_publish_bucket))
-        # Create hive tables for all the collections processed successfully
-        create_hive_tables_on_published(spark, all_processed_collections, published_database_name)
     except Exception as ex:
-        logging.error("Some error occured, stopping Spark" + str(ex))
-        spark.stop()
+        logging.error("Some error occured" + str(ex))
         raise ex
+    # Create hive tables only if all the collections have been processed successfully else raise exception
+    list_of_processed_collections = list(all_processed_collections)
+    if len(list_of_processed_collections) == len(secrets_collections):
+        create_hive_tables_on_published(spark, list_of_processed_collections, published_database_name)
+    else:
+        logging.error("Not all collections have been processed looks like there is missing data, stopping Spark")
+        spark.stop()
 
 
 def get_collections_in_secrets(list_of_dicts, secrets_collections):
@@ -145,8 +149,7 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
         add_metric("processing_times.csv", collection_name, str(total_time))
         the_logger.info("Completed Processing : %s" % collection_name)
     except BaseException as ex:
-        logging.error(f"Error processing collection {collection_name}, stopping Spark" + str(ex))
-        spark.stop()
+        logging.error(f"Error processing collection {collection_name}" + str(ex))
         raise ex
     return (collection_name, json_location)
 
@@ -220,8 +223,7 @@ def call_dks(cek, kek):
         )
         content = result.json()
     except BaseException as ex:
-        logging.error("Problem calling DKS, stopping Spark" + str(ex))
-        spark.stop()
+        logging.error("Problem calling DKS" + str(ex))
         raise ex
     return content["plaintextDataKey"]
 
@@ -237,8 +239,7 @@ def decrypt(plain_text_key, iv_key, data):
         aes = AES.new(base64.b64decode(plain_text_key), AES.MODE_CTR, counter=ctr)
         decrypted = aes.decrypt(data)
     except BaseException as ex:
-        logging.error("Problem decrypting data, stopping Spark" + str(ex))
-        spark.stop()
+        logging.error("Problem decrypting data" + str(ex))
         raise ex
     return decrypted
 
@@ -265,23 +266,26 @@ def get_collections(secrets_response):
         collections = secrets_response["collections_all"]
         collections = {k.lower(): v.lower() for k, v in collections.items()}
     except BaseException as ex:
-        logging.error("Problem with collections list, stopping Spark" + str(ex))
-        spark.stop()
+        logging.error("Problem with collections list" + str(ex))
         raise ex
     return collections
 
 
 def create_hive_tables_on_published(spark, all_processed_collections, published_database_name):
-    for (collection_name, collection_json_location) in all_processed_collections:
-        hive_table_name = get_collection(collection_name)
-        src_hive_table = published_database_name + "." + hive_table_name
-        the_logger.info("Creating Hive tables  : " + src_hive_table)
-        src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
-        src_hive_create_query = (
-            f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
-        )
-        spark.sql(src_hive_drop_query)
-        spark.sql(src_hive_create_query)
+    try:
+        for (collection_name, collection_json_location) in all_processed_collections:
+            hive_table_name = get_collection(collection_name)
+            src_hive_table = published_database_name + "." + hive_table_name
+            the_logger.info("Creating Hive tables  : " + src_hive_table)
+            src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
+            src_hive_create_query = (
+                f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+            )
+            spark.sql(src_hive_drop_query)
+            spark.sql(src_hive_create_query)
+    except BaseException as ex:
+        logging.error("Problem with creating Hive tables" + str(ex))
+        raise ex
 
 
 def add_filesize_metric(collection_name, s3_client, s3_htme_bucket, collection_file_key):

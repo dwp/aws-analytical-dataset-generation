@@ -8,6 +8,8 @@ jobs:
       trigger: true
     - get: analytical-dataset-generation-exporter-release
       trigger: true
+    - get: secrets-management
+      trigger: false
     - get: emr-ami
       trigger: true
     - get: manage-mysql-user-release
@@ -23,6 +25,13 @@ jobs:
   - .: (( inject meta.plan.terraform-apply ))
     params:
       TF_WORKSPACE: default
+  - .: (( inject meta.plan.rotate-mysql-master-password ))
+    params:
+      TF_WORKSPACE: default
+      AWS_ACC: ((aws_account.development))
+      AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+      inputs:
+        - name: secrets-management
   - .: (( inject meta.plan.terraform-plan ))
     params:
       TF_WORKSPACE: default

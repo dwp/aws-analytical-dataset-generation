@@ -13,6 +13,8 @@ jobs:
           trigger: true
         - get: emr-ami
           trigger: true
+        - get: secrets-management
+          trigger: false
       - put: aws-analytical-dataset-generation-pr
         params:
           path: aws-analytical-dataset-generation-pr

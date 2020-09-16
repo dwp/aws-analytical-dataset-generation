@@ -99,7 +99,7 @@ resource "aws_security_group_rule" "egress_https_s3_endpoint" {
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
-  prefix_list_ids   = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.s3_prefix_list_id]
+  prefix_list_ids   = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.prefix_list_ids.s3]
   security_group_id = aws_security_group.adg_common.id
 }
 
@@ -109,7 +109,7 @@ resource "aws_security_group_rule" "egress_http_s3_endpoint" {
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
-  prefix_list_ids   = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.s3_prefix_list_id]
+  prefix_list_ids   = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.prefix_list_ids.s3]
   security_group_id = aws_security_group.adg_common.id
 }
 
@@ -119,7 +119,7 @@ resource "aws_security_group_rule" "egress_https_dynamodb_endpoint" {
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
-  prefix_list_ids   = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.dynamodb_prefix_list_id]
+  prefix_list_ids   = [data.terraform_remote_state.internal_compute.outputs.vpc.vpc.prefix_list_ids.dynamodb]
   security_group_id = aws_security_group.adg_common.id
 }
 
