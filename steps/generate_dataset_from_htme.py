@@ -273,6 +273,8 @@ def get_collections(secrets_response):
 
 def create_hive_tables_on_published(spark, all_processed_collections, published_database_name):
     try:
+        create_db_query = f'CREATE DATABASE IF NOT EXISTS {published_database_name}'
+        spark.sql(create_db_query)
         for (collection_name, collection_json_location) in all_processed_collections:
             hive_table_name = get_collection(collection_name)
             src_hive_table = published_database_name + "." + hive_table_name
