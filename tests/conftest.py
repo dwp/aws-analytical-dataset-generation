@@ -32,8 +32,7 @@ def handle_server():
 @pytest.fixture(scope='session')
 def spark():
     os.environ["PYSPARK_SUBMIT_ARGS"] = (
-        '--packages "org.apache.hadoop:hadoop-aws:2.7.3" pyspark-shell'
-        # '--conf spark.jars.ivySettings=/root/ivysettings.xml pyspark-shell'
+        '--packages "org.apache.hadoop:hadoop-aws:2.7.3" --conf spark.jars.ivySettings=/root/ivysettings.xml pyspark-shell'
     )
 
     os.environ["PYSPARK_PYTHON"] = ('python3')
