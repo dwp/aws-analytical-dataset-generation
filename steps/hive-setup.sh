@@ -3,7 +3,7 @@ set -euo pipefail
 (
 # Import the logging functions
 source /opt/emr/logging.sh
-
+sudo cp /usr/share/java/mariadb-connector-java.jar /usr/lib/spark/jars/
 sudo mkdir -p /opt/emr/steps
 sudo chown hadoop:hadoop /opt/emr/steps
 touch /opt/emr/steps/__init__.py
