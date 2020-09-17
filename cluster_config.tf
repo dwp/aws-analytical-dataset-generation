@@ -63,8 +63,7 @@ locals {
 }
 
 data "aws_secretsmanager_secret_version" "rds_aurora_secrets" {
-  provider  = aws
-  secret_id = "metadata-store-adg-writer"
+  secret_id = aws_secretsmanager_secret.metadata_store_adg_writer.name
 }
 
 resource "aws_s3_bucket_object" "configurations" {
