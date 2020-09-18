@@ -166,3 +166,29 @@ resource "aws_lambda_permission" "adg_emr_launcher_subscription_eccs" {
   principal     = "sns.amazonaws.com"
   source_arn    = data.terraform_remote_state.internal_compute.outputs.uc_export_to_crown_completion_status_sns_topic.arn
 }
+
+
+resource "aws_iam_policy" "adg_emr_launcher_getsecrets" {
+  name        = "ADGGetSecrets"
+  description = "Allow ADG Lambda function to get secrets"
+  policy      = data.aws_iam_policy_document.adg_emr_launcher_getsecrets.json
+}
+
+data "aws_iam_policy_document" "adg_emr_launcher_getsecrets" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue",
+    ]
+
+    resources = [
+      aws_secretsmanager_secret.metadata_store_adg_writer.arn,
+    ]
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "adg_emr_launcher_getsecrets" {
+  role       = aws_iam_role.adg_emr_launcher_lambda_role.name
+  policy_arn = aws_iam_policy.adg_emr_launcher_getsecrets.arn
+}
