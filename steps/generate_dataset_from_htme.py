@@ -5,6 +5,7 @@ import itertools
 import logging
 import os
 import re
+import sys
 import time
 import zlib
 from datetime import datetime
@@ -55,14 +56,15 @@ def main(spark, s3_client, s3_htme_bucket,
                                                      itertools.repeat(s3_publish_bucket))
     except Exception as ex:
         logging.error("Some error occured" + str(ex))
-        raise ex
+        # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
+        sys.exit(-1)
     # Create hive tables only if all the collections have been processed successfully else raise exception
     list_of_processed_collections = list(all_processed_collections)
     if len(list_of_processed_collections) == len(secrets_collections):
         create_hive_tables_on_published(spark, list_of_processed_collections, published_database_name)
     else:
         logging.error("Not all collections have been processed looks like there is missing data, stopping Spark")
-        spark.stop()
+        sys.exit(-1)
 
 
 def get_collections_in_secrets(list_of_dicts, secrets_collections):
@@ -161,7 +163,7 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
         the_logger.info("Completed Processing : %s" % collection_name)
     except BaseException as ex:
         logging.error(f"Error processing collection {collection_name}" + str(ex))
-        raise ex
+        sys.exit(-1)
     return (collection_name, json_location)
 
 
@@ -235,7 +237,7 @@ def call_dks(cek, kek):
         content = result.json()
     except BaseException as ex:
         logging.error("Problem calling DKS" + str(ex))
-        raise ex
+        sys.exit(-1)
     return content["plaintextDataKey"]
 
 
@@ -251,7 +253,7 @@ def decrypt(plain_text_key, iv_key, data):
         decrypted = aes.decrypt(data)
     except BaseException as ex:
         logging.error("Problem decrypting data" + str(ex))
-        raise ex
+        sys.exit(-1)
     return decrypted
 
 
@@ -278,7 +280,7 @@ def get_collections(secrets_response):
         collections = {k.lower(): v.lower() for k, v in collections.items()}
     except BaseException as ex:
         logging.error("Problem with collections list" + str(ex))
-        raise ex
+        sys.exit(-1)
     return collections
 
 
@@ -298,7 +300,7 @@ def create_hive_tables_on_published(spark, all_processed_collections, published_
             spark.sql(src_hive_create_query)
     except BaseException as ex:
         logging.error("Problem with creating Hive tables" + str(ex))
-        raise ex
+        sys.exit(-1)
 
 
 def add_filesize_metric(collection_name, s3_client, s3_htme_bucket, collection_file_key):
