@@ -2,7 +2,6 @@ import ast
 import base64
 import concurrent.futures
 import itertools
-import logging
 import os
 import re
 import sys
@@ -55,7 +54,7 @@ def main(spark, s3_client, s3_htme_bucket,
                                                      itertools.repeat(run_time_stamp),
                                                      itertools.repeat(s3_publish_bucket))
     except Exception as ex:
-        logging.error("Some error occured" + str(ex))
+        the_logger.error("Some error occurred for correlation id : %s %s ", args.correlation_id, str(ex))
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
     # Create hive tables only if all the collections have been processed successfully else raise exception
@@ -63,7 +62,7 @@ def main(spark, s3_client, s3_htme_bucket,
     if len(list_of_processed_collections) == len(secrets_collections):
         create_hive_tables_on_published(spark, list_of_processed_collections, published_database_name)
     else:
-        logging.error("Not all collections have been processed looks like there is missing data, stopping Spark")
+        the_logger.error("Not all collections have been processed looks like there is missing data, stopping Spark for correlation id : %s", args.correlation_id)
         sys.exit(-1)
 
 
@@ -74,7 +73,7 @@ def get_collections_in_secrets(list_of_dicts, secrets_collections):
             if collection_name.lower() in secrets_collections:
                 filtered_list.append(collection_dict)
             else:
-                logging.warning("%s is not present in the secret collections list" % collection_name)
+                the_logger.warning("%s is not present in the secret collections list for correlation id : %s", collection_name, args.correlation_id)
     return filtered_list
 
 
@@ -154,15 +153,15 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                 json_location_prefix
             )
             persist_json(json_location, consolidated_rdd_mapped)
-            the_logger.info("Applying Tags for prefix : %s for correlation_id : %s ", json_location_prefix, args.correlation_id)
+            the_logger.info("Applying Tags for prefix : %s for correlation id : %s ", json_location_prefix, args.correlation_id)
             tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
-        the_logger.info("Creating Hive tables for : %s" % collection_name)
+        the_logger.info("Creating Hive tables of collection : %s for correlation id : %s", collection_name, args.correlation_id)
         end_time = time.perf_counter()
         total_time = round(end_time - start_time)
         add_metric("processing_times.csv", collection_name, str(total_time))
-        the_logger.info("Completed Processing : %s" % collection_name)
+        the_logger.info("Completed Processing of collection : %s for correlation id : %s", collection_name, args.correlation_id)
     except BaseException as ex:
-        logging.error(f"Error processing collection {collection_name}" + str(ex))
+        the_logger.error(f"Error processing collection for correlation id: %s for collection %s %s", args.correlation_id, collection_name, str(ex))
         sys.exit(-1)
     return (collection_name, json_location)
 
@@ -236,7 +235,7 @@ def call_dks(cek, kek):
         )
         content = result.json()
     except BaseException as ex:
-        logging.error("Problem calling DKS" + str(ex))
+        the_logger.error("Problem calling DKS for correlation id : %s %s", args.correlation_id, str(ex))
         sys.exit(-1)
     return content["plaintextDataKey"]
 
@@ -252,7 +251,7 @@ def decrypt(plain_text_key, iv_key, data):
         aes = AES.new(base64.b64decode(plain_text_key), AES.MODE_CTR, counter=ctr)
         decrypted = aes.decrypt(data)
     except BaseException as ex:
-        logging.error("Problem decrypting data" + str(ex))
+        the_logger.error("Problem decrypting data for correlation id : %s %s", args.correlation_id, str(ex))
         sys.exit(-1)
     return decrypted
 
@@ -279,7 +278,7 @@ def get_collections(secrets_response):
         collections = secrets_response["collections_all"]
         collections = {k.lower(): v.lower() for k, v in collections.items()}
     except BaseException as ex:
-        logging.error("Problem with collections list" + str(ex))
+        the_logger.error("Problem with collections list for correlation id : %s %s", args.correlation_id, str(ex))
         sys.exit(-1)
     return collections
 
@@ -291,7 +290,7 @@ def create_hive_tables_on_published(spark, all_processed_collections, published_
         for (collection_name, collection_json_location) in all_processed_collections:
             hive_table_name = get_collection(collection_name)
             src_hive_table = published_database_name + "." + hive_table_name
-            the_logger.info("Creating Hive tables  : " + src_hive_table)
+            the_logger.info("Creating Hive table for : %s for correlation id : %s", src_hive_table, args.correlation_id)
             src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
             src_hive_create_query = (
                 f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
@@ -299,7 +298,7 @@ def create_hive_tables_on_published(spark, all_processed_collections, published_
             spark.sql(src_hive_drop_query)
             spark.sql(src_hive_create_query)
     except BaseException as ex:
-        logging.error("Problem with creating Hive tables" + str(ex))
+        the_logger.error("Problem with creating Hive tables for correlation id : %s %s", args.correlation_id, str(ex))
         sys.exit(-1)
 
 
