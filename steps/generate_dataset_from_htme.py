@@ -9,6 +9,7 @@ import time
 import zlib
 from datetime import datetime
 from itertools import groupby
+import argparse
 
 import boto3
 import requests
@@ -24,6 +25,16 @@ the_logger = setup_logging(
     else "INFO",
     log_path="${log_path}",
 )
+
+
+def get_parameters():
+    """Define and parse command line args."""
+    parser = argparse.ArgumentParser(
+        description="Receive args provided to spark submit job"
+    )
+    # Parse command line inputs and set defaults
+    parser.add_argument("--correlation_id", default="0")
+    return parser.parse_args()
 
 
 def main(spark, s3_client, s3_htme_bucket,
@@ -61,7 +72,7 @@ def get_collections_in_secrets(list_of_dicts, secrets_collections):
             if collection_name.lower() in secrets_collections:
                 filtered_list.append(collection_dict)
             else:
-                logging.error("%s is not present in the collections list" % collection_name)
+                logging.warning("%s is not present in the secret collections list" % collection_name)
     return filtered_list
 
 
@@ -106,7 +117,7 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                                    s3_publish_bucket):
     try:
         for collection_name, collection_files_keys in collection.items():
-            the_logger.info("Processing collection : %s" % collection_name)
+            the_logger.info("Processing collection : %s for correlation id : %s", collection_name, args.correlation_id)
             tag_value = secrets_collections[collection_name.lower()]
             start_time = time.perf_counter()
             rdd_list = []
@@ -130,7 +141,7 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                 rdd_list.append(decoded)
             consolidated_rdd = spark.sparkContext.union(rdd_list)
             consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
-            the_logger.info("Persisting Json : %s" % collection_name)
+            the_logger.info("Persisting Json of collection : %s for correlation id : %s", collection_name, args.correlation_id)
             json_location_prefix = "${file_location}/%s/%s/%s" % (
                 run_time_stamp,
                 get_collection(collection_name),
@@ -141,7 +152,7 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                 json_location_prefix
             )
             persist_json(json_location, consolidated_rdd_mapped)
-            the_logger.info("Applying Tags for prefix : " + json_location_prefix)
+            the_logger.info("Applying Tags for prefix : %s for correlation_id : %s ", json_location_prefix, args.correlation_id)
             tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
         the_logger.info("Creating Hive tables for : %s" % collection_name)
         end_time = time.perf_counter()
@@ -322,6 +333,8 @@ def get_spark_session():
 
 
 if __name__ == "__main__":
+    args = get_parameters()
+    the_logger.info("Processing spark job for correlation id : %s" % args.correlation_id)
     spark = get_spark_session()
     run_time_stamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     published_database_name = "${published_db}"
