@@ -39,11 +39,11 @@ def get_parameters():
 
 def main(spark, s3_client, s3_htme_bucket,
          s3_prefix, secrets_collections, keys_map,
-         run_time_stamp, s3_publish_bucket, published_database_name):
+         run_time_stamp, s3_publish_bucket, published_database_name, args):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix)
         list_of_dicts = group_keys_by_collection(keys)
-        list_of_dicts_filtered = get_collections_in_secrets(list_of_dicts, secrets_collections)
+        list_of_dicts_filtered = get_collections_in_secrets(list_of_dicts, secrets_collections, args)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             all_processed_collections = executor.map(consolidate_rdd_per_collection, list_of_dicts_filtered,
                                                      itertools.repeat(secrets_collections),
@@ -52,7 +52,7 @@ def main(spark, s3_client, s3_htme_bucket,
                                                      itertools.repeat(spark),
                                                      itertools.repeat(keys_map),
                                                      itertools.repeat(run_time_stamp),
-                                                     itertools.repeat(s3_publish_bucket))
+                                                     itertools.repeat(s3_publish_bucket), itertools.repeat(args))
     except Exception as ex:
         the_logger.error("Some error occurred for correlation id : %s %s ", args.correlation_id, str(ex))
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
@@ -60,13 +60,13 @@ def main(spark, s3_client, s3_htme_bucket,
     # Create hive tables only if all the collections have been processed successfully else raise exception
     list_of_processed_collections = list(all_processed_collections)
     if len(list_of_processed_collections) == len(secrets_collections):
-        create_hive_tables_on_published(spark, list_of_processed_collections, published_database_name)
+        create_hive_tables_on_published(spark, list_of_processed_collections, published_database_name, args)
     else:
         the_logger.error("Not all collections have been processed looks like there is missing data, stopping Spark for correlation id : %s", args.correlation_id)
         sys.exit(-1)
 
 
-def get_collections_in_secrets(list_of_dicts, secrets_collections):
+def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
     filtered_list = []
     for collection_dict in list_of_dicts:
         for collection_name, collection_files_keys in collection_dict.items():
@@ -115,7 +115,7 @@ def group_keys_by_collection(keys):
 
 def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                                    s3_htme_bucket, spark, keys_map, run_time_stamp,
-                                   s3_publish_bucket):
+                                   s3_publish_bucket, args):
     try:
         for collection_name, collection_files_keys in collection.items():
             the_logger.info("Processing collection : %s for correlation id : %s", collection_name, args.correlation_id)
@@ -132,10 +132,10 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                 datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
                 iv = metadata["iv"]
                 plain_text_key = get_plaintext_key_calling_dks(
-                    ciphertext, datakeyencryptionkeyid, keys_map
+                    ciphertext, datakeyencryptionkeyid, keys_map, args
                 )
                 decrypted = encrypted.mapValues(
-                    lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(plain_text_key, iv, val)
+                    lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(plain_text_key, iv, val, args)
                 )
                 decompressed = decrypted.mapValues(decompress)
                 decoded = decompressed.mapValues(decode)
@@ -210,16 +210,16 @@ def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket):
         )
 
 
-def get_plaintext_key_calling_dks(encryptedkey, keyencryptionkeyid, keys_map):
+def get_plaintext_key_calling_dks(encryptedkey, keyencryptionkeyid, keys_map, args):
     if keys_map.get(encryptedkey):
         key = keys_map[encryptedkey]
     else:
-        key = call_dks(encryptedkey, keyencryptionkeyid)
+        key = call_dks(encryptedkey, keyencryptionkeyid, args)
         keys_map[encryptedkey] = key
     return key
 
 
-def call_dks(cek, kek):
+def call_dks(cek, kek, args):
     try:
         url = "${url}"
         params = {"keyId": kek}
@@ -244,7 +244,7 @@ def read_binary(spark, file_path):
     return spark.sparkContext.binaryFiles(file_path)
 
 
-def decrypt(plain_text_key, iv_key, data):
+def decrypt(plain_text_key, iv_key, data, args):
     try:
         iv_int = int(base64.b64decode(iv_key).hex(), 16)
         ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
@@ -273,7 +273,7 @@ def get_collection(collection_name):
     )
 
 
-def get_collections(secrets_response):
+def get_collections(secrets_response, args):
     try:
         collections = secrets_response["collections_all"]
         collections = {k.lower(): v.lower() for k, v in collections.items()}
@@ -283,7 +283,7 @@ def get_collections(secrets_response):
     return collections
 
 
-def create_hive_tables_on_published(spark, all_processed_collections, published_database_name):
+def create_hive_tables_on_published(spark, all_processed_collections, published_database_name, args):
     try:
         create_db_query = f'CREATE DATABASE IF NOT EXISTS {published_database_name}'
         spark.sql(create_db_query)
@@ -344,11 +344,11 @@ if __name__ == "__main__":
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_client("s3")
     secrets_response = retrieve_secrets()
-    secrets_collections = get_collections(secrets_response)
+    secrets_collections = get_collections(secrets_response, args)
     keys_map = {}
     start_time = time.perf_counter()
     main(spark, s3_client, s3_htme_bucket, s3_prefix, secrets_collections, keys_map,
-         run_time_stamp, s3_publish_bucket, published_database_name)
+         run_time_stamp, s3_publish_bucket, published_database_name, args)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
     add_metric("processing_times.csv", "all_collections", str(total_time))
