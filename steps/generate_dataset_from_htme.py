@@ -2,7 +2,6 @@ import ast
 import base64
 import concurrent.futures
 import itertools
-import logging
 import os
 import re
 import sys
@@ -10,6 +9,7 @@ import time
 import zlib
 from datetime import datetime
 from itertools import groupby
+import argparse
 
 import boto3
 import requests
@@ -27,13 +27,23 @@ the_logger = setup_logging(
 )
 
 
+def get_parameters():
+    """Define and parse command line args."""
+    parser = argparse.ArgumentParser(
+        description="Receive args provided to spark submit job"
+    )
+    # Parse command line inputs and set defaults
+    parser.add_argument("--correlation_id", default="0")
+    return parser.parse_args()
+
+
 def main(spark, s3_client, s3_htme_bucket,
          s3_prefix, secrets_collections, keys_map,
-         run_time_stamp, s3_publish_bucket, published_database_name):
+         run_time_stamp, s3_publish_bucket, published_database_name, args):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix)
         list_of_dicts = group_keys_by_collection(keys)
-        list_of_dicts_filtered = get_collections_in_secrets(list_of_dicts, secrets_collections)
+        list_of_dicts_filtered = get_collections_in_secrets(list_of_dicts, secrets_collections, args)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             all_processed_collections = executor.map(consolidate_rdd_per_collection, list_of_dicts_filtered,
                                                      itertools.repeat(secrets_collections),
@@ -42,28 +52,28 @@ def main(spark, s3_client, s3_htme_bucket,
                                                      itertools.repeat(spark),
                                                      itertools.repeat(keys_map),
                                                      itertools.repeat(run_time_stamp),
-                                                     itertools.repeat(s3_publish_bucket))
+                                                     itertools.repeat(s3_publish_bucket), itertools.repeat(args))
     except Exception as ex:
-        logging.error("Some error occured" + str(ex))
+        the_logger.error("Some error occurred for correlation id : %s %s ", args.correlation_id, str(ex))
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
     # Create hive tables only if all the collections have been processed successfully else raise exception
     list_of_processed_collections = list(all_processed_collections)
     if len(list_of_processed_collections) == len(secrets_collections):
-        create_hive_tables_on_published(spark, list_of_processed_collections, published_database_name)
+        create_hive_tables_on_published(spark, list_of_processed_collections, published_database_name, args)
     else:
-        logging.error("Not all collections have been processed looks like there is missing data, stopping Spark")
+        the_logger.error("Not all collections have been processed looks like there is missing data, stopping Spark for correlation id : %s", args.correlation_id)
         sys.exit(-1)
 
 
-def get_collections_in_secrets(list_of_dicts, secrets_collections):
+def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
     filtered_list = []
     for collection_dict in list_of_dicts:
         for collection_name, collection_files_keys in collection_dict.items():
             if collection_name.lower() in secrets_collections:
                 filtered_list.append(collection_dict)
             else:
-                logging.error("%s is not present in the collections list" % collection_name)
+                the_logger.warning("%s is not present in the secret collections list for correlation id : %s", collection_name, args.correlation_id)
     return filtered_list
 
 
@@ -105,10 +115,10 @@ def group_keys_by_collection(keys):
 
 def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                                    s3_htme_bucket, spark, keys_map, run_time_stamp,
-                                   s3_publish_bucket):
+                                   s3_publish_bucket, args):
     try:
         for collection_name, collection_files_keys in collection.items():
-            the_logger.info("Processing collection : %s" % collection_name)
+            the_logger.info("Processing collection : %s for correlation id : %s", collection_name, args.correlation_id)
             tag_value = secrets_collections[collection_name.lower()]
             start_time = time.perf_counter()
             rdd_list = []
@@ -122,17 +132,17 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                 datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
                 iv = metadata["iv"]
                 plain_text_key = get_plaintext_key_calling_dks(
-                    ciphertext, datakeyencryptionkeyid, keys_map
+                    ciphertext, datakeyencryptionkeyid, keys_map, args
                 )
                 decrypted = encrypted.mapValues(
-                    lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(plain_text_key, iv, val)
+                    lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(plain_text_key, iv, val, args)
                 )
                 decompressed = decrypted.mapValues(decompress)
                 decoded = decompressed.mapValues(decode)
                 rdd_list.append(decoded)
             consolidated_rdd = spark.sparkContext.union(rdd_list)
             consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
-            the_logger.info("Persisting Json : %s" % collection_name)
+            the_logger.info("Persisting Json of collection : %s for correlation id : %s", collection_name, args.correlation_id)
             json_location_prefix = "${file_location}/%s/%s/%s" % (
                 run_time_stamp,
                 get_collection(collection_name),
@@ -143,15 +153,15 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                 json_location_prefix
             )
             persist_json(json_location, consolidated_rdd_mapped)
-            the_logger.info("Applying Tags for prefix : " + json_location_prefix)
+            the_logger.info("Applying Tags for prefix : %s for correlation id : %s ", json_location_prefix, args.correlation_id)
             tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
-        the_logger.info("Creating Hive tables for : %s" % collection_name)
+        the_logger.info("Creating Hive tables of collection : %s for correlation id : %s", collection_name, args.correlation_id)
         end_time = time.perf_counter()
         total_time = round(end_time - start_time)
         add_metric("processing_times.csv", collection_name, str(total_time))
-        the_logger.info("Completed Processing : %s" % collection_name)
+        the_logger.info("Completed Processing of collection : %s for correlation id : %s", collection_name, args.correlation_id)
     except BaseException as ex:
-        logging.error(f"Error processing collection {collection_name}" + str(ex))
+        the_logger.error(f"Error processing collection for correlation id: %s for collection %s %s", args.correlation_id, collection_name, str(ex))
         sys.exit(-1)
     return (collection_name, json_location)
 
@@ -200,16 +210,16 @@ def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket):
         )
 
 
-def get_plaintext_key_calling_dks(encryptedkey, keyencryptionkeyid, keys_map):
+def get_plaintext_key_calling_dks(encryptedkey, keyencryptionkeyid, keys_map, args):
     if keys_map.get(encryptedkey):
         key = keys_map[encryptedkey]
     else:
-        key = call_dks(encryptedkey, keyencryptionkeyid)
+        key = call_dks(encryptedkey, keyencryptionkeyid, args)
         keys_map[encryptedkey] = key
     return key
 
 
-def call_dks(cek, kek):
+def call_dks(cek, kek, args):
     try:
         url = "${url}"
         params = {"keyId": kek}
@@ -225,7 +235,7 @@ def call_dks(cek, kek):
         )
         content = result.json()
     except BaseException as ex:
-        logging.error("Problem calling DKS" + str(ex))
+        the_logger.error("Problem calling DKS for correlation id : %s %s", args.correlation_id, str(ex))
         sys.exit(-1)
     return content["plaintextDataKey"]
 
@@ -234,14 +244,14 @@ def read_binary(spark, file_path):
     return spark.sparkContext.binaryFiles(file_path)
 
 
-def decrypt(plain_text_key, iv_key, data):
+def decrypt(plain_text_key, iv_key, data, args):
     try:
         iv_int = int(base64.b64decode(iv_key).hex(), 16)
         ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
         aes = AES.new(base64.b64decode(plain_text_key), AES.MODE_CTR, counter=ctr)
         decrypted = aes.decrypt(data)
     except BaseException as ex:
-        logging.error("Problem decrypting data" + str(ex))
+        the_logger.error("Problem decrypting data for correlation id : %s %s", args.correlation_id, str(ex))
         sys.exit(-1)
     return decrypted
 
@@ -263,24 +273,24 @@ def get_collection(collection_name):
     )
 
 
-def get_collections(secrets_response):
+def get_collections(secrets_response, args):
     try:
         collections = secrets_response["collections_all"]
         collections = {k.lower(): v.lower() for k, v in collections.items()}
     except BaseException as ex:
-        logging.error("Problem with collections list" + str(ex))
+        the_logger.error("Problem with collections list for correlation id : %s %s", args.correlation_id, str(ex))
         sys.exit(-1)
     return collections
 
 
-def create_hive_tables_on_published(spark, all_processed_collections, published_database_name):
+def create_hive_tables_on_published(spark, all_processed_collections, published_database_name, args):
     try:
         create_db_query = f'CREATE DATABASE IF NOT EXISTS {published_database_name}'
         spark.sql(create_db_query)
         for (collection_name, collection_json_location) in all_processed_collections:
             hive_table_name = get_collection(collection_name)
             src_hive_table = published_database_name + "." + hive_table_name
-            the_logger.info("Creating Hive tables  : " + src_hive_table)
+            the_logger.info("Creating Hive table for : %s for correlation id : %s", src_hive_table, args.correlation_id)
             src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
             src_hive_create_query = (
                 f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
@@ -288,7 +298,7 @@ def create_hive_tables_on_published(spark, all_processed_collections, published_
             spark.sql(src_hive_drop_query)
             spark.sql(src_hive_create_query)
     except BaseException as ex:
-        logging.error("Problem with creating Hive tables" + str(ex))
+        the_logger.error("Problem with creating Hive tables for correlation id : %s %s", args.correlation_id, str(ex))
         sys.exit(-1)
 
 
@@ -324,6 +334,8 @@ def get_spark_session():
 
 
 if __name__ == "__main__":
+    args = get_parameters()
+    the_logger.info("Processing spark job for correlation id : %s" % args.correlation_id)
     spark = get_spark_session()
     run_time_stamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     published_database_name = "${published_db}"
@@ -332,11 +344,11 @@ if __name__ == "__main__":
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_client("s3")
     secrets_response = retrieve_secrets()
-    secrets_collections = get_collections(secrets_response)
+    secrets_collections = get_collections(secrets_response, args)
     keys_map = {}
     start_time = time.perf_counter()
     main(spark, s3_client, s3_htme_bucket, s3_prefix, secrets_collections, keys_map,
-         run_time_stamp, s3_publish_bucket, published_database_name)
+         run_time_stamp, s3_publish_bucket, published_database_name, args)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
     add_metric("processing_times.csv", "all_collections", str(total_time))

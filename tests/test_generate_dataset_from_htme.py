@@ -7,6 +7,7 @@ from moto import mock_s3
 
 import steps
 from steps import generate_dataset_from_htme
+import argparse
 
 MOTO_SERVER_URL = "http://127.0.0.1:5000"
 
@@ -40,7 +41,7 @@ def test_retrieve_secrets(monkeypatch):
 
 def test_get_collections():
     secret_dict = ast.literal_eval(SECRETS)
-    assert generate_dataset_from_htme.get_collections(secret_dict) == SECRETS_COLLECTIONS
+    assert generate_dataset_from_htme.get_collections(secret_dict, mock_args()) == SECRETS_COLLECTIONS
 
 
 @mock_s3
@@ -70,7 +71,7 @@ def test_get_collections_in_secrets():
                      {f'{DB_CORE_ACCOUNTS}': [f'{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}']}]
     expected_list_of_dicts = [{f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}']}]
     assert generate_dataset_from_htme.get_collections_in_secrets(list_of_dicts,
-                                                                 SECRETS_COLLECTIONS) == expected_list_of_dicts
+                                                                 SECRETS_COLLECTIONS, mock_args()) == expected_list_of_dicts
 
 
 @mock_s3
@@ -90,7 +91,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, 
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
     generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, SECRETS_COLLECTIONS, KEYS_MAP,
-                                    RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME)
+                                    RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME, mock_args())
     assert len(s3_client.list_buckets()['Buckets']) == 2
     assert (s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
                                  Key=target_object_key)['Body'].read().decode().strip() == test_data.decode())
@@ -121,7 +122,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(spark, monkeyp
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
     generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, secret_collections, KEYS_MAP,
-                                    RUN_TIME_STAMP, s3_publish_bucket_for_multiple_collections, PUBLISHED_DATABASE_NAME)
+                                    RUN_TIME_STAMP, s3_publish_bucket_for_multiple_collections, PUBLISHED_DATABASE_NAME, mock_args())
     assert core_contract_collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
     assert core_accounts_collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
 
@@ -131,7 +132,7 @@ def test_create_hive_on_published(spark, handle_server, aws_credentials):
     collection_name = 'tabtest'
     all_processed_collections = [(collection_name, json_location)]
     steps.generate_dataset_from_htme.create_hive_tables_on_published(spark, all_processed_collections,
-                                                                     PUBLISHED_DATABASE_NAME)
+                                                                     PUBLISHED_DATABASE_NAME, mock_args())
     assert generate_dataset_from_htme.get_collection(collection_name) in [x.name for x in
                                                                           spark.catalog.listTables(
                                                                               PUBLISHED_DATABASE_NAME)]
@@ -150,7 +151,7 @@ def test_exception_when_decompression_fails(spark, monkeypatch, handle_server, a
         monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
         monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
         generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, SECRETS_COLLECTIONS, KEYS_MAP,
-                                        RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME)
+                                        RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME, mock_args())
 
 
 def mock_decompress(compressed_text):
@@ -161,13 +162,18 @@ def mock_add_metric(metrics_file, collection_name, value):
     return value
 
 
-def mock_decrypt(plain_text_key, iv_key, data):
+def mock_decrypt(plain_text_key, iv_key, data, args):
     return data
 
+def mock_args():
+    args = argparse.Namespace()
+    args.correlation_id = "test"
+    return args
 
-def mock_call_dks(cek, kek):
+
+def mock_call_dks(cek, kek, args):
     return kek
 
 
-def mock_create_hive_tables_on_published(spark, all_processed_collections, published_database_name):
+def mock_create_hive_tables_on_published(spark, all_processed_collections, published_database_name, args):
     return published_database_name
