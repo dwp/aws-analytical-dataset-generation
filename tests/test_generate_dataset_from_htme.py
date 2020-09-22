@@ -11,13 +11,9 @@ import steps
 from steps import generate_dataset_from_htme
 
 COMPLETED_STATUS = 'Completed'
-
 HASH_KEY = 'Correlation_Id'
-
 IN_PROGRESS_STATUS = 'In Progress'
-
 MOTO_SERVER_URL = "http://127.0.0.1:5000"
-
 DYNAMODB_AUDIT_TABLENAME = '${data_pipeline_audit_table}'
 DB_CORE_CONTRACT = 'db.core.contract'
 DB_CORE_ACCOUNTS = 'db.core.accounts'
@@ -170,14 +166,14 @@ def test_exception_when_decompression_fails(spark, monkeypatch, handle_server, a
 
 
 @mock_dynamodb2
-def test_log_start_of_batch(monkeypatch):
+def test_log_start_of_batch():
     dynamodb = mock_get_dynamodb_resource('dynamodb')
     assert generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb) == 1
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
 
 
 @mock_dynamodb2
-def test_log_start_of_batch_for_multiple_runs(monkeypatch):
+def test_log_start_of_batch_for_multiple_runs():
     dynamodb = mock_get_dynamodb_resource('dynamodb')
     generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb)
     # Ran second time to increment Run_Id by 1 to 2
@@ -186,7 +182,7 @@ def test_log_start_of_batch_for_multiple_runs(monkeypatch):
 
 
 @mock_dynamodb2
-def test_log_end_of_batch(monkeypatch):
+def test_log_end_of_batch():
     dynamodb = mock_get_dynamodb_resource('dynamodb')
     generate_dataset_from_htme.log_end_of_batch(CORRELATION_ID, RUN_ID, COMPLETED_STATUS, dynamodb)
     assert query_audit_table_status(dynamodb) == COMPLETED_STATUS
