@@ -185,7 +185,7 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
         the_logger.info("Completed Processing of collection : %s for correlation id : %s", collection_name,
                         args.correlation_id)
     except BaseException as ex:
-        the_logger.error(f"Error processing collection for correlation id: %s for collection %s %s",
+        the_logger.error("Error processing collection for correlation id: %s for collection %s %s",
                          args.correlation_id, collection_name, str(ex))
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
