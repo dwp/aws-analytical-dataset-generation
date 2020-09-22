@@ -12,6 +12,7 @@ from steps import generate_dataset_from_htme
 
 COMPLETED_STATUS = 'Completed'
 HASH_KEY = 'Correlation_Id'
+RANGE_KEY = 'Run_Id'
 IN_PROGRESS_STATUS = 'In Progress'
 MOTO_SERVER_URL = "http://127.0.0.1:5000"
 DYNAMODB_AUDIT_TABLENAME = '${data_pipeline_audit_table}'
@@ -231,21 +232,21 @@ def mock_get_dynamodb_resource(service_name):
         TableName=DYNAMODB_AUDIT_TABLENAME,
         KeySchema=[
             {
-                'AttributeName': 'Correlation_Id',
+                'AttributeName': HASH_KEY,
                 'KeyType': 'HASH'  # Partition key
             },
             {
-                'AttributeName': 'Run_Id',
+                'AttributeName': RANGE_KEY,
                 'KeyType': 'RANGE'  # Sort key
             }
         ],
         AttributeDefinitions=[
             {
-                'AttributeName': 'Correlation_Id',
+                'AttributeName': HASH_KEY,
                 'AttributeType': 'S'
             },
             {
-                'AttributeName': 'Run_Id',
+                'AttributeName': RANGE_KEY,
                 'AttributeType': 'N'
             },
 
