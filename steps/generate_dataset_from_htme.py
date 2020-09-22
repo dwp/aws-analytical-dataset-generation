@@ -76,8 +76,8 @@ def main(spark, s3_client, s3_htme_bucket,
         create_hive_tables_on_published(spark, list_of_processed_collections, published_database_name, args, run_id)
     else:
         the_logger.error(
-            "Not all collections have been processed looks like there is missing data, stopping Spark for correlation id : %s",
-            args.correlation_id)
+            "Not all collections have been processed looks like there is missing data, stopping Spark for correlation id: %s and run id : %s",
+            args.correlation_id, run_id)
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
 
@@ -100,7 +100,7 @@ def get_client(service_name):
 
 
 def get_resource(service_name):
-    return boto3.resource(service_name, region_name = '${aws_default_region}')
+    return boto3.resource(service_name, region_name='${aws_default_region}')
 
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
@@ -139,7 +139,8 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                                    s3_publish_bucket, args, run_id):
     try:
         for collection_name, collection_files_keys in collection.items():
-            the_logger.info("Processing collection : %s for correlation id : %s", collection_name, args.correlation_id)
+            the_logger.info("Processing collection : %s for correlation id : %s and run id: %s",
+                            collection_name, args.correlation_id, run_id)
             tag_value = secrets_collections[collection_name.lower()]
             start_time = time.perf_counter()
             rdd_list = []
@@ -163,8 +164,8 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                 rdd_list.append(decoded)
             consolidated_rdd = spark.sparkContext.union(rdd_list)
             consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
-            the_logger.info("Persisting Json of collection : %s for correlation id : %s", collection_name,
-                            args.correlation_id)
+            the_logger.info("Persisting Json of collection : %s for correlation id : %s and run id: %s",
+                            collection_name, args.correlation_id, run_id)
             json_location_prefix = "${file_location}/%s/%s/%s" % (
                 run_time_stamp,
                 get_collection(collection_name),
@@ -175,19 +176,19 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                 json_location_prefix
             )
             persist_json(json_location, consolidated_rdd_mapped)
-            the_logger.info("Applying Tags for prefix : %s for correlation id : %s ", json_location_prefix,
-                            args.correlation_id)
+            the_logger.info("Applying Tags for prefix : %s for correlation id : %s and run id: %s", json_location_prefix,
+                            args.correlation_id, run_id)
             tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
-        the_logger.info("Creating Hive tables of collection : %s for correlation id : %s", collection_name,
-                        args.correlation_id)
+        the_logger.info("Creating Hive tables of collection : %s for correlation id : %s and run id : %s",
+                        collection_name, args.correlation_id, run_id)
         end_time = time.perf_counter()
         total_time = round(end_time - start_time)
         add_metric("processing_times.csv", collection_name, str(total_time))
-        the_logger.info("Completed Processing of collection : %s for correlation id : %s", collection_name,
-                        args.correlation_id)
+        the_logger.info("Completed Processing of collection : %s for correlation id : %s and run id : %s",
+                        collection_name, args.correlation_id, run_id)
     except BaseException as ex:
-        the_logger.error("Error processing collection for correlation id: %s for collection %s %s",
-                         args.correlation_id, collection_name, str(ex))
+        the_logger.error("Error processing for correlation id: %s and run id : %s for collection %s %s",
+                         args.correlation_id, run_id, collection_name, str(ex))
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
     return (collection_name, json_location)
@@ -203,7 +204,6 @@ def get_metadatafor_key(key, s3_client, s3_htme_bucket):
     iv = s3_object["Metadata"]["iv"]
     ciphertext = s3_object["Metadata"]["ciphertext"]
     datakeyencryptionkeyid = s3_object["Metadata"]["datakeyencryptionkeyid"]
-    # print ( "iv " + iv + "ciphertext" + ciphertext + "datakeyencryptionkeyid " + datakeyencryptionkeyid )
     metadata = {
         "iv": iv,
         "ciphertext": ciphertext,
@@ -262,7 +262,8 @@ def call_dks(cek, kek, args, run_id):
         )
         content = result.json()
     except BaseException as ex:
-        the_logger.error("Problem calling DKS for correlation id : %s %s", args.correlation_id, str(ex))
+        the_logger.error("Problem calling DKS for correlation id: %s and run id: %s %s",
+                         args.correlation_id, run_id, str(ex))
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
     return content["plaintextDataKey"]
@@ -279,7 +280,8 @@ def decrypt(plain_text_key, iv_key, data, args, run_id):
         aes = AES.new(base64.b64decode(plain_text_key), AES.MODE_CTR, counter=ctr)
         decrypted = aes.decrypt(data)
     except BaseException as ex:
-        the_logger.error("Problem decrypting data for correlation id : %s %s", args.correlation_id, str(ex))
+        the_logger.error("Problem decrypting data for correlation id and run id: %s %s %s",
+                         args.correlation_id, run_id, str(ex))
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
     return decrypted
@@ -319,7 +321,8 @@ def create_hive_tables_on_published(spark, all_processed_collections, published_
         for (collection_name, collection_json_location) in all_processed_collections:
             hive_table_name = get_collection(collection_name)
             src_hive_table = published_database_name + "." + hive_table_name
-            the_logger.info("Creating Hive table for : %s for correlation id : %s", src_hive_table, args.correlation_id)
+            the_logger.info("Creating Hive table for : %s for correlation id : %s and run id: %s",
+                            src_hive_table, args.correlation_id, run_id)
             src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
             src_hive_create_query = (
                 f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
@@ -327,7 +330,8 @@ def create_hive_tables_on_published(spark, all_processed_collections, published_
             spark.sql(src_hive_drop_query)
             spark.sql(src_hive_create_query)
     except BaseException as ex:
-        the_logger.error("Problem with creating Hive tables for correlation id : %s %s", args.correlation_id, str(ex))
+        the_logger.error("Problem with creating Hive tables for correlation id: %s and run id: %s %s",
+                         args.correlation_id, run_id, str(ex))
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
 
@@ -387,7 +391,8 @@ def log_start_of_batch(correlation_id, dynamodb=None):
             run_id = response['Items'][0][AUDIT_TABLE_RANGE_KEY] + 1
             put_item(correlation_id, run_id, table, IN_PROGRESS_STATUS)
     except BaseException as ex:
-        the_logger.error("Problem updating audit table start status for correlation id : %s %s", correlation_id, str(ex))
+        the_logger.error("Problem updating audit table start status for correlation id : %s %s", correlation_id,
+                         str(ex))
         sys.exit(-1)
     return run_id
 
@@ -414,7 +419,8 @@ def log_end_of_batch(correlation_id, run_id, status, dynamodb=None):
         table = dynamodb.Table(data_pipeline_audit_table)
         put_item(correlation_id, run_id, table, status)
     except BaseException as ex:
-        the_logger.error("Problem updating audit table end status for correlation id : %s %s", correlation_id, str(ex))
+        the_logger.error("Problem updating audit table end status for correlation id: %s and run id : %s %s",
+                         correlation_id, run_id, str(ex))
         sys.exit(-1)
 
 
