@@ -29,6 +29,7 @@ RUN_TIME_STAMP = "10-10-2000_10-10-10"
 PUBLISHED_DATABASE_NAME = "test_db"
 RUN_ID = 1
 CORRELATION_ID = '12345'
+AWS_REGION = 'eu-west-2'
 
 
 def test_retrieve_secrets(monkeypatch):
@@ -225,7 +226,7 @@ def mock_create_hive_tables_on_published(spark, all_processed_collections, publi
 
 @mock_dynamodb2
 def mock_get_dynamodb_resource(service_name):
-    dynamodb = boto3.resource(service_name)
+    dynamodb = boto3.resource(service_name, region_name = AWS_REGION)
     dynamodb.create_table(
         TableName=DYNAMODB_AUDIT_TABLENAME,
         KeySchema=[

@@ -23,6 +23,8 @@ from steps.logger import setup_logging
 IN_PROGRESS_STATUS = 'In Progress'
 FAILED_STATUS = 'Failed'
 DATA_PRODUCT_NAME = 'ADG'
+AUDIT_TABLE_HASH_KEY = 'Correlation_Id'
+AUDIT_TABLE_RANGE_KEY = 'Run_Id'
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -97,7 +99,7 @@ def get_client(service_name):
 
 
 def get_resource(service_name):
-    return boto3.resource(service_name)
+    return boto3.resource(service_name, region_name = '${aws_default_region}')
 
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
@@ -370,27 +372,25 @@ def log_start_of_batch(correlation_id, dynamodb=None):
         dynamodb = get_resource('dynamodb')
     data_pipeline_audit_table = "${data_pipeline_audit_table}"
     table = dynamodb.Table(data_pipeline_audit_table)
-    table_hash_key = 'Correlation_Id'
-    table_range_key = 'Run_Id'
     run_id = 1
     response = table.query(
-        KeyConditionExpression=Key(table_hash_key).eq(correlation_id),
+        KeyConditionExpression=Key(AUDIT_TABLE_HASH_KEY).eq(correlation_id),
         ScanIndexForward=False
     )
     # If this is the first entry for correlation_id then create a new entry with Run_Id as 1 else increment it by 1
     if not response['Items']:
-        put_item(correlation_id, run_id, table, table_hash_key, table_range_key, IN_PROGRESS_STATUS)
+        put_item(correlation_id, run_id, table, IN_PROGRESS_STATUS)
     else:
-        run_id = response['Items'][0][table_range_key] + 1
-        put_item(correlation_id, run_id, table, table_hash_key, table_range_key, IN_PROGRESS_STATUS)
+        run_id = response['Items'][0][AUDIT_TABLE_RANGE_KEY] + 1
+        put_item(correlation_id, run_id, table, IN_PROGRESS_STATUS)
     return run_id
 
 
-def put_item(correlation_id, run_id, table, table_hash_key, table_range_key, status):
+def put_item(correlation_id, run_id, table, status):
     table.put_item(
         Item={
-            table_hash_key: correlation_id,
-            table_range_key: run_id,
+            AUDIT_TABLE_HASH_KEY: correlation_id,
+            AUDIT_TABLE_RANGE_KEY: run_id,
             'Date': get_todays_date(),
             'DataProduct': DATA_PRODUCT_NAME,
             'Status': status
@@ -404,9 +404,7 @@ def log_end_of_batch(correlation_id, run_id, status, dynamodb=None):
         dynamodb = get_resource('dynamodb')
     data_pipeline_audit_table = "${data_pipeline_audit_table}"
     table = dynamodb.Table(data_pipeline_audit_table)
-    table_hash_key = 'Correlation_Id'
-    table_range_key = 'Run_Id'
-    put_item(correlation_id, run_id, table, table_hash_key, table_range_key, status)
+    put_item(correlation_id, run_id, table, status)
 
 
 if __name__ == "__main__":
