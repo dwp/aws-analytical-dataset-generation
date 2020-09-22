@@ -22,6 +22,7 @@ from steps.logger import setup_logging
 
 IN_PROGRESS_STATUS = 'In Progress'
 FAILED_STATUS = 'Failed'
+COMPLETED_STATUS = 'Completed'
 DATA_PRODUCT_NAME = 'ADG'
 AUDIT_TABLE_HASH_KEY = 'Correlation_Id'
 AUDIT_TABLE_RANGE_KEY = 'Run_Id'
@@ -368,21 +369,26 @@ def get_todays_date():
 
 def log_start_of_batch(correlation_id, dynamodb=None):
     """Logging start of batch in metadata audit table as In Progress"""
-    if not dynamodb:
-        dynamodb = get_resource('dynamodb')
-    data_pipeline_audit_table = "${data_pipeline_audit_table}"
-    table = dynamodb.Table(data_pipeline_audit_table)
-    run_id = 1
-    response = table.query(
-        KeyConditionExpression=Key(AUDIT_TABLE_HASH_KEY).eq(correlation_id),
-        ScanIndexForward=False
-    )
-    # If this is the first entry for correlation_id then create a new entry with Run_Id as 1 else increment it by 1
-    if not response['Items']:
-        put_item(correlation_id, run_id, table, IN_PROGRESS_STATUS)
-    else:
-        run_id = response['Items'][0][AUDIT_TABLE_RANGE_KEY] + 1
-        put_item(correlation_id, run_id, table, IN_PROGRESS_STATUS)
+    the_logger.info('Updating audit table with start status for correlation_id %s', correlation_id)
+    try:
+        if not dynamodb:
+            dynamodb = get_resource('dynamodb')
+        data_pipeline_audit_table = "${data_pipeline_audit_table}"
+        table = dynamodb.Table(data_pipeline_audit_table)
+        run_id = 1
+        response = table.query(
+            KeyConditionExpression=Key(AUDIT_TABLE_HASH_KEY).eq(correlation_id),
+            ScanIndexForward=False
+        )
+        # If this is the first entry for correlation_id then create a new entry with Run_Id as 1 else increment it by 1
+        if not response['Items']:
+            put_item(correlation_id, run_id, table, IN_PROGRESS_STATUS)
+        else:
+            run_id = response['Items'][0][AUDIT_TABLE_RANGE_KEY] + 1
+            put_item(correlation_id, run_id, table, IN_PROGRESS_STATUS)
+    except BaseException as ex:
+        the_logger.error("Problem updating audit table start status for correlation id : %s %s", correlation_id, str(ex))
+        sys.exit(-1)
     return run_id
 
 
@@ -400,11 +406,16 @@ def put_item(correlation_id, run_id, table, status):
 
 def log_end_of_batch(correlation_id, run_id, status, dynamodb=None):
     """Logging end of batch in metadata audit table as Completed/Failed"""
-    if not dynamodb:
-        dynamodb = get_resource('dynamodb')
-    data_pipeline_audit_table = "${data_pipeline_audit_table}"
-    table = dynamodb.Table(data_pipeline_audit_table)
-    put_item(correlation_id, run_id, table, status)
+    the_logger.info('Updating audit table with end status for correlation_id %s', correlation_id)
+    try:
+        if not dynamodb:
+            dynamodb = get_resource('dynamodb')
+        data_pipeline_audit_table = "${data_pipeline_audit_table}"
+        table = dynamodb.Table(data_pipeline_audit_table)
+        put_item(correlation_id, run_id, table, status)
+    except BaseException as ex:
+        the_logger.error("Problem updating audit table end status for correlation id : %s %s", correlation_id, str(ex))
+        sys.exit(-1)
 
 
 if __name__ == "__main__":
@@ -425,7 +436,7 @@ if __name__ == "__main__":
     run_id = log_start_of_batch(args.correlation_id, dynamodb)
     main(spark, s3_client, s3_htme_bucket, s3_prefix, secrets_collections, keys_map,
          run_time_stamp, s3_publish_bucket, published_database_name, args, run_id)
-    log_end_of_batch(args.correlation_id, run_id, 'Completed', dynamodb)
+    log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
     add_metric("processing_times.csv", "all_collections", str(total_time))
