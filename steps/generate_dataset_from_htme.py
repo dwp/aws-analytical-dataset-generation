@@ -34,7 +34,9 @@ def get_parameters():
     )
     # Parse command line inputs and set defaults
     parser.add_argument("--correlation_id", default="0")
-    return parser.parse_args()
+    args, unrecognized_args = parser.parse_known_args()
+    the_logger.warning("Unrecognized args %s found for the correlation id %s", unrecognized_args, args.correlation_id)
+    return args
 
 
 def main(spark, s3_client, s3_htme_bucket,
