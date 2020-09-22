@@ -1,16 +1,21 @@
+import argparse
 import ast
 import zlib
 
 import boto3
 import pytest
-from moto import mock_s3
+from boto3.dynamodb.conditions import Key
+from moto import mock_s3, mock_dynamodb2
 
 import steps
 from steps import generate_dataset_from_htme
-import argparse
 
+COMPLETED_STATUS = 'Completed'
+HASH_KEY = 'Correlation_Id'
+RANGE_KEY = 'Run_Id'
+IN_PROGRESS_STATUS = 'In Progress'
 MOTO_SERVER_URL = "http://127.0.0.1:5000"
-
+DYNAMODB_AUDIT_TABLENAME = '${data_pipeline_audit_table}'
 DB_CORE_CONTRACT = 'db.core.contract'
 DB_CORE_ACCOUNTS = 'db.core.accounts'
 DB_CORE_CONTRACT_FILE_NAME = f'{DB_CORE_CONTRACT}.01002.4040.gz.enc'
@@ -23,6 +28,9 @@ SECRETS_COLLECTIONS = {DB_CORE_CONTRACT: 'crown'}
 KEYS_MAP = {"test_ciphertext": "test_key"}
 RUN_TIME_STAMP = "10-10-2000_10-10-10"
 PUBLISHED_DATABASE_NAME = "test_db"
+RUN_ID = 1
+CORRELATION_ID = '12345'
+AWS_REGION = 'eu-west-2'
 
 
 def test_retrieve_secrets(monkeypatch):
@@ -71,7 +79,8 @@ def test_get_collections_in_secrets():
                      {f'{DB_CORE_ACCOUNTS}': [f'{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}']}]
     expected_list_of_dicts = [{f'{DB_CORE_CONTRACT}': [f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}']}]
     assert generate_dataset_from_htme.get_collections_in_secrets(list_of_dicts,
-                                                                 SECRETS_COLLECTIONS, mock_args()) == expected_list_of_dicts
+                                                                 SECRETS_COLLECTIONS,
+                                                                 mock_args()) == expected_list_of_dicts
 
 
 @mock_s3
@@ -90,8 +99,9 @@ def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, 
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decompress', mock_decompress)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, 'get_resource', mock_get_dynamodb_resource)
     generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, SECRETS_COLLECTIONS, KEYS_MAP,
-                                    RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME, mock_args())
+                                    RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID)
     assert len(s3_client.list_buckets()['Buckets']) == 2
     assert (s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
                                  Key=target_object_key)['Body'].read().decode().strip() == test_data.decode())
@@ -121,8 +131,10 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(spark, monkeyp
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decompress', mock_decompress)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, 'get_resource', mock_get_dynamodb_resource)
     generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, secret_collections, KEYS_MAP,
-                                    RUN_TIME_STAMP, s3_publish_bucket_for_multiple_collections, PUBLISHED_DATABASE_NAME, mock_args())
+                                    RUN_TIME_STAMP, s3_publish_bucket_for_multiple_collections, PUBLISHED_DATABASE_NAME,
+                                    mock_args(), RUN_ID)
     assert core_contract_collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
     assert core_accounts_collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
 
@@ -132,7 +144,7 @@ def test_create_hive_on_published(spark, handle_server, aws_credentials):
     collection_name = 'tabtest'
     all_processed_collections = [(collection_name, json_location)]
     steps.generate_dataset_from_htme.create_hive_tables_on_published(spark, all_processed_collections,
-                                                                     PUBLISHED_DATABASE_NAME, mock_args())
+                                                                     PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID)
     assert generate_dataset_from_htme.get_collection(collection_name) in [x.name for x in
                                                                           spark.catalog.listTables(
                                                                               PUBLISHED_DATABASE_NAME)]
@@ -150,8 +162,41 @@ def test_exception_when_decompression_fails(spark, monkeypatch, handle_server, a
         monkeypatch.setattr(steps.generate_dataset_from_htme, 'add_metric', mock_add_metric)
         monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
         monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
+        monkeypatch.setattr(steps.generate_dataset_from_htme, 'get_resource', mock_get_dynamodb_resource)
         generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, SECRETS_COLLECTIONS, KEYS_MAP,
-                                        RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME, mock_args())
+                                        RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID)
+
+
+@mock_dynamodb2
+def test_log_start_of_batch():
+    dynamodb = mock_get_dynamodb_resource('dynamodb')
+    assert generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb) == 1
+    assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
+
+
+@mock_dynamodb2
+def test_log_start_of_batch_for_multiple_runs():
+    dynamodb = mock_get_dynamodb_resource('dynamodb')
+    generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb)
+    # Ran second time to increment Run_Id by 1 to 2
+    assert generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb) == 2
+    assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
+
+
+@mock_dynamodb2
+def test_log_end_of_batch():
+    dynamodb = mock_get_dynamodb_resource('dynamodb')
+    generate_dataset_from_htme.log_end_of_batch(CORRELATION_ID, RUN_ID, COMPLETED_STATUS, dynamodb)
+    assert query_audit_table_status(dynamodb) == COMPLETED_STATUS
+
+
+def query_audit_table_status(dynamodb):
+    table = dynamodb.Table(DYNAMODB_AUDIT_TABLENAME)
+    response = table.query(
+        KeyConditionExpression=Key(HASH_KEY).eq(CORRELATION_ID),
+        ScanIndexForward=False
+    )
+    return response['Items'][0]['Status']
 
 
 def mock_decompress(compressed_text):
@@ -162,8 +207,9 @@ def mock_add_metric(metrics_file, collection_name, value):
     return value
 
 
-def mock_decrypt(plain_text_key, iv_key, data, args):
+def mock_decrypt(plain_text_key, iv_key, data, args, run_id):
     return data
+
 
 def mock_args():
     args = argparse.Namespace()
@@ -171,9 +217,43 @@ def mock_args():
     return args
 
 
-def mock_call_dks(cek, kek, args):
+def mock_call_dks(cek, kek, args, run_id):
     return kek
 
 
-def mock_create_hive_tables_on_published(spark, all_processed_collections, published_database_name, args):
+def mock_create_hive_tables_on_published(spark, all_processed_collections, published_database_name, args, run_id):
     return published_database_name
+
+
+@mock_dynamodb2
+def mock_get_dynamodb_resource(service_name):
+    dynamodb = boto3.resource(service_name, region_name = AWS_REGION)
+    dynamodb.create_table(
+        TableName=DYNAMODB_AUDIT_TABLENAME,
+        KeySchema=[
+            {
+                'AttributeName': HASH_KEY,
+                'KeyType': 'HASH'  # Partition key
+            },
+            {
+                'AttributeName': RANGE_KEY,
+                'KeyType': 'RANGE'  # Sort key
+            }
+        ],
+        AttributeDefinitions=[
+            {
+                'AttributeName': HASH_KEY,
+                'AttributeType': 'S'
+            },
+            {
+                'AttributeName': RANGE_KEY,
+                'AttributeType': 'N'
+            },
+
+        ],
+        ProvisionedThroughput={
+            'ReadCapacityUnits': 10,
+            'WriteCapacityUnits': 10
+        }
+    )
+    return dynamodb
