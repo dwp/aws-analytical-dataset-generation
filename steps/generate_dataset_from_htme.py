@@ -299,13 +299,12 @@ def get_collection(collection_name):
     )
 
 
-def get_collections(secrets_response, args, run_id):
+def get_collections(secrets_response, args):
     try:
         collections = secrets_response["collections_all"]
         collections = {k.lower(): v.lower() for k, v in collections.items()}
     except BaseException as ex:
         the_logger.error("Problem with collections list for correlation id : %s %s", args.correlation_id, str(ex))
-        log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
     return collections
 
@@ -413,8 +412,6 @@ def log_end_of_batch(correlation_id, run_id, status, dynamodb=None):
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info("Processing spark job for correlation id : %s" % args.correlation_id)
-    dynamodb = get_resource('dynamodb')
-    run_id = log_start_of_batch(args.correlation_id, dynamodb)
     spark = get_spark_session()
     run_time_stamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     published_database_name = "${published_db}"
@@ -423,9 +420,11 @@ if __name__ == "__main__":
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_client("s3")
     secrets_response = retrieve_secrets()
-    secrets_collections = get_collections(secrets_response, args, run_id)
+    secrets_collections = get_collections(secrets_response, args)
     keys_map = {}
     start_time = time.perf_counter()
+    dynamodb = get_resource('dynamodb')
+    run_id = log_start_of_batch(args.correlation_id, dynamodb)
     main(spark, s3_client, s3_htme_bucket, s3_prefix, secrets_collections, keys_map,
          run_time_stamp, s3_publish_bucket, published_database_name, args, run_id)
     log_end_of_batch(args.correlation_id, run_id, 'Completed', dynamodb)

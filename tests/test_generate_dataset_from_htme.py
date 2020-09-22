@@ -51,7 +51,7 @@ def test_retrieve_secrets(monkeypatch):
 
 def test_get_collections():
     secret_dict = ast.literal_eval(SECRETS)
-    assert generate_dataset_from_htme.get_collections(secret_dict, mock_args(), RUN_ID) == SECRETS_COLLECTIONS
+    assert generate_dataset_from_htme.get_collections(secret_dict, mock_args()) == SECRETS_COLLECTIONS
 
 
 @mock_s3
