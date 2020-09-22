@@ -70,3 +70,14 @@ resource "aws_s3_bucket_object" "metrics_jar" {
   key        = "component/analytical-dataset-generation/metrics/adg-exporter.jar"
   content    = filebase64("${var.analytical_dataset_generation_exporter_jar.base_path}/exporter-${var.analytical_dataset_generation_exporter_jar.version}.jar")
 }
+
+resource "aws_s3_bucket_object" "create_hive_dynamo_table" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "component/analytical-dataset-generation/create_hive_dynamo_table.sh"
+  content = templatefile("${path.module}/steps/create_hive_dynamo_table.sh",
+    {
+      dynamodb_table_name = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
+
+    }
+  )
+}
