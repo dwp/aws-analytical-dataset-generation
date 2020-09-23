@@ -77,7 +77,7 @@ resource "aws_s3_bucket_object" "create_hive_dynamo_table" {
   key    = "component/analytical-dataset-generation/create_hive_dynamo_table.sh"
   content = templatefile("${path.module}/steps/create_hive_dynamo_table.sh",
     {
-      dynamodb_table_name = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
+      dynamodb_table_name = local.data_pipeline_metadata
 
     }
   )

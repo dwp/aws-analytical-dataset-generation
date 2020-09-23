@@ -124,6 +124,7 @@ locals {
 
   s3_log_prefix            = "emr/analytical_dataset_generator"
   emrfs_metadata_tablename = "Analytical_Dataset_Generation_Metadata"
+  data_pipeline_metadata   = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
 
   hive_metastore_instance_type = {
     development = "db.t3.small"

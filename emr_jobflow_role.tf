@@ -209,6 +209,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_write_dynamodb" {
 
     resources = [
       "arn:aws:dynamodb:${var.region}:${local.account[local.environment]}:table/${local.emrfs_metadata_tablename}",
+      "arn:aws:dynamodb:${var.region}:${local.account[local.environment]}:table/${local.data_pipeline_metadata}",
     ]
   }
 }
