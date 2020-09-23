@@ -1,4 +1,4 @@
-variable "manage_mysql_user_lambda_zip" {
+variable "manage_mysql_user_zip" {
   type = map(string)
 
   default = {
@@ -62,7 +62,7 @@ resource "aws_iam_role_policy" "manage_hive_metastore_mysql_users" {
 }
 
 resource "aws_lambda_function" "manage_mysql_user" {
-  filename      = "${var.manage_mysql_user_lambda_zip["base_path"]}/manage-mysql-user-${var.manage_mysql_user_lambda_zip["version"]}.zip"
+  filename      = "${var.manage_mysql_user_zip["base_path"]}/manage-mysql-user-${var.manage_mysql_user_zip["version"]}.zip"
   function_name = "manage-hive-metastore-mysql-users"
   role          = aws_iam_role.manage_hive_metastore_mysql_users.arn
   handler       = "manage-mysql-user.handler"
@@ -70,8 +70,8 @@ resource "aws_lambda_function" "manage_mysql_user" {
   source_code_hash = filebase64sha256(
     format(
       "%s/manage-mysql-user-%s.zip",
-      var.manage_mysql_user_lambda_zip["base_path"],
-      var.manage_mysql_user_lambda_zip["version"],
+      var.manage_mysql_user_zip["base_path"],
+      var.manage_mysql_user_zip["version"],
     ),
   )
   publish = false
