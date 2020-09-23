@@ -141,7 +141,8 @@ locals {
     production  = length(data.aws_availability_zones.available.names)
   }
 
-  published_db = "analytical_dataset_generation"
+  published_db              = "analytical_dataset_generation"
+  data_pipeline_audit_table = "data_pipeline_metadata"
 
   hive_metastore_backend = {
     development = "aurora"
