@@ -17,6 +17,10 @@ bootstrap: ## Bootstrap local environment for first use
 		export AWS_PROFILE=$(aws_profile); \
 		export AWS_REGION=$(aws_region); \
 		python3 bootstrap_terraform.py; \
+		for github_repository in emr-launcher manage-mysql-user; do \
+			export REPO=$${github_repository}; \
+			./get_lambda_release.sh; \
+		done \
 	}
 	terraform fmt -recursive
 
@@ -30,5 +34,14 @@ git-hooks: ## Set up hooks in .git/hooks
 				echo "moved existing $${hook} to $${hook}.local"; \
 			fi; \
 			ln -s -f ../../.githooks/$${hook} $${HOOK_DIR}/$${hook}; \
+		done \
+	}
+
+.PHONY: get-dependencies
+get-dependencies: ## Get dependencies that are normally managed by pipeline
+	@{ \
+		for github_repository in emr-launcher manage-mysql-user; do \
+			export REPO=$${github_repository}; \
+			./get_release.sh; \
 		done \
 	}
