@@ -74,8 +74,8 @@ resource "aws_s3_bucket_object" "metrics_jar" {
 
 resource "aws_s3_bucket_object" "create_hive_dynamo_table" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/analytical-dataset-generation/create_hive_dynamo_table.sh"
-  content = templatefile("${path.module}/steps/create_hive_dynamo_table.sh",
+  key    = "component/analytical-dataset-generation/create-hive-dynamo-table.sh"
+  content = templatefile("${path.module}/steps/create-hive-dynamo-table.sh",
     {
       dynamodb_table_name = local.data_pipeline_metadata
 
