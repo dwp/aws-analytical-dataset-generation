@@ -17,7 +17,13 @@ hive -e "CREATE EXTERNAL TABLE IF NOT EXISTS data_pipeline_metadata_hive \
 STORED BY 'org.apache.hadoop.hive.dynamodb.DynamoDBStorageHandler' \
 TBLPROPERTIES ('dynamodb.table.name'={dynamodb_table_name}, \
 'dynamodb.column.mapping' = 'Correlation_Id:Correlation_Id,Run_Id:Run_Id,DataProduct:DataProduct,Dates:Date,Status:Status', \
-'dynamodb.null.serialization' = 'true');"
+'dynamodb.null.serialization' = 'true');
+CREATE EXTERNAL TABLE s3_export(a_col string, b_col bigint, c_col array<string>)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+LOCATION 's3://bucketname/path/subpath/';
+
+INSERT OVERWRITE TABLE s3_export SELECT *
+FROM hiveTableName; "
 ) >> /var/log/adg/nohup.log 2>&1
 
 log_wrapper_message "Finished creating external hive table"
