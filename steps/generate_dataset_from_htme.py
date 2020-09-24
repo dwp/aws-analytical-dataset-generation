@@ -176,7 +176,8 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                 json_location_prefix
             )
             persist_json(json_location, consolidated_rdd_mapped)
-            the_logger.info("Applying Tags for prefix : %s for correlation id : %s and run id: %s", json_location_prefix,
+            the_logger.info("Applying Tags for prefix : %s for correlation id : %s and run id: %s",
+                            json_location_prefix,
                             args.correlation_id, run_id)
             tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
         the_logger.info("Creating Hive tables of collection : %s for correlation id : %s and run id : %s",
@@ -316,8 +317,12 @@ def get_collections(secrets_response, args):
 
 def create_hive_tables_on_published(spark, all_processed_collections, published_database_name, args, run_id):
     try:
-        create_db_query = f'CREATE DATABASE IF NOT EXISTS {published_database_name}'
-        spark.sql(create_db_query)
+        # Check to create database only if the backend is Aurora as Glue database is created through terraform
+        if "${hive_metastore_backend}" == "aurora":
+            the_logger.info('Creating metastore db while processing correlation_id %s and run id %s',
+                            args.correlation_id, run_id)
+            create_db_query = f'CREATE DATABASE IF NOT EXISTS {published_database_name}'
+            spark.sql(create_db_query)
         for (collection_name, collection_json_location) in all_processed_collections:
             hive_table_name = get_collection(collection_name)
             src_hive_table = published_database_name + "." + hive_table_name
