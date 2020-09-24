@@ -42,7 +42,7 @@ def get_parameters():
     )
     # Parse command line inputs and set defaults
     parser.add_argument("--correlation_id", default="0")
-    parser.add_argument("--s3_prefix", default="businessdata/mongo/ucdata")
+    parser.add_argument("--s3_prefix", default="${s3_prefix}")
     args, unrecognized_args = parser.parse_known_args()
     the_logger.warning("Unrecognized args %s found for the correlation id %s", unrecognized_args, args.correlation_id)
     return args
@@ -432,7 +432,6 @@ if __name__ == "__main__":
     run_time_stamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     published_database_name = "${published_db}"
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
-    s3_prefix = "${s3_prefix}"
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_client("s3")
     secrets_response = retrieve_secrets()
@@ -441,7 +440,7 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
     dynamodb = get_resource('dynamodb')
     run_id = log_start_of_batch(args.correlation_id, dynamodb)
-    main(spark, s3_client, s3_htme_bucket, s3_prefix, secrets_collections, keys_map,
+    main(spark, s3_client, s3_htme_bucket, args.s3_prefix, secrets_collections, keys_map,
          run_time_stamp, s3_publish_bucket, published_database_name, args, run_id)
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
