@@ -34,6 +34,7 @@ def get_parameters():
     )
     # Parse command line inputs and set defaults
     parser.add_argument("--correlation_id", default="0")
+    parser.add_argument("--s3_prefix", default="businessdata/mongo/ucdata")
     return parser.parse_args()
 
 
