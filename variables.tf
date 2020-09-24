@@ -129,7 +129,7 @@ variable "htme_data_location" {
   default = {
     development = "businessdata/mongo/ucdata/2020-07-06/full/"
     qa          = "businessdata/mongo/ucdata/2020-07-06/full/"
-    integration = "businessdata/mongo/ucdata/2020-07-06/full/"
+    integration = "businessdata/mongo/ucdata/2020-08-07/full/"
     preprod     = "businessdata/mongo/ucdata/2020-07-06/full/"
     production  = "businessdata/mongo/ucdata/2020-07-26/full/"
   }
