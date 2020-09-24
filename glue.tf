@@ -31,6 +31,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_gluetables_write" {
       "glue:CreateTable",
       "glue:GetPartitions",
       "glue:GetUserDefinedFunctions"
+      "glue:CreateDatabase"
     ]
 
     resources = [
