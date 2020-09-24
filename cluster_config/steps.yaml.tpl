@@ -35,9 +35,3 @@ Steps:
     - "spark.yarn.submit.waitAppCompletion=true"
     Jar: "command-runner.jar"
   ActionOnFailure: "CONTINUE"
-- Name: "create-hive-table"
-  HadoopJarStep:
-    Args:
-    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/create-hive-dynamo-table.sh"
-    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
-  ActionOnFailure: "CONTINUE"
