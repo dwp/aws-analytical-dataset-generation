@@ -5,7 +5,7 @@ resource "aws_s3_bucket_object" "generate_dataset_from_htme_script" {
     {
       secret_name               = local.secret_name
       published_db              = local.published_db
-      data_pipeline_audit_table = local.data_pipeline_audit_table
+      data_pipeline_metadata = local.data_pipeline_metadata
       file_location             = "analytical-dataset"
       url                       = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
       aws_default_region        = "eu-west-2"
