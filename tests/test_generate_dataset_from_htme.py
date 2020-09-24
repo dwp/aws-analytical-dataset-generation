@@ -152,7 +152,7 @@ def test_create_hive_on_published(spark, handle_server, aws_credentials):
 
 @mock_s3
 def test_exception_when_decompression_fails(spark, monkeypatch, handle_server, aws_credentials):
-    with pytest.raises(SystemExit) as ex:
+    with pytest.raises(SystemExit):
         s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
         s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
         s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
