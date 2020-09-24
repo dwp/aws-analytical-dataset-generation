@@ -48,6 +48,7 @@ Configurations:
     "javax.jdo.option.ConnectionUserName": "${hive_metsatore_username}"
     "javax.jdo.option.ConnectionPassword": "${hive_metastore_pwd}"
     %{~ endif ~}
+
 - Classification: "emrfs-site"
   Properties:
     "fs.s3.consistent": "true"
