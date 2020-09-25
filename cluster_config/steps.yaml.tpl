@@ -26,12 +26,12 @@ Steps:
   HadoopJarStep:
     Args:
     - "spark-submit"
-    - "/opt/emr/generate_dataset_from_htme.py"
     - "--deploy-mode"
     - "cluster"
     - "--master"
     - "yarn"
     - "--conf"
     - "spark.yarn.submit.waitAppCompletion=true"
+    - "/opt/emr/generate_dataset_from_htme.py"
     Jar: "command-runner.jar"
   ActionOnFailure: "CONTINUE"
