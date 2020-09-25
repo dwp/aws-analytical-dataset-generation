@@ -49,10 +49,10 @@ def get_parameters():
 
 
 def main(spark, s3_client, s3_htme_bucket,
-         s3_prefix, secrets_collections, keys_map,
+         secrets_collections, keys_map,
          run_time_stamp, s3_publish_bucket, published_database_name, args, run_id):
     try:
-        keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix)
+        keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
         list_of_dicts = group_keys_by_collection(keys)
         list_of_dicts_filtered = get_collections_in_secrets(list_of_dicts, secrets_collections, args)
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -445,7 +445,7 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
     dynamodb = get_resource('dynamodb')
     run_id = log_start_of_batch(args.correlation_id, dynamodb)
-    main(spark, s3_client, s3_htme_bucket, args.s3_prefix, secrets_collections, keys_map,
+    main(spark, s3_client, s3_htme_bucket, secrets_collections, keys_map,
          run_time_stamp, s3_publish_bucket, published_database_name, args, run_id)
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
