@@ -100,7 +100,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, 
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'get_resource', mock_get_dynamodb_resource)
-    generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, SECRETS_COLLECTIONS, KEYS_MAP,
+    generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, SECRETS_COLLECTIONS, KEYS_MAP,
                                     RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID)
     assert len(s3_client.list_buckets()['Buckets']) == 2
     assert (s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
@@ -132,7 +132,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(spark, monkeyp
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'get_resource', mock_get_dynamodb_resource)
-    generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, secret_collections, KEYS_MAP,
+    generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, secret_collections, KEYS_MAP,
                                     RUN_TIME_STAMP, s3_publish_bucket_for_multiple_collections, PUBLISHED_DATABASE_NAME,
                                     mock_args(), RUN_ID)
     assert core_contract_collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
@@ -163,7 +163,7 @@ def test_exception_when_decompression_fails(spark, monkeypatch, handle_server, a
         monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
         monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
         monkeypatch.setattr(steps.generate_dataset_from_htme, 'get_resource', mock_get_dynamodb_resource)
-        generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, S3_PREFIX, SECRETS_COLLECTIONS, KEYS_MAP,
+        generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, SECRETS_COLLECTIONS, KEYS_MAP,
                                         RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID)
 
 
@@ -213,7 +213,8 @@ def mock_decrypt(plain_text_key, iv_key, data, args, run_id):
 
 def mock_args():
     args = argparse.Namespace()
-    args.correlation_id = "test"
+    args.correlation_id = CORRELATION_ID
+    args.s3_prefix = S3_PREFIX
     return args
 
 

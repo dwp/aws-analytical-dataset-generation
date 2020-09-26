@@ -324,7 +324,8 @@ meta:
               export AWS_DEFAULT_REGION
               source /assume-role
               set +x
-              aws lambda invoke --function-name adg_emr_launcher outfile
+              export topic_arn=arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACC}:uc_export_to_crown_completion_status_sns
+              aws sns publish --topic-arn "$topic_arn" --message '{"correlation_id": "${CORRELATION_ID}", "s3_prefix": "${S3_PREFIX}"}'
 
     stop-cluster:
       task: stop-cluster
