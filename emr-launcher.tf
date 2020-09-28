@@ -1,4 +1,4 @@
-variable "adg_emr_launcher_zip" {
+variable "emr_launcher_zip" {
   type = map(string)
 
   default = {
@@ -8,7 +8,7 @@ variable "adg_emr_launcher_zip" {
 }
 
 resource "aws_lambda_function" "adg_emr_launcher" {
-  filename      = "${var.adg_emr_launcher_zip["base_path"]}/emr-launcher-${var.adg_emr_launcher_zip["version"]}.zip"
+  filename      = "${var.emr_launcher_zip["base_path"]}/emr-launcher-${var.emr_launcher_zip["version"]}.zip"
   function_name = "adg_emr_launcher"
   role          = aws_iam_role.adg_emr_launcher_lambda_role.arn
   handler       = "emr_launcher.handler"
@@ -16,8 +16,8 @@ resource "aws_lambda_function" "adg_emr_launcher" {
   source_code_hash = filebase64sha256(
     format(
       "%s/emr-launcher-%s.zip",
-      var.adg_emr_launcher_zip["base_path"],
-      var.adg_emr_launcher_zip["version"]
+      var.emr_launcher_zip["base_path"],
+      var.emr_launcher_zip["version"]
     )
   )
   publish = false
