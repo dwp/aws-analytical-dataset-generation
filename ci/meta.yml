@@ -325,7 +325,15 @@ meta:
               source /assume-role
               set +x
               export topic_arn=arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACC}:uc_export_to_crown_completion_status_sns
-              aws sns publish --topic-arn "$topic_arn" --message '{"correlation_id": "${CORRELATION_ID}", "s3_prefix": "${S3_PREFIX}"}'
+              export message_json=$(cat <<EOF
+              {
+                "correlation_id": "$CORRELATION_ID",
+                "s3_prefix": "$S3_PREFIX"
+              }
+              EOF
+              )
+              echo $message_json
+              aws sns publish --topic-arn "$topic_arn" --message "$message_json"
 
     stop-cluster:
       task: stop-cluster
