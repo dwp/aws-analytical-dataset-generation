@@ -42,16 +42,17 @@ def get_parameters():
     )
     # Parse command line inputs and set defaults
     parser.add_argument("--correlation_id", default="0")
+    parser.add_argument("--s3_prefix", default="${s3_prefix}")
     args, unrecognized_args = parser.parse_known_args()
     the_logger.warning("Unrecognized args %s found for the correlation id %s", unrecognized_args, args.correlation_id)
     return args
 
 
 def main(spark, s3_client, s3_htme_bucket,
-         s3_prefix, secrets_collections, keys_map,
+         secrets_collections, keys_map,
          run_time_stamp, s3_publish_bucket, published_database_name, args, run_id):
     try:
-        keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix)
+        keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
         list_of_dicts = group_keys_by_collection(keys)
         list_of_dicts_filtered = get_collections_in_secrets(list_of_dicts, secrets_collections, args)
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -176,7 +177,8 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                 json_location_prefix
             )
             persist_json(json_location, consolidated_rdd_mapped)
-            the_logger.info("Applying Tags for prefix : %s for correlation id : %s and run id: %s", json_location_prefix,
+            the_logger.info("Applying Tags for prefix : %s for correlation id : %s and run id: %s",
+                            json_location_prefix,
                             args.correlation_id, run_id)
             tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
         the_logger.info("Creating Hive tables of collection : %s for correlation id : %s and run id : %s",
@@ -316,8 +318,12 @@ def get_collections(secrets_response, args):
 
 def create_hive_tables_on_published(spark, all_processed_collections, published_database_name, args, run_id):
     try:
-        create_db_query = f'CREATE DATABASE IF NOT EXISTS {published_database_name}'
-        spark.sql(create_db_query)
+        # Check to create database only if the backend is Aurora as Glue database is created through terraform
+        if "${hive_metastore_backend}" == "aurora":
+            the_logger.info('Creating metastore db while processing correlation_id %s and run id %s',
+                            args.correlation_id, run_id)
+            create_db_query = f'CREATE DATABASE IF NOT EXISTS {published_database_name}'
+            spark.sql(create_db_query)
         for (collection_name, collection_json_location) in all_processed_collections:
             hive_table_name = get_collection(collection_name)
             src_hive_table = published_database_name + "." + hive_table_name
@@ -431,7 +437,6 @@ if __name__ == "__main__":
     run_time_stamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     published_database_name = "${published_db}"
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
-    s3_prefix = "${s3_prefix}"
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_client("s3")
     secrets_response = retrieve_secrets()
@@ -440,7 +445,7 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
     dynamodb = get_resource('dynamodb')
     run_id = log_start_of_batch(args.correlation_id, dynamodb)
-    main(spark, s3_client, s3_htme_bucket, s3_prefix, secrets_collections, keys_map,
+    main(spark, s3_client, s3_htme_bucket, secrets_collections, keys_map,
          run_time_stamp, s3_publish_bucket, published_database_name, args, run_id)
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()

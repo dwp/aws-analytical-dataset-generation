@@ -7,3 +7,6 @@ jobs:
         config:
           params:
             AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+            AWS_ACC: ((aws_account.development))
+            S3_PREFIX: businessdata/mongo/ucdata/2020-07-06/full/
+            CORRELATION_ID: test

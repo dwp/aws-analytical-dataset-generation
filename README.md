@@ -44,7 +44,7 @@ If you put a comment as the first line of a query it can do for a proxy title.
 ### How to add and run tests
 
 1.	Pull the latest python3-pyspark-pytest image by running: `docker pull dwpdigital/python3-pyspark-pytest`
-2.	Run: `docker run -it --rm --name adg-docker -v "$(pwd)":/install -w /install dwpdigital/python3-pyspark-pytest` 
+2.	Run: `docker run -it --rm --name adg-docker -v "$(pwd)":/install -w /install dwpdigital/python3-pyspark-pytest pytest .` 
 
 ### Known issues: 
 1. make sure to delete locally generated directories  metastore_db, spark-temp, spark-warehouse directory if unit tests 
