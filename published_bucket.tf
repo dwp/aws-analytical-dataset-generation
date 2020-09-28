@@ -354,3 +354,56 @@ resource "aws_iam_policy" "analytical_dataset_crown_read_only_non_pii" {
   description = "Allow read access to the Crown-specific subset of the Analytical Dataset"
   policy      = data.aws_iam_policy_document.analytical_dataset_crown_read_only_non_pii.json
 }
+
+# bucket policy for the published non-pii bucket
+
+data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_pii" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject*",
+      "s3:DeleteObject*",
+      "s3:PutObject*",
+    ]
+
+    resources = [
+      format("arn:aws:s3:::%s/%s/*", data.terraform_remote_state.common.outputs.published_bucket_non_pii.bucket, local.published_bucket_non_pii_prefix)
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey",
+    ]
+
+    resources = [
+      data.terraform_remote_state.common.outputs.published_bucket_non_pii_cmk.arn,
+    ]
+  }
+}
+
+resource "aws_iam_policy" "analytical_dataset_generator_read_write_non_pii" {
+  name        = "AnalyticalDatasetGeneratorReadWriteNonPii"
+  description = "Allow read writing of non-pii data"
+  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_write_non_pii.json
+}
