@@ -383,8 +383,8 @@ def log_start_of_batch(correlation_id, dynamodb=None):
     try:
         if not dynamodb:
             dynamodb = get_resource('dynamodb')
-        data_pipeline_audit_table = "${data_pipeline_audit_table}"
-        table = dynamodb.Table(data_pipeline_audit_table)
+        data_pipeline_metadata = "${data_pipeline_metadata}"
+        table = dynamodb.Table(data_pipeline_metadata)
         run_id = 1
         response = table.query(
             KeyConditionExpression=Key(AUDIT_TABLE_HASH_KEY).eq(correlation_id),
@@ -421,8 +421,8 @@ def log_end_of_batch(correlation_id, run_id, status, dynamodb=None):
     try:
         if not dynamodb:
             dynamodb = get_resource('dynamodb')
-        data_pipeline_audit_table = "${data_pipeline_audit_table}"
-        table = dynamodb.Table(data_pipeline_audit_table)
+        data_pipeline_metadata = "${data_pipeline_metadata}"
+        table = dynamodb.Table(data_pipeline_metadata)
         put_item(correlation_id, run_id, table, status)
     except BaseException as ex:
         the_logger.error("Problem updating audit table end status for correlation id: %s and run id : %s %s",
