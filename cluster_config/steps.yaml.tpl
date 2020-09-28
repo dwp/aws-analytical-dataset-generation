@@ -26,8 +26,6 @@ Steps:
   HadoopJarStep:
     Args:
     - "spark-submit"
-    - "--deploy-mode"
-    - "cluster"
     - "--master"
     - "yarn"
     - "--conf"
