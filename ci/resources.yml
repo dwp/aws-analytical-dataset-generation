@@ -79,6 +79,18 @@ resources:
         state: available
         name: dw-emr-ami-*
 
+  - name: emr-al2-ami
+    type: ami
+    check_every: 1h
+    source:
+      aws_role_arn: arn:aws:iam::((dataworks.aws_management_acc)):role/ci
+      region: ((dataworks.aws_region))
+      filters:
+        owner-id: ((dataworks.aws_management_acc))
+        is-public: false
+        state: available
+        name: dw-al2-emr-ami-*
+
   - name: manage-mysql-user-release
     type: github-release
     source:
