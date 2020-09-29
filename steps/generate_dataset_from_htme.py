@@ -360,7 +360,7 @@ def get_spark_session():
         SparkSession.builder.master("yarn")
             .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
             .config("spark.metrics.namespace", "adg")
-            .appName("spike")
+            .appName("ADG")
             .enableHiveSupport()
             .getOrCreate()
     )
