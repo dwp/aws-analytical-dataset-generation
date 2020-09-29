@@ -33,6 +33,12 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
   })
 }
 
+resource "aws_s3_bucket_object" "ssm_script" {
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/start_ssm.sh"
+  content = file("${path.module}/bootstrap_actions/start_ssm.sh")
+}
+
 resource "aws_s3_bucket_object" "installer_sh" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/installer.sh"
