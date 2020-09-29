@@ -43,6 +43,25 @@ Configurations:
     "hive.compactor.initiator.on": "true"
     "hive.compactor.worker.threads": "1"
     "hive.support.concurrency": "true"
+    "javax.jdo.option.ConnectionURL": "jdbc:mysql://${hive_metastore_endpoint}:3306/${hive_metastore_database_name}"
+    "javax.jdo.option.ConnectionDriverName": "org.mariadb.jdbc.Driver"
+    "javax.jdo.option.ConnectionUserName": "${hive_metsatore_username}"
+    "javax.jdo.option.ConnectionPassword": "${hive_metastore_pwd}"
+    %{~ endif ~}
+
+- Classification: "hive-site"
+  Properties:
+    %{~ if hive_metastore_backend == "glue" ~}
+    "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
+    %{~ endif ~}
+    %{~ if hive_metastore_backend == "aurora" ~}
+    "hive.metastore.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
+    "hive.txn.manager": "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager"
+    "hive.enforce.bucketing": "true"
+    "hive.exec.dynamic.partition.mode": "nostrict"
+    "hive.compactor.initiator.on": "true"
+    "hive.compactor.worker.threads": "1"
+    "hive.support.concurrency": "true"
     "javax.jdo.option.ConnectionURL": "jdbc:mysql://${hive_metastore_endpoint}:3306/${hive_metastore_database_name}?createDatabaseIfNotExist=true"
     "javax.jdo.option.ConnectionDriverName": "org.mariadb.jdbc.Driver"
     "javax.jdo.option.ConnectionUserName": "${hive_metsatore_username}"
