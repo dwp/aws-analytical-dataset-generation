@@ -2,6 +2,7 @@ import argparse
 import ast
 import base64
 import concurrent.futures
+import csv
 import itertools
 import os
 import re
@@ -50,7 +51,7 @@ def get_parameters():
 
 def main(spark, s3_client, s3_htme_bucket,
          secrets_collections, keys_map,
-         run_time_stamp, s3_publish_bucket, published_database_name, args, run_id):
+         run_time_stamp, s3_publish_bucket, args, run_id):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
         list_of_dicts = group_keys_by_collection(keys)
@@ -71,10 +72,11 @@ def main(spark, s3_client, s3_htme_bucket,
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
-    # Create hive tables only if all the collections have been processed successfully else raise exception
+    # Create hive tables metadata CSV file only if all the collections have been processed successfully
+    # else kill the process with error status
     list_of_processed_collections = list(all_processed_collections)
     if len(list_of_processed_collections) == len(secrets_collections):
-        create_hive_tables_on_published(spark, list_of_processed_collections, published_database_name, args, run_id)
+        create_hive_tables_metadata_file(list_of_processed_collections, s3_client, s3_publish_bucket, args, run_id)
     else:
         the_logger.error(
             "Not all collections have been processed looks like there is missing data, stopping Spark for correlation id: %s and run id : %s",
@@ -172,10 +174,7 @@ def consolidate_rdd_per_collection(collection, secrets_collections, s3_client,
                 get_collection(collection_name),
                 get_collection(collection_name) + ".json"
             )
-            json_location = "s3://%s/%s" % (
-                s3_publish_bucket,
-                json_location_prefix
-            )
+            json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
             persist_json(json_location, consolidated_rdd_mapped)
             the_logger.info("Applying Tags for prefix : %s for correlation id : %s and run id: %s",
                             json_location_prefix,
@@ -316,27 +315,23 @@ def get_collections(secrets_response, args):
     return collections
 
 
-def create_hive_tables_on_published(spark, all_processed_collections, published_database_name, args, run_id):
+def create_hive_tables_metadata_file(all_processed_collections, s3_client, s3_publish_bucket, args, run_id):
+    '''
+        Create CSV with all the collections names and their locations and save it to S3 bucket to be picked up by PDM
+        for publishing Hive tables
+    '''
     try:
-        # Check to create database only if the backend is Aurora as Glue database is created through terraform
-        if "${hive_metastore_backend}" == "aurora":
-            the_logger.info('Creating metastore db while processing correlation_id %s and run id %s',
-                            args.correlation_id, run_id)
-            create_db_query = f'CREATE DATABASE IF NOT EXISTS {published_database_name}'
-            spark.sql(create_db_query)
-        for (collection_name, collection_json_location) in all_processed_collections:
-            hive_table_name = get_collection(collection_name)
-            src_hive_table = published_database_name + "." + hive_table_name
-            the_logger.info("Creating Hive table for : %s for correlation id : %s and run id: %s",
-                            src_hive_table, args.correlation_id, run_id)
-            src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
-            src_hive_create_query = (
-                f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
-            )
-            spark.sql(src_hive_drop_query)
-            spark.sql(src_hive_create_query)
+        adg_hive_metadata_file_location = '${file_location}/analytical-dataset-hive-tables-metadata'
+        adg_hive_metadata_file_name = 'analytical-dataset-hive-tables-metadata.csv'
+        # Spark doesn't create file with specific name so need to use Python csv to create file and upload it to S3
+        with open(adg_hive_metadata_file_name, 'w') as adg_output:
+            adg_output_file = csv.writer(adg_output)
+            adg_output_file.writerows(all_processed_collections)
+        with open(adg_hive_metadata_file_name, 'rb') as data:
+            s3_client.upload_fileobj(data, s3_publish_bucket,
+                                     f"{adg_hive_metadata_file_location}/{adg_hive_metadata_file_name}")
     except BaseException as ex:
-        the_logger.error("Problem with creating Hive tables for correlation id: %s and run id: %s %s",
+        the_logger.error("Problem with creating Hive tables metadata file for correlation id: %s and run id: %s %s",
                          args.correlation_id, run_id, str(ex))
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
@@ -435,7 +430,6 @@ if __name__ == "__main__":
     the_logger.info("Processing spark job for correlation id : %s" % args.correlation_id)
     spark = get_spark_session()
     run_time_stamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    published_database_name = "${published_db}"
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_client("s3")
@@ -446,7 +440,7 @@ if __name__ == "__main__":
     dynamodb = get_resource('dynamodb')
     run_id = log_start_of_batch(args.correlation_id, dynamodb)
     main(spark, s3_client, s3_htme_bucket, secrets_collections, keys_map,
-         run_time_stamp, s3_publish_bucket, published_database_name, args, run_id)
+         run_time_stamp, s3_publish_bucket, args, run_id)
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)

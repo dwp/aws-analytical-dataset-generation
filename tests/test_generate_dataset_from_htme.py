@@ -27,10 +27,11 @@ SECRETS = "{'collections_all': {'db.core.contract': 'crown'}}"
 SECRETS_COLLECTIONS = {DB_CORE_CONTRACT: 'crown'}
 KEYS_MAP = {"test_ciphertext": "test_key"}
 RUN_TIME_STAMP = "10-10-2000_10-10-10"
-PUBLISHED_DATABASE_NAME = "test_db"
 RUN_ID = 1
 CORRELATION_ID = '12345'
 AWS_REGION = 'eu-west-2'
+ADG_HIVE_TABLES_METADATA_FILE_LOCATION = '${file_location}/analytical-dataset-hive-tables-metadata'
+ADG_HIVE_TABLES_METADATA_FILE_NAME = 'analytical-dataset-hive-tables-metadata.csv'
 
 
 def test_retrieve_secrets(monkeypatch):
@@ -89,6 +90,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, 
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
     target_object_key = f'${{file_location}}/{RUN_TIME_STAMP}/{collection_name}/{collection_name}.json/part-00000'
     target_object_tag = {'Key': 'collection_tag', 'Value': 'crown'}
+    adg_hive_tables_metadata_object_key = f'{ADG_HIVE_TABLES_METADATA_FILE_LOCATION}/{ADG_HIVE_TABLES_METADATA_FILE_NAME}'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
@@ -101,24 +103,25 @@ def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, 
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'get_resource', mock_get_dynamodb_resource)
     generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, SECRETS_COLLECTIONS, KEYS_MAP,
-                                    RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID)
+                                    RUN_TIME_STAMP, S3_PUBLISH_BUCKET, mock_args(), RUN_ID)
     assert len(s3_client.list_buckets()['Buckets']) == 2
     assert (s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
                                  Key=target_object_key)['Body'].read().decode().strip() == test_data.decode())
+    assert (DB_CORE_CONTRACT in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
+                                                     Key=adg_hive_tables_metadata_object_key)[
+        'Body'].read().decode().strip())
     assert s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)['TagSet'][
                0] == target_object_tag
-    assert collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
 
 
 @mock_s3
 def test_consolidate_rdd_per_collection_with_multiple_collections(spark, monkeypatch, handle_server, aws_credentials):
-    core_contract_collection_name = "core_contract"
-    core_accounts_collection_name = "core_accounts"
     test_data = '{"name":"abcd"}\n{"name":"xyz"}'
     secret_collections = SECRETS_COLLECTIONS
     secret_collections[DB_CORE_ACCOUNTS] = 'crown'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
+    adg_hive_tables_metadata_object_key = f'{ADG_HIVE_TABLES_METADATA_FILE_LOCATION}/{ADG_HIVE_TABLES_METADATA_FILE_NAME}'
     s3_publish_bucket_for_multiple_collections = f"{S3_PUBLISH_BUCKET}-2"
     s3_client.create_bucket(Bucket=s3_publish_bucket_for_multiple_collections)
     s3_client.put_object(Body=zlib.compress(str.encode(test_data)), Bucket=S3_HTME_BUCKET,
@@ -133,21 +136,14 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(spark, monkeyp
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'get_resource', mock_get_dynamodb_resource)
     generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, secret_collections, KEYS_MAP,
-                                    RUN_TIME_STAMP, s3_publish_bucket_for_multiple_collections, PUBLISHED_DATABASE_NAME,
+                                    RUN_TIME_STAMP, s3_publish_bucket_for_multiple_collections,
                                     mock_args(), RUN_ID)
-    assert core_contract_collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
-    assert core_accounts_collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
-
-
-def test_create_hive_on_published(spark, handle_server, aws_credentials):
-    json_location = "s3://test/t"
-    collection_name = 'tabtest'
-    all_processed_collections = [(collection_name, json_location)]
-    steps.generate_dataset_from_htme.create_hive_tables_on_published(spark, all_processed_collections,
-                                                                     PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID)
-    assert generate_dataset_from_htme.get_collection(collection_name) in [x.name for x in
-                                                                          spark.catalog.listTables(
-                                                                              PUBLISHED_DATABASE_NAME)]
+    assert (DB_CORE_CONTRACT in s3_client.get_object(Bucket=s3_publish_bucket_for_multiple_collections,
+                                                     Key=adg_hive_tables_metadata_object_key)[
+        'Body'].read().decode().strip())
+    assert (DB_CORE_ACCOUNTS in s3_client.get_object(Bucket=s3_publish_bucket_for_multiple_collections,
+                                                     Key=adg_hive_tables_metadata_object_key)[
+        'Body'].read().decode().strip())
 
 
 @mock_s3
@@ -164,7 +160,7 @@ def test_exception_when_decompression_fails(spark, monkeypatch, handle_server, a
         monkeypatch.setattr(steps.generate_dataset_from_htme, 'call_dks', mock_call_dks)
         monkeypatch.setattr(steps.generate_dataset_from_htme, 'get_resource', mock_get_dynamodb_resource)
         generate_dataset_from_htme.main(spark, s3_client, S3_HTME_BUCKET, SECRETS_COLLECTIONS, KEYS_MAP,
-                                        RUN_TIME_STAMP, S3_PUBLISH_BUCKET, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID)
+                                        RUN_TIME_STAMP, S3_PUBLISH_BUCKET, mock_args(), RUN_ID)
 
 
 @mock_dynamodb2
@@ -222,13 +218,9 @@ def mock_call_dks(cek, kek, args, run_id):
     return kek
 
 
-def mock_create_hive_tables_on_published(spark, all_processed_collections, published_database_name, args, run_id):
-    return published_database_name
-
-
 @mock_dynamodb2
 def mock_get_dynamodb_resource(service_name):
-    dynamodb = boto3.resource(service_name, region_name = AWS_REGION)
+    dynamodb = boto3.resource(service_name, region_name=AWS_REGION)
     dynamodb.create_table(
         TableName=DYNAMODB_AUDIT_TABLENAME,
         KeySchema=[
