@@ -62,10 +62,6 @@ locals {
   spark_kyro_buffer                   = var.spark_kyro_buffer[local.environment]
 }
 
-data "aws_secretsmanager_secret_version" "rds_aurora_secrets" {
-  secret_id = aws_secretsmanager_secret.metadata_store_adg_writer.name
-}
-
 resource "aws_s3_bucket_object" "configurations" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "emr/adg/configurations.yaml"
@@ -92,7 +88,7 @@ resource "aws_s3_bucket_object" "configurations" {
       spark_default_parallelism           = local.spark_default_parallelism
       spark_kyro_buffer                   = local.spark_kyro_buffer
       hive_metsatore_username             = var.metadata_store_adg_writer_username
-      hive_metastore_pwd                  = data.aws_secretsmanager_secret_version.rds_aurora_secrets.secret_id
+      hive_metastore_pwd                  = aws_secretsmanager_secret.metadata_store_adg_writer.name
       hive_metastore_endpoint             = aws_rds_cluster.hive_metastore.endpoint
       hive_metastore_database_name        = aws_rds_cluster.hive_metastore.database_name
       hive_metastore_backend              = local.hive_metastore_backend[local.environment]
