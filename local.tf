@@ -128,11 +128,11 @@ locals {
 
   published_bucket_non_pii_prefix = "runmetadata"
   hive_metastore_instance_type = {
-    development = "db.t3.small"
-    qa          = "db.t3.small"
-    integration = "db.t3.small"
-    preprod     = "db.t3.small"
-    production  = "db.t3.small"
+    development = "db.t3.medium"
+    qa          = "db.t3.medium"
+    integration = "db.t3.medium"
+    preprod     = "db.t3.medium"
+    production  = "db.t3.medium"
   }
 
   hive_metastore_instance_count = {
