@@ -141,7 +141,6 @@ resource "aws_secretsmanager_secret" "metadata_store_adg_writer" {
   name        = "metadata-store-${var.metadata_store_adg_writer_username}"
   description = "${var.metadata_store_adg_writer_username} SQL user for Metadata Store"
   tags        = local.common_tags
-  policy      = data.aws_iam_policy_document.admin_access_to_metadata_secrets.json
 }
 
 resource "aws_secretsmanager_secret" "metadata_store_pdm_writer" {
