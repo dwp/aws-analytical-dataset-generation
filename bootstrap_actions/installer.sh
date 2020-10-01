@@ -18,12 +18,18 @@ export no_proxy="$FULL_NO_PROXY"
 export NO_PROXY="$FULL_NO_PROXY"
 
 log_wrapper_message "Installing boto3 packages"
+PIP=/usr/bin/pip3
 
-sudo -E /usr/bin/pip-3.6 install boto3 >> /var/log/adg/install-boto3.log 2>&1
+if [ ! -x $PIP ]; then
+  # EMR <= 5.29.0 doesn't install a /usr/bin/pip3 wrapper
+  PIP=/usr/bin/pip-3.6
+fi
 
-sudo -E /usr/bin/pip-3.6 install requests >> /var/log/adg/install-requests.log 2>&1
-
-sudo -E /usr/bin/pip-3.6 install pycrypto >> /var/log/adg/install-pycrypto.log 2>&1
+sudo -E $PIP install boto3 >> /var/log/adg/install-boto3.log 2>&1
+sudo -E $PIP install requests >> /var/log/adg/install-requests.log 2>&1
+sudo yum install -y python3-devel >> /var/log/adg/install-pycrypto.log 2>&1
+sudo -E $PIP install pycrypto >> /var/log/adg/install-pycrypto.log 2>&1
+sudo yum remove -y python3-devel >> /var/log/adg/install-pycrypto.log 2>&1
 
 log_wrapper_message "Completed the installer.sh step of the EMR Cluster"
 

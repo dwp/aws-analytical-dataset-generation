@@ -1,5 +1,8 @@
 ---
 BootstrapActions:
+- Name: "start_ssm"
+  ScriptBootstrapAction:
+    Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/start_ssm.sh"
 - Name: "metadata"
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/metadata.sh"
