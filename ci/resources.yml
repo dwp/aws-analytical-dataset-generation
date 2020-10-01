@@ -67,18 +67,6 @@ resources:
     check_every: 1h
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
-  - name: emr-ami
-    type: ami
-    check_every: 1h
-    source:
-      aws_role_arn: arn:aws:iam::((dataworks.aws_management_acc)):role/ci
-      region: ((dataworks.aws_region))
-      filters:
-        owner-id: ((dataworks.aws_management_acc))
-        is-public: false
-        state: available
-        name: dw-emr-ami-*
-
   - name: emr-al2-ami
     type: ami
     check_every: 1h

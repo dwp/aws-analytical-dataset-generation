@@ -11,7 +11,7 @@ jobs:
           trigger: true
         - get: analytical-dataset-generation-exporter-release
           trigger: true
-        - get: emr-ami
+        - get: emr-al2-ami
           trigger: true
         - get: secrets-management
           trigger: false
@@ -46,7 +46,7 @@ jobs:
               - |
                 cp ../terraform-config/terraform.tf .
                 cp ../terraform-config/terraform.tfvars .
-                export TF_VAR_emr_ami_id=$(cat ../emr-ami/id)
+                export TF_VAR_emr_ami_id=$(cat ../emr-al2-ami/id)
                 export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
                 export TF_VAR_manage_mysql_user_zip="{base_path = \"../manage-mysql-user-release\", version = \"$(cat ../manage-mysql-user-release/version)\"}"
                 export TF_VAR_analytical_dataset_generation_exporter_jar="{base_path = \"../analytical-dataset-generation-exporter-release\", version = \"$(ls ../analytical-dataset-generation-exporter-release/*.jar | sed -e 's/^.*exporter-//' -e 's/.jar$//')\"}"
@@ -59,7 +59,7 @@ jobs:
             - name: emr-launcher-release
             - name: manage-mysql-user-release
             - name: analytical-dataset-generation-exporter-release
-            - name: emr-ami
+            - name: emr-al2-ami
         input_mapping:
           aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
         on_failure:
