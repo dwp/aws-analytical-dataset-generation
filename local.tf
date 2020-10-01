@@ -147,9 +147,9 @@ locals {
 
   hive_metastore_backend = {
     development = "aurora"
-    qa          = "glue"
+    qa          = "aurora"
     integration = "aurora"
-    preprod     = "glue"
-    production  = "glue"
+    preprod     = "aurora"
+    production  = "aurora"
   }
 }
