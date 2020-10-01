@@ -28,7 +28,7 @@ resource "aws_security_group_rule" "egress_adg" {
   protocol                 = "tcp"
   security_group_id        = aws_security_group.adg_common.id
   to_port                  = 3306
-  type                     = "ingress"
+  type                     = "egress"
   source_security_group_id = aws_security_group.hive_metastore.id
 }
 

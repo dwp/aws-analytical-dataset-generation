@@ -19,7 +19,6 @@ jobs:
       trigger: true
       passed:
       - analytical-dataset-generation-preprod
-      version: { tag: 0.0.15 }
     - get: analytical-dataset-generation-exporter-release
       trigger: true
       passed:
