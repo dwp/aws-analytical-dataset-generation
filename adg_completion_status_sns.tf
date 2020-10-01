@@ -18,7 +18,7 @@ data "aws_iam_policy_document" "sns_topic_policy" {
   policy_id = "AdgCompletionStatusSnsTopicPolicy"
 
   statement {
-    sid = "DefaultPolicy"
+    sid = "AdgSnsPolicy"
 
     actions = [
       "SNS:GetTopicAttributes",
