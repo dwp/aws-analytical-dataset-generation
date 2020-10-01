@@ -2,10 +2,10 @@ resource "aws_sns_topic" "adg_completion_status_sns" {
   name = "adg_completion_status_sns"
 
   tags = merge(
-  local.common_tags,
-  {
-    "Name" = "adg_completion_status_sns"
-  },
+    local.common_tags,
+    {
+      "Name" = "adg_completion_status_sns"
+    },
   )
 }
 
@@ -33,7 +33,7 @@ data "aws_iam_policy_document" "sns_topic_policy" {
     ]
 
     condition {
-      test = "StringEquals"
+      test     = "StringEquals"
       variable = "AWS:SourceOwner"
 
       values = [
@@ -46,7 +46,7 @@ data "aws_iam_policy_document" "sns_topic_policy" {
     principals {
       type = "AWS"
       identifiers = [
-        "*"]
+      "*"]
     }
 
     resources = [
@@ -56,8 +56,5 @@ data "aws_iam_policy_document" "sns_topic_policy" {
 }
 
 output "adg_completion_status_sns_topic" {
-  value = {
-    arn  = aws_sns_topic.adg_completion_status_sns.arn
-    name = aws_sns_topic.adg_completion_status_sns.name
-  }
+  value = aws_sns_topic.adg_completion_status_sns
 }
