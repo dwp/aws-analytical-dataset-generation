@@ -25,6 +25,9 @@ data "aws_iam_policy_document" "sns_topic_policy" {
       "SNS:List*",
       "SNS:Subscribe",
       "SNS:Publish",
+      "SNS:AddPermission",
+      "SNS:RemovePermission",
+      "SNS:Receive",
     ]
 
     condition {
