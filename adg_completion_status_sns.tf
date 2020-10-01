@@ -21,15 +21,10 @@ data "aws_iam_policy_document" "sns_topic_policy" {
     sid = "AdgSnsPolicy"
 
     actions = [
-      "SNS:GetTopicAttributes",
-      "SNS:SetTopicAttributes",
-      "SNS:AddPermission",
-      "SNS:RemovePermission",
-      "SNS:DeleteTopic",
+      "SNS:Get*",
+      "SNS:List*",
       "SNS:Subscribe",
-      "SNS:ListSubscriptionsByTopic",
       "SNS:Publish",
-      "SNS:Receive",
     ]
 
     condition {
