@@ -9,6 +9,7 @@ resource "aws_sns_topic" "adg_completion_status_sns" {
   )
 }
 
+
 output "adg_completion_status_sns_topic" {
   value = aws_sns_topic.adg_completion_status_sns
 }
