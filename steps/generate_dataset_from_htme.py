@@ -2,6 +2,7 @@ import argparse
 import ast
 import base64
 import concurrent.futures
+import csv
 import itertools
 import os
 import re
@@ -10,7 +11,6 @@ import time
 import zlib
 from datetime import datetime
 from itertools import groupby
-import csv
 
 import boto3
 import requests
@@ -76,7 +76,7 @@ def main(spark, s3_client, s3_htme_bucket,
     list_of_processed_collections = list(all_processed_collections)
     if len(list_of_processed_collections) == len(secrets_collections):
         create_hive_tables_on_published(spark, list_of_processed_collections, published_database_name, args, run_id)
-        create_adg_status_csv(args.correlation_id, args.s3_prefix, s3_publish_bucket, s3_client)
+        create_adg_status_csv(args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp)
     else:
         the_logger.error(
             "Not all collections have been processed looks like there is missing data, stopping Spark for correlation id: %s and run id : %s",
@@ -431,14 +431,17 @@ def log_end_of_batch(correlation_id, run_id, status, dynamodb=None):
                          correlation_id, run_id, str(ex))
         sys.exit(-1)
 
-def create_adg_status_csv(correlation_id, s3_prefix, publish_bucket, s3_client):
+
+def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_stamp):
+    file_location = '${file_location}'
     with open("adg_params.csv", "w", newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["correlation_id", "s3_prefix"])
-        writer.writerow([correlation_id, s3_prefix])
-   
+        writer.writerow([correlation_id, f"{file_location}/{run_time_stamp}"])
+
     with open("adg_params.csv", "rb") as data:
         s3_client.upload_fileobj(data, publish_bucket, "${file_location}/adg_output/adg_params.csv")
+
 
 if __name__ == "__main__":
     args = get_parameters()
