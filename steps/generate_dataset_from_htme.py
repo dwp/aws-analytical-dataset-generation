@@ -438,7 +438,7 @@ def create_adg_status_csv(correlation_id, s3_prefix, publish_bucket, s3_client):
         writer.writerow([correlation_id, s3_prefix])
    
     with open("adg_params.csv", "rb") as data:
-        s3_client.upload_fileobj(data, publish_bucket, "analytical-dataset/adg_output/adg_params.csv")
+        s3_client.upload_fileobj(data, publish_bucket, "${file_location}/adg_output/adg_params.csv")
 
 if __name__ == "__main__":
     args = get_parameters()
