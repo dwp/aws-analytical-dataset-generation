@@ -112,7 +112,7 @@ locals {
     qa          = false
     integration = true
     preprod     = false
-    production  = false
+    production  = true
   }
 
   cw_agent_namespace                   = "/app/analytical_dataset_generator"
