@@ -1,6 +1,8 @@
 import argparse
 import ast
 import zlib
+import csv
+import os
 
 import boto3
 import pytest
@@ -96,9 +98,17 @@ def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, 
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
+    with open(f"tests/{ADG_OUTPUT_FILE_KEY}", 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(["correlation_id", "s3_prefix"])
+        writer.writerow([CORRELATION_ID, S3_PREFIX_ADG])
+
+    s3_client.put_object(Body=f'tests/{ADG_PARAM_CSV}', Bucket=S3_PUBLISH_BUCKET,
+                         Key=f'{ADG_OUTPUT_CSV_LOCATION}/{ADG_OUTPUT_FILE_KEY}')
+
     s3_client.put_object(Body=zlib.compress(test_data), Bucket=S3_HTME_BUCKET,
-                         Key=f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}',
-                         Metadata={'iv': '123', 'ciphertext': 'test_ciphertext', 'datakeyencryptionkeyid': '123'})
+                             Key=f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}',
+                             Metadata={'iv': '123', 'ciphertext': 'test_ciphertext', 'datakeyencryptionkeyid': '123'})
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'add_metric', mock_add_metric)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decompress', mock_decompress)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
@@ -113,11 +123,12 @@ def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, 
                0] == target_object_tag
     assert collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
     assert (CORRELATION_ID in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
-                                                     Key=ADG_OUTPUT_FILE_KEY)[
-        'Body'].read().decode().strip())
-    assert (S3_PREFIX_ADG in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
-                                                     Key=ADG_OUTPUT_FILE_KEY)[
-        'Body'].read().decode().strip())
+                                                      Key=ADG_OUTPUT_FILE_KEY)[
+         'Body'].read())
+
+     assert (S3_PREFIX_ADG in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
+                                                      Key=ADG_OUTPUT_FILE_KEY[
+         'Body'].read())
 
 
 @mock_s3
