@@ -39,11 +39,7 @@ Steps:
 - Name: "sns-notification"
   HadoopJarStep:
     Args:
-    - "spark-submit"
-    - "--master"
-    - "yarn"
-    - "--conf"
-    - "spark.yarn.submit.waitAppCompletion=true"
+    - "python3"
     - "/opt/emr/send_notification.py"
     Jar: "command-runner.jar"
   ActionOnFailure: "CONTINUE"
