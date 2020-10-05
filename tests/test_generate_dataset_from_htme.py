@@ -111,10 +111,10 @@ def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, 
     assert s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)['TagSet'][
                0] == target_object_tag
     assert collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
-    assert (CORRELATION_ID in s3_client.get_object(Bucket=s3_publish_bucket_for_multiple_collections,
+    assert (CORRELATION_ID in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
                                                      Key=ADG_OUTPUT_FILE_KEY)[
         'Body'].read().decode().strip())
-    assert (S3_PREFIX_ADG in s3_client.get_object(Bucket=s3_publish_bucket_for_multiple_collections,
+    assert (S3_PREFIX_ADG in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
                                                      Key=ADG_OUTPUT_FILE_KEY)[
         'Body'].read().decode().strip())
 
