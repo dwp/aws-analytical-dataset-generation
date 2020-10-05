@@ -1,6 +1,8 @@
 import argparse
 import ast
 import zlib
+import csv
+import os
 
 import boto3
 import pytest
@@ -31,9 +33,10 @@ PUBLISHED_DATABASE_NAME = "test_db"
 RUN_ID = 1
 CORRELATION_ID = '12345'
 AWS_REGION = 'eu-west-2'
-S3_PREFIX_ADG = f'${file_location}/{RUN_TIME_STAMP}'
-ADG_HIVE_TABLES_METADATA_FILE_LOCATION = '${file_location}/analytical-dataset/adg_output'
+S3_PREFIX_ADG = f'${{file_location}}/{RUN_TIME_STAMP}'
+ADG_OUTPUT_CSV_LOCATION = f'${{file_location}}/analytical-dataset/adg_output'
 ADG_OUTPUT_FILE_KEY = 'adg_param.csv'
+ADG_PARAM_CSV = {'CORRELATION_ID': '12345', 'S3_PREFIX': 'analytical-dataset/10-10-2000_10-10-10'} #'CORRELATION_ID,S3_PREFIX\n12345,analytical-dataset/10-10-2000_10-10-10'#
 
 
 def test_retrieve_secrets(monkeypatch):
@@ -95,9 +98,17 @@ def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, 
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
+    with open(f"tests/{ADG_OUTPUT_FILE_KEY}", 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(["correlation_id", "s3_prefix"])
+        writer.writerow([CORRELATION_ID, S3_PREFIX_ADG])
+
+    s3_client.put_object(Body=f'tests/{ADG_PARAM_CSV}', Bucket=S3_PUBLISH_BUCKET,
+                         Key=f'{ADG_OUTPUT_CSV_LOCATION}/{ADG_OUTPUT_FILE_KEY}')
+
     s3_client.put_object(Body=zlib.compress(test_data), Bucket=S3_HTME_BUCKET,
-                         Key=f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}',
-                         Metadata={'iv': '123', 'ciphertext': 'test_ciphertext', 'datakeyencryptionkeyid': '123'})
+                             Key=f'{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}',
+                             Metadata={'iv': '123', 'ciphertext': 'test_ciphertext', 'datakeyencryptionkeyid': '123'})
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'add_metric', mock_add_metric)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decompress', mock_decompress)
     monkeypatch.setattr(steps.generate_dataset_from_htme, 'decrypt', mock_decrypt)
@@ -111,14 +122,15 @@ def test_consolidate_rdd_per_collection_with_one_collection(spark, monkeypatch, 
     assert s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)['TagSet'][
                0] == target_object_tag
     assert collection_name in [x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)]
-    assert (CORRELATION_ID in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
-                                                     Key=ADG_OUTPUT_FILE_KEY)[
-        'Body'].read().decode().strip())
-    assert (S3_PREFIX_ADG in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
-                                                     Key=ADG_OUTPUT_FILE_KEY)[
-        'Body'].read().decode().strip())
+#     assert (CORRELATION_ID in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
+#                                                      Key=f'{ADG_OUTPUT_CSV_LOCATION/ADG_OUTPUT_FILE_KEY}')[
+#         'Body'].read())#["CORRELATION_ID"].
+#
+#     assert (S3_PREFIX_ADG in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET,
+#                                                      Key=f'{ADG_OUTPUT_CSV_LOCATION/ADG_OUTPUT_FILE_KEY}')[
+#         'Body'].read())#['S3_PREFIX']
 
-
+    #os.remove(f"tests/{ADG_OUTPUT_FILE_KEY}")
 @mock_s3
 def test_consolidate_rdd_per_collection_with_multiple_collections(spark, monkeypatch, handle_server, aws_credentials):
     core_contract_collection_name = "core_contract"
