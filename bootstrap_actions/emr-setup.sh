@@ -76,6 +76,13 @@ trust.store.password=$TRUSTSTORE_PASSWORD
 data.key.service.url=${dks_endpoint}
 EOF
 
+# Install acm cert helper
+export AWS_DEFAULT_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | cut -d'"' -f4)
+acm_cert_helper_repo=acm-pca-cert-generator
+acm_cert_helper_version=0.28.0
+aws s3 cp s3://$ARTEFACT_BUCKET/acm-pca-cert-generator/acm_cert_helper-$acm_cert_helper_version.tar.gz .
+pip install ./acm_cert_helper-$acm_cert_helper_version.tar.gz
+
 log_wrapper_message "Retrieving the ACM Certificate details"
 
 acm-cert-retriever \
