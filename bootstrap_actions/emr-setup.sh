@@ -110,13 +110,6 @@ for F in $(echo $TRUSTSTORE_ALIASES | sed "s/,/ /g"); do
  (sudo cat "$F.crt"; echo) >> analytical_ca.pem;
 done
 
-cat > /tmp/nofile.conf << EOF
-*  soft  nofile 65535
-*  hard  nofile 65535
-EOF
-
-sudo mv /tmp/nofile.conf /etc/security/limits.d/nofile.conf
-
 log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 
 ) >> /var/log/adg/nohup.log 2>&1
