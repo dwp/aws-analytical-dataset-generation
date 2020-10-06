@@ -546,6 +546,11 @@ def log_end_of_batch(correlation_id, run_id, status, dynamodb=None):
 def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_stamp):
     file_location = "${file_location}"
 
+    with open("adg_params.csv", "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["correlation_id", "s3_prefix"])
+        writer.writerow([correlation_id, f"{file_location}/{run_time_stamp}"])
+
     with open("adg_params.csv", "rb") as data:
         s3_client.upload_fileobj(
             data, publish_bucket, f"{file_location}/adg_output/adg_params.csv"
