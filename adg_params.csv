@@ -1,2 +1,2 @@
-correlation_id,s3_prefix
-12345,${file_location}/2020-10-10_10-10-10
+CORRELATION_ID,S3_PREFIX
+abcd,analytical-dataset/2020-10-10

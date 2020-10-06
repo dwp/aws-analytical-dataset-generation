@@ -13,25 +13,29 @@ the_logger = setup_logging(
 )
 
 
-def send_sns_message():
+def send_sns_message(
+    publish_bucket, status_topic_arn, adg_param_key, sns_client=None, s3_client=None
+):
     payload = {}
-    _sns_client = boto3.client(service_name="sns")
+    csv_name = "adg_params.csv"
+    if not sns_client:
+        sns_client = boto3.client(service_name="sns")
+    if not s3_client:
+        s3_client = boto3.client(service_name="s3")
 
-    publish_bucket = "${publish_bucket}"
-    status_topic_arn = "${status_topic_arn}"
-    adg_param_key = "analytical-dataset/adg_output/adg_params.csv"
+    with open(csv_name, "wb") as data:
+        s3_client.download_fileobj(
+            Bucket=publish_bucket, Key=adg_param_key, Fileobj=data
+        )
 
-    s3 = boto3.resource("s3")
-    s3.Bucket(publish_bucket).download_file(adg_param_key, "adg_params.csv")
-
-    with open("adg_params.csv", "r") as file:
+    with open(csv_name, "r") as file:
         reader = csv.reader(file)
         next(reader)
         for row in reader:
             payload = {"CORRELATION_ID": row[0], "S3_PREFIX": row[1]}
     json_message = json.dumps(payload)
 
-    sns_response = _sns_client.publish(TopicArn=status_topic_arn, Message=json_message)
+    sns_response = sns_client.publish(TopicArn=status_topic_arn, Message=json_message)
     the_logger.info(
         "message response", sns_response,
     )
@@ -39,4 +43,7 @@ def send_sns_message():
 
 
 if __name__ == "__main__":
-    send_sns_message()
+    publish_bucket = "${publish_bucket}"
+    status_topic_arn = "${status_topic_arn}"
+    adg_param_key = "analytical-dataset/adg_output/adg_params.csv"
+    send_sns_message(publish_bucket, status_topic_arn, adg_param_key)
