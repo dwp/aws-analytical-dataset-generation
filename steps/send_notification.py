@@ -32,7 +32,7 @@ def send_sns_message(
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            payload = {"CORRELATION_ID": row[0], "S3_PREFIX": row[1]}
+            payload = {"correlation_id": row[0], "s3_prefix": row[1]}
     json_message = json.dumps(payload)
 
     sns_response = sns_client.publish(TopicArn=status_topic_arn, Message=json_message)
