@@ -1,6 +1,7 @@
 import json
 import boto3
 import csv
+import os
 
 from steps.logger import setup_logging
 
@@ -30,11 +31,9 @@ def send_sns_message():
     json_message = json.dumps(payload)
 
     sns_response = _sns_client.publish(TopicArn=status_topic_arn, Message=json_message)
-    message_id = sns_response["MessageId"]
-
     the_logger.info(
-            "message id",
-            message_id,
+            "message response",
+            sns_response,
         )
 
 if __name__ == "__main__":
