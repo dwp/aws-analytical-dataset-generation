@@ -10,7 +10,7 @@ jobs:
       trigger: true
     - get: secrets-management
       trigger: false
-    - get: emr-al2-ami
+    - get: emr-ami
       trigger: true
     - get: manage-mysql-user-release
       trigger: true

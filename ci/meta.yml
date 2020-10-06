@@ -127,7 +127,7 @@ meta:
           args:
             - -exc
             - |
-              export TF_VAR_emr_ami_id=$(cat ../emr-al2-ami/id)
+              export TF_VAR_emr_ami_id=$(cat ../emr-ami/id)
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
@@ -143,7 +143,7 @@ meta:
           - name: emr-launcher-release
           - name: manage-mysql-user-release
           - name: analytical-dataset-generation-exporter-release
-          - name: emr-al2-ami
+          - name: emr-ami
 
     terraform-plan:
       task: terraform-plan
@@ -161,7 +161,7 @@ meta:
           args:
             - -exc
             - |
-              export TF_VAR_emr_ami_id=$(cat ../emr-al2-ami/id)
+              export TF_VAR_emr_ami_id=$(cat ../emr-ami/id)
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
@@ -176,7 +176,7 @@ meta:
           - name: emr-launcher-release
           - name: manage-mysql-user-release
           - name: analytical-dataset-generation-exporter-release
-          - name: emr-al2-ami
+          - name: emr-ami
 
     terraform-output-internal-compute:
       task: terraform-output-internal-compute
