@@ -4,6 +4,12 @@ import csv
 
 from steps.logger import setup_logging
 
+the_logger = setup_logging(
+    log_level=os.environ["ADG_LOG_LEVEL"].upper()
+    if "ADG_LOG_LEVEL" in os.environ
+    else "INFO",
+    log_path="${log_path}",
+)
 
 def send_sns_message():
     payload = {}
@@ -25,8 +31,11 @@ def send_sns_message():
 
     sns_response = _sns_client.publish(TopicArn=status_topic_arn, Message=json_message)
     message_id = sns_response["MessageId"]
-    logger.debug("message id is %s", message_id)
 
+    the_logger.info(
+            "message id",
+            message_id,
+        )
 
 if __name__ == "__main__":
     send_sns_message()
