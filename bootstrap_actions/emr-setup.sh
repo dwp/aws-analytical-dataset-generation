@@ -34,15 +34,12 @@ echo -n "Running as: "
 whoami
 
 export AWS_DEFAULT_REGION=${aws_default_region}
-
-FULL_PROXY="${full_proxy}"
-FULL_NO_PROXY="${full_no_proxy}"
-export http_proxy="$FULL_PROXY"
-export HTTP_PROXY="$FULL_PROXY"
-export https_proxy="$FULL_PROXY"
-export HTTPS_PROXY="$FULL_PROXY"
-export no_proxy="$FULL_NO_PROXY"
-export NO_PROXY="$FULL_NO_PROXY"
+export http_proxy="${http_proxy}"
+export HTTP_PROXY="$http_proxy"
+export https_proxy="$http_proxy"
+export HTTPS_PROXY="$https_proxy"
+export no_proxy="${non_proxied_domains}"
+export NO_PROXY="$no_proxy"
 export ADG_LOG_LEVEL="${ADG_LOG_LEVEL}"
 
 echo "Setup cloudwatch logs"
@@ -81,7 +78,9 @@ export AWS_DEFAULT_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instan
 acm_cert_helper_repo=acm-pca-cert-generator
 acm_cert_helper_version=0.28.0
 aws s3 cp s3://${artefact_bucket}/acm-pca-cert-generator/acm_cert_helper-$acm_cert_helper_version.tar.gz .
-pip install ./acm_cert_helper-$acm_cert_helper_version.tar.gz
+sudo yum install -y python3-devel
+sudo -E pip3 install ./acm_cert_helper-$acm_cert_helper_version.tar.gz
+sudo yum remove -y python3-devel
 
 log_wrapper_message "Retrieving the ACM Certificate details"
 
@@ -97,22 +96,6 @@ acm-cert-retriever \
     --truststore-aliases "${truststore_aliases}" \
     --truststore-certs "${truststore_certs}" \
     --jks-only true >> /var/log/adg/acm-cert-retriever.log 2>&1
-
-
-sudo -E acm-cert-retriever \
-    --acm-cert-arn "${acm_cert_arn}" \
-    --acm-key-passphrase "$ACM_KEY_PASSWORD" \
-    --private-key-alias "${private_key_alias}" \
-    --truststore-aliases "${truststore_aliases}" \
-    --truststore-certs "${truststore_certs}"  >> /var/log/adg/acm-cert-retriever.log 2>&1
-
-cd /etc/pki/ca-trust/source/anchors/
-sudo touch analytical_ca.pem
-sudo chown hadoop:hadoop /etc/pki/tls/private/"${private_key_alias}".key /etc/pki/tls/certs/"${private_key_alias}".crt /etc/pki/ca-trust/source/anchors/analytical_ca.pem
-TRUSTSTORE_ALIASES="${truststore_aliases}"
-for F in $(echo $TRUSTSTORE_ALIASES | sed "s/,/ /g"); do
- (sudo cat "$F.crt"; echo) >> analytical_ca.pem;
-done
 
 log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 
