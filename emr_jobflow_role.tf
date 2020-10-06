@@ -300,3 +300,31 @@ resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_read_htm
   role       = aws_iam_role.analytical_dataset_generator.name
   policy_arn = aws_iam_policy.analytical_dataset_generator_read_htme.arn
 }
+
+
+resource "aws_iam_policy" "analytical_dataset_generator_publish_sns" {
+  name        = "AnalyticalDatasetGeneratorPublishSns"
+  description = "Allow ADG to publish SNS messages"
+  policy      = data.aws_iam_policy_document.adg_sns_topic_policy_for_completion_status.json
+}
+
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_publish_sns" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.analytical_dataset_generator_publish_sns.arn
+}
+
+data "aws_iam_policy_document" "adg_sns_topic_policy_for_completion_status" {
+  statement {
+    sid = "AdgCompletionStatusSns"
+
+    actions = [
+      "SNS:Publish",
+    ]
+
+    effect = "Allow"
+
+    resources = [
+      aws_sns_topic.adg_completion_status_sns.arn,
+    ]
+  }
+}

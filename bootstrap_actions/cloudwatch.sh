@@ -112,6 +112,12 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "log_group_name": "$${cwa_yarnspark_loggrp_name}",
             "log_stream_name": "yarn_nodemanager.log",
             "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/adg_params.log",
+            "log_group_name": "$${cwa_steps_loggrp_name}",
+            "log_stream_name": "adg_params.log",
+            "timezone": "UTC"
           }
         ]
       }

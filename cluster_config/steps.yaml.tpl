@@ -35,4 +35,11 @@ Steps:
     - "spark.yarn.submit.waitAppCompletion=true"
     - "/opt/emr/generate_dataset_from_htme.py"
     Jar: "command-runner.jar"
+  ActionOnFailure: "CANCEL_AND_WAIT"
+- Name: "sns-notification"
+  HadoopJarStep:
+    Args:
+    - "python3"
+    - "/opt/emr/send_notification.py"
+    Jar: "command-runner.jar"
   ActionOnFailure: "CONTINUE"
