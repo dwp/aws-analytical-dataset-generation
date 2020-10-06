@@ -31,7 +31,6 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       cwa_bootstrap_loggrp_name       = aws_cloudwatch_log_group.adg_cw_bootstrap_loggroup.name
       cwa_steps_loggrp_name           = aws_cloudwatch_log_group.adg_cw_steps_loggroup.name
       cwa_yarnspark_loggrp_name       = aws_cloudwatch_log_group.adg_cw_yarnspark_loggroup.name
-      artefact_bucket                 = data.terraform_remote_state.artefact.outputs.artefact_bucket.id
   })
 }
 
@@ -45,10 +44,10 @@ resource "aws_s3_bucket_object" "installer_sh" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/installer.sh"
   content = templatefile("${path.module}/bootstrap_actions/installer.sh",
-  {
-    full_proxy    = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
-    full_no_proxy = local.no_proxy
-  }
+    {
+      full_proxy    = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
+      full_no_proxy = local.no_proxy
+    }
   )
 }
 
@@ -86,8 +85,8 @@ resource "aws_s3_bucket_object" "cloudwatch_sh" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/cloudwatch.sh"
   content = templatefile("${path.module}/bootstrap_actions/cloudwatch.sh",
-  {
-    emr_release = var.emr_release[local.environment]
-  }
+    {
+      emr_release = var.emr_release[local.environment]
+    }
   )
 }
