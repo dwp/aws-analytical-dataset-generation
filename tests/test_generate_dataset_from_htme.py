@@ -1,8 +1,6 @@
 import argparse
 import ast
 import zlib
-import csv
-import os
 
 import boto3
 import pytest
