@@ -12,6 +12,7 @@ the_logger = setup_logging(
     log_path="${log_path}",
 )
 
+
 def send_sns_message():
     payload = {}
     _sns_client = boto3.client(service_name="sns")
@@ -32,9 +33,10 @@ def send_sns_message():
 
     sns_response = _sns_client.publish(TopicArn=status_topic_arn, Message=json_message)
     the_logger.info(
-            "message response",
-            sns_response,
-        )
+        "message response", sns_response,
+    )
+    return sns_response
+
 
 if __name__ == "__main__":
     send_sns_message()
