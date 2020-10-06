@@ -1,6 +1,7 @@
 import json
 import boto3
 import csv
+import os
 
 from steps.logger import setup_logging
 
