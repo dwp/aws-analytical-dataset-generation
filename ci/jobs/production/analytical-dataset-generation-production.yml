@@ -23,7 +23,7 @@ jobs:
       trigger: true
       passed:
       - analytical-dataset-generation-preprod
-    - get: emr-al2-ami
+    - get: emr-ami
       trigger: true
       passed:
       - analytical-dataset-generation-preprod

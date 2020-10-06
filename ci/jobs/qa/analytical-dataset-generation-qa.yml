@@ -15,7 +15,7 @@ jobs:
       trigger: true
     - get: analytical-dataset-generation-exporter-release
       trigger: true
-    - get: emr-al2-ami
+    - get: emr-ami
       trigger: true
   - .: (( inject meta.plan.unit-tests))
   - .: (( inject meta.plan.terraform-bootstrap ))
