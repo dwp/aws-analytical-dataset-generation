@@ -78,7 +78,7 @@ EOF
 
 log_wrapper_message "Retrieving the ACM Certificate details"
 
-acm-cert-retriever \
+/usr/local/bin/acm-cert-retriever \
     --acm-cert-arn "${acm_cert_arn}" \
     --acm-key-passphrase "$ACM_KEY_PASSWORD" \
     --keystore-path "/opt/emr/keystore.jks" \
@@ -92,7 +92,7 @@ acm-cert-retriever \
     --jks-only true >> /var/log/adg/acm-cert-retriever.log 2>&1
 
 
-sudo -E acm-cert-retriever \
+sudo -E /usr/local/bin/acm-cert-retriever \
     --acm-cert-arn "${acm_cert_arn}" \
     --acm-key-passphrase "$ACM_KEY_PASSWORD" \
     --private-key-alias "${private_key_alias}" \
