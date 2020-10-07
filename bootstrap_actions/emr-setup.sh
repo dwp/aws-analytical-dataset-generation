@@ -11,14 +11,16 @@ echo "${ADG_LOG_LEVEL}" > /opt/emr/log_level
 echo "${ENVIRONMENT_NAME}" > /opt/emr/environment
 
 echo "Installing scripts"
-aws s3 cp "${S3_COMMON_LOGGING_SHELL}"   /opt/shared/common_logging.sh
-aws s3 cp "${S3_LOGGING_SHELL}"          /opt/emr/logging.sh
-aws s3 cp "${S3_CLOUDWATCH_SHELL}"       /opt/emr/cloudwatch.sh
+aws s3 cp "${S3_COMMON_LOGGING_SHELL}"        /opt/shared/common_logging.sh
+aws s3 cp "${S3_LOGGING_SHELL}"               /opt/emr/logging.sh
+aws s3 cp "${S3_CLOUDWATCH_SHELL}"            /opt/emr/cloudwatch.sh
+aws s3 cp "${S3_SEND_SNS_NOTIFICATION}"       /opt/emr/send_notification.py
 
 echo "Changing the Permissions"
 chmod u+x /opt/shared/common_logging.sh
 chmod u+x /opt/emr/logging.sh
 chmod u+x /opt/emr/cloudwatch.sh
+chmod u+x /opt/emr/send_notification.py
 
 (
 # Import the logging functions

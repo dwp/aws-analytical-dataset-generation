@@ -72,3 +72,16 @@ resource "aws_s3_bucket_object" "metrics_jar" {
   key        = "component/analytical-dataset-generation/metrics/adg-exporter.jar"
   content    = filebase64("${var.analytical_dataset_generation_exporter_jar.base_path}/exporter-${var.analytical_dataset_generation_exporter_jar.version}.jar")
 }
+
+
+resource "aws_s3_bucket_object" "send_notification_script" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "component/analytical-dataset-generation/send_notification.py"
+  content = templatefile("${path.module}/steps/send_notification.py",
+    {
+      publish_bucket   = aws_s3_bucket.published.id
+      status_topic_arn = aws_sns_topic.adg_completion_status_sns.arn
+      log_path         = "/var/log/adg/adg_params.log"
+    }
+  )
+}
