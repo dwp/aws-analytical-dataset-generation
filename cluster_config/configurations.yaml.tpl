@@ -47,6 +47,7 @@ Configurations:
     "javax.jdo.option.ConnectionDriverName": "org.mariadb.jdbc.Driver"
     "javax.jdo.option.ConnectionUserName": "${hive_metsatore_username}"
     "javax.jdo.option.ConnectionPassword": "${hive_metastore_pwd}"
+    "hive.metastore.client.socket.timeout":"900"
     %{~ endif ~}
 
 - Classification: "hive-site"
