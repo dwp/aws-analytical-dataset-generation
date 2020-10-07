@@ -68,48 +68,27 @@ resource "aws_kms_alias" "hive_metastore_perf_insights" {
   target_key_id = aws_kms_key.hive_metastore_perf_insights.id
 }
 
-resource "aws_kms_key" "hive_metastore_logs" {
-  description             = "Protects Hive Metastore's CloudWatch Logs"
-  enable_key_rotation     = true
-  deletion_window_in_days = 7
-  tags = merge(
-    local.common_tags,
-    {
-      Name                  = "hive-metastore-logs"
-      ProtectsSensitiveData = "false"
-    },
-  )
-}
-
-resource "aws_kms_alias" "hive_metastore_logs" {
-  name          = "alias/hive-metastore-logs"
-  target_key_id = aws_kms_key.hive_metastore_logs.id
-}
-
 resource "aws_cloudwatch_log_group" "hive_metastore_audit" {
   name              = "/aws/rds/instance/hive-metastore/audit"
   retention_in_days = 30
-  kms_key_id        = aws_kms_key.hive_metastore_logs.arn
   tags              = local.common_tags
 }
 
 resource "aws_cloudwatch_log_group" "hive_metastore_general" {
   name              = "/aws/rds/instance/hive-metastore/general"
   retention_in_days = 30
-  kms_key_id        = aws_kms_key.hive_metastore_logs.arn
   tags              = local.common_tags
 }
 
 resource "aws_cloudwatch_log_group" "hive_metastore_slowquery" {
   name              = "/aws/rds/instance/hive-metastore/slowquery"
   retention_in_days = 30
-  kms_key_id        = aws_kms_key.hive_metastore_logs.arn
   tags              = local.common_tags
 }
 
 resource "aws_rds_cluster_parameter_group" "hive_metastore_logs" {
   name        = "hive-metastore-logs"
-  family      = "aurora-mysql-5.7"
+  family      = "aurora-mysql5.7"
   description = "Logging parameters for Hive Metastore"
 
   parameter {
