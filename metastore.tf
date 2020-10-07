@@ -145,8 +145,6 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   engine                          = aws_rds_cluster.hive_metastore.engine
   performance_insights_enabled    = true
   performance_insights_kms_key_id = aws_kms_key.hive_metastore_perf_insights.arn
-  monitoring_interval             = local.hive_metastore_monitoring_interval[local.environment]
-  monitoring_role_arn             = data.terraform_remote_state.common.outputs.rds_enhanced_monitoring_role.arn
   apply_immediately               = true
 }
 
