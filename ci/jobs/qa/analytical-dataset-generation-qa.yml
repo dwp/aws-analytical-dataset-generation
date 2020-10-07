@@ -2,6 +2,8 @@ jobs:
 - name: analytical-dataset-generation-qa
   plan:
   - in_parallel:
+    - put: meta
+      resource: meta-qa
     - get: manage-mysql-user-release
       trigger: true
       params:
@@ -10,6 +12,12 @@ jobs:
     - get: aws-analytical-dataset-generation
       trigger: true
     - get: secrets-management
+      trigger: false
+    - get: aws-dataworks-e2e-framework
+      trigger: false
+    - get: aws-ingestion
+      trigger: false
+    - get: aws-internal-compute
       trigger: false
     - get: emr-launcher-release
       trigger: true
@@ -25,6 +33,14 @@ jobs:
   - .: (( inject meta.plan.terraform-apply ))
     params:
       TF_WORKSPACE: qa
+  - .: (( inject meta.plan.terraform-output-internal-compute ))
+  - .: (( inject meta.plan.terraform-output-ingest ))
+  - .: (( inject meta.plan.terraform-output-adg ))
+  - .: (( inject meta.plan.e2e-tests))
+    config:
+      params:
+        AWS_ACC: ((aws_account.qa))
+        AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
   - .: (( inject meta.plan.rotate-mysql-master-password ))
     params:
       TF_WORKSPACE: qa
