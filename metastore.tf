@@ -143,8 +143,8 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   db_subnet_group_name            = aws_rds_cluster.hive_metastore.db_subnet_group_name
   tags                            = merge(local.common_tags, { Name = "hive-metastore" })
   engine                          = aws_rds_cluster.hive_metastore.engine
-  performance_insights_enabled    = true
-  performance_insights_kms_key_id = aws_kms_key.hive_metastore_perf_insights.arn
+  performance_insights_enabled    = local.hive_metastore_enable_perf_insights[local.environment]
+  performance_insights_kms_key_id = local.hive_metastore_enable_perf_insights[local.environment] ? aws_kms_key.hive_metastore_perf_insights.arn : ""
   apply_immediately               = true
 }
 
