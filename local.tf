@@ -132,7 +132,7 @@ locals {
     qa          = "db.t3.medium"
     integration = "db.t3.medium"
     preprod     = "db.t3.medium"
-    production  = "db.t3.medium"
+    production  = "db.r5.large"
   }
 
   hive_metastore_instance_count = {
@@ -159,5 +159,13 @@ locals {
     integration = 0
     preprod     = 0
     production  = 0
+  }
+
+   hive_metastore_enable_perf_insights = {
+    development = false
+    qa          = false
+    integration = false
+    preprod     = false
+    production  = true
   }
 }
