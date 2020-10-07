@@ -152,4 +152,12 @@ locals {
     preprod     = "aurora"
     production  = "aurora"
   }
+
+  hive_metastore_monitoring_interval = {
+    development = 0
+    qa          = 0
+    integration = 0
+    preprod     = 0
+    production  = 0
+  }
 }

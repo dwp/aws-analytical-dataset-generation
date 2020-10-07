@@ -50,26 +50,130 @@ resource "aws_kms_alias" "hive_metastore" {
   target_key_id = aws_kms_key.hive_metastore.id
 }
 
+resource "aws_kms_key" "hive_metastore_perf_insights" {
+  description             = "Protects Hive Metastore's Performance Insights"
+  enable_key_rotation     = true
+  deletion_window_in_days = 7
+  tags = merge(
+    local.common_tags,
+    {
+      Name                  = "hive-metastore-perf-insights"
+      ProtectsSensitiveData = "false"
+    },
+  )
+}
+
+resource "aws_kms_alias" "hive_metastore_perf_insights" {
+  name          = "alias/hive-metastore-perf-insights"
+  target_key_id = aws_kms_key.hive_metastore_perf_insights.id
+}
+
+resource "aws_kms_key" "hive_metastore_logs" {
+  description             = "Protects Hive Metastore's CloudWatch Logs"
+  enable_key_rotation     = true
+  deletion_window_in_days = 7
+  tags = merge(
+    local.common_tags,
+    {
+      Name                  = "hive-metastore-logs"
+      ProtectsSensitiveData = "false"
+    },
+  )
+}
+
+resource "aws_kms_alias" "hive_metastore_logs" {
+  name          = "alias/hive-metastore-logs"
+  target_key_id = aws_kms_key.hive_metastore_logs.id
+}
+
+resource "aws_cloudwatch_log_group" "hive_metastore_audit" {
+  name              = "/aws/rds/instance/hive-metastore/audit"
+  retention_in_days = 30
+  kms_key_id        = aws_kms_key.hive_metastore_logs.arn
+  tags              = local.common_tags
+}
+
+resource "aws_cloudwatch_log_group" "hive_metastore_general" {
+  name              = "/aws/rds/instance/hive-metastore/general"
+  retention_in_days = 30
+  kms_key_id        = aws_kms_key.hive_metastore_logs.arn
+  tags              = local.common_tags
+}
+
+resource "aws_cloudwatch_log_group" "hive_metastore_slowquery" {
+  name              = "/aws/rds/instance/hive-metastore/slowquery"
+  retention_in_days = 30
+  kms_key_id        = aws_kms_key.hive_metastore_logs.arn
+  tags              = local.common_tags
+}
+
+resource "aws_rds_cluster_parameter_group" "hive_metastore_logs" {
+  name        = "hive-metastore-logs"
+  family      = "aurora-mysql-5.7"
+  description = "Logging parameters for Hive Metastore"
+
+  parameter {
+    name  = "log_output"
+    value = "FILE"
+  }
+
+  parameter {
+    name  = "general_log"
+    value = "1"
+  }
+
+  parameter {
+    name  = "slow_query_log"
+    value = "1"
+  }
+}
+
+data "aws_iam_policy_document" "rds_em_assume_role" {
+  statement {
+    sid     = "RDSEMAssumeRole"
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      identifiers = ["monitoring.rds.amazonaws.com"]
+      type        = "Service"
+    }
+  }
+}
+
+resource "aws_iam_role" "rds_enhanced_monitoring" {
+  name               = "rds_enhanced_monitoring"
+  assume_role_policy = data.aws_iam_policy_document.rds_em_assume_role.json
+  tags               = local.common_tags
+}
+
+resource "aws_iam_role_policy_attachment" "rds_enhanced_monitoring" {
+  role       = aws_iam_role.rds_enhanced_monitoring.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+}
+
 resource "random_id" "password_salt" {
   byte_length = 16
 }
-// TODO: Convert username/password to secrets after the spike
+
 resource "aws_rds_cluster" "hive_metastore" {
-  cluster_identifier      = "hive-metastore"
-  engine                  = "aurora-mysql"
-  engine_version          = local.emr_engine_version[local.environment]
-  engine_mode             = "provisioned"
-  availability_zones      = data.aws_availability_zones.available.names
-  db_subnet_group_name    = aws_db_subnet_group.internal_compute.name
-  database_name           = "hive_metastore"
-  master_username         = var.metadata_store_master_username
-  master_password         = "password_already_rotated_${substr(random_id.password_salt.hex, 0, 16)}"
-  backup_retention_period = 7
-  vpc_security_group_ids  = [aws_security_group.hive_metastore.id]
-  storage_encrypted       = true
-  kms_key_id              = aws_kms_key.hive_metastore.arn
-  tags                    = merge(local.common_tags, { Name = "hive-metastore" })
-  apply_immediately       = true
+  cluster_identifier              = "hive-metastore"
+  engine                          = "aurora-mysql"
+  engine_version                  = local.emr_engine_version[local.environment]
+  engine_mode                     = "provisioned"
+  availability_zones              = data.aws_availability_zones.available.names
+  db_subnet_group_name            = aws_db_subnet_group.internal_compute.name
+  database_name                   = "hive_metastore"
+  master_username                 = var.metadata_store_master_username
+  master_password                 = "password_already_rotated_${substr(random_id.password_salt.hex, 0, 16)}"
+  backup_retention_period         = 7
+  vpc_security_group_ids          = [aws_security_group.hive_metastore.id]
+  storage_encrypted               = true
+  kms_key_id                      = aws_kms_key.hive_metastore.arn
+  enabled_cloudwatch_logs_exports = ["audit", "general", "slowquery"]
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.hive_metastore_logs.name
+  apply_immediately               = true
+  tags                            = merge(local.common_tags, { Name = "hive-metastore" })
 
   lifecycle {
     ignore_changes = [master_password]
@@ -77,14 +181,18 @@ resource "aws_rds_cluster" "hive_metastore" {
 }
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
-  count                = local.hive_metastore_instance_count[local.environment]
-  identifier           = "hive-metastore-${count.index}"
-  cluster_identifier   = aws_rds_cluster.hive_metastore.id
-  instance_class       = local.hive_metastore_instance_type[local.environment]
-  db_subnet_group_name = aws_rds_cluster.hive_metastore.db_subnet_group_name
-  tags                 = merge(local.common_tags, { Name = "hive-metastore" })
-  engine               = aws_rds_cluster.hive_metastore.engine
-  apply_immediately    = true
+  count                           = local.hive_metastore_instance_count[local.environment]
+  identifier                      = "hive-metastore-${count.index}"
+  cluster_identifier              = aws_rds_cluster.hive_metastore.id
+  instance_class                  = local.hive_metastore_instance_type[local.environment]
+  db_subnet_group_name            = aws_rds_cluster.hive_metastore.db_subnet_group_name
+  tags                            = merge(local.common_tags, { Name = "hive-metastore" })
+  engine                          = aws_rds_cluster.hive_metastore.engine
+  performance_insights_enabled    = true
+  performance_insights_kms_key_id = aws_kms_key.hive_metastore_perf_insights.arn
+  monitoring_interval             = local.hive_metastore_monitoring_interval[local.environment]
+  monitoring_role_arn             = aws_iam_role.rds_enhanced_monitoring.arn
+  apply_immediately               = true
 }
 
 resource "aws_secretsmanager_secret" "metadata_store_master" {
