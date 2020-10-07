@@ -128,30 +128,6 @@ resource "aws_rds_cluster_parameter_group" "hive_metastore_logs" {
   }
 }
 
-data "aws_iam_policy_document" "rds_em_assume_role" {
-  statement {
-    sid     = "RDSEMAssumeRole"
-    effect  = "Allow"
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      identifiers = ["monitoring.rds.amazonaws.com"]
-      type        = "Service"
-    }
-  }
-}
-
-resource "aws_iam_role" "rds_enhanced_monitoring" {
-  name               = "rds_enhanced_monitoring"
-  assume_role_policy = data.aws_iam_policy_document.rds_em_assume_role.json
-  tags               = local.common_tags
-}
-
-resource "aws_iam_role_policy_attachment" "rds_enhanced_monitoring" {
-  role       = aws_iam_role.rds_enhanced_monitoring.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
-}
-
 resource "random_id" "password_salt" {
   byte_length = 16
 }
@@ -191,7 +167,7 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   performance_insights_enabled    = true
   performance_insights_kms_key_id = aws_kms_key.hive_metastore_perf_insights.arn
   monitoring_interval             = local.hive_metastore_monitoring_interval[local.environment]
-  monitoring_role_arn             = aws_iam_role.rds_enhanced_monitoring.arn
+  monitoring_role_arn             = data.terraform_remote_state.common.outputs.rds_enhanced_monitoring_role.arn
   apply_immediately               = true
 }
 
