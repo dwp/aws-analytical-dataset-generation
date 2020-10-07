@@ -92,11 +92,6 @@ resource "aws_rds_cluster_parameter_group" "hive_metastore_logs" {
   description = "Logging parameters for Hive Metastore"
 
   parameter {
-    name  = "log_output"
-    value = "FILE"
-  }
-
-  parameter {
     name  = "general_log"
     value = "1"
   }
