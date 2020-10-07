@@ -110,9 +110,9 @@ locals {
   keep_cluster_alive = {
     development = true
     qa          = false
-    integration = true
+    integration = false
     preprod     = false
-    production  = true
+    production  = false
   }
 
   cw_agent_namespace                   = "/app/analytical_dataset_generator"
