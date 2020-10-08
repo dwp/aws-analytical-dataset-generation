@@ -129,7 +129,7 @@ locals {
   published_bucket_non_pii_prefix = "runmetadata"
   hive_metastore_instance_type = {
     development = "db.t3.medium"
-    qa          = "db.t3.medium"
+    qa          = "db.r5.large"
     integration = "db.t3.medium"
     preprod     = "db.t3.medium"
     production  = "db.r5.large"
@@ -161,9 +161,9 @@ locals {
     production  = 0
   }
 
-   hive_metastore_enable_perf_insights = {
+  hive_metastore_enable_perf_insights = {
     development = false
-    qa          = false
+    qa          = true
     integration = false
     preprod     = false
     production  = true
