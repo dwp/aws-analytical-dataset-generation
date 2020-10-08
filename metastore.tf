@@ -141,7 +141,7 @@ resource "aws_rds_cluster" "hive_metastore" {
   vpc_security_group_ids          = [aws_security_group.hive_metastore.id]
   storage_encrypted               = true
   kms_key_id                      = aws_kms_key.hive_metastore.arn
-  enabled_cloudwatch_logs_exports = ["audit", "general", "slowquery"]
+  enabled_cloudwatch_logs_exports = ["audit", "error", "general", "slowquery"]
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.hive_metastore_logs.name
   apply_immediately               = true
   tags                            = merge(local.common_tags, { Name = "hive-metastore" })
