@@ -68,20 +68,26 @@ resource "aws_kms_alias" "hive_metastore_perf_insights" {
   target_key_id = aws_kms_key.hive_metastore_perf_insights.id
 }
 
+resource "aws_cloudwatch_log_group" "hive_metastore_error" {
+  name              = "/aws/rds/cluster/hive-metastore/error"
+  retention_in_days = 30
+  tags              = local.common_tags
+}
+
 resource "aws_cloudwatch_log_group" "hive_metastore_audit" {
-  name              = "/aws/rds/instance/hive-metastore/audit"
+  name              = "/aws/rds/cluster/hive-metastore/audit"
   retention_in_days = 30
   tags              = local.common_tags
 }
 
 resource "aws_cloudwatch_log_group" "hive_metastore_general" {
-  name              = "/aws/rds/instance/hive-metastore/general"
+  name              = "/aws/rds/cluster/hive-metastore/general"
   retention_in_days = 30
   tags              = local.common_tags
 }
 
 resource "aws_cloudwatch_log_group" "hive_metastore_slowquery" {
-  name              = "/aws/rds/instance/hive-metastore/slowquery"
+  name              = "/aws/rds/cluster/hive-metastore/slowquery"
   retention_in_days = 30
   tags              = local.common_tags
 }
@@ -99,6 +105,21 @@ resource "aws_rds_cluster_parameter_group" "hive_metastore_logs" {
   parameter {
     name  = "slow_query_log"
     value = "1"
+  }
+
+  parameter {
+      name = "server_audit_logging"
+      value = "ON"
+  }
+
+  parameter {
+      name = "server_audit_events"
+      value = "CONNECT,QUERY"
+  }
+
+  parameter {
+      name = "server_audit_logs_upload"
+      value = "1"
   }
 }
 
