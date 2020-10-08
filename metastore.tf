@@ -108,18 +108,18 @@ resource "aws_rds_cluster_parameter_group" "hive_metastore_logs" {
   }
 
   parameter {
-      name = "server_audit_logging"
-      value = "ON"
+    name  = "server_audit_logging"
+    value = "1"
   }
 
   parameter {
-      name = "server_audit_events"
-      value = "CONNECT,QUERY"
+    name  = "server_audit_events"
+    value = "connect,query"
   }
 
   parameter {
-      name = "server_audit_logs_upload"
-      value = "1"
+    name  = "server_audit_logs_upload"
+    value = "1"
   }
 }
 
@@ -149,6 +149,8 @@ resource "aws_rds_cluster" "hive_metastore" {
   lifecycle {
     ignore_changes = [master_password]
   }
+
+  depends_on = [aws_cloudwatch_log_group.hive_metastore_error, aws_cloudwatch_log_group.hive_metastore_audit, aws_cloudwatch_log_group.hive_metastore_general, aws_cloudwatch_log_group.hive_metastore_slowquery]
 }
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
