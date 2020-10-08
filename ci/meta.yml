@@ -359,6 +359,7 @@ meta:
               "../../../terraform-output-adg/outputs.json"
         inputs:
           - name: aws-dataworks-e2e-framework
+          - name: aws-analytical-dataset-generation
           - name: meta
           - name: terraform-output-ingest
           - name: terraform-output-internal-compute
