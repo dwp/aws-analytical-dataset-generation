@@ -2,12 +2,26 @@ jobs:
 - name: analytical-dataset-generation-integration
   plan:
   - in_parallel:
+    - put: meta
+      resource: meta-integration
     - get: manage-mysql-user-release
       trigger: true
       params:
         globs:
           - "*.zip"
     - get: secrets-management
+      trigger: false
+      passed:
+        - analytical-dataset-generation-qa
+    - get: aws-dataworks-e2e-framework
+      trigger: false
+      passed:
+        - analytical-dataset-generation-qa
+    - get: aws-ingestion
+      trigger: false
+      passed:
+        - analytical-dataset-generation-qa
+    - get: aws-internal-compute
       trigger: false
       passed:
         - analytical-dataset-generation-qa
@@ -41,7 +55,30 @@ jobs:
       AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
       inputs:
         - name: secrets-management
-
   - .: (( inject meta.plan.terraform-plan ))
     params:
       TF_WORKSPACE: integration
+  - .: (( inject meta.plan.terraform-output-internal-compute ))
+    config:
+      params:
+        TF_WORKSPACE: integration
+        AWS_ACC: ((aws_account.integration))
+        AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
+  - .: (( inject meta.plan.terraform-output-ingest ))
+    config:
+      params:
+        TF_WORKSPACE: integration
+        AWS_ACC: ((aws_account.integration))
+        AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
+  - .: (( inject meta.plan.terraform-output-adg ))
+    config:
+      params:
+        TF_WORKSPACE: integration
+        AWS_ACC: ((aws_account.integration))
+        AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
+  - .: (( inject meta.plan.e2e-tests))
+    config:
+      params:
+        TF_WORKSPACE: integration
+        AWS_ACC: ((aws_account.integration))
+        AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci

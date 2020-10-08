@@ -226,6 +226,33 @@ meta:
         outputs:
           - name: terraform-output-ingest
 
+    terraform-output-adg:
+      task: terraform-output-adg
+      .: (( inject meta.plan.terraform-common-config ))
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.terraform_repository))
+            tag: ((dataworks.terraform_version))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              cp ../terraform-config/terraform.tf .
+              cp ../terraform-config/terraform.tfvars .
+              terraform workspace show
+              terraform init
+              terraform output --json > ../terraform-output-adg/outputs.json
+          dir: aws-analytical-dataset-generation
+        inputs:
+          - name: aws-analytical-dataset-generation
+          - name: terraform-config
+        outputs:
+          - name: terraform-output-adg
+
     terraform-output-management-infra:
       task: terraform-output-management-infra
       .: (( inject meta.plan.terraform-common-config ))
@@ -302,6 +329,44 @@ meta:
               pytest -vs tests
         inputs:
           - name: aws-analytical-dataset-generation
+
+    e2e-tests:
+      task: e2e-tests
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.docker_python_boto_behave_repository))
+            version: 0.0.24
+            tag: 0.0.24
+        params:
+          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+          NUMBER_OF_TOPICS_TO_USE: "3"
+          E2E_TEST_TIMEOUT: 300
+          E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation"
+          ASSUME_DURATION: 3600
+        run:
+          path: sh
+          dir: aws-dataworks-e2e-framework
+          args:
+            - -exc
+            - |
+              cd src/runners
+              ./run-ci.sh \
+              "../../../meta" \
+              "../../../terraform-output-ingest/outputs.json" \
+              "../../../terraform-output-internal-compute/outputs.json" \
+              "" \
+              "" \
+              "../../../terraform-output-adg/outputs.json"
+        inputs:
+          - name: aws-dataworks-e2e-framework
+          - name: aws-analytical-dataset-generation
+          - name: meta
+          - name: terraform-output-ingest
+          - name: terraform-output-internal-compute
+          - name: terraform-output-adg
 
     start-cluster:
       task: start-cluster
