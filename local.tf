@@ -110,9 +110,9 @@ locals {
   keep_cluster_alive = {
     development = true
     qa          = false
-    integration = true
+    integration = false
     preprod     = false
-    production  = true
+    production  = false
   }
 
   cw_agent_namespace                   = "/app/analytical_dataset_generator"
@@ -129,10 +129,10 @@ locals {
   published_bucket_non_pii_prefix = "runmetadata"
   hive_metastore_instance_type = {
     development = "db.t3.medium"
-    qa          = "db.t3.medium"
+    qa          = "db.r5.large"
     integration = "db.t3.medium"
     preprod     = "db.t3.medium"
-    production  = "db.t3.medium"
+    production  = "db.r5.large"
   }
 
   hive_metastore_instance_count = {
@@ -151,5 +151,21 @@ locals {
     integration = "aurora"
     preprod     = "aurora"
     production  = "aurora"
+  }
+
+  hive_metastore_monitoring_interval = {
+    development = 0
+    qa          = 0
+    integration = 0
+    preprod     = 0
+    production  = 0
+  }
+
+  hive_metastore_enable_perf_insights = {
+    development = false
+    qa          = true
+    integration = false
+    preprod     = false
+    production  = true
   }
 }
