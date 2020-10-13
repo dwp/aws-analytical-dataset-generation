@@ -436,7 +436,7 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
     resources = [
       "${aws_s3_bucket.published.arn}/pdm-dataset/*",
       "${aws_s3_bucket.published.arn}/aws-analytical-env-metrics-data/*",
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn
+      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
     ]
 
   }
