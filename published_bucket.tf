@@ -475,6 +475,7 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
 
     resources = [
       aws_s3_bucket.published.arn,
+      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
     ]
   }
 
