@@ -407,3 +407,114 @@ resource "aws_iam_policy" "analytical_dataset_generator_read_write_non_pii" {
   description = "Allow read writing of non-pii data"
   policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_write_non_pii.json
 }
+
+# policy for s3 read access of both non-pii and pii PDM data
+
+data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      aws_s3_bucket.published.arn,
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:Get*",
+      "s3:List*",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.published.arn}/analytical-dataset/*",
+      "${aws_s3_bucket.published.arn}/aws-analytical-env-metrics-data/*"
+    ]
+
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+    ]
+
+    resources = [
+      "${aws_kms_key.published_bucket_cmk.arn}",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "pdm_read_pii_and_non_pii" {
+  name        = "PDMReadOnlyNonPii"
+  description = "Allow read access to the PDM tables"
+  policy      = data.aws_iam_policy_document.pdm_read_pii_and_non_pii.json
+}
+
+# policy for s3 read access of non-pii PDM data only
+
+data "aws_iam_policy_document" "pdm_read_non_pii_only" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      aws_s3_bucket.published.arn,
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:Get*",
+      "s3:List*",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.published.arn}/analytical-dataset/*",
+      "${aws_s3_bucket.published.arn}/aws-analytical-env-metrics-data/*"
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "s3:ExistingObjectTag/pii"
+
+      values = [
+        "false"
+      ]
+    }
+
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+    ]
+
+    resources = [
+      "${aws_kms_key.published_bucket_cmk.arn}",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "pdm_read_non_pii_only" {
+  name        = "PDMReadOnlyNonPii"
+  description = "Allow read access to a subset of the PDM tables containing less sensitive data called non-pii"
+  policy      = data.aws_iam_policy_document.pdm_read_non_pii_only.json
+}
