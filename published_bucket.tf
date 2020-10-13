@@ -450,6 +450,7 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
 
     resources = [
       "${aws_kms_key.published_bucket_cmk.arn}",
+      data.terraform_remote_state.common.outputs.published_bucket_non_pii_cmk.arn,
     ]
   }
 }
@@ -511,6 +512,7 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
 
     resources = [
       "${aws_kms_key.published_bucket_cmk.arn}",
+      data.terraform_remote_state.common.outputs.published_bucket_non_pii_cmk.arn,
     ]
   }
 }
