@@ -514,7 +514,7 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
 }
 
 resource "aws_iam_policy" "pdm_read_non_pii_only" {
-  name        = "PDMReadNonPiiOnly"
+  name        = "ReadPDMNonPiiOnly"
   description = "Allow read access to a subset of the PDM tables containing less sensitive data called non-pii"
   policy      = data.aws_iam_policy_document.pdm_read_non_pii_only.json
 }
