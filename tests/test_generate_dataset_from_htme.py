@@ -104,9 +104,11 @@ def test_get_collections_in_secrets():
 def test_consolidate_rdd_per_collection_with_one_collection(
     spark, monkeypatch, handle_server, aws_credentials
 ):
-    collection_name = "core_contract"
+    tbl_name = "core_contract"
+    collection_location = "core"
+    collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
-    target_object_key = f"${{file_location}}/{RUN_TIME_STAMP}/{collection_name}/{collection_name}.json/part-00000"
+    target_object_key = f"${{file_location}}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
     target_object_tag = {"Key": "collection_tag", "Value": "crown"}
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -154,7 +156,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         ][0]
         == target_object_tag
     )
-    assert collection_name in [
+    assert tbl_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
     ]
     assert (
@@ -174,7 +176,6 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         .read()
         .decode()
     )
-
 
 def test_consolidate_rdd_per_collection_with_multiple_collections(
     spark, monkeypatch, handle_server, aws_credentials
