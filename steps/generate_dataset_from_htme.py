@@ -381,6 +381,7 @@ def get_collection(collection_name):
     return (
         collection_name.replace("db.", "", 1)
         .replace(".", "/")
+        .replace("-", "_")
         .lower()
     )
 
