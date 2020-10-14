@@ -223,10 +223,10 @@ def consolidate_rdd_per_collection(
                 args.correlation_id,
                 run_id,
             )
-            json_location_prefix = "${file_location}/%s/%s/%s" % (
+            json_location_prefix = "${file_location}/%s/%s" % (
                 run_time_stamp,
                 get_collection(collection_name),
-                get_collection(collection_name) + ".json",
+              # get_collection(collection_name) + ".json",
             )
             json_location = "s3://%s/%s" % (s3_publish_bucket, json_location_prefix)
             persist_json(json_location, consolidated_rdd_mapped)
@@ -381,8 +381,7 @@ def persist_json(json_location, values):
 def get_collection(collection_name):
     return (
         collection_name.replace("db.", "", 1)
-        .replace(".", "_")
-        .replace("-", "_")
+        .replace(".", "/")
         .lower()
     )
 
@@ -416,6 +415,7 @@ def create_hive_tables_on_published(
             spark.sql(create_db_query)
         for (collection_name, collection_json_location) in all_processed_collections:
             hive_table_name = get_collection(collection_name)
+            hive_table_name = hive_table_name.replace("/", "_")
             src_hive_table = published_database_name + "." + hive_table_name
             the_logger.info(
                 "Creating Hive table for : %s for correlation id : %s and run id: %s",
@@ -429,7 +429,7 @@ def create_hive_tables_on_published(
             spark.sql(src_hive_create_query)
     except BaseException as ex:
         the_logger.error(
-            "Problem with creating Hive tables for correlation id: %s and run id: %s %s",
+            "Problem with creating Hive tables for correlation id: %s and run id: %s %s ",
             args.correlation_id,
             run_id,
             str(ex),
