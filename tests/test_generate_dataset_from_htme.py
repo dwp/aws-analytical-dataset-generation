@@ -150,12 +150,12 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         .strip()
         == test_data.decode()
     )
-    # assert (
-    #     s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)[
-    #         "TagSet"
-    #     ][0]
-    #     == target_object_tag
-    # )
+    assert (
+        s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)[
+            "TagSet"
+        ][0]
+        == target_object_tag
+    )
     assert tbl_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
     ]
