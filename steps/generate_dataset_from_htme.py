@@ -223,10 +223,13 @@ def consolidate_rdd_per_collection(
                 args.correlation_id,
                 run_id,
             )
+            collection_name_key = get_collection(collection_name)
+            collection_name_key = collection_name_key.replace("_", "-")
             json_location_prefix = "${file_location}/%s/%s" % (
                 run_time_stamp,
-                get_collection(collection_name),
+                collection_name_key,
             )
+           
             json_location = "s3://%s/%s" % (s3_publish_bucket, json_location_prefix)
             persist_json(json_location, consolidated_rdd_mapped)
             the_logger.info(
