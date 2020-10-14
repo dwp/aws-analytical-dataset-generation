@@ -108,7 +108,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
     collection_location = "core"
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
-    target_object_key = f"${{file_location}}/{RUN_TIME_STAMP}/{collection_name}/{collection_name}/part-00000"
+    target_object_key = f"${{file_location}}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
     target_object_tag = {"Key": "collection_tag", "Value": "crown"}
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)

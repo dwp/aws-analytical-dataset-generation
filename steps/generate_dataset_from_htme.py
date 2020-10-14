@@ -226,7 +226,6 @@ def consolidate_rdd_per_collection(
             json_location_prefix = "${file_location}/%s/%s" % (
                 run_time_stamp,
                 get_collection(collection_name),
-              # get_collection(collection_name) + ".json",
             )
             json_location = "s3://%s/%s" % (s3_publish_bucket, json_location_prefix)
             persist_json(json_location, consolidated_rdd_mapped)
