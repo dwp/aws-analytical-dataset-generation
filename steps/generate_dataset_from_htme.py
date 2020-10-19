@@ -195,9 +195,7 @@ def consolidate_rdd_per_collection(
                 encrypted = read_binary(
                     spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
                 )
-                add_filesize_metric(
-                    collection_name, s3_client, s3_htme_bucket, collection_file_key
-                )
+            
                 metadata = get_metadatafor_key(
                     collection_file_key, s3_client, s3_htme_bucket
                 )
@@ -247,7 +245,7 @@ def consolidate_rdd_per_collection(
         )
         end_time = time.perf_counter()
         total_time = round(end_time - start_time)
-        add_metric("processing_times.csv", collection_name, str(total_time))
+        
         the_logger.info(
             "Completed Processing of collection : %s for correlation id : %s and run id : %s",
             collection_name,
@@ -441,35 +439,12 @@ def create_hive_tables_on_published(
         sys.exit(-1)
 
 
-def add_filesize_metric(
-    collection_name, s3_client, s3_htme_bucket, collection_file_key
-):
-    metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
-    add_metric(
-        "collection_size.csv",
-        collection_name,
-        metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"],
-    )
 
-
-def add_metric(metrics_file, collection_name, value):
-    metrics_path = f"/opt/emr/metrics/{metrics_file}"
-    if not os.path.exists(metrics_path):
-        os.mknod(metrics_path)
-    with open(metrics_path, "r") as f:
-        lines = f.readlines()
-    with open(metrics_path, "w") as f:
-        for line in lines:
-            if not line.startswith(get_collection(collection_name)):
-                f.write(line)
-        f.write(get_collection(collection_name) + "," + value + "\n")
 
 
 def get_spark_session():
     spark = (
         SparkSession.builder.master("yarn")
-        .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
-        .config("spark.metrics.namespace", "adg")
         .appName("spike")
         .enableHiveSupport()
         .getOrCreate()
@@ -592,4 +567,4 @@ if __name__ == "__main__":
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
-    add_metric("processing_times.csv", "all_collections", str(total_time))
+
