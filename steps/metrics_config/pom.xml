@@ -5,13 +5,6 @@
     <groupId>company</groupId>
     <artifactId>helloworld</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <repositories>
-        <repository>
-            <id>banzaicloud</id>
-            <name>banzaicloud</name>
-            <url>https://raw.github.com/banzaicloud/spark-metrics/master/maven-repo/releases</url>
-        </repository>
-    </repositories>
     <build>
         <plugins>
             <plugin>
@@ -46,11 +39,13 @@
         </plugins>
     </build>
     <dependencies>
-        <dependency>
+      <!-- https://mvnrepository.com/artifact/com.banzaicloud/spark-metrics -->
+       <dependency>
             <groupId>com.banzaicloud</groupId>
-            <artifactId>spark-metrics_2.11</artifactId>
-            <version>2.3-2.0.4</version>
+            <artifactId>spark-metrics_2.12</artifactId>
+            <version>2.4-1.0.6</version>
         </dependency>
+
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient</artifactId>
