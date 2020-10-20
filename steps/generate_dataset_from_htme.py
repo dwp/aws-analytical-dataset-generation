@@ -117,7 +117,7 @@ def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
     filtered_list = []
     for collection_dict in list_of_dicts:
         for collection_name, collection_files_keys in collection_dict.items():
-            if collection_name.lower() in secrets_collections:
+            if collection_name in secrets_collections:
                 filtered_list.append(collection_dict)
             else:
                 the_logger.warning(
@@ -188,7 +188,7 @@ def consolidate_rdd_per_collection(
                 args.correlation_id,
                 run_id,
             )
-            tag_value = secrets_collections[collection_name.lower()]
+            tag_value = secrets_collections[collection_name]
             start_time = time.perf_counter()
             rdd_list = []
             for collection_file_key in collection_files_keys:
@@ -229,7 +229,7 @@ def consolidate_rdd_per_collection(
                 run_time_stamp,
                 collection_name_key,
             )
-           
+
             json_location = "s3://%s/%s" % (s3_publish_bucket, json_location_prefix)
             persist_json(json_location, consolidated_rdd_mapped)
             the_logger.info(
@@ -385,14 +385,13 @@ def get_collection(collection_name):
         collection_name.replace("db.", "", 1)
         .replace(".", "/")
         .replace("-", "_")
-        .lower()
     )
 
 
 def get_collections(secrets_response, args):
     try:
         collections = secrets_response["collections_all"]
-        collections = {k.lower(): v.lower() for k, v in collections.items()}
+        collections = {k: v for k, v in collections.items()}
     except BaseException as ex:
         the_logger.error(
             "Problem with collections list for correlation id : %s %s",
