@@ -127,7 +127,7 @@ variable "metadata_store_pdm_writer_username" {
 
 variable "metadata_store_analytical_env_username" {
   description = "Username for metadata store writer Analytical Environment user"
-  default     = "aws-analytical-env"
+  default     = "analytical-env"
 }
 
 variable "htme_data_location" {
