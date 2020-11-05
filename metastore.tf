@@ -68,20 +68,26 @@ resource "aws_kms_alias" "hive_metastore_perf_insights" {
   target_key_id = aws_kms_key.hive_metastore_perf_insights.id
 }
 
+resource "aws_cloudwatch_log_group" "hive_metastore_error" {
+  name              = "/aws/rds/cluster/hive-metastore/error"
+  retention_in_days = 30
+  tags              = local.common_tags
+}
+
 resource "aws_cloudwatch_log_group" "hive_metastore_audit" {
-  name              = "/aws/rds/instance/hive-metastore/audit"
+  name              = "/aws/rds/cluster/hive-metastore/audit"
   retention_in_days = 30
   tags              = local.common_tags
 }
 
 resource "aws_cloudwatch_log_group" "hive_metastore_general" {
-  name              = "/aws/rds/instance/hive-metastore/general"
+  name              = "/aws/rds/cluster/hive-metastore/general"
   retention_in_days = 30
   tags              = local.common_tags
 }
 
 resource "aws_cloudwatch_log_group" "hive_metastore_slowquery" {
-  name              = "/aws/rds/instance/hive-metastore/slowquery"
+  name              = "/aws/rds/cluster/hive-metastore/slowquery"
   retention_in_days = 30
   tags              = local.common_tags
 }
@@ -92,17 +98,27 @@ resource "aws_rds_cluster_parameter_group" "hive_metastore_logs" {
   description = "Logging parameters for Hive Metastore"
 
   parameter {
-    name  = "log_output"
-    value = "FILE"
-  }
-
-  parameter {
     name  = "general_log"
     value = "1"
   }
 
   parameter {
     name  = "slow_query_log"
+    value = "1"
+  }
+
+  parameter {
+    name  = "server_audit_logging"
+    value = "1"
+  }
+
+  parameter {
+    name  = "server_audit_events"
+    value = "connect,query"
+  }
+
+  parameter {
+    name  = "server_audit_logs_upload"
     value = "1"
   }
 }
@@ -125,7 +141,7 @@ resource "aws_rds_cluster" "hive_metastore" {
   vpc_security_group_ids          = [aws_security_group.hive_metastore.id]
   storage_encrypted               = true
   kms_key_id                      = aws_kms_key.hive_metastore.arn
-  enabled_cloudwatch_logs_exports = ["audit", "general", "slowquery"]
+  enabled_cloudwatch_logs_exports = ["audit", "error", "general", "slowquery"]
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.hive_metastore_logs.name
   apply_immediately               = true
   tags                            = merge(local.common_tags, { Name = "hive-metastore" })
@@ -133,6 +149,8 @@ resource "aws_rds_cluster" "hive_metastore" {
   lifecycle {
     ignore_changes = [master_password]
   }
+
+  depends_on = [aws_cloudwatch_log_group.hive_metastore_error, aws_cloudwatch_log_group.hive_metastore_audit, aws_cloudwatch_log_group.hive_metastore_general, aws_cloudwatch_log_group.hive_metastore_slowquery]
 }
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
@@ -207,6 +225,12 @@ resource "aws_secretsmanager_secret" "metadata_store_adg_writer" {
 resource "aws_secretsmanager_secret" "metadata_store_pdm_writer" {
   name        = "metadata-store-${var.metadata_store_pdm_writer_username}"
   description = "${var.metadata_store_pdm_writer_username} SQL user for Metadata Store"
+  tags        = local.common_tags
+}
+
+resource "aws_secretsmanager_secret" "metadata_store_analytical_env" {
+  name        = "metadata-store-${var.metadata_store_analytical_env_username}"
+  description = "${var.metadata_store_analytical_env_username} SQL user for Metadata Store"
   tags        = local.common_tags
 }
 

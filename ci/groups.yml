@@ -54,6 +54,13 @@ groups:
       - rotate-mysql-password-pdm-writer-integration
       - rotate-mysql-password-pdm-writer-preprod
       - rotate-mysql-password-pdm-writer-production
+  - name: rotate-passwords-analytical-env
+    jobs:
+      - rotate-mysql-password-analytical-env-development
+      - rotate-mysql-password-analytical-env-qa
+      - rotate-mysql-password-analytical-env-integration
+      - rotate-mysql-password-analytical-env-preprod
+      - rotate-mysql-password-analytical-env-production
   - name: rotate-passwords-master
     jobs:
       - rotate-mysql-password-master-development

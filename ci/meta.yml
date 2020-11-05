@@ -105,6 +105,12 @@ meta:
         params:
           USERNAME: "pdm-writer"
           PARAM_NAME: "metadata-store-pdm-writer"
+    rotate-analytical-env-password:
+      .: (( inject meta.plan.rotate-mysql-password ))
+      config:
+        params:
+          USERNAME: "analytical-env"
+          PARAM_NAME: "metadata-store-analytical-env"
     rotate-master-password:
       .: (( inject meta.plan.rotate-mysql-master-password ))
       config:
@@ -241,12 +247,15 @@ meta:
           args:
             - -exc
             - |
+              cp ../terraform-config/terraform.tf .
+              cp ../terraform-config/terraform.tfvars .
               terraform workspace show
               terraform init
               terraform output --json > ../terraform-output-adg/outputs.json
           dir: aws-analytical-dataset-generation
         inputs:
           - name: aws-analytical-dataset-generation
+          - name: terraform-config
         outputs:
           - name: terraform-output-adg
 
@@ -359,6 +368,7 @@ meta:
               "../../../terraform-output-adg/outputs.json"
         inputs:
           - name: aws-dataworks-e2e-framework
+          - name: aws-analytical-dataset-generation
           - name: meta
           - name: terraform-output-ingest
           - name: terraform-output-internal-compute
