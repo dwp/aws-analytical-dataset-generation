@@ -105,6 +105,12 @@ meta:
         params:
           USERNAME: "pdm-writer"
           PARAM_NAME: "metadata-store-pdm-writer"
+    rotate-analytical-env-password:
+      .: (( inject meta.plan.rotate-mysql-password ))
+      config:
+        params:
+          USERNAME: "analytical-env"
+          PARAM_NAME: "metadata-store-analytical-env"
     rotate-master-password:
       .: (( inject meta.plan.rotate-mysql-master-password ))
       config:
