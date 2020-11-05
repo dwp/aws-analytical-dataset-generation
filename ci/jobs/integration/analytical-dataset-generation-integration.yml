@@ -33,6 +33,10 @@ jobs:
       trigger: true
       passed:
       - analytical-dataset-generation-qa
+    - get: s3-data-purger-release
+      trigger: true
+      passed:
+      - analytical-dataset-generation-qa
     - get: analytical-dataset-generation-exporter-release
       trigger: true
       passed:
