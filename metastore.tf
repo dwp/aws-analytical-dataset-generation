@@ -228,6 +228,12 @@ resource "aws_secretsmanager_secret" "metadata_store_pdm_writer" {
   tags        = local.common_tags
 }
 
+resource "aws_secretsmanager_secret" "metadata_store_analytical_env" {
+  name        = "metadata-store-${var.metadata_store_analytical_env_username}"
+  description = "${var.metadata_store_analytical_env_username} SQL user for Metadata Store"
+  tags        = local.common_tags
+}
+
 output "hive_metastore" {
   value = {
     security_group = aws_security_group.hive_metastore
