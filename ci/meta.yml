@@ -111,6 +111,12 @@ meta:
         params:
           USERNAME: "analytical-env"
           PARAM_NAME: "metadata-store-analytical-env"
+    rotate-bgdc-password:
+      .: (( inject meta.plan.rotate-mysql-password ))
+      config:
+        params:
+          USERNAME: "bgdc"
+          PARAM_NAME: "metadata-store-bgdc"
     rotate-master-password:
       .: (( inject meta.plan.rotate-mysql-master-password ))
       config:

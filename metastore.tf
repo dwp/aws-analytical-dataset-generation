@@ -234,6 +234,12 @@ resource "aws_secretsmanager_secret" "metadata_store_analytical_env" {
   tags        = local.common_tags
 }
 
+resource "aws_secretsmanager_secret" "metadata_store_bgdc" {
+  name        = "metadata-store-${var.metadata_store_bgdc_username}"
+  description = "${var.metadata_store_bgdc_username} SQL user for Metadata Store"
+  tags        = local.common_tags
+}
+
 output "hive_metastore" {
   value = {
     security_group = aws_security_group.hive_metastore
