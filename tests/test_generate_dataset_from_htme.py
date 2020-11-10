@@ -123,7 +123,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
             "datakeyencryptionkeyid": "123",
         },
     )
-   # monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
@@ -209,7 +209,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
             "datakeyencryptionkeyid": "123",
         },
     )
-   #monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
@@ -266,9 +266,9 @@ def test_exception_when_decompression_fails(
                 "datakeyencryptionkeyid": "123",
             },
         )
-        # monkeypatch.setattr(
-        #     steps.generate_dataset_from_htme, "add_metric", mock_add_metric
-        # )
+        monkeypatch.setattr(
+            steps.generate_dataset_from_htme, "add_metric", mock_add_metric
+        )
         monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
         monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
         monkeypatch.setattr(
@@ -325,8 +325,8 @@ def mock_decompress(compressed_text):
     return zlib.decompress(compressed_text)
 
 
-# def mock_add_metric(metrics_file, collection_name, value):
-#     return value
+def mock_add_metric(metrics_file, collection_name, value):
+    return value
 
 
 def mock_decrypt(plain_text_key, iv_key, data, args, run_id):
