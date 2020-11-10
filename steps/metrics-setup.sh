@@ -16,7 +16,6 @@ mkdir -p /opt/emr/metrics
 
 aws s3 cp "${metrics_pom}" $METRICS_FILEPATH/pom.xml
 aws s3 cp "${metrics_properties}" $METRICS_FILEPATH/metrics.properties
-aws s3 cp "${metrics_jar}" /tmp/adg-exporter.b64
 
 log_wrapper_message "Fetching and unzipping maven"
 
