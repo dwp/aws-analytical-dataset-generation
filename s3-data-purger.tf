@@ -25,9 +25,9 @@ resource "aws_lambda_function" "s3_data_purger" {
 
   environment {
     variables = {
-      S3_DATA_PURGER_LOG_LEVEL        = "debug"
-      S3_PUBLISH_BUCKET =  aws_s3_bucket.published.id
-      DATA_PIPELINE_METADATA_TABLE =  data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
+      S3_DATA_PURGER_LOG_LEVEL     = "debug"
+      S3_PUBLISH_BUCKET            = aws_s3_bucket.published.id
+      DATA_PIPELINE_METADATA_TABLE = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
     }
   }
 }
@@ -60,12 +60,12 @@ resource "aws_cloudwatch_event_target" "s3_data_purger_target" {
   rule      = aws_cloudwatch_event_rule.s3_data_purger_rule.name
   target_id = "s3_data_purger_target"
   arn       = aws_lambda_function.s3_data_purger.arn
-  input = <<JSON
+  input     = <<JSON
   {
-        "s3_prefix": "analytical-dataset"
-        "num_of_retention_days": 20
-        "data_product": "ADG"
-  }
+  "s3_prefix": "analytical-dataset",
+  "num_of_retention_days": 20,
+  "data_product": "ADG"
+}
   JSON
 }
 resource "aws_lambda_permission" "s3_data_purger_invoke_permission" {
