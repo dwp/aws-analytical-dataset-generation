@@ -59,6 +59,15 @@ locals {
     production  = "1 0 * * ? 2025"
   }
 
+  # triggers every day at 4 am
+  s3_data_purger_schedule = {
+    development = "0 4 * * ? *"
+    qa          = "0 4 * * ? *"
+    integration = "0 4 * * ? *"
+    preprod     = "0 4 * * ? *"
+    production  = "0 4 * * ? *"
+  }
+
   adg_log_level = {
     development = "DEBUG"
     qa          = "DEBUG"
