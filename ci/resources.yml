@@ -37,7 +37,7 @@ resources:
   - name: aws-dataworks-e2e-framework
     type: git
     source:
-      branch: adg-e2e-tests
+      branch: master
       username: ((dataworks.enterprise_github_username))
       password: ((dataworks-secrets.enterprise_github_pat))
       uri: https://((dataworks.enterprise_github_url))/dip/aws-dataworks-e2e-framework.git

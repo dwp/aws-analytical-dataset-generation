@@ -52,14 +52,6 @@ jobs:
   - .: (( inject meta.plan.terraform-apply ))
     params:
       TF_WORKSPACE: integration
-  - .: (( inject meta.plan.terraform-output-internal-compute ))
-  - .: (( inject meta.plan.terraform-output-ingest ))
-  - .: (( inject meta.plan.terraform-output-adg ))
-  - .: (( inject meta.plan.e2e-tests))
-    config:
-      params:
-        AWS_ACC: ((aws_account.integration))
-        AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
   - .: (( inject meta.plan.rotate-mysql-master-password ))
     params:
       TF_WORKSPACE: integration
