@@ -54,7 +54,7 @@ resource "aws_lambda_permission" "adg_emr_launcher_invoke_permission" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.adg_emr_launcher.function_name
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.adg_emr_launcher_schedule.arn
+  source_arn    = aws_cloudwatch_event_rule.s3_data_purger_rule.arn
 }
 
 data "aws_iam_policy_document" "adg_emr_launcher_assume_policy" {

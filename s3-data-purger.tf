@@ -56,6 +56,11 @@ resource "aws_cloudwatch_event_rule" "s3_data_purger_rule" {
   schedule_expression = format("cron(%s)", local.s3_data_purger_schedule[local.environment])
 }
 
+resource "aws_cloudwatch_log_group" "s3_data_purger" {
+  name              = "/aws/lambda/s3_data_purger"
+  retention_in_days = 30
+}
+
 resource "aws_cloudwatch_event_target" "s3_data_purger_target" {
   rule      = aws_cloudwatch_event_rule.s3_data_purger_rule.name
   target_id = "s3_data_purger_target"
