@@ -43,6 +43,8 @@ resource "aws_s3_bucket_object" "metrics_setup_sh" {
       proxy_url          = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
       metrics_properties = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_properties.key)
       metrics_pom        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_pom.key)
+      metrics_jar        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_jar.key)
+
     }
   )
 }
@@ -64,13 +66,13 @@ resource "aws_s3_bucket_object" "metrics_pom" {
   key        = "component/analytical-dataset-generation/metrics/pom.xml"
   content    = file("${path.module}/steps/metrics_config/pom.xml")
 }
-/*
+
 resource "aws_s3_bucket_object" "metrics_jar" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
   key        = "component/analytical-dataset-generation/metrics/adg-exporter.jar"
   content    = filebase64("${var.analytical_dataset_generation_exporter_jar.base_path}/exporter-${var.analytical_dataset_generation_exporter_jar.version}.jar")
-}*/
+}
 
 resource "aws_s3_bucket_object" "send_notification_script" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id

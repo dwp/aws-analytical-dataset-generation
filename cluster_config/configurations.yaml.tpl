@@ -24,8 +24,6 @@ Configurations:
     "spark.yarn.executor.memoryOverhead": "${spark_yarn_executor_memory_overhead}G"
     "spark.driver.memory": "${spark_driver_memory}G"
     "spark.driver.cores": "${spark_driver_cores}"
-    "spark.executor.extraJavaOptions=-verbose:class"
-    "spark.driver.extraJavaOptions=-verbose:class"
     "spark.executor.instances": "${spark_executor_instances}"
     "spark.default.parallelism": "${spark_default_parallelism}"
     "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
