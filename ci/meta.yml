@@ -179,6 +179,7 @@ meta:
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
+              export TF_VAR_s3_data_purger_zip="{base_path = \"../s3-data-purger-release\", version = \"$(cat ../s3-data-purger-release/version)\"}"
               export TF_VAR_manage_mysql_user_zip="{base_path = \"../manage-mysql-user-release\", version = \"$(cat ../manage-mysql-user-release/version)\"}"
               export TF_VAR_analytical_dataset_generation_exporter_jar="{base_path = \"../analytical-dataset-generation-exporter-release\", version = \"$(ls ../analytical-dataset-generation-exporter-release/*.jar | sed -e 's/^.*exporter-//' -e 's/.jar$//')\"}"
               terraform init
@@ -191,6 +192,7 @@ meta:
           - name: manage-mysql-user-release
           - name: analytical-dataset-generation-exporter-release
           - name: emr-ami
+          - name: s3-data-purger-release
 
     terraform-output-internal-compute:
       task: terraform-output-internal-compute

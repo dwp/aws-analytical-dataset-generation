@@ -27,7 +27,7 @@ resource "aws_lambda_function" "s3_data_purger" {
     variables = {
       S3_DATA_PURGER_LOG_LEVEL        = "debug"
       S3_PUBLISH_BUCKET =  aws_s3_bucket.published.id
-      DATA_PIPELINE_METADATA_TABLE =  "data_pipeline_metadata"
+      DATA_PIPELINE_METADATA_TABLE =  data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
     }
   }
 }
