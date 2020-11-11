@@ -61,8 +61,8 @@ resource "aws_cloudwatch_event_target" "s3_data_purger_target" {
   target_id = "s3_data_purger_target"
   arn       = aws_lambda_function.s3_data_purger.arn
   input = <<JSON
-  {
-        "s3_prefix": ""analytical-dataset""
+
+        "s3_prefix": "analytical-dataset"
         "num_of_retention_days": 10
         "data_product": "ADG"
   }
