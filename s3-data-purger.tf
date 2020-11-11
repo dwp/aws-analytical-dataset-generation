@@ -8,14 +8,14 @@ variable "s3_data_purger_zip" {
 }
 
 resource "aws_lambda_function" "s3_data_purger" {
-  filename      = "${var.s3_data_purger_zip["base_path"]}/emr-launcher-${var.s3_data_purger_zip["version"]}.zip"
+  filename      = "${var.s3_data_purger_zip["base_path"]}/s3-data-purger-lambda-${var.s3_data_purger_zip["version"]}.zip"
   function_name = "s3_data_purger"
   role          = aws_iam_role.s3_data_purger_lambda_role.arn
   handler       = "s3_data_purger.handler"
   runtime       = "python3.7"
   source_code_hash = filebase64sha256(
     format(
-      "%s/s3-data-purger-%s.zip",
+      "%s/s3-data-purger-lambda-%s.zip",
       var.s3_data_purger_zip["base_path"],
       var.s3_data_purger_zip["version"]
     )
@@ -26,6 +26,8 @@ resource "aws_lambda_function" "s3_data_purger" {
   environment {
     variables = {
       S3_DATA_PURGER_LOG_LEVEL        = "debug"
+      S3_PUBLISH_BUCKET =  aws_s3_bucket.published.id
+      DATA_PIPELINE_METADATA_TABLE =  data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
     }
   }
 }
@@ -72,19 +74,11 @@ data "aws_iam_policy_document" "s3_data_purger_policy" {
   statement {
     effect = "Allow"
     actions = [
-      "s3:DeleteObject"
+      "s3:DeleteObject",
+      "s3:ListBucket"
     ]
     resources = [
       aws_s3_bucket.published.arn
-    ]
-  }
-  statement {
-    effect = "Allow"
-    actions = [
-      "kms:Decrypt"
-    ]
-    resources = [
-      "${aws_kms_key.published_bucket_cmk.arn}"
     ]
   }
   statement {
