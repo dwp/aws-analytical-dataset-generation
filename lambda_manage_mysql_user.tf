@@ -53,6 +53,7 @@ data "aws_iam_policy_document" "manage_hive_metastore_mysql_users" {
       aws_secretsmanager_secret.metadata_store_adg_writer.arn,
       aws_secretsmanager_secret.metadata_store_pdm_writer.arn,
       aws_secretsmanager_secret.metadata_store_analytical_env.arn,
+      aws_secretsmanager_secret.metadata_store_bgdc.arn,
     ]
   }
 }
