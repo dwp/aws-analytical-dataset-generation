@@ -60,6 +60,13 @@ resource "aws_cloudwatch_event_target" "s3_data_purger_target" {
   rule      = aws_cloudwatch_event_rule.s3_data_purger_rule.name
   target_id = "s3_data_purger_target"
   arn       = aws_lambda_function.s3_data_purger.arn
+  input = <<JSON
+  {
+        "s3_prefix": ""analytical-dataset""
+        "num_of_retention_days": 10
+        "data_product": "ADG"
+  }
+  JSON
 }
 resource "aws_lambda_permission" "s3_data_purger_invoke_permission" {
   statement_id  = "AllowExecutionFromS3DataPurger"
