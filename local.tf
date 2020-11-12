@@ -61,7 +61,7 @@ locals {
 
   # triggers every day at 4 am
   s3_data_purger_schedule = {
-    development = "0/5 * * * ? *"
+    development = "0 4 * * * ? *"
     qa          = "0 4 * * ? *"
     integration = "0 4 * * ? *"
     preprod     = "0 4 * * ? *"
