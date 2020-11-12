@@ -67,7 +67,7 @@ resource "aws_cloudwatch_event_target" "s3_data_purger_target" {
   arn       = aws_lambda_function.s3_data_purger.arn
   input     = <<JSON
   {
-  "s3_prefix": ${local.adg_prefix[local.environment]},
+  "s3_prefix": "${local.adg_prefix[local.environment]}",
   "num_of_retention_days": 20,
   "data_product": "ADG"
 }
