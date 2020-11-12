@@ -185,4 +185,12 @@ locals {
     preprod     = "analytical-dataset"
     production  = "analytical-dataset"
   }
+
+  adg_retention_days = {
+    development = 1
+    qa          = 1
+    integration = 1
+    preprod     = 20
+    production  = 20
+  }
 }

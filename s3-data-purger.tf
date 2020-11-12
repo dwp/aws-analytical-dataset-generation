@@ -68,7 +68,7 @@ resource "aws_cloudwatch_event_target" "s3_data_purger_target" {
   input     = <<JSON
   {
   "s3_prefix": "${local.adg_prefix[local.environment]}",
-  "num_of_retention_days": 20,
+  "num_of_retention_days": ${local.adg_retention_days[local.environment]},
   "data_product": "ADG"
 }
   JSON
@@ -84,10 +84,19 @@ resource "aws_lambda_permission" "s3_data_purger_invoke_permission" {
 
 data "aws_iam_policy_document" "s3_data_purger_policy" {
   statement {
+    sid    = "ListPublishBucket"
+    effect = "Allow"
+
+    actions = [
+      "s3:ListBucket"
+    ]
+
+    resources = ["${aws_s3_bucket.published.arn}"]
+  }
+  statement {
     effect = "Allow"
     actions = [
-      "s3:DeleteObject",
-      "s3:ListBucket"
+      "s3:DeleteObject"
     ]
     resources = [
       "${aws_s3_bucket.published.arn}/${local.adg_prefix[local.environment]}/*"
