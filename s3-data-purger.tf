@@ -67,7 +67,7 @@ resource "aws_cloudwatch_event_target" "s3_data_purger_target" {
   arn       = aws_lambda_function.s3_data_purger.arn
   input     = <<JSON
   {
-  "s3_prefix": "analytical-dataset",
+  "s3_prefix": ${local.adg_prefix},
   "num_of_retention_days": 20,
   "data_product": "ADG"
 }
@@ -90,7 +90,7 @@ data "aws_iam_policy_document" "s3_data_purger_policy" {
       "s3:ListBucket"
     ]
     resources = [
-      aws_s3_bucket.published.arn
+      "${aws_s3_bucket.published.arn}/${local.adg_prefix}/*"
     ]
   }
   statement {
