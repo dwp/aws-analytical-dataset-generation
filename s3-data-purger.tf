@@ -90,7 +90,7 @@ data "aws_iam_policy_document" "s3_data_purger_policy" {
       "s3:ListBucket"
     ]
     resources = [
-      "${aws_s3_bucket.published.arn}/${local.adg_prefix}/*"
+      "${aws_s3_bucket.published.arn}/${local.adg_prefix[local.environment]}/*"
     ]
   }
   statement {
