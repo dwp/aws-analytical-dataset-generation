@@ -61,7 +61,7 @@ locals {
 
   # triggers every day at 4 am
   s3_data_purger_schedule = {
-    development = "0/5 * * * ? *"
+    development = "0 4 * * ? *"
     qa          = "0 4 * * ? *"
     integration = "0 4 * * ? *"
     preprod     = "0 4 * * ? *"
@@ -176,5 +176,21 @@ locals {
     integration = false
     preprod     = false
     production  = true
+  }
+
+  adg_prefix = {
+    development = "analytical-dataset"
+    qa          = "analytical-dataset"
+    integration = "analytical-dataset"
+    preprod     = "analytical-dataset"
+    production  = "analytical-dataset"
+  }
+
+  adg_retention_days = {
+    development = 1
+    qa          = 1
+    integration = 1
+    preprod     = 20
+    production  = 20
   }
 }
