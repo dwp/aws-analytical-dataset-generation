@@ -56,6 +56,11 @@ resource "aws_cloudwatch_event_rule" "s3_data_purger_rule" {
   schedule_expression = format("cron(%s)", local.s3_data_purger_schedule[local.environment])
 }
 
+resource "aws_cloudwatch_log_group" "s3_data_purger" {
+  name              = "/aws/lambda/s3_data_purger"
+  retention_in_days = 30
+}
+
 resource "aws_cloudwatch_event_target" "s3_data_purger_target" {
   rule      = aws_cloudwatch_event_rule.s3_data_purger_rule.name
   target_id = "s3_data_purger_target"
@@ -73,7 +78,7 @@ resource "aws_lambda_permission" "s3_data_purger_invoke_permission" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.s3_data_purger.function_name
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.adg_emr_launcher_schedule.arn
+  source_arn    = aws_cloudwatch_event_rule.s3_data_purger_rule.arn
 }
 
 
