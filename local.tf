@@ -177,4 +177,12 @@ locals {
     preprod     = false
     production  = true
   }
+
+  adg_prefix = {
+    development = "analytical-dataset"
+    qa          = "analytical-dataset"
+    integration = "analytical-dataset"
+    preprod     = "analytical-dataset"
+    production  = "analytical-dataset"
+  }
 }
