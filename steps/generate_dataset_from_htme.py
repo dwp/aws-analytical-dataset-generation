@@ -381,11 +381,7 @@ def persist_json(json_location, values):
 
 
 def get_collection(collection_name):
-    return (
-        collection_name.replace("db.", "", 1)
-        .replace(".", "/")
-        .replace("-", "_")
-    )
+    return collection_name.replace("db.", "", 1).replace(".", "/").replace("-", "_")
 
 
 def get_collections(secrets_response, args):
@@ -468,8 +464,8 @@ def get_spark_session():
     spark = (
         SparkSession.builder.master("yarn")
         .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
-        .config("spark.metrics.namespace", "adg")
-        .appName("spike")
+        # .config("spark.metrics.namespace", "adg")
+        # .appName("spike")
         .enableHiveSupport()
         .getOrCreate()
     )
