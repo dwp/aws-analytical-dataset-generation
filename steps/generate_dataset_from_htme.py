@@ -14,11 +14,11 @@ from itertools import groupby
 
 import boto3
 import requests
+from boto3.dynamodb.conditions import Key
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
-from boto3.dynamodb.conditions import Key
-from pyspark.sql import SparkSession
 
+from pyspark.sql import SparkSession
 from steps.logger import setup_logging
 
 IN_PROGRESS_STATUS = "In Progress"
