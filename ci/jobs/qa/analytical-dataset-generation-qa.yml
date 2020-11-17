@@ -21,6 +21,8 @@ jobs:
       trigger: false
     - get: emr-launcher-release
       trigger: true
+    - get: s3-data-purger-release
+      trigger: true
     - get: analytical-dataset-generation-exporter-release
       trigger: true
     - get: emr-ami

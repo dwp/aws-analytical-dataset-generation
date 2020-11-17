@@ -125,6 +125,16 @@ variable "metadata_store_pdm_writer_username" {
   default     = "pdm-writer"
 }
 
+variable "metadata_store_analytical_env_username" {
+  description = "Username for metadata store writer Analytical Environment user"
+  default     = "analytical-env"
+}
+
+variable "metadata_store_bgdc_username" {
+  description = "Username for metadata store reader BGDC user"
+  default     = "bgdc"
+}
+
 variable "htme_data_location" {
   default = {
     development = "businessdata/mongo/ucdata/2020-07-06/full/"
