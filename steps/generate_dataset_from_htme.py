@@ -64,6 +64,7 @@ def main(
     published_database_name,
     args,
     run_id,
+    s3_resource
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -84,6 +85,7 @@ def main(
                 itertools.repeat(s3_publish_bucket),
                 itertools.repeat(args),
                 itertools.repeat(run_id),
+                itertools.repeat(s3_resource)
             )
     except Exception as ex:
         the_logger.error(
@@ -136,6 +138,8 @@ def get_client(service_name):
 def get_resource(service_name):
     return boto3.resource(service_name, region_name="${aws_default_region}")
 
+def get_s3_resource():
+    return boto3.resource("s3", region_name="${aws_default_region}")
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
     keys = []
@@ -179,6 +183,7 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     run_id,
+    s3_resource
 ):
     try:
         for collection_name, collection_files_keys in collection.items():
@@ -237,8 +242,8 @@ def consolidate_rdd_per_collection(
             )
             tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
         htme_prefix = collection_file_key.rsplit('/',1)[0]
-        add_folder_size_metric(collection_name,s3_htme_bucket, htme_prefix,"htme_collection_size.csv")
-        add_folder_size_metric(collection_name, s3_publish_bucket, json_location_prefix,"adg_collection_size.csv")
+        add_folder_size_metric(collection_name,s3_htme_bucket, htme_prefix,"htme_collection_size.csv",s3_resource)
+        add_folder_size_metric(collection_name, s3_publish_bucket, json_location_prefix,"adg_collection_size.csv",s3_resource)
         the_logger.info(
             "Creating Hive tables of collection : %s for correlation id : %s and run id : %s",
             collection_name,
@@ -255,8 +260,8 @@ def consolidate_rdd_per_collection(
             run_id,
         )
         adg_json_prefix = "analytical-dataset/%s" % (run_time_stamp)
-        add_folder_size_metric('all_collections',s3_htme_bucket, args.s3_prefix,"htme_collection_size.csv")
-        add_folder_size_metric('all_collections', s3_publish_bucket, adg_json_prefix,"adg_collection_size.csv")
+        add_folder_size_metric('all_collections',s3_htme_bucket, args.s3_prefix,"htme_collection_size.csv",s3_resource)
+        add_folder_size_metric('all_collections', s3_publish_bucket, adg_json_prefix,"adg_collection_size.csv",s3_resource)
     except BaseException as ex:
         the_logger.error(
             "Error processing for correlation id: %s and run id : %s for collection %s %s",
@@ -449,7 +454,7 @@ def add_filesize_metric(
         metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"],
     )
 
-def add_folder_size_metric(collection_name, s3_bucket, s3_prefix,filename):
+def add_folder_size_metric(collection_name, s3_bucket, s3_prefix,filename,s3_resource):
     total_size = 0
     for obj in s3_resource.Bucket(s3_bucket).objects.filter(Prefix=s3_prefix):
         total_size += obj.size
@@ -578,7 +583,7 @@ if __name__ == "__main__":
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_client("s3")
-    s3_resource = get_resource("s3")
+    s3_resource = get_s3_resource()
     secrets_response = retrieve_secrets()
     secrets_collections = get_collections(secrets_response, args)
     keys_map = {}
@@ -596,6 +601,7 @@ if __name__ == "__main__":
         published_database_name,
         args,
         run_id,
+        s3_resource
     )
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
