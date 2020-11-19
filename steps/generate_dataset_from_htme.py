@@ -195,9 +195,6 @@ def consolidate_rdd_per_collection(
                 encrypted = read_binary(
                     spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
                 )
-                add_filesize_metric(
-                    collection_name, s3_client, s3_htme_bucket, collection_file_key
-                )
                 metadata = get_metadatafor_key(
                     collection_file_key, s3_client, s3_htme_bucket
                 )
@@ -239,6 +236,9 @@ def consolidate_rdd_per_collection(
                 run_id,
             )
             tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
+        htme_prefix = collection_file_key.rsplit('/',1)[0]
+        add_folder_size_metric(collection_name,s3_htme_bucket, htme_prefix,"htme_collection_size.csv")
+        add_folder_size_metric(collection_name, s3_publish_bucket, json_location_prefix,"adg_collection_size.csv")
         the_logger.info(
             "Creating Hive tables of collection : %s for correlation id : %s and run id : %s",
             collection_name,
@@ -441,11 +441,19 @@ def add_filesize_metric(
 ):
     metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
     add_metric(
-        "collection_size.csv",
+        "htme_collection_size.csv",
         collection_name,
         metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"],
     )
 
+def add_folder_size_metric(collection_name, s3_bucket, s3_prefix,filename):
+    total_size = 0
+    for obj in s3_resource.Bucket(s3_bucket).objects.filter(Prefix=s3_prefix):
+        total_size += obj.size
+    add_metric(
+        filename,
+        collection_name,
+        str(total_size))
 
 def add_metric(metrics_file, collection_name, value):
     metrics_path = f"/opt/emr/metrics/{metrics_file}"
@@ -457,7 +465,8 @@ def add_metric(metrics_file, collection_name, value):
         for line in lines:
             if not line.startswith(get_collection(collection_name)):
                 f.write(line)
-        f.write(get_collection(collection_name) + "," + value + "\n")
+        collection_name = get_collection(collection_name).replace("/", "_")
+        f.write(collection_name + "," + value + "\n")
 
 
 def get_spark_session():
@@ -566,6 +575,7 @@ if __name__ == "__main__":
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_client("s3")
+    s3_resource = get_resource("s3")
     secrets_response = retrieve_secrets()
     secrets_collections = get_collections(secrets_response, args)
     keys_map = {}
