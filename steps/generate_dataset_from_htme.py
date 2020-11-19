@@ -254,6 +254,9 @@ def consolidate_rdd_per_collection(
             args.correlation_id,
             run_id,
         )
+        adg_json_prefix = "analytical-dataset/%s" % (run_time_stamp)
+        add_folder_size_metric('all_collections',s3_htme_bucket, args.s3_prefix,"htme_collection_size.csv")
+        add_folder_size_metric('all_collections', s3_publish_bucket, adg_json_prefix,"adg_collection_size.csv")
     except BaseException as ex:
         the_logger.error(
             "Error processing for correlation id: %s and run id : %s for collection %s %s",
