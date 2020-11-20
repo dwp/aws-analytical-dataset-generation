@@ -111,6 +111,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
     target_object_key = f"${{file_location}}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
     target_object_tag = {"Key": "collection_tag", "Value": "crown"}
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
+    s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
     s3_client.put_object(
@@ -141,6 +142,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         PUBLISHED_DATABASE_NAME,
         mock_args(),
         RUN_ID,
+        s3_resource
     )
     assert len(s3_client.list_buckets()["Buckets"]) == 2
     assert (
@@ -186,6 +188,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     secret_collections = SECRETS_COLLECTIONS
     secret_collections[DB_CORE_ACCOUNTS] = "crown"
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
+    s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
     s3_publish_bucket_for_multiple_collections = f"{S3_PUBLISH_BUCKET}-2"
     s3_client.create_bucket(Bucket=s3_publish_bucket_for_multiple_collections)
@@ -227,6 +230,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         PUBLISHED_DATABASE_NAME,
         mock_args(),
         RUN_ID,
+        s3_resource
     )
     assert core_contract_collection_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
@@ -254,6 +258,7 @@ def test_exception_when_decompression_fails(
 ):
     with pytest.raises(SystemExit):
         s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
+        s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
         s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
         s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
         s3_client.put_object(
@@ -285,6 +290,7 @@ def test_exception_when_decompression_fails(
             PUBLISHED_DATABASE_NAME,
             mock_args(),
             RUN_ID,
+            s3_resource
         )
 
 
