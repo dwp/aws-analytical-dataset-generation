@@ -30,7 +30,7 @@ EOF
 resource "aws_cloudwatch_event_target" "adg_termination_with_errors_target" {
   rule      = aws_cloudwatch_event_rule.adg_cluster_termination_error_rule.name
   target_id = "SendFailedMsgToSlackFromADG"
-  arn       = ["arn:aws:sns:eu-west-2:${local.account[local.environment]}:Monitoring"]
+  arn       = data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn
 }
 
 resource "aws_cloudwatch_event_rule" "adg_cluster_termination_success_rule" {
@@ -65,6 +65,6 @@ EOF
 resource "aws_cloudwatch_event_target" "adg_termination_successful_target" {
   rule      = aws_cloudwatch_event_rule.adg_cluster_termination_success_rule.name
   target_id = "SendSuccessMsgToSlackFromADG"
-  arn       = ["arn:aws:sns:eu-west-2:${local.account[local.environment]}:Monitoring"]
+  arn       = data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn
 }
 
