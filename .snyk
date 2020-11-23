@@ -5,5 +5,5 @@ ignore:
   SNYK-JAVA-COMGOOGLEGUAVA-1015415:
     - '*':
         reason: No direct upgrade or patch
-        expires: 2020-12-01T00:00:00.000Z
+        expires: 2021-12-01T00:00:00.000Z
 patch: {}
