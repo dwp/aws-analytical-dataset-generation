@@ -32,7 +32,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_failed_with_errors" {
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster termination with errors"
   insufficient_data_actions = []
-  alarm_actions = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
+  alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
     RuleName = aws_cloudwatch_event_rule.adg_terminated_with_errors_rule.name
   }
@@ -57,7 +57,7 @@ resource "aws_cloudwatch_event_rule" "adg_success" {
       "analytical-dataset-generator"
     ],
     "stateChangeReason": [
-      "{\"code\":\"ALL_STEPS_COMPLETED\",\"message\":\"All steps completed\"}"
+      "{\"code\":\"ALL_STEPS_COMPLETED\",\"message\":\"Steps completed\"}"
     ]
   }
 }
@@ -76,53 +76,8 @@ resource "aws_cloudwatch_metric_alarm" "adg_success" {
   threshold                 = "1"
   alarm_description         = "Monitoring adg completion"
   insufficient_data_actions = []
-  alarm_actions = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
+  alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
     RuleName = aws_cloudwatch_event_rule.adg_success.name
   }
 }
-
-resource "aws_cloudwatch_event_rule" "adg_success_two" {
-  name          = "adg_success_two"
-  description   = "checks that all steps complete"
-  event_pattern = <<EOF
-{
-  "source": [
-    "aws.emr"
-  ],
-  "detail-type": [
-    "EMR Cluster State Change"
-  ],
-  "detail": {
-    "state": [
-      "TERMINATED"
-    ],
-    "name": [
-      "analytical-dataset-generator"
-    ],
-    "stateChangeReason": [
-      "{\"code\":\"ALL_STEPS_COMPLETED\",\"message\":\"Allstepscompleted\"}"
-    ]
-  }
-}
-EOF
-}
-
-
-resource "aws_cloudwatch_metric_alarm" "adg_success_two" {
-  alarm_name                = "adg_completed_all_steps_two"
-  comparison_operator       = "GreaterThanOrEqualToThreshold"
-  evaluation_periods        = "1"
-  metric_name               = "TriggeredRules"
-  namespace                 = "AWS/Events"
-  period                    = "60"
-  statistic                 = "Sum"
-  threshold                 = "1"
-  alarm_description         = "Monitoring adg completion"
-  insufficient_data_actions = []
-  alarm_actions = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
-  dimensions = {
-    RuleName = aws_cloudwatch_event_rule.adg_success_two.name
-  }
-}
-

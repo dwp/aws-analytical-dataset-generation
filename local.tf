@@ -117,11 +117,19 @@ locals {
   }
 
   keep_cluster_alive = {
-    development = true
+    development = false
     qa          = false
     integration = false
     preprod     = false
     production  = false
+  }
+
+  step_fail_action = {
+    development = "CONTINUE"
+    qa          = "TERMINATE_CLUSTER"
+    integration = "TERMINATE_CLUSTER"
+    preprod     = "TERMINATE_CLUSTER"
+    production  = "TERMINATE_CLUSTER"
   }
 
   cw_agent_namespace                   = "/app/analytical_dataset_generator"

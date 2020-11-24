@@ -33,6 +33,7 @@ resource "aws_s3_bucket_object" "instances" {
       service_access_sg   = aws_security_group.adg_emr_service.id
       instance_type       = var.emr_instance_type[local.environment]
       core_instance_count = var.emr_core_instance_count[local.environment]
+      action_on_failure   = local.step_fail_action[local.environment]
     }
   )
 }
