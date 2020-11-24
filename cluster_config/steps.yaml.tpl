@@ -21,7 +21,7 @@ Steps:
     Args:
     - "s3://${s3_config_bucket}/component/analytical-dataset-generation/hive-setup.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
-  ActionOnFailure: ${action_on_failure}
+  ActionOnFailure: "${action_on_failure}"
 - Name: "submit-job"
   HadoopJarStep:
     Args:
@@ -32,11 +32,11 @@ Steps:
     - "spark.yarn.submit.waitAppCompletion=true"
     - "/opt/emr/generate_dataset_from_htme.py"
     Jar: "command-runner.jar"
-  ActionOnFailure: ${action_on_failure}
+  ActionOnFailure: "${action_on_failure}"
 - Name: "sns-notification"
   HadoopJarStep:
     Args:
     - "python3"
     - "/opt/emr/send_notification.py"
     Jar: "command-runner.jar"
-  ActionOnFailure: ${action_on_failure}
+  ActionOnFailure: "${action_on_failure}"

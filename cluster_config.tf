@@ -33,7 +33,6 @@ resource "aws_s3_bucket_object" "instances" {
       service_access_sg   = aws_security_group.adg_emr_service.id
       instance_type       = var.emr_instance_type[local.environment]
       core_instance_count = var.emr_core_instance_count[local.environment]
-      action_on_failure   = local.step_fail_action[local.environment]
     }
   )
 }
@@ -43,7 +42,8 @@ resource "aws_s3_bucket_object" "steps" {
   key    = "emr/adg/steps.yaml"
   content = templatefile("${path.module}/cluster_config/steps.yaml.tpl",
     {
-      s3_config_bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+      s3_config_bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+      action_on_failure = local.step_fail_action[local.environment]
     }
   )
 }
