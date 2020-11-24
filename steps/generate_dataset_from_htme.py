@@ -196,6 +196,7 @@ def consolidate_rdd_per_collection(
             tag_value = secrets_collections[collection_name]
             start_time = time.perf_counter()
             rdd_list = []
+            total_collection_size = 0
             for collection_file_key in collection_files_keys:
                 encrypted = read_binary(
                     spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
@@ -203,6 +204,7 @@ def consolidate_rdd_per_collection(
                 metadata = get_metadatafor_key(
                     collection_file_key, s3_client, s3_htme_bucket
                 )
+                total_collection_size += get_filesize(s3_client, s3_htme_bucket, collection_file_key)
                 ciphertext = metadata["ciphertext"]
                 datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
                 iv = metadata["iv"]
@@ -241,8 +243,7 @@ def consolidate_rdd_per_collection(
                 run_id,
             )
             tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
-        htme_prefix = collection_file_key.rsplit('/',1)[0]
-        add_folder_size_metric(collection_name,s3_htme_bucket, htme_prefix,"htme_collection_size.csv",s3_resource)
+        add_metric('htme_collection_size.csv',collection_name,str(total_collection_size))
         add_folder_size_metric(collection_name, s3_publish_bucket, json_location_prefix,"adg_collection_size.csv",s3_resource)
         the_logger.info(
             "Creating Hive tables of collection : %s for correlation id : %s and run id : %s",
@@ -443,6 +444,10 @@ def create_hive_tables_on_published(
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
 
+def get_filesize( s3_client, s3_htme_bucket, collection_file_key):
+    metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
+    filesize = metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"]
+    return int(filesize)
 
 def add_filesize_metric(
     collection_name, s3_client, s3_htme_bucket, collection_file_key
