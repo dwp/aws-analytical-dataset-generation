@@ -11,27 +11,21 @@ resource "aws_cloudwatch_event_rule" "adg_cluster_termination_error_rule" {
   ],
   "detail": {
     "state": [
-      "TERMINATED_WITH_ERRORS"
-    ],
-    "stateChangeReason": [
-      "{\"code\":\"\"}"
+      "TERMINATED_WITH_ERRORS", "TERMINATED"
     ],
     "name": [
       "analytical-dataset-generator"
-    ],
-    "message": [
-      "Analytical-dataset-generator cluster has failed"
     ]
   }
 }
 EOF
 }
-
-resource "aws_cloudwatch_event_target" "adg_termination_with_errors_target" {
-  rule      = aws_cloudwatch_event_rule.adg_cluster_termination_error_rule.name
-  target_id = "SendFailedMsgToSlackFromADG"
-  arn       = data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn
-}
+//
+//resource "aws_cloudwatch_event_target" "adg_termination_with_errors_target" {
+//  rule      = aws_cloudwatch_event_rule.adg_cluster_termination_error_rule.name
+//  target_id = "SendFailedMsgToSlackFromADG"
+//  arn       = data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn
+//}
 
 resource "aws_cloudwatch_event_rule" "adg_cluster_termination_success_rule" {
   name          = "adg_cluster_termination_success_rule"
