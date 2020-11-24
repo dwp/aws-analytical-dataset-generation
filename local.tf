@@ -124,6 +124,14 @@ locals {
     production  = false
   }
 
+  step_fail_action = {
+    development = "CONTINUE"
+    qa          = "TERMINATE_CLUSTER"
+    integration = "TERMINATE_CLUSTER"
+    preprod     = "TERMINATE_CLUSTER"
+    production  = "TERMINATE_CLUSTER"
+  }
+
   cw_agent_namespace                   = "/app/analytical_dataset_generator"
   cw_agent_log_group_name              = "/app/analytical_dataset_generator"
   cw_agent_bootstrap_loggrp_name       = "/app/analytical_dataset_generator/bootstrap_actions"
