@@ -3,7 +3,7 @@ resource "aws_acm_certificate" "analytical-dataset-generator" {
   domain_name               = "analytical-dataset-generator.${local.env_prefix[local.environment]}${local.dataworks_domain_name}"
 
   options {
-    certificate_transparency_logging_preference = "DISABLED"
+    certificate_transparency_logging_preference = "ENABLED"
   }
 }
 
