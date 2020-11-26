@@ -73,7 +73,6 @@ resource "aws_s3_bucket_object" "metrics_jar" {
   content    = filebase64("${var.analytical_dataset_generation_exporter_jar.base_path}/exporter-${var.analytical_dataset_generation_exporter_jar.version}.jar")
 }
 
-
 resource "aws_s3_bucket_object" "send_notification_script" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/send_notification.py"
