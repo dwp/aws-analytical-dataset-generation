@@ -64,6 +64,7 @@ def main(
     published_database_name,
     args,
     run_id,
+    s3_resource
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -84,6 +85,7 @@ def main(
                 itertools.repeat(s3_publish_bucket),
                 itertools.repeat(args),
                 itertools.repeat(run_id),
+                itertools.repeat(s3_resource)
             )
     except Exception as ex:
         the_logger.error(
@@ -136,6 +138,8 @@ def get_client(service_name):
 def get_resource(service_name):
     return boto3.resource(service_name, region_name="${aws_default_region}")
 
+def get_s3_resource():
+    return boto3.resource("s3", region_name="${aws_default_region}")
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
     keys = []
@@ -179,6 +183,7 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     run_id,
+    s3_resource
 ):
     try:
         for collection_name, collection_files_keys in collection.items():
@@ -191,16 +196,15 @@ def consolidate_rdd_per_collection(
             tag_value = secrets_collections[collection_name]
             start_time = time.perf_counter()
             rdd_list = []
+            total_collection_size = 0
             for collection_file_key in collection_files_keys:
                 encrypted = read_binary(
                     spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
                 )
-                add_filesize_metric(
-                    collection_name, s3_client, s3_htme_bucket, collection_file_key
-                )
                 metadata = get_metadatafor_key(
                     collection_file_key, s3_client, s3_htme_bucket
                 )
+                total_collection_size += get_filesize(s3_client, s3_htme_bucket, collection_file_key)
                 ciphertext = metadata["ciphertext"]
                 datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
                 iv = metadata["iv"]
@@ -239,6 +243,8 @@ def consolidate_rdd_per_collection(
                 run_id,
             )
             tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
+        add_metric('htme_collection_size.csv',collection_name,str(total_collection_size))
+        add_folder_size_metric(collection_name, s3_publish_bucket, json_location_prefix,"adg_collection_size.csv",s3_resource)
         the_logger.info(
             "Creating Hive tables of collection : %s for correlation id : %s and run id : %s",
             collection_name,
@@ -254,6 +260,9 @@ def consolidate_rdd_per_collection(
             args.correlation_id,
             run_id,
         )
+        adg_json_prefix = "analytical-dataset/%s" % (run_time_stamp)
+        add_folder_size_metric('all_collections',s3_htme_bucket, args.s3_prefix,"htme_collection_size.csv",s3_resource)
+        add_folder_size_metric('all_collections', s3_publish_bucket, adg_json_prefix,"adg_collection_size.csv",s3_resource)
     except BaseException as ex:
         the_logger.error(
             "Error processing for correlation id: %s and run id : %s for collection %s %s",
@@ -435,17 +444,29 @@ def create_hive_tables_on_published(
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
 
+def get_filesize( s3_client, s3_htme_bucket, collection_file_key):
+    metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
+    filesize = metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"]
+    return int(filesize)
 
 def add_filesize_metric(
     collection_name, s3_client, s3_htme_bucket, collection_file_key
 ):
     metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
     add_metric(
-        "collection_size.csv",
+        "htme_collection_size.csv",
         collection_name,
         metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"],
     )
 
+def add_folder_size_metric(collection_name, s3_bucket, s3_prefix,filename,s3_resource):
+    total_size = 0
+    for obj in s3_resource.Bucket(s3_bucket).objects.filter(Prefix=s3_prefix):
+        total_size += obj.size
+    add_metric(
+        filename,
+        collection_name,
+        str(total_size))
 
 def add_metric(metrics_file, collection_name, value):
     metrics_path = f"/opt/emr/metrics/{metrics_file}"
@@ -457,7 +478,8 @@ def add_metric(metrics_file, collection_name, value):
         for line in lines:
             if not line.startswith(get_collection(collection_name)):
                 f.write(line)
-        f.write(get_collection(collection_name) + "," + value + "\n")
+        collection_name = get_collection(collection_name).replace("/", "_")
+        f.write(collection_name + "," + value + "\n")
 
 
 def get_spark_session():
@@ -566,6 +588,7 @@ if __name__ == "__main__":
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_client("s3")
+    s3_resource = get_s3_resource()
     secrets_response = retrieve_secrets()
     secrets_collections = get_collections(secrets_response, args)
     keys_map = {}
@@ -583,6 +606,7 @@ if __name__ == "__main__":
         published_database_name,
         args,
         run_id,
+        s3_resource
     )
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
