@@ -59,6 +59,15 @@ locals {
     production  = "1 0 * * ? 2025"
   }
 
+  # triggers every day at 4 am
+  s3_data_purger_schedule = {
+    development = "0 4 * * ? *"
+    qa          = "0 4 * * ? *"
+    integration = "0 4 * * ? *"
+    preprod     = "0 4 * * ? *"
+    production  = "0 4 * * ? *"
+  }
+
   adg_log_level = {
     development = "DEBUG"
     qa          = "DEBUG"
@@ -115,6 +124,14 @@ locals {
     production  = false
   }
 
+  step_fail_action = {
+    development = "CONTINUE"
+    qa          = "TERMINATE_CLUSTER"
+    integration = "TERMINATE_CLUSTER"
+    preprod     = "TERMINATE_CLUSTER"
+    production  = "TERMINATE_CLUSTER"
+  }
+
   cw_agent_namespace                   = "/app/analytical_dataset_generator"
   cw_agent_log_group_name              = "/app/analytical_dataset_generator"
   cw_agent_bootstrap_loggrp_name       = "/app/analytical_dataset_generator/bootstrap_actions"
@@ -167,5 +184,21 @@ locals {
     integration = false
     preprod     = false
     production  = true
+  }
+
+  adg_prefix = {
+    development = "analytical-dataset"
+    qa          = "analytical-dataset"
+    integration = "analytical-dataset"
+    preprod     = "analytical-dataset"
+    production  = "analytical-dataset"
+  }
+
+  adg_retention_days = {
+    development = 1
+    qa          = 1
+    integration = 1
+    preprod     = 20
+    production  = 20
   }
 }
