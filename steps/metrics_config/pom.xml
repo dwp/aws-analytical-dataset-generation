@@ -73,12 +73,12 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-secretsmanager</artifactId>
-            <version>1.11.837</version>
+            <version>1.11.903</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-core</artifactId>
-            <version>1.11.837</version>
+            <version>1.11.903</version>
         </dependency>
     </dependencies>
 </project>
