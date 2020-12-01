@@ -84,3 +84,14 @@ resource "aws_s3_bucket_object" "send_notification_script" {
     }
   )
 }
+
+resource "aws_s3_bucket_object" "flush_pushgateway" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key        = "component/analytical-dataset-generation/flush-pushgateway.sh"
+  content = templatefile("${path.module}/steps/flush-pushgateway.sh",
+    {
+      adg_pushgateway_hostname = data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname
+    }
+  )
+}
