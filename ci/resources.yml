@@ -59,14 +59,6 @@ resources:
     check_every: 1h
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
-  - name: s3-data-purger-release
-    type: github-release
-    source:
-      owner: dwp
-      repository: dataworks-s3-data-purger
-    check_every: 1h
-    webhook_token: ((dataworks.concourse_github_webhook_token))
-
   - name: analytical-dataset-generation-exporter-release
     type: github-release
     source:

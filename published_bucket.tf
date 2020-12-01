@@ -78,6 +78,16 @@ resource "aws_s3_bucket" "published" {
     }
   }
 
+  lifecycle_rule {
+    id      = "adg"
+    prefix  = "analytical-dataset/"
+    enabled = true
+
+    expiration {
+      days = 7
+    }
+  }
+
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
