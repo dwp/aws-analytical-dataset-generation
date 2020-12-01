@@ -5,7 +5,7 @@ set -euo pipefail
 source /opt/emr/logging.sh
 
 function log_wrapper_message() {
-    log_adg_message "$$1" "flush-pushgateway" "$$" "Running as: $$USER"
+    log_adg_message "$${1}" "flush-pushgateway.sh" "$${PID}" "$${@:2}" "Running as: ,$USER"
 }
 
 log_wrapper_message "Sleeping for 5m"
@@ -16,4 +16,4 @@ log_wrapper_message "Flushing the ADG pushgateway"
 curl -X PUT http://${adg_pushgateway_hostname}:9091/api/v1/admin/wipe
 log_wrapper_message "Done flushing the ADG pushgateway"
 
-) >> /var/log/adg/nohup.log 2>&1
+) >> /var/log/adg/flush-pushgateway.log 2>&1
