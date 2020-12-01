@@ -7,8 +7,6 @@ jobs:
           version: every
         - get: emr-launcher-release
           trigger: true
-        - get: s3-data-purger-release
-          trigger: true
         - get: manage-mysql-user-release
           trigger: true
         - get: analytical-dataset-generation-exporter-release
@@ -50,7 +48,6 @@ jobs:
                 cp ../terraform-config/terraform.tfvars .
                 export TF_VAR_emr_ami_id=$(cat ../emr-ami/id)
                 export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
-                export TF_VAR_s3_data_purger_zip="{base_path = \"../s3-data-purger-release\", version = \"$(cat ../s3-data-purger-release/version)\"}"
                 export TF_VAR_manage_mysql_user_zip="{base_path = \"../manage-mysql-user-release\", version = \"$(cat ../manage-mysql-user-release/version)\"}"
                 export TF_VAR_analytical_dataset_generation_exporter_jar="{base_path = \"../analytical-dataset-generation-exporter-release\", version = \"$(ls ../analytical-dataset-generation-exporter-release/*.jar | sed -e 's/^.*exporter-//' -e 's/.jar$//')\"}"
                 terraform init
@@ -63,7 +60,6 @@ jobs:
             - name: manage-mysql-user-release
             - name: analytical-dataset-generation-exporter-release
             - name: emr-ami
-            - name: s3-data-purger-release
         input_mapping:
           aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
         on_failure:
