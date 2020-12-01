@@ -5,7 +5,7 @@ set -euo pipefail
 source /opt/emr/logging.sh
 
 function log_wrapper_message() {
-    log_adg_message "$${1}" "flush-pushgateway.sh" "$${PID}" "$${@:2}" "Running as: ,$USER"
+    log_adg_message "$${1}" "flush-pushgateway.sh" "Running as: ,$USER"
 }
 
 log_wrapper_message "Sleeping for 5m"
