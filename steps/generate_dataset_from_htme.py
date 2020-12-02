@@ -386,7 +386,7 @@ def decompress(compressed_text):
 
 
 def persist_json(json_location, values):
-    values.saveAsTextFile(json_location)
+    values.saveAsTextFile(json_location, compressionCodecClass="com.hadoop.compression.lzo.LzopCodec")
 
 
 def get_collection(collection_name):
