@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# This script waits for a fixed period to give the metrics scraper enough
+# time to collect ADGs metrics. It then deletes all of ADGs metrics so that
+# the scraper doesn't continually gather stale metrics long past ADG's termination.
+
 set -euo pipefail
 (
 # Import the logging functions
