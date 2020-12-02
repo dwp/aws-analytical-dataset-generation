@@ -126,6 +126,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
     )
     monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "persist_json", mock_persist_json)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
     monkeypatch.setattr(
@@ -214,6 +215,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     )
     monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "persist_json", mock_persist_json)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
     monkeypatch.setattr(
@@ -240,13 +242,15 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     ]
 
 
-def test_create_hive_on_published(spark, handle_server, aws_credentials):
+def test_create_hive_on_published(spark, handle_server, aws_credentials, monkeypatch):
     json_location = "s3://test/t"
     collection_name = "tabtest"
     all_processed_collections = [(collection_name, json_location)]
     steps.generate_dataset_from_htme.create_hive_tables_on_published(
         spark, all_processed_collections, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID
     )
+
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "persist_json", mock_persist_json)
     assert generate_dataset_from_htme.get_collection(collection_name) in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
     ]
@@ -355,6 +359,9 @@ def mock_create_hive_tables_on_published(
 ):
     return published_database_name
 
+# Mocking because we don't have the compression codec libraries available in test phase
+def mock_persist_json(json_location, values):
+    values.saveAsTextFile(json_location)
 
 @mock_dynamodb2
 def mock_get_dynamodb_resource(service_name):
