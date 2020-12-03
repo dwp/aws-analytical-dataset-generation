@@ -298,7 +298,7 @@ resource "aws_iam_policy" "analytical_dataset_crown_read_only" {
   policy      = data.aws_iam_policy_document.analytical_dataset_crown_read_only.json
 }
 
-data "aws_iam_policy_document" "analytical_dataset_crown_read_only_non_pii" {
+data "aws_iam_policy_document" "analytical_dataset_crown_read_only_non_sensitive" {
   statement {
     effect = "Allow"
 
@@ -359,15 +359,15 @@ data "aws_iam_policy_document" "analytical_dataset_crown_read_only_non_pii" {
   }
 }
 
-resource "aws_iam_policy" "analytical_dataset_crown_read_only_non_pii" {
-  name        = "AnalyticalDatasetCrownReadOnlyNonPii"
+resource "aws_iam_policy" "analytical_dataset_crown_read_only_non_sensitive" {
+  name        = "AnalyticalDatasetCrownReadOnlyNonSensitive"
   description = "Allow read access to the Crown-specific subset of the Analytical Dataset"
-  policy      = data.aws_iam_policy_document.analytical_dataset_crown_read_only_non_pii.json
+  policy      = data.aws_iam_policy_document.analytical_dataset_crown_read_only_non_sensitive.json
 }
 
-# bucket policy for the published non-pii bucket
+# bucket policy for the published nonsensitive bucket
 
-data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_pii" {
+data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_sensitive" {
   statement {
     effect = "Allow"
 
@@ -377,7 +377,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_pii"
     ]
 
     resources = [
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
   }
 
@@ -391,7 +391,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_pii"
     ]
 
     resources = [
-      format("arn:aws:s3:::%s/%s/*", data.terraform_remote_state.common.outputs.published_bucket_non_pii.bucket, local.published_bucket_non_pii_prefix)
+      format("arn:aws:s3:::%s/%s/*", data.terraform_remote_state.common.outputs.published_nonsensitive.bucket, local.published_nonsensitive_prefix)
     ]
   }
 
@@ -407,20 +407,20 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_pii"
     ]
 
     resources = [
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii_cmk.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive_cmk.arn,
     ]
   }
 }
 
-resource "aws_iam_policy" "analytical_dataset_generator_read_write_non_pii" {
-  name        = "AnalyticalDatasetGeneratorReadWriteNonPii"
-  description = "Allow read writing of non-pii data"
-  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_write_non_pii.json
+resource "aws_iam_policy" "analytical_dataset_generator_read_write_non_sensitive" {
+  name        = "AnalyticalDatasetGeneratorReadWriteNonSensitive"
+  description = "Allow read writing of non-sensitive data"
+  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_write_non_sensitive.json
 }
 
-# policy for s3 read access of both non-pii and pii PDM data
+# policy for s3 read access of both sensitive and non sensitive PDM data
 
-data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
+data "aws_iam_policy_document" "pdm_read_sensitive_and_nonsensitive" {
   statement {
     effect = "Allow"
 
@@ -431,7 +431,7 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
 
     resources = [
       aws_s3_bucket.published.arn,
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
   }
 
@@ -446,7 +446,7 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
     resources = [
       "${aws_s3_bucket.published.arn}/pdm-dataset/*",
       "${aws_s3_bucket.published.arn}/aws-analytical-env-metrics-data/*",
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
 
   }
@@ -461,20 +461,20 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
 
     resources = [
       "${aws_kms_key.published_bucket_cmk.arn}",
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii_cmk.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive_cmk.arn,
     ]
   }
 }
 
-resource "aws_iam_policy" "pdm_read_pii_and_non_pii" {
-  name        = "ReadPDMPiiAndNonPii"
+resource "aws_iam_policy" "pdm_read_sensitive_and_nonsensitive" {
+  name        = "ReadPDMSensitiveAndNonSensitive"
   description = "Allow read access to the PDM tables"
-  policy      = data.aws_iam_policy_document.pdm_read_pii_and_non_pii.json
+  policy      = data.aws_iam_policy_document.pdm_read_sensitive_and_nonsensitive.json
 }
 
-# policy for s3 read access of non-pii PDM data only
+# policy for s3 read access of non-sensitive PDM data only
 
-data "aws_iam_policy_document" "pdm_read_non_pii_only" {
+data "aws_iam_policy_document" "pdm_read_non_sensitive_only" {
   statement {
     effect = "Allow"
 
@@ -485,7 +485,7 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
 
     resources = [
       aws_s3_bucket.published.arn,
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
   }
 
@@ -500,7 +500,7 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
     resources = [
       "${aws_s3_bucket.published.arn}/pdm-dataset/*",
       "${aws_s3_bucket.published.arn}/aws-analytical-env-metrics-data/*",
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
 
     condition {
@@ -524,13 +524,13 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
 
     resources = [
       "${aws_kms_key.published_bucket_cmk.arn}",
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii_cmk.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive_cmk.arn,
     ]
   }
 }
 
-resource "aws_iam_policy" "pdm_read_non_pii_only" {
-  name        = "ReadPDMNonPiiOnly"
-  description = "Allow read access to a subset of the PDM tables containing less sensitive data called non-pii"
-  policy      = data.aws_iam_policy_document.pdm_read_non_pii_only.json
+resource "aws_iam_policy" "pdm_read_non_sensitive_only" {
+  name        = "ReadPDMNonSensitiveOnly"
+  description = "Allow read access to a subset of the PDM tables containing less sensitive data"
+  policy      = data.aws_iam_policy_document.pdm_read_non_sensitive_only.json
 }
