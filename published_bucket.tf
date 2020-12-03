@@ -26,7 +26,7 @@ resource "aws_kms_key" "published_bucket_cmk" {
   tags = merge(
     local.tags,
     {
-      Name = "published_bucket_cmk"
+      Name = "published_sensitive_cmk"
     },
     {
       ProtectsSensitiveData = "False"
@@ -298,7 +298,7 @@ resource "aws_iam_policy" "analytical_dataset_crown_read_only" {
   policy      = data.aws_iam_policy_document.analytical_dataset_crown_read_only.json
 }
 
-data "aws_iam_policy_document" "analytical_dataset_crown_read_only_non_sensitive" {
+data "aws_iam_policy_document" "analytical_dataset_crown_read_only_non_pii" {
   statement {
     effect = "Allow"
 
@@ -359,15 +359,15 @@ data "aws_iam_policy_document" "analytical_dataset_crown_read_only_non_sensitive
   }
 }
 
-resource "aws_iam_policy" "analytical_dataset_crown_read_only_non_sensitive" {
-  name        = "AnalyticalDatasetCrownReadOnlyNonSensitive"
+resource "aws_iam_policy" "analytical_dataset_crown_read_only_non_pii" {
+  name        = "AnalyticalDatasetCrownReadOnlyNonPii"
   description = "Allow read access to the Crown-specific subset of the Analytical Dataset"
-  policy      = data.aws_iam_policy_document.analytical_dataset_crown_read_only_non_sensitive.json
+  policy      = data.aws_iam_policy_document.analytical_dataset_crown_read_only_non_pii.json
 }
 
-# bucket policy for the published nonsensitive bucket
+# bucket policy for the published non-pii bucket
 
-data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_sensitive" {
+data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_pii" {
   statement {
     effect = "Allow"
 
@@ -412,15 +412,15 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_sens
   }
 }
 
-resource "aws_iam_policy" "analytical_dataset_generator_read_write_non_sensitive" {
-  name        = "AnalyticalDatasetGeneratorReadWriteNonSensitive"
-  description = "Allow read writing of non-sensitive data"
-  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_write_non_sensitive.json
+resource "aws_iam_policy" "analytical_dataset_generator_read_write_non_pii" {
+  name        = "AnalyticalDatasetGeneratorReadWriteNonPii"
+  description = "Allow read writing of non-pii data"
+  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_write_non_pii.json
 }
 
-# policy for s3 read access of both sensitive and non sensitive PDM data
+# policy for s3 read access of both non-pii and pii PDM data
 
-data "aws_iam_policy_document" "pdm_read_sensitive_and_nonsensitive" {
+data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
   statement {
     effect = "Allow"
 
@@ -466,15 +466,15 @@ data "aws_iam_policy_document" "pdm_read_sensitive_and_nonsensitive" {
   }
 }
 
-resource "aws_iam_policy" "pdm_read_sensitive_and_nonsensitive" {
-  name        = "ReadPDMSensitiveAndNonSensitive"
+resource "aws_iam_policy" "pdm_read_pii_and_non_pii" {
+  name        = "ReadPDMPiiAndNonPii"
   description = "Allow read access to the PDM tables"
-  policy      = data.aws_iam_policy_document.pdm_read_sensitive_and_nonsensitive.json
+  policy      = data.aws_iam_policy_document.pdm_read_pii_and_non_pii.json
 }
 
-# policy for s3 read access of non-sensitive PDM data only
+# policy for s3 read access of non-pii PDM data only
 
-data "aws_iam_policy_document" "pdm_read_non_sensitive_only" {
+data "aws_iam_policy_document" "pdm_read_non_pii_only" {
   statement {
     effect = "Allow"
 
@@ -529,8 +529,8 @@ data "aws_iam_policy_document" "pdm_read_non_sensitive_only" {
   }
 }
 
-resource "aws_iam_policy" "pdm_read_non_sensitive_only" {
-  name        = "ReadPDMNonSensitiveOnly"
-  description = "Allow read access to a subset of the PDM tables containing less sensitive data"
-  policy      = data.aws_iam_policy_document.pdm_read_non_sensitive_only.json
+resource "aws_iam_policy" "pdm_read_non_pii_only" {
+  name        = "ReadPDMNonPiiOnly"
+  description = "Allow read access to a subset of the PDM tables containing less sensitive data called non-pii"
+  policy      = data.aws_iam_policy_document.pdm_read_non_pii_only.json
 }
