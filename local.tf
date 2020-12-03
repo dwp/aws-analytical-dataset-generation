@@ -134,7 +134,7 @@ locals {
   emrfs_metadata_tablename = "Analytical_Dataset_Generation_Metadata"
   data_pipeline_metadata   = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
 
-  published_bucket_non_pii_prefix = "runmetadata"
+  published_nonsensitive_prefix = "runmetadata"
   hive_metastore_instance_type = {
     development = "db.t3.medium"
     qa          = "db.r5.large"

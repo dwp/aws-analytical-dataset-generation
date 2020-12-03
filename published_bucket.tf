@@ -26,7 +26,7 @@ resource "aws_kms_key" "published_bucket_cmk" {
   tags = merge(
     local.tags,
     {
-      Name = "published_bucket_cmk"
+      Name = "published_sensitive_cmk"
     },
     {
       ProtectsSensitiveData = "False"
@@ -53,7 +53,7 @@ resource "aws_s3_bucket" "published" {
   tags = merge(
     local.tags,
     {
-      Name = "published_bucket"
+      Name = "published_sensitive"
   })
 
   bucket = random_id.published_bucket.hex
@@ -377,7 +377,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_pii"
     ]
 
     resources = [
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
   }
 
@@ -391,7 +391,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_pii"
     ]
 
     resources = [
-      format("arn:aws:s3:::%s/%s/*", data.terraform_remote_state.common.outputs.published_bucket_non_pii.bucket, local.published_bucket_non_pii_prefix)
+      format("arn:aws:s3:::%s/%s/*", data.terraform_remote_state.common.outputs.published_nonsensitive.bucket, local.published_nonsensitive_prefix)
     ]
   }
 
@@ -407,7 +407,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_pii"
     ]
 
     resources = [
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii_cmk.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive_cmk.arn,
     ]
   }
 }
@@ -431,7 +431,7 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
 
     resources = [
       aws_s3_bucket.published.arn,
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
   }
 
@@ -446,7 +446,7 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
     resources = [
       "${aws_s3_bucket.published.arn}/pdm-dataset/*",
       "${aws_s3_bucket.published.arn}/aws-analytical-env-metrics-data/*",
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
 
   }
@@ -461,7 +461,7 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
 
     resources = [
       "${aws_kms_key.published_bucket_cmk.arn}",
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii_cmk.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive_cmk.arn,
     ]
   }
 }
@@ -485,7 +485,7 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
 
     resources = [
       aws_s3_bucket.published.arn,
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
   }
 
@@ -500,7 +500,7 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
     resources = [
       "${aws_s3_bucket.published.arn}/pdm-dataset/*",
       "${aws_s3_bucket.published.arn}/aws-analytical-env-metrics-data/*",
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
 
     condition {
@@ -524,7 +524,7 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
 
     resources = [
       "${aws_kms_key.published_bucket_cmk.arn}",
-      data.terraform_remote_state.common.outputs.published_bucket_non_pii_cmk.arn,
+      data.terraform_remote_state.common.outputs.published_nonsensitive_cmk.arn,
     ]
   }
 }
