@@ -53,7 +53,7 @@ resource "aws_s3_bucket" "published" {
   tags = merge(
     local.tags,
     {
-      Name = "published_bucket"
+      Name = "published_sensitive"
   })
 
   bucket = random_id.published_bucket.hex
