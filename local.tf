@@ -59,15 +59,6 @@ locals {
     production  = "1 0 * * ? 2025"
   }
 
-  # triggers every day at 4 am
-  s3_data_purger_schedule = {
-    development = "0 4 * * ? *"
-    qa          = "0 4 * * ? *"
-    integration = "0 4 * * ? *"
-    preprod     = "0 4 * * ? *"
-    production  = "0 4 * * ? *"
-  }
-
   adg_log_level = {
     development = "DEBUG"
     qa          = "DEBUG"
@@ -124,6 +115,14 @@ locals {
     production  = false
   }
 
+  step_fail_action = {
+    development = "CONTINUE"
+    qa          = "TERMINATE_CLUSTER"
+    integration = "TERMINATE_CLUSTER"
+    preprod     = "TERMINATE_CLUSTER"
+    production  = "TERMINATE_CLUSTER"
+  }
+
   cw_agent_namespace                   = "/app/analytical_dataset_generator"
   cw_agent_log_group_name              = "/app/analytical_dataset_generator"
   cw_agent_bootstrap_loggrp_name       = "/app/analytical_dataset_generator/bootstrap_actions"
@@ -135,7 +134,7 @@ locals {
   emrfs_metadata_tablename = "Analytical_Dataset_Generation_Metadata"
   data_pipeline_metadata   = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
 
-  published_bucket_non_pii_prefix = "runmetadata"
+  published_nonsensitive_prefix = "runmetadata"
   hive_metastore_instance_type = {
     development = "db.t3.medium"
     qa          = "db.r5.large"

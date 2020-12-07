@@ -49,14 +49,6 @@ resource "aws_iam_role" "adg_emr_launcher_lambda_role" {
   assume_role_policy = data.aws_iam_policy_document.adg_emr_launcher_assume_policy.json
 }
 
-resource "aws_lambda_permission" "adg_emr_launcher_invoke_permission" {
-  statement_id  = "AllowExecutionFromCloudWatch"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.adg_emr_launcher.function_name
-  principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.s3_data_purger_rule.arn
-}
-
 data "aws_iam_policy_document" "adg_emr_launcher_assume_policy" {
   statement {
     sid     = "ADGEMRLauncherLambdaAssumeRolePolicy"
