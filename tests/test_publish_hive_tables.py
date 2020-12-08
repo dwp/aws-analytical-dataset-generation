@@ -13,7 +13,7 @@ DB_CORE_ACCOUNTS = "core_accounts"
 PUBLISHED_DATABASE_NAME = "test_db"
 COLLECTION_NAME_1 = "db.core.contract"
 COLLECTION_NAME_2 = "db.core.accounts"
-TEST_DATA = f"""{COLLECTION_NAME_2},s3://target/${{file_location}}/2020-10-10_10-10-10/core/accounts
+TEST_DATA = f"""{COLLECTION_NAME_2},s3://target/${{file_location}}/2020-10-10_10-10-10/core/accounts\r\n
              {COLLECTION_NAME_1},s3://target/${{file_location}}/2020-10-10_10-10-10/core/contract"""
 
 

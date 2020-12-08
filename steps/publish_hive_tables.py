@@ -75,15 +75,15 @@ def create_hive_tables_on_published(
         src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING)  
                 STORED AS TEXTFILE LOCATION "{collection_json_location}" """
         src_hive_analyse_query = (
-            f"""ANALYSE TABLE {src_hive_table} COMPUTE STATISTICS"""
+            f"""ANALYZE TABLE {src_hive_table} COMPUTE STATISTICS"""
         )
         spark.sql(src_hive_drop_query)
         spark.sql(src_hive_create_query)
-        the_logger.info("Analyse Hive table for : %s ", src_hive_table)
+        the_logger.info("Analyze Hive table for : %s ", src_hive_table)
         spark.sql(src_hive_analyse_query)
     except BaseException as ex:
         the_logger.error(
-            "Problem with creating Hive tables metadata file for %s", str(ex)
+            "Problem with creating Hive tables %s", str(ex)
         )
         sys.exit(-1)
 
