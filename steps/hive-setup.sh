@@ -13,6 +13,7 @@ function log_wrapper_message() {
 }
 aws s3 cp "${python_logger}" /opt/emr/steps/.
 aws s3 cp "${generate_analytical_dataset}" /opt/emr/.
+aws s3 cp "${publish_hive_table_script}" /opt/emr/.
 ) >> /var/log/adg/nohup.log 2>&1
 
 

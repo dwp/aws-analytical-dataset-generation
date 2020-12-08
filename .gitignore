@@ -3,6 +3,7 @@
 
 **/*.tfvars
 **/*.tfstate
+tests/
 **/*.tfstate*
 
 terraform.tf
