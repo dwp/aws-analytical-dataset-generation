@@ -31,6 +31,9 @@ def main(spark, s3_client, s3_publish_bucket, published_database_name):
     adg_hive_tables_metadata_object_key = (
         f"{adg_hive_metadata_file_location}/{adg_hive_metadata_file_name}"
     )
+    the_logger.info(
+        "Getting Hive tables metadata file from S3"
+    )
     hive_tables_metadata = (
         s3_client.get_object(
             Bucket=s3_publish_bucket, Key=adg_hive_tables_metadata_object_key
@@ -60,7 +63,7 @@ def create_hive_tables_on_published(
         # Check to create database only if the backend is Aurora as Glue database is created through terraform
         if "${hive_metastore_backend}" == "aurora":
             the_logger.info(
-                "Creating metastore db while processing correlation_id %s and run id %s"
+                "Creating metastore db while processing"
             )
             create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
             spark.sql(create_db_query)
@@ -95,7 +98,7 @@ def get_spark_session():
     spark_session = (
         SparkSession.builder.master("yarn")
         .config("spark.metrics.namespace", "adg")
-        .appName("ADG-Hive-Setup")
+        .appName("ADG-Publish-Hive-Tables")
         .enableHiveSupport()
         .getOrCreate()
     )
