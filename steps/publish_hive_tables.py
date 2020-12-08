@@ -67,21 +67,20 @@ def create_hive_tables_on_published(
             )
             create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
             spark.sql(create_db_query)
-        for table_metadata in hive_tables_metadata:
-            (collection_name, collection_json_location) = table_metadata.split(",")
-            hive_table_name = get_collection(collection_name)
-            src_hive_table = published_database_name + "." + hive_table_name
-            the_logger.info("Creating Hive table for : %s ", src_hive_table)
-            src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
-            src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING)  
-                    STORED AS TEXTFILE LOCATION "{collection_json_location}" """
-            src_hive_analyse_query = (
-                f"""ANALYSE TABLE {src_hive_table} COMPUTE STATISTICS"""
-            )
-            spark.sql(src_hive_drop_query)
-            spark.sql(src_hive_create_query)
-            the_logger.info("Analyse Hive table for : %s ", src_hive_table)
-            spark.sql(src_hive_analyse_query)
+        (collection_name, collection_json_location) = hive_tables_metadata.split(",")
+        hive_table_name = get_collection(collection_name)
+        src_hive_table = published_database_name + "." + hive_table_name
+        the_logger.info("Creating Hive table for : %s ", src_hive_table)
+        src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
+        src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING)  
+                STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+        src_hive_analyse_query = (
+            f"""ANALYSE TABLE {src_hive_table} COMPUTE STATISTICS"""
+        )
+        spark.sql(src_hive_drop_query)
+        spark.sql(src_hive_create_query)
+        the_logger.info("Analyse Hive table for : %s ", src_hive_table)
+        spark.sql(src_hive_analyse_query)
     except BaseException as ex:
         the_logger.error(
             "Problem with creating Hive tables metadata file for %s", str(ex)

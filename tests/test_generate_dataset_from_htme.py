@@ -325,13 +325,6 @@ def test_log_start_of_batch_for_multiple_runs():
     assert generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb) == 2
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
 
-
-def test_spark(spark, handle_server):
-    spark.read.csv(
-        f"s3://{S3_PUBLISH_BUCKET}/{ADG_HIVE_TABLES_METADATA_FILE_LOCATION}/{ADG_HIVE_TABLES_METADATA_FILE_NAME}"
-    )
-
-
 @mock_dynamodb2
 def test_log_end_of_batch():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
