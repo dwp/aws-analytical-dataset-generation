@@ -1,2 +1,0 @@
-db.core.accounts,s3://target/${file_location}/2020-10-10_10-10-10/core/accounts
-db.core.contract,s3://target/${file_location}/2020-10-10_10-10-10/core/contract
