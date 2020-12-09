@@ -20,3 +20,4 @@ hsperfdata_root/
 liblz4-java*.so
 root/
 spark-*/
+tests/*.csv
