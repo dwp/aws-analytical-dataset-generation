@@ -97,6 +97,7 @@ def get_spark_session():
     spark_session = (
         SparkSession.builder.master("yarn")
         .config("spark.metrics.namespace", "adg")
+        .config("spark.sql.catalogImplementation", "hive")
         .appName("ADG-Publish-Hive-Tables")
         .enableHiveSupport()
         .getOrCreate()
