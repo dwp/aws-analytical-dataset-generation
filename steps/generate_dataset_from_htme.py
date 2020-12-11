@@ -61,9 +61,10 @@ def main(
     keys_map,
     run_time_stamp,
     s3_publish_bucket,
+    published_database_name,
     args,
     run_id,
-    s3_resource,
+    s3_resource
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -84,7 +85,7 @@ def main(
                 itertools.repeat(s3_publish_bucket),
                 itertools.repeat(args),
                 itertools.repeat(run_id),
-                itertools.repeat(s3_resource),
+                itertools.repeat(s3_resource)
             )
     except Exception as ex:
         the_logger.error(
@@ -98,8 +99,8 @@ def main(
     # Create hive tables only if all the collections have been processed successfully else raise exception
     list_of_processed_collections = list(all_processed_collections)
     if len(list_of_processed_collections) == len(secrets_collections):
-        create_hive_tables_metadata_file(
-            list_of_processed_collections, s3_client, s3_publish_bucket, args, run_id
+        create_hive_tables_on_published(
+            spark, list_of_processed_collections, published_database_name, args, run_id
         )
         create_adg_status_csv(
             args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp
@@ -137,10 +138,8 @@ def get_client(service_name):
 def get_resource(service_name):
     return boto3.resource(service_name, region_name="${aws_default_region}")
 
-
 def get_s3_resource():
     return boto3.resource("s3", region_name="${aws_default_region}")
-
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
     keys = []
@@ -184,7 +183,7 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     run_id,
-    s3_resource,
+    s3_resource
 ):
     try:
         for collection_name, collection_files_keys in collection.items():
@@ -205,9 +204,7 @@ def consolidate_rdd_per_collection(
                 metadata = get_metadatafor_key(
                     collection_file_key, s3_client, s3_htme_bucket
                 )
-                total_collection_size += get_filesize(
-                    s3_client, s3_htme_bucket, collection_file_key
-                )
+                total_collection_size += get_filesize(s3_client, s3_htme_bucket, collection_file_key)
                 ciphertext = metadata["ciphertext"]
                 datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
                 iv = metadata["iv"]
@@ -237,7 +234,7 @@ def consolidate_rdd_per_collection(
                 collection_name_key,
             )
 
-            json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+            json_location = "s3://%s/%s" % (s3_publish_bucket, json_location_prefix)
             persist_json(json_location, consolidated_rdd_mapped)
             the_logger.info(
                 "Applying Tags for prefix : %s for correlation id : %s and run id: %s",
@@ -246,16 +243,8 @@ def consolidate_rdd_per_collection(
                 run_id,
             )
             tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
-        add_metric(
-            "htme_collection_size.csv", collection_name, str(total_collection_size)
-        )
-        add_folder_size_metric(
-            collection_name,
-            s3_publish_bucket,
-            json_location_prefix,
-            "adg_collection_size.csv",
-            s3_resource,
-        )
+        add_metric('htme_collection_size.csv',collection_name,str(total_collection_size))
+        add_folder_size_metric(collection_name, s3_publish_bucket, json_location_prefix,"adg_collection_size.csv",s3_resource)
         the_logger.info(
             "Creating Hive tables of collection : %s for correlation id : %s and run id : %s",
             collection_name,
@@ -272,20 +261,8 @@ def consolidate_rdd_per_collection(
             run_id,
         )
         adg_json_prefix = "analytical-dataset/%s" % (run_time_stamp)
-        add_folder_size_metric(
-            "all_collections",
-            s3_htme_bucket,
-            args.s3_prefix,
-            "htme_collection_size.csv",
-            s3_resource,
-        )
-        add_folder_size_metric(
-            "all_collections",
-            s3_publish_bucket,
-            adg_json_prefix,
-            "adg_collection_size.csv",
-            s3_resource,
-        )
+        add_folder_size_metric('all_collections',s3_htme_bucket, args.s3_prefix,"htme_collection_size.csv",s3_resource)
+        add_folder_size_metric('all_collections', s3_publish_bucket, adg_json_prefix,"adg_collection_size.csv",s3_resource)
     except BaseException as ex:
         the_logger.error(
             "Error processing for correlation id: %s and run id : %s for collection %s %s",
@@ -409,9 +386,7 @@ def decompress(compressed_text):
 
 
 def persist_json(json_location, values):
-    values.saveAsTextFile(
-        json_location, compressionCodecClass="com.hadoop.compression.lzo.LzopCodec"
-    )
+    values.saveAsTextFile(json_location, compressionCodecClass="com.hadoop.compression.lzo.LzopCodec")
 
 
 def get_collection(collection_name):
@@ -432,29 +407,36 @@ def get_collections(secrets_response, args):
     return collections
 
 
-def create_hive_tables_metadata_file(
-    all_processed_collections, s3_client, s3_publish_bucket, args, run_id
+def create_hive_tables_on_published(
+    spark, all_processed_collections, published_database_name, args, run_id
 ):
-    """
-    Create CSV with all the collections names and their locations and save it to S3 bucket to be picked up by PDM
-    for publishing Hive tables
-    """
     try:
-        adg_hive_metadata_file_location = "${file_location}/adg_output"
-        adg_hive_metadata_file_name = "analytical-dataset-hive-tables-metadata.csv"
-        # Spark doesn't create file with specific name so need to use Python csv to create file and upload it to S3
-        with open(adg_hive_metadata_file_name, "w") as adg_output:
-            adg_output_file = csv.writer(adg_output)
-            adg_output_file.writerows(all_processed_collections)
-        with open(adg_hive_metadata_file_name, "rb") as data:
-            s3_client.upload_fileobj(
-                data,
-                s3_publish_bucket,
-                f"{adg_hive_metadata_file_location}/{adg_hive_metadata_file_name}",
+        # Check to create database only if the backend is Aurora as Glue database is created through terraform
+        if "${hive_metastore_backend}" == "aurora":
+            the_logger.info(
+                "Creating metastore db while processing correlation_id %s and run id %s",
+                args.correlation_id,
+                run_id,
             )
+            create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
+            spark.sql(create_db_query)
+        for (collection_name, collection_json_location) in all_processed_collections:
+            hive_table_name = get_collection(collection_name)
+            hive_table_name = hive_table_name.replace("/", "_")
+            src_hive_table = published_database_name + "." + hive_table_name
+            the_logger.info(
+                "Creating Hive table for : %s for correlation id : %s and run id: %s",
+                src_hive_table,
+                args.correlation_id,
+                run_id,
+            )
+            src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
+            src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+            spark.sql(src_hive_drop_query)
+            spark.sql(src_hive_create_query)
     except BaseException as ex:
         the_logger.error(
-            "Problem with creating Hive tables metadata file for correlation id: %s and run id: %s %s",
+            "Problem with creating Hive tables for correlation id: %s and run id: %s %s ",
             args.correlation_id,
             run_id,
             str(ex),
@@ -462,12 +444,10 @@ def create_hive_tables_metadata_file(
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
 
-
-def get_filesize(s3_client, s3_htme_bucket, collection_file_key):
+def get_filesize( s3_client, s3_htme_bucket, collection_file_key):
     metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
     filesize = metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"]
     return int(filesize)
-
 
 def add_filesize_metric(
     collection_name, s3_client, s3_htme_bucket, collection_file_key
@@ -479,15 +459,14 @@ def add_filesize_metric(
         metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"],
     )
 
-
-def add_folder_size_metric(
-    collection_name, s3_bucket, s3_prefix, filename, s3_resource
-):
+def add_folder_size_metric(collection_name, s3_bucket, s3_prefix,filename,s3_resource):
     total_size = 0
     for obj in s3_resource.Bucket(s3_bucket).objects.filter(Prefix=s3_prefix):
         total_size += obj.size
-    add_metric(filename, collection_name, str(total_size))
-
+    add_metric(
+        filename,
+        collection_name,
+        str(total_size))
 
 def add_metric(metrics_file, collection_name, value):
     metrics_path = f"/opt/emr/metrics/{metrics_file}"
@@ -508,7 +487,7 @@ def get_spark_session():
         SparkSession.builder.master("yarn")
         .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
         .config("spark.metrics.namespace", "adg")
-        .appName("ADG-Batch-Job")
+        .appName("spike")
         .enableHiveSupport()
         .getOrCreate()
     )
@@ -605,6 +584,7 @@ if __name__ == "__main__":
     )
     spark = get_spark_session()
     run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    published_database_name = "${published_db}"
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_client("s3")
@@ -623,9 +603,10 @@ if __name__ == "__main__":
         keys_map,
         run_time_stamp,
         s3_publish_bucket,
+        published_database_name,
         args,
         run_id,
-        s3_resource,
+        s3_resource
     )
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()

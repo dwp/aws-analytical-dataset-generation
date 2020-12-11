@@ -16,19 +16,6 @@ resource "aws_s3_bucket_object" "generate_dataset_from_htme_script" {
   )
 }
 
-resource "aws_s3_bucket_object" "publish_hive_tables_script" {
-  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/analytical-dataset-generation/publish_hive_tables.py"
-  content = templatefile("${path.module}/steps/publish_hive_tables.py",
-    {
-      published_db           = local.published_db
-      hive_metastore_backend = local.hive_metastore_backend[local.environment]
-      file_location          = "analytical-dataset"
-      log_path               = "/var/log/adg/publish-hive-tables.log"
-    }
-  )
-}
-
 resource "aws_s3_bucket_object" "hive_setup_sh" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/hive-setup.sh"
@@ -36,7 +23,6 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
     {
       python_logger               = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
       generate_analytical_dataset = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_dataset_from_htme_script.key)
-      publish_hive_table_script   = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.publish_hive_tables_script.key)
       published_db                = local.published_db
     }
   )

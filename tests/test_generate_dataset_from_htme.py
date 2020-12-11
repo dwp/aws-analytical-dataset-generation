@@ -34,7 +34,6 @@ AWS_REGION = "eu-west-2"
 S3_PREFIX_ADG = "${file_location}/" + f"{RUN_TIME_STAMP}"
 ADG_HIVE_TABLES_METADATA_FILE_LOCATION = "${file_location}/adg_output"
 ADG_OUTPUT_FILE_KEY = "${file_location}/adg_output/adg_params.csv"
-ADG_HIVE_TABLES_METADATA_FILE_NAME = "analytical-dataset-hive-tables-metadata.csv"
 
 
 def test_retrieve_secrets(monkeypatch):
@@ -105,14 +104,12 @@ def test_get_collections_in_secrets():
 def test_consolidate_rdd_per_collection_with_one_collection(
     spark, monkeypatch, handle_server, aws_credentials
 ):
+    tbl_name = "core_contract"
     collection_location = "core"
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
     target_object_key = f"${{file_location}}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
     target_object_tag = {"Key": "collection_tag", "Value": "crown"}
-    adg_hive_tables_metadata_object_key = (
-        f"{ADG_HIVE_TABLES_METADATA_FILE_LOCATION}/{ADG_HIVE_TABLES_METADATA_FILE_NAME}"
-    )
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -129,9 +126,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
     )
     monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
-    monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "persist_json", mock_persist_json
-    )
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "persist_json", mock_persist_json)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
     monkeypatch.setattr(
@@ -145,9 +140,10 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         KEYS_MAP,
         RUN_TIME_STAMP,
         S3_PUBLISH_BUCKET,
+        PUBLISHED_DATABASE_NAME,
         mock_args(),
         RUN_ID,
-        s3_resource,
+        s3_resource
     )
     assert len(s3_client.list_buckets()["Buckets"]) == 2
     assert (
@@ -163,6 +159,9 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         ][0]
         == target_object_tag
     )
+    assert tbl_name in [
+        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
+    ]
     assert (
         CORRELATION_ID
         in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET, Key=ADG_OUTPUT_FILE_KEY)[
@@ -171,15 +170,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         .read()
         .decode()
     )
-    assert (
-        DB_CORE_CONTRACT
-        in s3_client.get_object(
-            Bucket=S3_PUBLISH_BUCKET, Key=adg_hive_tables_metadata_object_key
-        )["Body"]
-        .read()
-        .decode()
-        .strip()
-    )
+
     assert (
         S3_PREFIX_ADG
         in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET, Key=ADG_OUTPUT_FILE_KEY)[
@@ -189,14 +180,12 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         .decode()
     )
 
-
 def test_consolidate_rdd_per_collection_with_multiple_collections(
     spark, monkeypatch, handle_server, aws_credentials
 ):
+    core_contract_collection_name = "core_contract"
+    core_accounts_collection_name = "core_accounts"
     test_data = '{"name":"abcd"}\n{"name":"xyz"}'
-    adg_hive_tables_metadata_object_key = (
-        f"{ADG_HIVE_TABLES_METADATA_FILE_LOCATION}/{ADG_HIVE_TABLES_METADATA_FILE_NAME}"
-    )
     secret_collections = SECRETS_COLLECTIONS
     secret_collections[DB_CORE_ACCOUNTS] = "crown"
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
@@ -226,9 +215,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     )
     monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
-    monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "persist_json", mock_persist_json
-    )
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "persist_json", mock_persist_json)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
     monkeypatch.setattr(
@@ -242,31 +229,31 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         KEYS_MAP,
         RUN_TIME_STAMP,
         s3_publish_bucket_for_multiple_collections,
+        PUBLISHED_DATABASE_NAME,
         mock_args(),
         RUN_ID,
-        s3_resource,
+        s3_resource
     )
-    assert (
-        DB_CORE_CONTRACT
-        in s3_client.get_object(
-            Bucket=s3_publish_bucket_for_multiple_collections,
-            Key=adg_hive_tables_metadata_object_key,
-        )["Body"]
-        .read()
-        .decode()
-        .strip()
+    assert core_contract_collection_name in [
+        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
+    ]
+    assert core_accounts_collection_name in [
+        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
+    ]
+
+
+def test_create_hive_on_published(spark, handle_server, aws_credentials, monkeypatch):
+    json_location = "s3://test/t"
+    collection_name = "tabtest"
+    all_processed_collections = [(collection_name, json_location)]
+    steps.generate_dataset_from_htme.create_hive_tables_on_published(
+        spark, all_processed_collections, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID
     )
 
-    assert (
-        DB_CORE_ACCOUNTS
-        in s3_client.get_object(
-            Bucket=s3_publish_bucket_for_multiple_collections,
-            Key=adg_hive_tables_metadata_object_key,
-        )["Body"]
-        .read()
-        .decode()
-        .strip()
-    )
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "persist_json", mock_persist_json)
+    assert generate_dataset_from_htme.get_collection(collection_name) in [
+        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
+    ]
 
 
 @mock_s3
@@ -304,9 +291,10 @@ def test_exception_when_decompression_fails(
             KEYS_MAP,
             RUN_TIME_STAMP,
             S3_PUBLISH_BUCKET,
+            PUBLISHED_DATABASE_NAME,
             mock_args(),
             RUN_ID,
-            s3_resource,
+            s3_resource
         )
 
 
@@ -324,6 +312,7 @@ def test_log_start_of_batch_for_multiple_runs():
     # Ran second time to increment Run_Id by 1 to 2
     assert generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb) == 2
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
+
 
 @mock_dynamodb2
 def test_log_end_of_batch():
@@ -370,11 +359,9 @@ def mock_create_hive_tables_on_published(
 ):
     return published_database_name
 
-
 # Mocking because we don't have the compression codec libraries available in test phase
 def mock_persist_json(json_location, values):
     values.saveAsTextFile(json_location)
-
 
 @mock_dynamodb2
 def mock_get_dynamodb_resource(service_name):
