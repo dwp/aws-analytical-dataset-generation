@@ -36,17 +36,6 @@ Steps:
     - "/opt/emr/generate_dataset_from_htme.py"
     Jar: "command-runner.jar"
   ActionOnFailure: "${action_on_failure}"
-- Name: "publish-hive-tables"
-  HadoopJarStep:
-  Args:
-  - "spark-submit"
-  - "--master"
-  - "yarn"
-  - "--conf"
-  - "spark.yarn.submit.waitAppCompletion=true"
-  - "/opt/emr/publish_hive_tables.py"
-  Jar: "command-runner.jar"
-  ActionOnFailure: "${action_on_failure}"
 - Name: "sns-notification"
   HadoopJarStep:
     Args:
