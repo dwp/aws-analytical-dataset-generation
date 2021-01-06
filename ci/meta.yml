@@ -50,6 +50,7 @@ meta:
           AWS_DEFAULT_REGION: ((dataworks.aws_region))
           USERNAME: placeholder
           PARAM_NAME: placeholder
+          PRIVILEGES: ''
         run:
           path: sh
           args:
@@ -57,7 +58,7 @@ meta:
             - |
               source /assume-role
               set +x
-              jq -n --arg Username "$USERNAME" --arg Paramname "$PARAM_NAME" '{mysql_user_username: $Username, mysql_user_password_secret_name: $Paramname}' > manifest.json
+              jq -n --arg Username "$USERNAME" --arg Paramname "$PARAM_NAME" --arg Privileges "$PRIVILEGES" '{mysql_user_username: $Username, mysql_user_password_secret_name: $Paramname, privileges: $Privileges}' > manifest.json
               echo "Manifest is:"
               cat manifest.json
               aws lambda invoke --function-name manage-hive-metastore-mysql-users --invocation-type RequestResponse --payload file://manifest.json --cli-connect-timeout 600 --cli-read-timeout 600 output.json
@@ -93,30 +94,35 @@ meta:
         params:
           USERNAME: "adg-reader"
           PARAM_NAME: "metadata-store-adg-reader"
+          PRIVILEGES: SELECT
     rotate-adg-writer-password:
       .: (( inject meta.plan.rotate-mysql-password ))
       config:
         params:
           USERNAME: "adg-writer"
           PARAM_NAME: "metadata-store-adg-writer"
+          PRIVILEGES: ALL
     rotate-pdm-writer-password:
       .: (( inject meta.plan.rotate-mysql-password ))
       config:
         params:
           USERNAME: "pdm-writer"
           PARAM_NAME: "metadata-store-pdm-writer"
+          PRIVILEGES: ALL
     rotate-analytical-env-password:
       .: (( inject meta.plan.rotate-mysql-password ))
       config:
         params:
           USERNAME: "analytical-env"
           PARAM_NAME: "metadata-store-analytical-env"
+          PRIVILEGES: ALL
     rotate-bgdc-password:
       .: (( inject meta.plan.rotate-mysql-password ))
       config:
         params:
           USERNAME: "bgdc"
           PARAM_NAME: "metadata-store-bgdc"
+          PRIVILEGES: SELECT
     rotate-master-password:
       .: (( inject meta.plan.rotate-mysql-master-password ))
       config:
