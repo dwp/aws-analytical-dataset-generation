@@ -36,6 +36,14 @@ resource "aws_cloudwatch_metric_alarm" "adg_failed_with_errors" {
   dimensions = {
     RuleName = aws_cloudwatch_event_rule.adg_terminated_with_errors_rule.name
   }
+  tags = merge(
+    local.common_tags,
+    {
+      Name              = "adg_failed_with_errors",
+      notification_type = "Error",
+      severity          = "Critical"
+    },
+  )
 }
 
 resource "aws_cloudwatch_event_rule" "adg_success" {
@@ -80,4 +88,12 @@ resource "aws_cloudwatch_metric_alarm" "adg_success" {
   dimensions = {
     RuleName = aws_cloudwatch_event_rule.adg_success.name
   }
+  tags = merge(
+    local.common_tags,
+    {
+      Name              = "adg_success",
+      notification_type = "Information",
+      severity          = "Critical"
+    },
+  )
 }
