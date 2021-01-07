@@ -251,7 +251,8 @@ output "hive_metastore" {
 output "metadata_store_users" {
   value = {
     bgdc = {
-      username = var.metadata_store_bgdc_username
+      username    = var.metadata_store_bgdc_username
+      secret_name = aws_secretsmanager_secret.metadata_store_bgdc.name
     }
   }
 }
