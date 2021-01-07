@@ -247,3 +247,11 @@ output "hive_metastore" {
     database_name  = aws_rds_cluster.hive_metastore.database_name
   }
 }
+
+output "metadata_store_users" {
+  value = {
+    bgdc = {
+      username = var.metadata_store_bgdc_username
+    }
+  }
+}
