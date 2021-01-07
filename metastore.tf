@@ -173,18 +173,6 @@ resource "aws_secretsmanager_secret" "metadata_store_master" {
   policy      = data.aws_iam_policy_document.admin_access_to_metadata_secrets.json
 }
 
-resource "aws_secretsmanager_secret_version" "metadata_store_master" {
-  secret_id = aws_secretsmanager_secret.metadata_store_master.id
-  secret_string = jsonencode({
-    "username" = "${var.metadata_store_master_username}",
-    "password" = "${aws_rds_cluster.hive_metastore.master_password}",
-  })
-
-  lifecycle {
-    ignore_changes = [secret_string]
-  }
-}
-
 # Create entries for additional SQL users
 data "aws_iam_policy_document" "admin_access_to_metadata_secrets" {
   statement {
