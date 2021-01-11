@@ -151,6 +151,15 @@ locals {
     production  = length(data.aws_availability_zones.available.names)
   }
 
+  hive_metastore_max_connections = {
+    # On t3.medium instances where default AWS formula evals to 90, set max_conn to 200 instead
+    development = local.hive_metastore_instance_type[local.environment] == "db.t3.medium" ? "200" : "GREATEST({log(DBInstanceClassMemory/805306368)*45},{log(DBInstanceClassMemory/8187281408)*1000})"
+    qa          = "GREATEST({log(DBInstanceClassMemory/805306368)*45},{log(DBInstanceClassMemory/8187281408)*1000})" // AWS default
+    integration = local.hive_metastore_instance_type[local.environment] == "db.t3.medium" ? "200" : "GREATEST({log(DBInstanceClassMemory/805306368)*45},{log(DBInstanceClassMemory/8187281408)*1000})"
+    preprod     = local.hive_metastore_instance_type[local.environment] == "db.t3.medium" ? "200" : "GREATEST({log(DBInstanceClassMemory/805306368)*45},{log(DBInstanceClassMemory/8187281408)*1000})"
+    production  = "GREATEST({log(DBInstanceClassMemory/805306368)*45},{log(DBInstanceClassMemory/8187281408)*1000})" // AWS default
+  }
+
   published_db = "analytical_dataset_generation"
 
   hive_metastore_backend = {

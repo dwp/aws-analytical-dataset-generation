@@ -121,6 +121,12 @@ resource "aws_rds_cluster_parameter_group" "hive_metastore_logs" {
     name  = "server_audit_logs_upload"
     value = "1"
   }
+
+  parameter {
+    name  = "max_connections"
+    value = local.hive_metastore_max_connections[local.environment]
+  }
+
 }
 
 resource "random_id" "password_salt" {
