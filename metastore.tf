@@ -122,9 +122,12 @@ resource "aws_rds_cluster_parameter_group" "hive_metastore_logs" {
     value = "1"
   }
 
-  parameter {
-    name  = "max_connections"
-    value = local.hive_metastore_max_connections[local.environment]
+  dynamic "parameter" {
+    for_each = local.hive_metastore_use_custom_max_connections[local.environment] ? [1] : []
+    content {
+      name  = "max_connections"
+      value = local.hive_metastore_custom_max_connections[local.environment]
+    }
   }
 
 }
