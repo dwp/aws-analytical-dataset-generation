@@ -38,7 +38,6 @@ resource "aws_iam_role_policy_attachment" "manage_hive_metastore_mysql_users_vpc
 }
 
 data "aws_iam_policy_document" "manage_hive_metastore_mysql_users" {
-
   statement {
     sid    = "AllowUpdatePassword"
     effect = "Allow"
