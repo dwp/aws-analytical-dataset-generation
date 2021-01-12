@@ -38,6 +38,7 @@ resource "aws_iam_role_policy_attachment" "manage_hive_metastore_mysql_users_vpc
 }
 
 data "aws_iam_policy_document" "manage_hive_metastore_mysql_users" {
+
   statement {
     sid    = "AllowUpdatePassword"
     effect = "Allow"
@@ -60,6 +61,7 @@ data "aws_iam_policy_document" "manage_hive_metastore_mysql_users" {
 }
 
 resource "aws_iam_role_policy" "manage_hive_metastore_mysql_users" {
+  name   = "manage_hive_metastore_mysql_users"
   role   = aws_iam_role.manage_hive_metastore_mysql_users.name
   policy = data.aws_iam_policy_document.manage_hive_metastore_mysql_users.json
 }
