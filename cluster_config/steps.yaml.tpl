@@ -12,13 +12,10 @@ BootstrapActions:
 - Name: "installer"
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/installer.sh"
-Steps:
 - Name: "metrics-setup"
-  HadoopJarStep:
-    Args:
-    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/metrics-setup.sh"
-    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
-  ActionOnFailure: "${action_on_failure}"
+  ScriptBootstrapAction:
+    Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/metrics-setup.sh"
+Steps:
 - Name: "hive-setup"
   HadoopJarStep:
     Args:
