@@ -12,7 +12,7 @@ BootstrapActions:
 - Name: "installer"
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/installer.sh"
-- Name: "installer"
+- Name: "metrics-setup"
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/metrics-setup.sh"
 Steps:
