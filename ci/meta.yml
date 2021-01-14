@@ -310,8 +310,7 @@ meta:
           type: docker-image
           source:
             repository: ((dataworks.docker_python_boto_behave_repository))
-            version: 0.0.24
-            tag: 0.0.24
+            tag: ((dataworks.docker_python_boto_behave_version))
         run:
           dir: aws-dataworks-e2e-framework
           path: sh
