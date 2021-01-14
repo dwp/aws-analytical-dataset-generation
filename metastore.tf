@@ -121,6 +121,15 @@ resource "aws_rds_cluster_parameter_group" "hive_metastore_logs" {
     name  = "server_audit_logs_upload"
     value = "1"
   }
+
+  dynamic "parameter" {
+    for_each = local.hive_metastore_use_custom_max_connections[local.environment] ? [1] : []
+    content {
+      name  = "max_connections"
+      value = local.hive_metastore_custom_max_connections[local.environment]
+    }
+  }
+
 }
 
 resource "random_id" "password_salt" {
@@ -171,18 +180,6 @@ resource "aws_secretsmanager_secret" "metadata_store_master" {
   description = "Metadata Store master password"
   tags        = local.common_tags
   policy      = data.aws_iam_policy_document.admin_access_to_metadata_secrets.json
-}
-
-resource "aws_secretsmanager_secret_version" "metadata_store_master" {
-  secret_id = aws_secretsmanager_secret.metadata_store_master.id
-  secret_string = jsonencode({
-    "username" = "${var.metadata_store_master_username}",
-    "password" = "${aws_rds_cluster.hive_metastore.master_password}",
-  })
-
-  lifecycle {
-    ignore_changes = [secret_string]
-  }
 }
 
 # Create entries for additional SQL users
@@ -245,5 +242,15 @@ output "hive_metastore" {
     security_group = aws_security_group.hive_metastore
     rds_cluster    = aws_rds_cluster.hive_metastore
     database_name  = aws_rds_cluster.hive_metastore.database_name
+  }
+}
+
+output "metadata_store_users" {
+  value = {
+    bgdc = {
+      username    = var.metadata_store_bgdc_username
+      secret_name = aws_secretsmanager_secret.metadata_store_bgdc.name
+      secret_arn  = aws_secretsmanager_secret.metadata_store_bgdc.arn
+    }
   }
 }

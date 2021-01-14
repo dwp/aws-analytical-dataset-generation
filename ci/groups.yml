@@ -61,13 +61,6 @@ groups:
       - rotate-mysql-password-analytical-env-integration
       - rotate-mysql-password-analytical-env-preprod
       - rotate-mysql-password-analytical-env-production
-  - name: rotate-passwords-bgdc
-    jobs:
-      - rotate-mysql-password-bgdc-development
-      - rotate-mysql-password-bgdc-qa
-      - rotate-mysql-password-bgdc-integration
-      - rotate-mysql-password-bgdc-preprod
-      - rotate-mysql-password-bgdc-production
   - name: rotate-passwords-master
     jobs:
       - rotate-mysql-password-master-development
@@ -75,3 +68,10 @@ groups:
       - rotate-mysql-password-master-integration
       - rotate-mysql-password-master-preprod
       - rotate-mysql-password-master-production
+  - name: rotate-passwords-bgdc-reader
+    jobs:
+      - rotate-mysql-password-bgdc-reader-development
+      - rotate-mysql-password-bgdc-reader-qa
+      - rotate-mysql-password-bgdc-reader-integration
+      - rotate-mysql-password-bgdc-reader-preprod
+      - rotate-mysql-password-bgdc-reader-production

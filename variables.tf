@@ -132,7 +132,7 @@ variable "metadata_store_analytical_env_username" {
 
 variable "metadata_store_bgdc_username" {
   description = "Username for metadata store reader BGDC user"
-  default     = "bgdc"
+  default     = "bgdc-reader"
 }
 
 variable "htme_data_location" {
