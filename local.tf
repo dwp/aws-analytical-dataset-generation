@@ -151,6 +151,24 @@ locals {
     production  = length(data.aws_availability_zones.available.names)
   }
 
+  hive_metastore_custom_max_connections = {
+    # Override default max_connections value which is set by a formula
+    development = "200"
+    qa          = "unused"
+    integration = "200"
+    preprod     = "200"
+    production  = "unused"
+  }
+
+  hive_metastore_use_custom_max_connections = {
+    development = true
+    qa          = false
+    integration = true
+    preprod     = true
+    production  = false
+  }
+
+
   published_db = "analytical_dataset_generation"
 
   hive_metastore_backend = {

@@ -116,12 +116,12 @@ meta:
           USERNAME: "analytical-env"
           PARAM_NAME: "metadata-store-analytical-env"
           PRIVILEGES: ALL
-    rotate-bgdc-password:
+    rotate-bgdc-reader-password:
       .: (( inject meta.plan.rotate-mysql-password ))
       config:
         params:
-          USERNAME: "bgdc"
-          PARAM_NAME: "metadata-store-bgdc"
+          USERNAME: "bgdc-reader"
+          PARAM_NAME: "metadata-store-bgdc-reader"
           PRIVILEGES: SELECT
     rotate-master-password:
       .: (( inject meta.plan.rotate-mysql-master-password ))
@@ -303,8 +303,7 @@ meta:
           type: docker-image
           source:
             repository: ((dataworks.docker_python_boto_behave_repository))
-            version: 0.0.24
-            tag: 0.0.24
+            tag: ((dataworks.docker_python_boto_behave_version))
         run:
           dir: aws-dataworks-e2e-framework
           path: sh
