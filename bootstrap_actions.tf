@@ -31,6 +31,7 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       cwa_bootstrap_loggrp_name       = aws_cloudwatch_log_group.adg_cw_bootstrap_loggroup.name
       cwa_steps_loggrp_name           = aws_cloudwatch_log_group.adg_cw_steps_loggroup.name
       cwa_yarnspark_loggrp_name       = aws_cloudwatch_log_group.adg_cw_yarnspark_loggroup.name
+      name                            = local.emr_cluster_name
   })
 }
 
