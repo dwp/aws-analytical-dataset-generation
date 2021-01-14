@@ -136,6 +136,11 @@ variable "metadata_store_bgdc_username" {
   default     = "bgdc-reader"
 }
 
+variable "metadata_store_kickstart_username" {
+  description = "Username for metadata store writer Kickstart ADG user"
+  default     = "kickstart-adg-writer"
+}
+
 variable "htme_data_location" {
   default = {
     development = "businessdata/mongo/ucdata/2020-07-06/full/"
