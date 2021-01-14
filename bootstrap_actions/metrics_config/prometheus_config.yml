@@ -1,13 +1,4 @@
 ---
 lowercaseOutputName: true
-
 rules:
-  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*): (\d+)'
-    attrNameSnakeCase: true
-    name: testprefix_$1_$3
-    value: $4
-    labels:
-      service: HDFS
-      role: $1
-      kind: $2
-    type: GAUGE
+  - pattern: '.*'

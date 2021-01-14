@@ -231,6 +231,8 @@ data "aws_iam_policy_document" "analytical_dataset_generator_metadata_change" {
 
     actions = [
       "ec2:ModifyInstanceMetadataOptions",
+      "ec2:CreateTags",
+      "ec2:DeleteTags",
     ]
 
     resources = [
