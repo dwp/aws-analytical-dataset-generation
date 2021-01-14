@@ -19,7 +19,6 @@ aws s3 cp "${metrics_properties}" $METRICS_FILEPATH/metrics.properties
 aws s3 cp "${metrics_jar}" /tmp/adg-exporter.b64
 aws s3 cp "${prometheus_config}" $METRICS_FILEPATH/prometheus_config.yml
 
-
 log_wrapper_message "Fetching and unzipping maven"
 
 MAVEN="apache-maven"
@@ -49,4 +48,3 @@ cat /tmp/adg-exporter.b64 | base64 -d > $METRICS_FILEPATH/dependencies/adg-expor
 rm /tmp/adg-exporter.b64
 
 ) >> /var/log/adg/nohup.log 2>&1
-
