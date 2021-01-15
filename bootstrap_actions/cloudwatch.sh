@@ -60,6 +60,12 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
+            "file_path": "/var/log/adg/emr-setup.log",
+            "log_group_name": "$${cwa_bootstrap_loggrp_name}",
+            "log_stream_name": "emr-setup.log",
+            "timezone": "UTC"
+          },
+          {
             "file_path": "/var/log/adg/install-pycrypto.log",
             "log_group_name": "$${cwa_bootstrap_loggrp_name}",
             "log_stream_name": "install-pycrypto.log",
