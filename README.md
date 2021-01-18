@@ -109,10 +109,11 @@ The port defined in the config aligns with the ingress/egress rules and determin
         replacement: $1
         action: replace
    ```
-   `source_labels` is what it looks for. In this case it is the value of the EC2 tag Name.
-   `regex` is the pattern to match for the source label.
-   `target_label` is the label to replace.
-   `replacement` is the regex group to be replaced with. In this case it is the value of the tag.
+
+   `source_labels` is what it looks for. In this case it is the value of the EC2 tag Name.  
+   `regex` is the pattern to match for the source label.  
+   `target_label` is the label to replace.  
+   `replacement` is the regex group to be replaced with. In this case it is the value of the tag.  
 
 6. Re-label the instances to differentiate between EMR nodes without mentioning the IP
 
