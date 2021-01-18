@@ -53,7 +53,13 @@ If you put a comment as the first line of a query it can do for a proxy title.
 # Exporting application and OS metrics
 
 To export application and OS metrics, JMX exporter and node exporter were chosen. They integrate with the existing metrics infrastructure and allow for metrics to be scraped by Prometheus.
-These metrics should then be queryable in Thanos. 
+These metrics should then be queryable in Thanos.
+
+<br />
+
+  ![Current Architecture](docs/exporter.png)
+
+<br />
  
 ## JMX exporter set-up 
 
