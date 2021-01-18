@@ -68,6 +68,17 @@ These metrics should then be queryable in Thanos.
     ```
     this downloads jmx_javaagent jar from Maven. This has to happen as a bootstrap action as it needs to be present at application setup.
 
+3. Create a config file for JMX exporter as explained in the Configuration section of the [Prometheus GitHub page](https://github.com/prometheus/jmx_exporter). As JMX exporter is ran as a Javaagent no URL or port needs to be specified in this file.
+
+    ```
+    ---
+    lowercaseOutputName: true
+    rules:
+      - pattern: '.*'
+
+    ```
+   This config captures all metrics found by JMX.
+   
 2. Edit [cluster launch configuration](https://github.com/dwp/aws-analytical-dataset-generation/blob/DW-5340-documentation/cluster_config/configurations.yaml.tpl) to start applications with Jmx exporter running as a javaagent.
 
     Eg. hadoop-env configuration
@@ -87,6 +98,16 @@ These metrics should then be queryable in Thanos.
 4. Add an [egress security group rule](https://github.com/dwp/dataworks-metrics-infrastructure/blob/master/peering_adg.tf#L67-L76) to allow Prometheus to discover metrics on the JMX port.
 
 5. Add a [scrape config](https://github.com/dwp/dataworks-metrics-infrastructure/blob/master/config/prometheus/prometheus-slave.yml#L91-L108) to Prometheus to discover metrics on the JMX exporter port.
+
+The port defined in the config aligns with the ingress/egress rules and determines where Prometheus looks for metrics.
+    
+    relabel_configs:
+        - source_labels: [__meta_ec2_tag_Name]
+        regex: (.*)
+        target_label: instance
+        replacement: $1
+        action: replace
+    
 
 6. Re-label the instances to differentiate between EMR nodes without mentioning the IP
 
