@@ -99,8 +99,9 @@ These metrics should then be queryable in Thanos.
 
 5. Add a [scrape config](https://github.com/dwp/dataworks-metrics-infrastructure/blob/master/config/prometheus/prometheus-slave.yml#L91-L108) to Prometheus to discover metrics on the JMX exporter port.
 
-The port defined in the config aligns with the ingress/egress rules and determines where Prometheus looks for metrics.
-   This relable config replaces instance labels that show up as IP addresses with the value of the EC2 tag Name 
+    The port defined in the config aligns with the ingress/egress rules and determines where Prometheus looks for metrics.
+    This re-label config replaces instance labels that show up as IP addresses with the value of the EC2 tag Name
+   
    ```
     relabel_configs:
       - source_labels: [__meta_ec2_tag_Name]
@@ -110,10 +111,10 @@ The port defined in the config aligns with the ingress/egress rules and determin
         action: replace
    ```
 
-   `source_labels` is what it looks for. In this case it is the value of the EC2 tag Name.  
-   `regex` is the pattern to match for the source label.  
-   `target_label` is the label to replace.  
-   `replacement` is the regex group to be replaced with. In this case it is the value of the tag.  
+    `source_labels` is what it looks for. In this case it is the value of the EC2 tag Name.  
+    `regex` is the pattern to match for the source label.  
+    `target_label` is the label to replace.  
+    `replacement` is the regex group to be replaced with. In this case it is the value of the tag.  
 
 6. Re-label the instances to differentiate between EMR nodes without mentioning the IP
 
