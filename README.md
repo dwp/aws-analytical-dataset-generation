@@ -92,7 +92,7 @@ These metrics should then be queryable in Thanos.
    
    ```
    Javaagent needs to be configured to start on an unused port. If running multiple agents they need to run on different ports. In the hadoop-env example 7101, 7103.
-   `-Dcom.sun.management.jmxremote.port` is set to enable monitoring and management from remote systems.  
+   `-Dcom.sun.management.jmxremote.port` is set to enable monitoring and management from remote systems. Currently not known whether this is required to run the JMX javaagent, needs to be tested without it.  
    
 3. Add an [ingress security group rule](https://github.com/dwp/dataworks-metrics-infrastructure/blob/master/peering_adg.tf#L89-L98) to accept Prometheus scraping on JMX exporter port.
 
