@@ -50,11 +50,12 @@ If you put a comment as the first line of a query it can do for a proxy title.
 1. make sure to delete locally generated directories  metastore_db, spark-temp, spark-warehouse directory if unit tests 
    fail when run locally
    
-# Exporting application metrics
+# Exporting application and OS metrics
 
-To export application metrics JMX exporter was chosen as it integrates with the existing metrics infrastructure and allows for metrics to be scraped by Prometheus.
+To export application and OS metrics, JMX exporter and node exporter were chosen. They integrate with the existing metrics infrastructure and allow for metrics to be scraped by Prometheus.
+These metrics should then be queryable in Thanos. 
  
-## JMX set-up 
+## JMX exporter set-up 
 
 1.  Add jmx javagent to the [pom.xml](https://github.com/dwp/aws-analytical-dataset-generation/blob/DW-5340-documentation/bootstrap_actions/metrics_config/pom.xml) file that is used to download the jars
     
@@ -100,3 +101,11 @@ To export application metrics JMX exporter was chosen as it integrates with the 
     aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value=$HOSTNAME
     ```
     where `name` is the service name.
+
+## Node exporter set-up 
+
+Node exporter is used for gathering OS metrics and comes pre-installed with the EMR AMI images.
+Node exporter runs on port 9100.
+
+To set up, repeat steps 3 to 5 of JMX exporter set-up for the node exporter port.
+
