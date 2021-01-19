@@ -100,11 +100,13 @@ These metrics should then be queryable in Thanos.
    ```
    Javaagent needs to be configured to start on an unused port. If running multiple agents they need to run on different ports. In the hadoop-env example 7101, 7103.  
    
-5. Add an [ingress security group rule](https://github.com/dwp/dataworks-metrics-infrastructure/blob/master/peering_adg_pdm.tf#L89-L98) to accept Prometheus scraping on JMX exporter port.
+5. Add an [ingress/egress security group rule](https://github.com/dwp/dataworks-metrics-infrastructure/blob/a36336d11de6ae95a5a7bbf363051a37498f47f0/peering_internal-compute.tf#L66-L86) to allow prometheus connectivity over port 9090
 
-6. Add an [egress security group rule](https://github.com/dwp/dataworks-metrics-infrastructure/blob/master/peering_adg_pdm.tf#L67-L76) to allow Prometheus to discover metrics on the JMX port.
+6. Configure [peering](https://github.com/dwp/dataworks-metrics-infrastructure/blob/a36336d11de6ae95a5a7bbf363051a37498f47f0/peering_internal-compute.tf#L1-L7) to your vpc and [routing](https://github.com/dwp/dataworks-metrics-infrastructure/blob/a36336d11de6ae95a5a7bbf363051a37498f47f0/peering_internal-compute.tf#L23-L28) to your service
 
-7. Add a [scrape config](https://github.com/dwp/dataworks-metrics-infrastructure/blob/master/config/prometheus/prometheus-slave.yml#L91-L108) to Prometheus to discover metrics on the JMX exporter port.
+7. Add an [ingress](https://github.com/dwp/dataworks-metrics-infrastructure/blob/a36336d11de6ae95a5a7bbf363051a37498f47f0/peering_internal-compute.tf#L132-L141)[egress](https://github.com/dwp/dataworks-metrics-infrastructure/blob/a36336d11de6ae95a5a7bbf363051a37498f47f0/peering_internal-compute.tf#L110-L119) security group rules to allow communication between prometheus and your service on the JMX port.
+
+8. Add a [scrape config](https://github.com/dwp/dataworks-metrics-infrastructure/blob/master/config/prometheus/prometheus-slave.yml#L91-L108) to Prometheus to discover metrics on the JMX exporter port.
 
     The port defined in the config aligns with the ingress/egress rules and determines where Prometheus looks for metrics.
     This re-label config replaces instance labels that show up as IP addresses with the value of the EC2 tag Name
@@ -123,7 +125,7 @@ These metrics should then be queryable in Thanos.
     `target_label` is the label to replace.  
     `replacement` is the regex group to be replaced with. In this case it is the value of the tag.  
 
-8. Re-label the instances to differentiate between EMR nodes without mentioning the IP
+9. Re-label the instances to differentiate between EMR nodes without mentioning the IP
 
     ```
     export AWS_DEFAULT_REGION=${aws_default_region}
@@ -142,5 +144,5 @@ These metrics should then be queryable in Thanos.
 Node exporter is used for gathering OS metrics and comes pre-installed with the EMR AMI images.
 Node exporter runs on port 9100.
 
-To set up, repeat steps 3 to 5 of JMX exporter set-up for the node exporter port.
+To set up, repeat steps 6 to 9 of JMX exporter set-up for the node exporter port.
 
