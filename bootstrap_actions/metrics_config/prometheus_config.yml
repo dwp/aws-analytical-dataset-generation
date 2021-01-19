@@ -1,4 +1,4 @@
 ---
-lowercaseOutputName: true
+
 rules:
   - pattern: '.*'
