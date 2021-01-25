@@ -338,7 +338,8 @@ def retry_requests(retries=10, backoff=1):
     retry_strategy = Retry(
         total=retries,
         backoff_factor=backoff,
-        status_forcelist=[429, 500, 502, 503, 504]
+        status_forcelist=[429, 500, 502, 503, 504],
+        method_whitelist=frozenset(['GET', 'POST'])
     )
     adapter = HTTPAdapter(max_retries=retry_strategy)
     requests_session = requests.Session()
