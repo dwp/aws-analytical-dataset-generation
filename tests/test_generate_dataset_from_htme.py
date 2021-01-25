@@ -12,6 +12,8 @@ from moto import mock_s3, mock_dynamodb2
 import steps
 from steps import generate_dataset_from_htme
 
+MOCK_LOCAL_HOST_URL = "http://localhost:1000"
+
 COMPLETED_STATUS = "Completed"
 HASH_KEY = "Correlation_Id"
 RANGE_KEY = "Run_Id"
@@ -386,7 +388,7 @@ def mock_get_dynamodb_resource(service_name):
 def test_retry_requests_with_no_retries():
     start_time = time.perf_counter()
     with pytest.raises(requests.exceptions.ConnectionError):
-        generate_dataset_from_htme.retry_requests(retries=0).post("http://localhost:1000")
+        generate_dataset_from_htme.retry_requests(retries=0).post(MOCK_LOCAL_HOST_URL)
     end_time = time.perf_counter()
     assert round(end_time - start_time) == 0
 
@@ -394,7 +396,7 @@ def test_retry_requests_with_no_retries():
 def test_retry_requests_with_2_retries():
     start_time = time.perf_counter()
     with pytest.raises(requests.exceptions.ConnectionError):
-        generate_dataset_from_htme.retry_requests(retries=2).post("http://localhost:1000")
+        generate_dataset_from_htme.retry_requests(retries=2).post(MOCK_LOCAL_HOST_URL)
     end_time = time.perf_counter()
     assert round(end_time - start_time) == 2
 
@@ -402,7 +404,7 @@ def test_retry_requests_with_2_retries():
 def test_retry_requests_with_3_retries():
     start_time = time.perf_counter()
     with pytest.raises(requests.exceptions.ConnectionError):
-        generate_dataset_from_htme.retry_requests(retries=3).post("http://localhost:1000")
+        generate_dataset_from_htme.retry_requests(retries=3).post(MOCK_LOCAL_HOST_URL)
     end_time = time.perf_counter()
     assert round(end_time - start_time) == 6
 
