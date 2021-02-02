@@ -137,10 +137,10 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
     )
     monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_s3_resource", s3_resource
+        steps.generate_dataset_from_htme, "get_s3_resource", mock_get_s3_resource
     )
     monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_s3_client", s3_client
+        steps.generate_dataset_from_htme, "get_s3_client", mock_get_s3_client
     )
     generate_dataset_from_htme.main(
         spark,
@@ -232,10 +232,10 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
     )
     monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_s3_resource", s3_resource
+        steps.generate_dataset_from_htme, "get_s3_resource", mock_get_s3_resource
     )
     monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_s3_client", s3_client
+        steps.generate_dataset_from_htme, "get_s3_client", mock_get_s3_client
     )
     generate_dataset_from_htme.main(
         spark,
@@ -300,10 +300,10 @@ def test_exception_when_decompression_fails(
             steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
         )
         monkeypatch.setattr(
-            steps.generate_dataset_from_htme, "get_s3_resource", s3_resource
+            steps.generate_dataset_from_htme, "get_s3_resource", mock_get_s3_resource
         )
         monkeypatch.setattr(
-            steps.generate_dataset_from_htme, "get_s3_client", s3_client
+            steps.generate_dataset_from_htme, "get_s3_client", mock_get_s3_client
         )
         generate_dataset_from_htme.main(
             spark,
@@ -401,6 +401,18 @@ def mock_get_dynamodb_resource(service_name):
         ProvisionedThroughput={"ReadCapacityUnits": 10, "WriteCapacityUnits": 10},
     )
     return dynamodb
+
+
+@mock_s3
+def mock_get_s3_resource():
+    s3 = boto3.resource("s3", region_name=AWS_REGION)
+    return s3
+    
+
+@mock_s3
+def mock_get_s3_client():
+    s3 = boto3.resource("s3", region_name=AWS_REGION)
+    return s3
 
 
 def test_retry_requests_with_no_retries():
