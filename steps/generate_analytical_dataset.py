@@ -56,7 +56,7 @@ def main():
                 table_to_process +
                 "from staging_db is not present in the collections list ",
             )
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor() as executor:
         results = executor.map(spark_process, collection_objects)
 
 

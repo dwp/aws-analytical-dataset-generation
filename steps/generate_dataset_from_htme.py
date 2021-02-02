@@ -72,7 +72,7 @@ def main(
         list_of_dicts_filtered = get_collections_in_secrets(
             list_of_dicts, secrets_collections, args
         )
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with concurrent.futures.ProcessPoolExecutor() as executor:
             all_processed_collections = executor.map(
                 consolidate_rdd_per_collection,
                 list_of_dicts_filtered,

@@ -53,11 +53,11 @@ variable "emr_release" {
 
 variable "emr_instance_type" {
   default = {
-    development = "m5.8xlarge"
-    qa          = "m5.8xlarge"
-    integration = "m5.8xlarge"
-    preprod     = "m5.8xlarge"
-    production  = "m5.8xlarge"
+    development = "m5.2xlarge"
+    qa          = "m5.2xlarge"
+    integration = "m5.2xlarge"
+    preprod     = "m5.2xlarge"
+    production  = "m5.16xlarge"
   }
 }
 
@@ -67,7 +67,7 @@ variable "emr_core_instance_count" {
     qa          = "2"
     integration = "2"
     preprod     = "1"
-    production  = "20"
+    production  = "50"
   }
 }
 
@@ -91,6 +91,15 @@ variable "spark_kyro_buffer" {
   }
 }
 
+variable "spark_executor_instances" {
+  default = {
+    development = 50
+    qa          = 50
+    integration = 50
+    preprod     = 50
+    production  = 200
+  }
+}
 
 # Note this isn't the amount of RAM the instance has; it's the maximum amount
 # that EMR automatically configures for YARN. See
