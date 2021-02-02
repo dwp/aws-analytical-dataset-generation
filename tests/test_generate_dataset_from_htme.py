@@ -293,6 +293,9 @@ def test_exception_when_decompression_fails(
         monkeypatch.setattr(
             steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
         )
+        monkeypatch.setattr(
+            steps.generate_dataset_from_htme, "get_client", s3_client
+        )
         generate_dataset_from_htme.main(
             spark,
             s3_client,
