@@ -437,4 +437,3 @@ def test_retry_requests_with_3_retries():
         generate_dataset_from_htme.retry_requests(retries=3).post(MOCK_LOCALHOST_URL)
     end_time = time.perf_counter()
     assert round(end_time - start_time) == 6
-
