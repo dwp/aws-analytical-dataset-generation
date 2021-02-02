@@ -405,13 +405,13 @@ def mock_get_dynamodb_resource(service_name):
 
 @mock_s3
 def mock_get_s3_resource():
-    s3 = boto3.resource("s3", region_name=AWS_REGION)
+    s3 = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     return s3
     
 
 @mock_s3
 def mock_get_s3_client():
-    s3 = boto3.resource("s3", region_name=AWS_REGION)
+    s3 = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     return s3
 
 
