@@ -1,5 +1,6 @@
 jobs:
   - name: analytical-dataset-generation-pr
+    max_in_flight: 1
     plan:
       - in_parallel:
         - get: aws-analytical-dataset-generation-pr

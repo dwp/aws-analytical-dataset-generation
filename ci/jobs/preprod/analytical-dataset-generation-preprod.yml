@@ -1,5 +1,6 @@
 jobs:
 - name: analytical-dataset-generation-preprod
+  max_in_flight: 1
   plan:
   - in_parallel:
     - get: manage-mysql-user-release
