@@ -387,7 +387,7 @@ def mock_persist_json(json_location, values):
 
 @mock_dynamodb2
 def mock_get_dynamodb_resource(service_name):
-    dynamodb = boto3.resource(service_name, region_name=AWS_REGION, endpoint_url=MOTO_SERVER_URL)
+    dynamodb = boto3.resource(service_name, region_name=AWS_REGION)
     dynamodb.create_table(
         TableName=DYNAMODB_AUDIT_TABLENAME,
         KeySchema=[
