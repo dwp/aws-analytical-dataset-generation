@@ -387,7 +387,7 @@ def mock_persist_json(json_location, values):
 
 @mock_dynamodb2
 def mock_get_dynamodb_resource(service_name):
-    dynamodb = boto3.resource(service_name, region_name=AWS_REGION)
+    dynamodb = boto3.resource(service_name, region_name=AWS_REGION, endpoint_url=MOTO_SERVER_URL)
     dynamodb.create_table(
         TableName=DYNAMODB_AUDIT_TABLENAME,
         KeySchema=[
@@ -405,14 +405,12 @@ def mock_get_dynamodb_resource(service_name):
 
 @mock_s3
 def mock_get_s3_resource():
-    s3 = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
-    return s3
+    return boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     
 
 @mock_s3
 def mock_get_s3_client():
-    s3 = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
-    return s3
+    return boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
 
 
 def test_retry_requests_with_no_retries():
