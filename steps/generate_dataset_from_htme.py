@@ -79,15 +79,13 @@ def main(
                 consolidate_rdd_per_collection,
                 list_of_dicts_filtered,
                 itertools.repeat(secrets_collections),
-                itertools.repeat(s3_client),
                 itertools.repeat(s3_htme_bucket),
                 itertools.repeat(spark),
                 itertools.repeat(keys_map),
                 itertools.repeat(run_time_stamp),
                 itertools.repeat(s3_publish_bucket),
                 itertools.repeat(args),
-                itertools.repeat(run_id),
-                itertools.repeat(s3_resource)
+                itertools.repeat(run_id)
             )
     except Exception as ex:
         the_logger.error(
@@ -177,7 +175,6 @@ def group_keys_by_collection(keys):
 def consolidate_rdd_per_collection(
     collection,
     secrets_collections,
-    s3_client,
     s3_htme_bucket,
     spark,
     keys_map,
@@ -185,8 +182,10 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     run_id,
-    s3_resource
 ):
+    s3_client = get_client("s3")
+    s3_resource = get_s3_resource()
+
     try:
         for collection_name, collection_files_keys in collection.items():
             the_logger.info(

@@ -1,5 +1,6 @@
 jobs:
 - name: analytical-dataset-generation-qa
+  max_in_flight: 1
   plan:
   - in_parallel:
     - put: meta
