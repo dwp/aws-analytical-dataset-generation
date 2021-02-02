@@ -37,6 +37,8 @@ the_logger = setup_logging(
     log_path="${log_path}",
 )
 
+sparkSession = None
+
 
 def get_parameters():
     """Define and parse command line args."""
@@ -68,6 +70,10 @@ def main(
     run_id,
     s3_resource
 ):
+    global sparkSession
+
+    sparkSession = spark
+
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
         list_of_dicts = group_keys_by_collection(keys)
@@ -80,7 +86,6 @@ def main(
                 list_of_dicts_filtered,
                 itertools.repeat(secrets_collections),
                 itertools.repeat(s3_htme_bucket),
-                itertools.repeat(spark),
                 itertools.repeat(keys_map),
                 itertools.repeat(run_time_stamp),
                 itertools.repeat(s3_publish_bucket),
@@ -100,7 +105,7 @@ def main(
     list_of_processed_collections = list(all_processed_collections)
     if len(list_of_processed_collections) == len(secrets_collections):
         create_hive_tables_on_published(
-            spark, list_of_processed_collections, published_database_name, args, run_id
+            sparkSession, list_of_processed_collections, published_database_name, args, run_id
         )
         create_adg_status_csv(
             args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp
@@ -176,7 +181,6 @@ def consolidate_rdd_per_collection(
     collection,
     secrets_collections,
     s3_htme_bucket,
-    spark,
     keys_map,
     run_time_stamp,
     s3_publish_bucket,
@@ -199,9 +203,7 @@ def consolidate_rdd_per_collection(
             rdd_list = []
             total_collection_size = 0
             for collection_file_key in collection_files_keys:
-                encrypted = read_binary(
-                    spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
-                )
+                encrypted = read_binary(f"s3://{s3_htme_bucket}/{collection_file_key}")
                 metadata = get_metadatafor_key(
                     collection_file_key, s3_client, s3_htme_bucket
                 )
@@ -220,7 +222,7 @@ def consolidate_rdd_per_collection(
                 decompressed = decrypted.mapValues(decompress)
                 decoded = decompressed.mapValues(decode)
                 rdd_list.append(decoded)
-            consolidated_rdd = spark.sparkContext.union(rdd_list)
+            consolidated_rdd = union_rdd_list(rdd_list)
             consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
             the_logger.info(
                 "Persisting Json of collection : %s for correlation id : %s and run id: %s",
@@ -374,8 +376,18 @@ def call_dks(cek, kek, args, run_id):
     return content["plaintextDataKey"]
 
 
-def read_binary(spark, file_path):
-    return spark.sparkContext.binaryFiles(file_path)
+@staticmethod
+def read_binary(file_path):
+    global sparkSession
+
+    return sparkSession.sparkContext.binaryFiles(file_path)
+
+
+@staticmethod
+def union_rdd_list(rdd_list):
+    global sparkSession
+
+    return spark.sparkContext.union(rdd_list)
 
 
 def decrypt(plain_text_key, iv_key, data, args, run_id):
