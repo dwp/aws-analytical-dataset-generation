@@ -14,6 +14,8 @@ from itertools import groupby
 
 import boto3
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 from boto3.dynamodb.conditions import Key
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -332,11 +334,25 @@ def get_plaintext_key_calling_dks(
     return key
 
 
+def retry_requests(retries=10, backoff=1):
+    retry_strategy = Retry(
+        total=retries,
+        backoff_factor=backoff,
+        status_forcelist=[429, 500, 502, 503, 504],
+        method_whitelist=frozenset(['POST'])
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    requests_session = requests.Session()
+    requests_session.mount("https://", adapter)
+    requests_session.mount("http://", adapter)
+    return requests_session
+
+
 def call_dks(cek, kek, args, run_id):
     try:
         url = "${url}"
-        params = {"keyId": kek}
-        result = requests.post(
+        params = {"keyId": kek, "correlationId": args.correlation_id}
+        result = retry_requests().post(
             url,
             params=params,
             data=cek,
