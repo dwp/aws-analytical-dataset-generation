@@ -90,7 +90,8 @@ def main(
                 itertools.repeat(run_time_stamp),
                 itertools.repeat(s3_publish_bucket),
                 itertools.repeat(args),
-                itertools.repeat(run_id)
+                itertools.repeat(run_id),
+                itertools.repeat("${aws_default_region}")
             )
     except Exception as ex:
         the_logger.error(

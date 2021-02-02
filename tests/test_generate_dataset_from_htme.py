@@ -136,6 +136,9 @@ def test_consolidate_rdd_per_collection_with_one_collection(
     monkeypatch.setattr(
         steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
     )
+    monkeypatch.setattr(
+        steps.generate_dataset_from_htme, "get_client", s3_client
+    )
     generate_dataset_from_htme.main(
         spark,
         s3_client,
@@ -224,6 +227,9 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
     monkeypatch.setattr(
         steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
+    )
+    monkeypatch.setattr(
+        steps.generate_dataset_from_htme, "get_client", s3_client
     )
     generate_dataset_from_htme.main(
         spark,
