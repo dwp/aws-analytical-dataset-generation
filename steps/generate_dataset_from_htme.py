@@ -201,7 +201,7 @@ def consolidate_rdd_per_collection(
             rdd_list = []
             total_collection_size = 0
             for collection_file_key in collection_files_keys:
-                encrypted = read_binary(f"s3://{s3_htme_bucket}/{collection_file_key}")
+                encrypted = read_binary.__func__(f"s3://{s3_htme_bucket}/{collection_file_key}")
                 metadata = get_metadatafor_key(
                     collection_file_key, s3_client, s3_htme_bucket
                 )
@@ -220,7 +220,7 @@ def consolidate_rdd_per_collection(
                 decompressed = decrypted.mapValues(decompress)
                 decoded = decompressed.mapValues(decode)
                 rdd_list.append(decoded)
-            consolidated_rdd = union_rdd_list(rdd_list)
+            consolidated_rdd = union_rdd_list.__func__(rdd_list)
             consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
             the_logger.info(
                 "Persisting Json of collection : %s for correlation id : %s and run id: %s",
