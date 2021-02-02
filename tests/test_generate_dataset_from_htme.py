@@ -140,7 +140,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         steps.generate_dataset_from_htme, "get_s3_resource", s3_resource
     )
     monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_client", s3_client
+        steps.generate_dataset_from_htme, "get_s3_client", s3_client
     )
     generate_dataset_from_htme.main(
         spark,
@@ -235,7 +235,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         steps.generate_dataset_from_htme, "get_s3_resource", s3_resource
     )
     monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_client", s3_client
+        steps.generate_dataset_from_htme, "get_s3_client", s3_client
     )
     generate_dataset_from_htme.main(
         spark,
@@ -303,7 +303,7 @@ def test_exception_when_decompression_fails(
             steps.generate_dataset_from_htme, "get_s3_resource", s3_resource
         )
         monkeypatch.setattr(
-            steps.generate_dataset_from_htme, "get_client", s3_client
+            steps.generate_dataset_from_htme, "get_s3_client", s3_client
         )
         generate_dataset_from_htme.main(
             spark,

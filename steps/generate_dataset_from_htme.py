@@ -135,10 +135,8 @@ def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
     return filtered_list
 
 
-def get_client(service_name):
-    client = boto3.client(service_name)
-    return client
-
+def get_s3_client():
+    return boto3.client("s3")
 
 def get_resource(service_name):
     return boto3.resource(service_name, region_name="${aws_default_region}")
@@ -187,7 +185,7 @@ def consolidate_rdd_per_collection(
     args,
     run_id,
 ):
-    s3_client = get_client("s3")
+    s3_client = get_s3_client()
     s3_resource = get_s3_resource()
 
     try:
