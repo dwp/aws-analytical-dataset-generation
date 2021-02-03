@@ -58,14 +58,14 @@ locals {
     qa          = 2
     integration = 2
     preprod     = 2
-    production  = 5 # Recommended on the link above
+    production  = 6 # Recommended on the link above + 1 so we can have more memory per executor
   }
   spark_executor_memory = {
     development = 10
     qa          = 10
     integration = 10
     preprod     = 10
-    production  = 15 # 19 executors per instance for m5a.24xlarge works out as this split of 384 RAM each x 0.9
+    production  = 23 # 15 executors per instance for m5a.24xlarge works out as this split of 384 RAM each x 0.9
   }
   spark_yarn_executor_memory_overhead = {
     development = 2
@@ -79,14 +79,14 @@ locals {
     qa          = 10
     integration = 10
     preprod     = 10
-    production  = 15 # Same as executor memory
+    production  = 10 # Doesn't need as much as executors
   }
   spark_driver_cores = {
     development = 2
     qa          = 2
     integration = 2
     preprod     = 2
-    production  = 5 # Same as executor cores
+    production  = 2 # Doesn't need as much as executors
   }
   spark_executor_instances  = var.spark_executor_instances[local.environment]
   spark_default_parallelism = local.spark_executor_instances * local.spark_executor_cores[local.environment] * 2
@@ -115,6 +115,13 @@ resource "aws_s3_bucket_object" "configurations" {
       hive_metastore_endpoint             = aws_rds_cluster.hive_metastore.endpoint
       hive_metastore_database_name        = aws_rds_cluster.hive_metastore.database_name
       hive_metastore_backend              = local.hive_metastore_backend[local.environment]
+      spark_executor_cores                = local.spark_executor_cores[local.environment]
+      spark_executor_memory               = local.spark_executor_memory[local.environment]
+      spark_yarn_executor_memory_overhead = local.spark_yarn_executor_memory_overhead[local.environment]
+      spark_driver_memory                 = local.spark_driver_memory[local.environment]
+      spark_driver_cores                  = local.spark_driver_cores[local.environment]
+      spark_executor_instances            = local.spark_executor_instances
+      spark_default_parallelism           = local.spark_default_parallelism
     }
   )
 }
