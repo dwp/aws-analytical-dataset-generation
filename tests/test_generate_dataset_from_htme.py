@@ -134,7 +134,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
     monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
+        steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource # Fails
     )
     monkeypatch.setattr(
         steps.generate_dataset_from_htme, "get_s3_resource", mock_get_s3_resource
@@ -229,10 +229,10 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
     monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
+        steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource #FAILS
     )
     monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_s3_resource", mock_get_s3_resource
+        steps.generate_dataset_from_htme, "get_s3_resource", mock_get_s3_resourceß
     )
     monkeypatch.setattr(
         steps.generate_dataset_from_htme, "get_s3_client", mock_get_s3_client
@@ -297,7 +297,7 @@ def test_exception_when_decompression_fails(
         monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
         monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
         monkeypatch.setattr(
-            steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
+            steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource #Passes
         )
         monkeypatch.setattr(
             steps.generate_dataset_from_htme, "get_s3_resource", mock_get_s3_resource
