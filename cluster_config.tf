@@ -51,11 +51,11 @@ resource "aws_s3_bucket_object" "steps" {
 # See https://aws.amazon.com/blogs/big-data/best-practices-for-successfully-managing-memory-for-apache-spark-applications-on-amazon-emr/
 locals {
   spark_num_executors_per_instance = {
-    development = 3 # 8 cores (minus one) for m5.24xlarge / 2 executors per core
-    qa          = 19
+    development = 3 # 8 cores (minus one) for m5.2xlarge / 2 executors per core
+    qa          = 12
     integration = 3
     preprod     = 3
-    production  = 19 # 96 cores (minus one) for m5.24xlarge / 5 executors per core
+    production  = 12 # 64 cores (minus one) for m5.16xlarge / 5 executors per core
   }
   spark_executor_total_memory = floor(var.emr_yarn_memory_gb_per_core_instance[local.environment] / local.spark_num_executors_per_instance[local.environment])
   spark_executor_cores = {
@@ -67,24 +67,24 @@ locals {
   }
   spark_executor_memory = {
     development = 10
-    qa          = 18
+    qa          = 19
     integration = 10
     preprod     = 10
-    production  = 18 # 19 executors per instance for 24xlarge works out as this split of RAM each x 0.9
+    production  = 19 # 12 executors per instance for m5.16xlarge works out as this split of 256 RAM each x 0.9
   }
   spark_yarn_executor_memory_overhead = {
     development = 2
     qa          = 2
     integration = 2
     preprod     = 2
-    production  = 2 # 0.1 of the 20 per executor
+    production  = 2 # 0.1 of the 21 per executor
   }
   spark_driver_memory = {
     development = 10
-    qa          = 18
+    qa          = 19
     integration = 10
     preprod     = 10
-    production  = 18 # Same as executor memory
+    production  = 19 # Same as executor memory
   }
   spark_driver_cores = {
     development = 2
@@ -113,7 +113,6 @@ resource "aws_s3_bucket_object" "configurations" {
       proxy_http_port                     = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
       proxy_https_host                    = data.terraform_remote_state.internal_compute.outputs.internet_proxy.host
       proxy_https_port                    = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
-      emrfs_metadata_tablename            = local.emrfs_metadata_tablename
       s3_htme_bucket                      = data.terraform_remote_state.ingest.outputs.s3_buckets.htme_bucket
       spark_executor_cores                = local.spark_executor_cores[local.environment]
       spark_executor_memory               = local.spark_executor_memory[local.environment]
