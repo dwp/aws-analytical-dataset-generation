@@ -54,50 +54,40 @@ variable "emr_release" {
 variable "emr_instance_type" {
   default = {
     development = "m5.2xlarge"
-    qa          = "m5.2xlarge"
+    qa          = "m5.24xlarge"
     integration = "m5.2xlarge"
     preprod     = "m5.2xlarge"
-    production  = "m5.16xlarge"
+    production  = "m5.24xlarge"
   }
 }
 
 variable "emr_core_instance_count" {
   default = {
-    development = "2"
-    qa          = "2"
-    integration = "2"
-    preprod     = "1"
-    production  = "50"
-  }
-}
-
-variable "emr_num_cores_per_core_instance" {
-  default = {
-    development = "32"
-    qa          = "32"
-    integration = "32"
-    preprod     = "48"
-    production  = "48"
+    development = "5"
+    qa          = "20"
+    integration = "5"
+    preprod     = "5"
+    production  = "20"
   }
 }
 
 variable "spark_kyro_buffer" {
   default = {
-    development = "128"
-    qa          = "128"
-    integration = "128"
-    preprod     = "2047m"
-    production  = "2047m"
+    development = "128m"
+    qa          = "2047m"
+    integration = "128m"
+    preprod     = "128m"
+    production  = "2047m" # Max amount allowed
   }
 }
 
 variable "spark_executor_instances" {
   default = {
-    development = 50
-    qa          = 50
-    integration = 50
-    preprod     = 50
-    production  = 200
+    development = 14 # 3 executors per instance x 5 instances minus 1 for driver
+    qa          = 379
+    integration = 14
+    preprod     = 14
+    production  = 379 # 19 executors per instance x 20 instances minus 1 for driver
   }
 }
 
@@ -108,11 +98,11 @@ variable "spark_executor_instances" {
 # (search for yarn.nodemanager.resource.memory-mb)
 variable "emr_yarn_memory_gb_per_core_instance" {
   default = {
-    development = "120"
-    qa          = "120"
-    integration = "120"
-    preprod     = "184"
-    production  = "184"
+    development = "24" # Set for m5.2xlarge
+    qa          = "376" # Set for m5.24xlarge
+    integration = "24" # Set for m5.2xlarge
+    preprod     = "24" # Set for m5.2xlarge
+    production  = "376" # Set for m5.24xlarge
   }
 }
 
