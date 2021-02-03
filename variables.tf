@@ -64,10 +64,10 @@ variable "emr_instance_type_master" {
 variable "emr_instance_type_core_one" {
   default = {
     development = "m5.2xlarge"
-    qa          = "m5.24xlarge"
+    qa          = "m5.16xlarge"
     integration = "m5.2xlarge"
     preprod     = "m5.2xlarge"
-    production  = "m5.24xlarge"
+    production  = "m5.16xlarge"
   }
 }
 
