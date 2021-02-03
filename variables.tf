@@ -117,7 +117,7 @@ variable "spark_executor_instances" {
     qa          = 14
     integration = 14
     preprod     = 14
-    production  = 208 # 9.5 executors per instance x 22 instances minus 1 for driver
+    production  = 329 # 15 executors per instance x 22 instances minus 1 for driver
   }
 }
 
