@@ -24,15 +24,19 @@ resource "aws_s3_bucket_object" "instances" {
   key    = "emr/adg/instances.yaml"
   content = templatefile("${path.module}/cluster_config/instances.yaml.tpl",
     {
-      keep_cluster_alive  = local.keep_cluster_alive[local.environment]
-      add_master_sg       = aws_security_group.adg_common.id
-      add_slave_sg        = aws_security_group.adg_common.id
-      subnet_ids          = join(",", data.terraform_remote_state.internal_compute.outputs.adg_subnet.ids)
-      master_sg           = aws_security_group.adg_master.id
-      slave_sg            = aws_security_group.adg_slave.id
-      service_access_sg   = aws_security_group.adg_emr_service.id
-      instance_type       = var.emr_instance_type[local.environment]
-      core_instance_count = var.emr_core_instance_count[local.environment]
+      keep_cluster_alive       = local.keep_cluster_alive[local.environment]
+      add_master_sg            = aws_security_group.adg_common.id
+      add_slave_sg             = aws_security_group.adg_common.id
+      subnet_ids               = join(",", data.terraform_remote_state.internal_compute.outputs.adg_subnet.ids)
+      master_sg                = aws_security_group.adg_master.id
+      slave_sg                 = aws_security_group.adg_slave.id
+      service_access_sg        = aws_security_group.adg_emr_service.id
+      instance_type_core_one   = var.emr_instance_type_core_one[local.environment]
+      instance_type_core_two   = var.emr_instance_type_core_two[local.environment]
+      instance_type_core_three = var.emr_instance_type_core_three[local.environment]
+      instance_type_core_four  = var.emr_instance_type_core_four[local.environment]
+      instance_type_master     = var.emr_instance_type_master[local.environment]
+      core_instance_count      = var.emr_core_instance_count[local.environment]
     }
   )
 }
@@ -50,14 +54,6 @@ resource "aws_s3_bucket_object" "steps" {
 
 # See https://aws.amazon.com/blogs/big-data/best-practices-for-successfully-managing-memory-for-apache-spark-applications-on-amazon-emr/
 locals {
-  spark_num_executors_per_instance = {
-    development = 3 # 8 cores (minus one) for m5.2xlarge / 2 executors per core
-    qa          = 12
-    integration = 3
-    preprod     = 3
-    production  = 12 # 64 cores (minus one) for m5.16xlarge / 5 executors per core
-  }
-  spark_executor_total_memory = floor(var.emr_yarn_memory_gb_per_core_instance[local.environment] / local.spark_num_executors_per_instance[local.environment])
   spark_executor_cores = {
     development = 2
     qa          = 5
@@ -67,24 +63,24 @@ locals {
   }
   spark_executor_memory = {
     development = 10
-    qa          = 19
+    qa          = 15
     integration = 10
     preprod     = 10
-    production  = 19 # 12 executors per instance for m5.16xlarge works out as this split of 256 RAM each x 0.9
+    production  = 15 # 19 executors per instance for m5a.24xlarge works out as this split of 384 RAM each x 0.9
   }
   spark_yarn_executor_memory_overhead = {
     development = 2
     qa          = 2
     integration = 2
     preprod     = 2
-    production  = 2 # 0.1 of the 21 per executor
+    production  = 2 # 0.1 of the 20GB per executor
   }
   spark_driver_memory = {
     development = 10
-    qa          = 19
+    qa          = 15
     integration = 10
     preprod     = 10
-    production  = 19 # Same as executor memory
+    production  = 15 # Same as executor memory
   }
   spark_driver_cores = {
     development = 2
