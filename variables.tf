@@ -54,27 +54,27 @@ variable "emr_release" {
 variable "emr_instance_type_master" {
   default = {
     development = "m5.2xlarge"
-    qa          = "m5a.24xlarge"
-    integration = "m5.2xlarge"
-    preprod     = "m5.2xlarge"
-    production  = "m5a.24xlarge"
-  }
-}
-
-variable "emr_instance_type_core_one" {
-  default = {
-    development = "m5.2xlarge"
-    qa          = "m5.16xlarge"
+    qa          = "m5.2xlarge"
     integration = "m5.2xlarge"
     preprod     = "m5.2xlarge"
     production  = "m5.16xlarge"
   }
 }
 
+variable "emr_instance_type_core_one" {
+  default = {
+    development = "m5.2xlarge"
+    qa          = "m5.2xlarge"
+    integration = "m5.2xlarge"
+    preprod     = "m5.2xlarge"
+    production  = "m5.24xlarge"
+  }
+}
+
 variable "emr_instance_type_core_two" {
   default = {
     development = "m5a.2xlarge"
-    qa          = "m5a.24xlarge"
+    qa          = "m5a.2xlarge"
     integration = "m5a.2xlarge"
     preprod     = "m5a.2xlarge"
     production  = "m5a.24xlarge"
@@ -84,7 +84,7 @@ variable "emr_instance_type_core_two" {
 variable "emr_instance_type_core_three" {
   default = {
     development = "m5d.2xlarge"
-    qa          = "m5d.24xlarge"
+    qa          = "m5d.2xlarge"
     integration = "m5d.2xlarge"
     preprod     = "m5d.2xlarge"
     production  = "m5d.24xlarge"
@@ -94,7 +94,7 @@ variable "emr_instance_type_core_three" {
 variable "emr_core_instance_count" {
   default = {
     development = "5"
-    qa          = "22"
+    qa          = "5"
     integration = "5"
     preprod     = "5"
     production  = "22"
@@ -104,7 +104,7 @@ variable "emr_core_instance_count" {
 variable "spark_kyro_buffer" {
   default = {
     development = "128m"
-    qa          = "2047m"
+    qa          = "128m"
     integration = "128m"
     preprod     = "128m"
     production  = "2047m" # Max amount allowed
