@@ -109,13 +109,6 @@ resource "aws_s3_bucket_object" "configurations" {
       proxy_https_host                    = data.terraform_remote_state.internal_compute.outputs.internet_proxy.host
       proxy_https_port                    = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
       s3_htme_bucket                      = data.terraform_remote_state.ingest.outputs.s3_buckets.htme_bucket
-      spark_executor_cores                = local.spark_executor_cores[local.environment]
-      spark_executor_memory               = local.spark_executor_memory[local.environment]
-      spark_yarn_executor_memory_overhead = local.spark_yarn_executor_memory_overhead[local.environment]
-      spark_driver_memory                 = local.spark_driver_memory[local.environment]
-      spark_driver_cores                  = local.spark_driver_cores[local.environment]
-      spark_executor_instances            = local.spark_executor_instances
-      spark_default_parallelism           = local.spark_default_parallelism
       spark_kyro_buffer                   = local.spark_kyro_buffer
       hive_metsatore_username             = var.metadata_store_adg_writer_username
       hive_metastore_pwd                  = aws_secretsmanager_secret.metadata_store_adg_writer.name

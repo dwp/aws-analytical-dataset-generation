@@ -114,7 +114,7 @@ variable "spark_kyro_buffer" {
 variable "spark_executor_instances" {
   default = {
     development = 14 # 3 executors per instance x 5 instances minus 1 for driver
-    qa          = 417
+    qa          = 14
     integration = 14
     preprod     = 14
     production  = 417 # 19 executors per instance x 22 instances minus 1 for driver
@@ -129,7 +129,7 @@ variable "spark_executor_instances" {
 variable "emr_yarn_memory_gb_per_core_instance" {
   default = {
     development = "24"  # Set for m5.2xlarge
-    qa          = "376" # Set for m5.24xlarge
+    qa          = "24"  # Set for m5.2xlarge
     integration = "24"  # Set for m5.2xlarge
     preprod     = "24"  # Set for m5.2xlarge
     production  = "376" # Set for m5.24xlarge

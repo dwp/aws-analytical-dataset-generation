@@ -8,7 +8,7 @@ Configurations:
     "yarn.nodemanager.pmem-check-enabled": "false"
 - Classification: "spark"
   Properties:
-    "maximizeResourceAllocation": "false"
+    "maximizeResourceAllocation": "true"
 - Classification: "spark-defaults"
   Properties:
     "spark.yarn.jars": "/usr/lib/spark/jars/*,/opt/emr/metrics/dependencies/*"
@@ -19,13 +19,6 @@ Configurations:
     "spark.executor.extraJavaOptions": "-XX:+UseG1GC -XX:+UnlockDiagnosticVMOptions -XX:+G1SummarizeConcMark -XX:InitiatingHeapOccupancyPercent=35 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:OnOutOfMemoryError='kill -9 %p' -Dhttp.proxyHost='${proxy_http_host}' -Dhttp.proxyPort='${proxy_http_port}' -Dhttp.nonProxyHosts='${proxy_no_proxy}' -Dhttps.proxyHost='${proxy_https_host}' -Dhttps.proxyPort='${proxy_https_port}'"
     "spark.driver.extraJavaOptions": "-XX:+UseG1GC -XX:+UnlockDiagnosticVMOptions -XX:+G1SummarizeConcMark -XX:InitiatingHeapOccupancyPercent=35 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:OnOutOfMemoryError='kill -9 %p' -Dhttp.proxyHost='${proxy_http_host}' -Dhttp.proxyPort='${proxy_http_port}' -Dhttp.nonProxyHosts='${proxy_no_proxy}' -Dhttps.proxyHost='${proxy_https_host}' -Dhttps.proxyPort='${proxy_https_port}'"
     "spark.sql.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
-    "spark.executor.cores": "${spark_executor_cores}"
-    "spark.executor.memory": "${spark_executor_memory}G"
-    "spark.yarn.executor.memoryOverhead": "${spark_yarn_executor_memory_overhead}G"
-    "spark.driver.memory": "${spark_driver_memory}G"
-    "spark.driver.cores": "${spark_driver_cores}"
-    "spark.executor.instances": "${spark_executor_instances}"
-    "spark.default.parallelism": "${spark_default_parallelism}"
     "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
     "spark.kryoserializer.buffer.max": "${spark_kyro_buffer}"
     "spark.driver.maxResultSize": "0"
