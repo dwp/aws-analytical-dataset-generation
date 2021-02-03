@@ -55,14 +55,14 @@ resource "aws_s3_bucket_object" "steps" {
 locals {
   spark_executor_cores = {
     development = 2
-    qa          = 5
+    qa          = 2
     integration = 2
     preprod     = 2
     production  = 5 # Recommended on the link above
   }
   spark_executor_memory = {
     development = 10
-    qa          = 15
+    qa          = 10
     integration = 10
     preprod     = 10
     production  = 15 # 19 executors per instance for m5a.24xlarge works out as this split of 384 RAM each x 0.9
@@ -76,14 +76,14 @@ locals {
   }
   spark_driver_memory = {
     development = 10
-    qa          = 15
+    qa          = 10
     integration = 10
     preprod     = 10
     production  = 15 # Same as executor memory
   }
   spark_driver_cores = {
     development = 2
-    qa          = 5
+    qa          = 2
     integration = 2
     preprod     = 2
     production  = 5 # Same as executor cores
