@@ -51,13 +51,43 @@ variable "emr_release" {
   }
 }
 
-variable "emr_instance_type" {
+variable "emr_instance_type_master" {
   default = {
     development = "m5.2xlarge"
-    qa          = "m5.16xlarge"
+    qa          = "m5a.24xlarge"
     integration = "m5.2xlarge"
     preprod     = "m5.2xlarge"
-    production  = "m5.16xlarge"
+    production  = "m5a.24xlarge"
+  }
+}
+
+variable "emr_instance_type_core_one" {
+  default = {
+    development = "m5.2xlarge"
+    qa          = "m5.24xlarge"
+    integration = "m5.2xlarge"
+    preprod     = "m5.2xlarge"
+    production  = "m5.24xlarge"
+  }
+}
+
+variable "emr_instance_type_core_two" {
+  default = {
+    development = "m5a.2xlarge"
+    qa          = "m5a.24xlarge"
+    integration = "m5a.2xlarge"
+    preprod     = "m5a.2xlarge"
+    production  = "m5a.24xlarge"
+  }
+}
+
+variable "emr_instance_type_core_three" {
+  default = {
+    development = "m5d.2xlarge"
+    qa          = "m5d.24xlarge"
+    integration = "m5d.2xlarge"
+    preprod     = "m5d.2xlarge"
+    production  = "m5d.24xlarge"
   }
 }
 
@@ -84,10 +114,10 @@ variable "spark_kyro_buffer" {
 variable "spark_executor_instances" {
   default = {
     development = 14 # 3 executors per instance x 5 instances minus 1 for driver
-    qa          = 263
+    qa          = 417
     integration = 14
     preprod     = 14
-    production  = 263 # 12 executors per instance x 22 instances minus 1 for driver
+    production  = 417 # 19 executors per instance x 22 instances minus 1 for driver
   }
 }
 
