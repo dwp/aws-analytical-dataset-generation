@@ -54,7 +54,7 @@ variable "emr_release" {
 variable "emr_instance_type" {
   default = {
     development = "m5.2xlarge"
-    qa          = "m5.2xlarge"
+    qa          = "m5.24xlarge"
     integration = "m5.2xlarge"
     preprod     = "m5.2xlarge"
     production  = "m5.24xlarge"
@@ -64,7 +64,7 @@ variable "emr_instance_type" {
 variable "emr_core_instance_count" {
   default = {
     development = "5"
-    qa          = "5"
+    qa          = "20"
     integration = "5"
     preprod     = "5"
     production  = "20"
@@ -74,7 +74,7 @@ variable "emr_core_instance_count" {
 variable "spark_kyro_buffer" {
   default = {
     development = "128m"
-    qa          = "128m"
+    qa          = "2047m"
     integration = "128m"
     preprod     = "128m"
     production  = "2047m" # Max amount allowed
@@ -84,7 +84,7 @@ variable "spark_kyro_buffer" {
 variable "spark_executor_instances" {
   default = {
     development = 14 # 3 executors per instance x 5 instances minus 1 for driver
-    qa          = 14
+    qa          = 379
     integration = 14
     preprod     = 14
     production  = 379 # 19 executors per instance x 20 instances minus 1 for driver
@@ -99,7 +99,7 @@ variable "spark_executor_instances" {
 variable "emr_yarn_memory_gb_per_core_instance" {
   default = {
     development = "24" # Set for m5.2xlarge
-    qa          = "24" # Set for m5.2xlarge
+    qa          = "376" # Set for m5.24xlarge
     integration = "24" # Set for m5.2xlarge
     preprod     = "24" # Set for m5.2xlarge
     production  = "376" # Set for m5.24xlarge

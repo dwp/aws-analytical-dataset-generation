@@ -52,7 +52,7 @@ resource "aws_s3_bucket_object" "steps" {
 locals {
   spark_num_executors_per_instance = {
     development = 3 # 8 cores (minus one) for m5.24xlarge / 2 executors per core
-    qa          = 3
+    qa          = 19
     integration = 3
     preprod     = 3
     production  = 19 # 96 cores (minus one) for m5.24xlarge / 5 executors per core
@@ -60,14 +60,14 @@ locals {
   spark_executor_total_memory = floor(var.emr_yarn_memory_gb_per_core_instance[local.environment] / local.spark_num_executors_per_instance[local.environment])
   spark_executor_cores = {
     development = 2
-    qa          = 2
+    qa          = 5
     integration = 2
     preprod     = 2
     production  = 5 # Recommended on the link above
   }
   spark_executor_memory = {
     development = 10
-    qa          = 10
+    qa          = 18
     integration = 10
     preprod     = 10
     production  = 18 # 19 executors per instance for 24xlarge works out as this split of RAM each x 0.9
@@ -81,14 +81,14 @@ locals {
   }
   spark_driver_memory = {
     development = 10
-    qa          = 10
+    qa          = 18
     integration = 10
     preprod     = 10
     production  = 18 # Same as executor memory
   }
   spark_driver_cores = {
     development = 2
-    qa          = 2
+    qa          = 5
     integration = 2
     preprod     = 2
     production  = 5 # Same as executor cores
