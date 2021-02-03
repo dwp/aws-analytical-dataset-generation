@@ -50,32 +50,49 @@ resource "aws_s3_bucket_object" "steps" {
 
 # See https://aws.amazon.com/blogs/big-data/best-practices-for-successfully-managing-memory-for-apache-spark-applications-on-amazon-emr/
 locals {
-  spark_executor_cores              = 1
-  spark_num_cores_per_core_instance = var.emr_num_cores_per_core_instance[local.environment] - 1
-  spark_num_executors_per_instance  = 5
-  spark_executor_total_memory       = floor(var.emr_yarn_memory_gb_per_core_instance[local.environment] / local.spark_num_executors_per_instance)
-  spark_executor_memory = {
-    development = 4
-    qa          = 4
-    integration = 4
-    preprod     = 4
-    production  = 20
+  spark_num_executors_per_instance = {
+    development = 3 # 8 cores (minus one) for m5.24xlarge / 2 executors per core
+    qa          = 3
+    integration = 3
+    preprod     = 3
+    production  = 19 # 96 cores (minus one) for m5.24xlarge / 5 executors per core
   }
-  spark_yarn_executor_memory_overhead = {
-    development = 1
-    qa          = 1
-    integration = 1
-    preprod     = 1
-    production  = 5
-  }
-  spark_driver_memory = {
+  spark_executor_total_memory = floor(var.emr_yarn_memory_gb_per_core_instance[local.environment] / local.spark_num_executors_per_instance)
+  spark_executor_cores = {
     development = 2
     qa          = 2
     integration = 2
     preprod     = 2
-    production  = 10
+    production  = 5 # Recommended on the link above
   }
-  spark_driver_cores        = 1
+  spark_executor_memory = {
+    development = 10
+    qa          = 10
+    integration = 10
+    preprod     = 10
+    production  = 18 # 19 executors per instance for 24xlarge works out as this split of RAM each x 0.9
+  }
+  spark_yarn_executor_memory_overhead = {
+    development = 2
+    qa          = 2
+    integration = 2
+    preprod     = 2
+    production  = 2 # 0.1 of the 20 per executor
+  }
+  spark_driver_memory = {
+    development = 10
+    qa          = 10
+    integration = 10
+    preprod     = 10
+    production  = 18 # Same as executor memory
+  }
+  spark_driver_cores = {
+    development = 2
+    qa          = 2
+    integration = 2
+    preprod     = 2
+    production  = 5 # Same as executor cores
+  }
   spark_executor_instances  = var.spark_executor_instances[local.environment]
   spark_default_parallelism = local.spark_executor_instances * local.spark_executor_cores * 2
   spark_kyro_buffer         = var.spark_kyro_buffer[local.environment]
@@ -98,11 +115,11 @@ resource "aws_s3_bucket_object" "configurations" {
       proxy_https_port                    = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
       emrfs_metadata_tablename            = local.emrfs_metadata_tablename
       s3_htme_bucket                      = data.terraform_remote_state.ingest.outputs.s3_buckets.htme_bucket
-      spark_executor_cores                = local.spark_executor_cores
+      spark_executor_cores                = local.spark_executor_cores[local.environment]
       spark_executor_memory               = local.spark_executor_memory[local.environment]
       spark_yarn_executor_memory_overhead = local.spark_yarn_executor_memory_overhead[local.environment]
       spark_driver_memory                 = local.spark_driver_memory[local.environment]
-      spark_driver_cores                  = local.spark_driver_cores
+      spark_driver_cores                  = local.spark_driver_cores[local.environment]
       spark_executor_instances            = local.spark_executor_instances
       spark_default_parallelism           = local.spark_default_parallelism
       spark_kyro_buffer                   = local.spark_kyro_buffer
