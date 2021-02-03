@@ -46,10 +46,3 @@ Instances:
             VolumeType: "gp2"
           VolumesPerInstance: 1
       InstanceType: "${instance_type_core_three}"
-    - EbsConfiguration:
-        EbsBlockDeviceConfigs:
-        - VolumeSpecification:
-            SizeInGB: 250
-            VolumeType: "gp2"
-          VolumesPerInstance: 1
-      InstanceType: "${instance_type_core_four}"
