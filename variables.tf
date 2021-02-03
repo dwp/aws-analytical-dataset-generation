@@ -91,16 +91,6 @@ variable "emr_instance_type_core_three" {
   }
 }
 
-variable "emr_instance_type_core_four" {
-  default = {
-    development = "m5ad.2xlarge"
-    qa          = "m5ad.24xlarge"
-    integration = "m5ad.2xlarge"
-    preprod     = "m5ad.2xlarge"
-    production  = "m5ad.24xlarge"
-  }
-}
-
 variable "emr_core_instance_count" {
   default = {
     development = "5"
