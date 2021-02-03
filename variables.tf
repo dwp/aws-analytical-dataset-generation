@@ -54,20 +54,20 @@ variable "emr_release" {
 variable "emr_instance_type" {
   default = {
     development = "m5.2xlarge"
-    qa          = "m5.24xlarge"
+    qa          = "m5.16xlarge"
     integration = "m5.2xlarge"
     preprod     = "m5.2xlarge"
-    production  = "m5.24xlarge"
+    production  = "m5.16xlarge"
   }
 }
 
 variable "emr_core_instance_count" {
   default = {
     development = "5"
-    qa          = "20"
+    qa          = "22"
     integration = "5"
     preprod     = "5"
-    production  = "20"
+    production  = "22"
   }
 }
 
@@ -84,10 +84,10 @@ variable "spark_kyro_buffer" {
 variable "spark_executor_instances" {
   default = {
     development = 14 # 3 executors per instance x 5 instances minus 1 for driver
-    qa          = 379
+    qa          = 263
     integration = 14
     preprod     = 14
-    production  = 379 # 19 executors per instance x 20 instances minus 1 for driver
+    production  = 263 # 12 executors per instance x 22 instances minus 1 for driver
   }
 }
 
