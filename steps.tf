@@ -39,7 +39,7 @@ resource "aws_s3_bucket_object" "send_notification_script" {
   key    = "component/analytical-dataset-generation/send_notification.py"
   content = templatefile("${path.module}/steps/send_notification.py",
     {
-      publish_bucket   = aws_s3_bucket.published.id
+      publish_bucket   = data.terraform_remote_state.common.outputs.published_bucket.id
       status_topic_arn = aws_sns_topic.adg_completion_status_sns.arn
       log_path         = "/var/log/adg/adg_params.log"
     }
