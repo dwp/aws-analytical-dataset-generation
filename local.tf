@@ -1,7 +1,7 @@
 locals {
-  emr_cluster_name                = "aws-analytical-dataset-generator"
-  hbase_root_path                 = format("s3://%s", data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir)
-  secret_name                     = "/concourse/dataworks/adg"
+  emr_cluster_name = "aws-analytical-dataset-generator"
+  hbase_root_path  = format("s3://%s", data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir)
+  secret_name      = "/concourse/dataworks/adg"
   common_tags = {
     Environment  = local.environment
     Application  = local.emr_cluster_name
@@ -118,8 +118,8 @@ locals {
   cw_agent_yarnspark_loggrp_name       = "/app/analytical_dataset_generator/yarn-spark_logs"
   cw_agent_metrics_collection_interval = 60
 
-  s3_log_prefix            = "emr/analytical_dataset_generator"
-  data_pipeline_metadata   = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
+  s3_log_prefix          = "emr/analytical_dataset_generator"
+  data_pipeline_metadata = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
 
   published_nonsensitive_prefix = "runmetadata"
   hive_metastore_instance_type = {

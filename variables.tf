@@ -91,6 +91,16 @@ variable "emr_instance_type_core_three" {
   }
 }
 
+variable "emr_instance_type_core_four" {
+  default = {
+    development = "m5ad.2xlarge"
+    qa          = "m5ad.24xlarge"
+    integration = "m5ad.2xlarge"
+    preprod     = "m5ad.2xlarge"
+    production  = "m5ad.24xlarge"
+  }
+}
+
 variable "emr_core_instance_count" {
   default = {
     development = "5"
@@ -128,10 +138,10 @@ variable "spark_executor_instances" {
 # (search for yarn.nodemanager.resource.memory-mb)
 variable "emr_yarn_memory_gb_per_core_instance" {
   default = {
-    development = "24" # Set for m5.2xlarge
+    development = "24"  # Set for m5.2xlarge
     qa          = "376" # Set for m5.24xlarge
-    integration = "24" # Set for m5.2xlarge
-    preprod     = "24" # Set for m5.2xlarge
+    integration = "24"  # Set for m5.2xlarge
+    preprod     = "24"  # Set for m5.2xlarge
     production  = "376" # Set for m5.24xlarge
   }
 }
