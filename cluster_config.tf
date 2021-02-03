@@ -57,7 +57,7 @@ locals {
     preprod     = 3
     production  = 19 # 96 cores (minus one) for m5.24xlarge / 5 executors per core
   }
-  spark_executor_total_memory = floor(var.emr_yarn_memory_gb_per_core_instance[local.environment] / local.spark_num_executors_per_instance)
+  spark_executor_total_memory = floor(var.emr_yarn_memory_gb_per_core_instance[local.environment] / local.spark_num_executors_per_instance[local.environment])
   spark_executor_cores = {
     development = 2
     qa          = 2
@@ -94,7 +94,7 @@ locals {
     production  = 5 # Same as executor cores
   }
   spark_executor_instances  = var.spark_executor_instances[local.environment]
-  spark_default_parallelism = local.spark_executor_instances * local.spark_executor_cores * 2
+  spark_default_parallelism = local.spark_executor_instances[local.environment] * local.spark_executor_cores[local.environment] * 2
   spark_kyro_buffer         = var.spark_kyro_buffer[local.environment]
 }
 
