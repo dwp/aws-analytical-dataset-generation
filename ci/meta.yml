@@ -342,6 +342,8 @@ meta:
           type: docker-image
           source:
             repository: dwpdigital/python3-pyspark-pytest
+#            pinning this to specific tag as the latest image is failing some tests due to upgraded dependencies
+            tag: 0.0.17
         run:
           path: sh
           dir: aws-analytical-dataset-generation

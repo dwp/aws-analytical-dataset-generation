@@ -51,43 +51,73 @@ variable "emr_release" {
   }
 }
 
-variable "emr_instance_type" {
+variable "emr_instance_type_master" {
   default = {
-    development = "m5.8xlarge"
-    qa          = "m5.8xlarge"
-    integration = "m5.8xlarge"
-    preprod     = "m5.8xlarge"
-    production  = "m5.8xlarge"
+    development = "m5.2xlarge"
+    qa          = "m5.2xlarge"
+    integration = "m5.2xlarge"
+    preprod     = "m5.2xlarge"
+    production  = "m5.24xlarge"
+  }
+}
+
+variable "emr_instance_type_core_one" {
+  default = {
+    development = "m5.2xlarge"
+    qa          = "m5.2xlarge"
+    integration = "m5.2xlarge"
+    preprod     = "m5.2xlarge"
+    production  = "m5.24xlarge"
+  }
+}
+
+variable "emr_instance_type_core_two" {
+  default = {
+    development = "m5a.2xlarge"
+    qa          = "m5a.2xlarge"
+    integration = "m5a.2xlarge"
+    preprod     = "m5a.2xlarge"
+    production  = "m5a.24xlarge"
+  }
+}
+
+variable "emr_instance_type_core_three" {
+  default = {
+    development = "m5d.2xlarge"
+    qa          = "m5d.2xlarge"
+    integration = "m5d.2xlarge"
+    preprod     = "m5d.2xlarge"
+    production  = "m5d.24xlarge"
   }
 }
 
 variable "emr_core_instance_count" {
   default = {
-    development = "2"
-    qa          = "2"
-    integration = "2"
-    preprod     = "1"
-    production  = "20"
-  }
-}
-
-variable "emr_num_cores_per_core_instance" {
-  default = {
-    development = "32"
-    qa          = "32"
-    integration = "32"
-    preprod     = "48"
-    production  = "48"
+    development = "5"
+    qa          = "5"
+    integration = "5"
+    preprod     = "5"
+    production  = "22"
   }
 }
 
 variable "spark_kyro_buffer" {
   default = {
-    development = "128"
-    qa          = "128"
-    integration = "128"
-    preprod     = "2047m"
-    production  = "2047m"
+    development = "128m"
+    qa          = "128m"
+    integration = "128m"
+    preprod     = "128m"
+    production  = "2047m" # Max amount allowed
+  }
+}
+
+variable "spark_executor_instances" {
+  default = {
+    development = 14
+    qa          = 14
+    integration = 14
+    preprod     = 14
+    production  = 400 # More than possible as it won't create them if no core or memory available
   }
 }
 
@@ -98,11 +128,11 @@ variable "spark_kyro_buffer" {
 # (search for yarn.nodemanager.resource.memory-mb)
 variable "emr_yarn_memory_gb_per_core_instance" {
   default = {
-    development = "120"
-    qa          = "120"
-    integration = "120"
-    preprod     = "184"
-    production  = "184"
+    development = "24"  # Set for m5.2xlarge
+    qa          = "24"  # Set for m5.2xlarge
+    integration = "24"  # Set for m5.2xlarge
+    preprod     = "24"  # Set for m5.2xlarge
+    production  = "376" # Set for m5.24xlarge
   }
 }
 
