@@ -72,7 +72,7 @@ locals {
     qa          = 2
     integration = 2
     preprod     = 2
-    production  = 2
+    production  = 4
   }
   spark_driver_memory = {
     development = 5
