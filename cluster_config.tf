@@ -58,14 +58,14 @@ locals {
     qa          = 2
     integration = 2
     preprod     = 2
-    production  = 6 # Recommended on the link above + 1 so we can have more memory per executor
+    production  = 2 # Recommended on the link above + 1 so we can have more memory per executor
   }
   spark_executor_memory = {
     development = 10
     qa          = 10
     integration = 10
     preprod     = 10
-    production  = 23 # 15 executors per instance for m5a.24xlarge works out as this split of 384 RAM each x 0.9
+    production  = 30 # 15 executors per instance for m5a.24xlarge works out as this split of 384 RAM each x 0.9
   }
   spark_yarn_executor_memory_overhead = {
     development = 2
@@ -75,18 +75,18 @@ locals {
     production  = 2 # 0.1 of the 20GB per executor
   }
   spark_driver_memory = {
-    development = 10
-    qa          = 10
-    integration = 10
-    preprod     = 10
+    development = 5
+    qa          = 5
+    integration = 5
+    preprod     = 5
     production  = 10 # Doesn't need as much as executors
   }
   spark_driver_cores = {
-    development = 2
-    qa          = 2
-    integration = 2
-    preprod     = 2
-    production  = 2 # Doesn't need as much as executors
+    development = 1
+    qa          = 1
+    integration = 1
+    preprod     = 1
+    production  = 1 # Doesn't need as much as executors
   }
   spark_executor_instances  = var.spark_executor_instances[local.environment]
   spark_default_parallelism = local.spark_executor_instances * local.spark_executor_cores[local.environment] * 2

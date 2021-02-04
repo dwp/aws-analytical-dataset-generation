@@ -113,11 +113,11 @@ variable "spark_kyro_buffer" {
 
 variable "spark_executor_instances" {
   default = {
-    development = 14 # 3 executors per instance x 5 instances minus 1 for driver
+    development = 14
     qa          = 14
     integration = 14
     preprod     = 14
-    production  = 329 # 15 executors per instance x 22 instances minus 1 for driver
+    production  = 250 # More than possible as it won't create them if no core or memory available
   }
 }
 
