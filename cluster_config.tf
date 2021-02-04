@@ -65,7 +65,7 @@ locals {
     qa          = 10
     integration = 10
     preprod     = 10
-    production  = 30 # 15 executors per instance for m5a.24xlarge works out as this split of 384 RAM each x 0.9
+    production  = 50 # At least 20 or more per executor core
   }
   spark_yarn_executor_memory_overhead = {
     development = 2
