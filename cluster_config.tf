@@ -54,25 +54,25 @@ resource "aws_s3_bucket_object" "steps" {
 # See https://aws.amazon.com/blogs/big-data/best-practices-for-successfully-managing-memory-for-apache-spark-applications-on-amazon-emr/
 locals {
   spark_executor_cores = {
-    development = 2
-    qa          = 2
-    integration = 2
-    preprod     = 2
-    production  = 2 # Recommended on the link above + 1 so we can have more memory per executor
+    development = 1
+    qa          = 1
+    integration = 1
+    preprod     = 1
+    production  = 1
   }
   spark_executor_memory = {
     development = 10
     qa          = 10
     integration = 10
     preprod     = 10
-    production  = 50 # At least 20 or more per executor core
+    production  = 25 # At least 20 or more per executor core
   }
   spark_yarn_executor_memory_overhead = {
     development = 2
     qa          = 2
     integration = 2
     preprod     = 2
-    production  = 2 # 0.1 of the 20GB per executor
+    production  = 2
   }
   spark_driver_memory = {
     development = 5
@@ -86,7 +86,7 @@ locals {
     qa          = 1
     integration = 1
     preprod     = 1
-    production  = 1 # Doesn't need as much as executors
+    production  = 1
   }
   spark_executor_instances  = var.spark_executor_instances[local.environment]
   spark_default_parallelism = local.spark_executor_instances * local.spark_executor_cores[local.environment] * 2
