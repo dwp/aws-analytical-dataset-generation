@@ -122,7 +122,7 @@ meta:
         params:
           USERNAME: "bgdc-reader"
           PARAM_NAME: "metadata-store-bgdc-reader"
-          PRIVILEGES: SELECT, CREATE
+          PRIVILEGES: "SELECT, ALL:NEXT_LOCK_ID, ALL:HIVE_LOCKS"
     rotate-kickstart-adg-writer-password:
       .: (( inject meta.plan.rotate-mysql-password ))
       config:
