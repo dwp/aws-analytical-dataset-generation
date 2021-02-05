@@ -26,7 +26,7 @@ jobs:
       trigger: false
       passed:
         - analytical-dataset-generation-qa
-    - get: aws-common-intrastructure
+    - get: aws-common-infrastructure
       trigger: false
       passed:
         - analytical-dataset-generation-qa

@@ -20,7 +20,7 @@ jobs:
       trigger: false
     - get: aws-internal-compute
       trigger: false
-    - get: aws-common-intrastructure
+    - get: aws-common-infrastructure
       trigger: false
     - get: emr-launcher-release
       trigger: true
