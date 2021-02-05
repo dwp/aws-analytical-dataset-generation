@@ -56,3 +56,15 @@ resource "aws_s3_bucket_object" "flush_pushgateway" {
     }
   )
 }
+
+resource "aws_s3_bucket_object" "create-mondo-latest-dbs" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key        = "component/analytical-dataset-generation/create-mongo-latest-dbs.sh"
+  content = templatefile("${path.module}/steps/create-mongo-latest-dbs.sh",
+    {
+      publish_bucket   = format("s3://%s", data.terraform_remote_state.common.outputs.published_bucket.id)
+      processed_bucket = format("s3://%s", data.terraform_remote_state.common.outputs.processed_bucket.bucket) 
+    }
+  )
+}

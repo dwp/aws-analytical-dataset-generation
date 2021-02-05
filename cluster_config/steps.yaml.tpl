@@ -22,6 +22,12 @@ Steps:
     - "s3://${s3_config_bucket}/component/analytical-dataset-generation/hive-setup.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
+- Name: "create-mongo-latest-dbs"
+  HadoopJarStep:
+    Args:
+    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/create-mongo-latest-dbs.sh"
+    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+  ActionOnFailure: "${action_on_failure}"
 - Name: "submit-job"
   HadoopJarStep:
     Args:
