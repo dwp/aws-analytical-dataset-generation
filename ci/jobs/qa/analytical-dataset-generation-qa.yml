@@ -68,3 +68,9 @@ jobs:
         TF_WORKSPACE: qa
         AWS_ACC: ((aws_account.qa))
         AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+    ensure:
+      do:
+        - .: (( inject meta.plan.stop-cluster ))
+          config:
+            params:
+              AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci

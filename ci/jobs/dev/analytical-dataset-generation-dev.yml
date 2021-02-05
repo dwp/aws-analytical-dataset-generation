@@ -68,4 +68,10 @@ jobs:
         TF_WORKSPACE: default
         AWS_ACC: ((aws_account.development))
         AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+    ensure:
+      do:
+        - .: (( inject meta.plan.stop-cluster ))
+          config:
+            params:
+              AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
 
