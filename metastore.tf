@@ -1,6 +1,6 @@
 resource "aws_db_subnet_group" "internal_compute" {
   name       = "hive-metastore"
-  subnet_ids = data.terraform_remote_state.internal_compute.outputs.pdm_subnet.ids
+  subnet_ids = data.terraform_remote_state.internal_compute.outputs.adg_subnet.ids
 
   tags = merge(local.common_tags, { Name = "hive-metastore" })
 }
