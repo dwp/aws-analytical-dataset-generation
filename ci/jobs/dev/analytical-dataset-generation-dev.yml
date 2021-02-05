@@ -9,6 +9,12 @@ jobs:
       trigger: true
     - get: analytical-dataset-generation-exporter-release
       trigger: true
+    - get: aws-dataworks-e2e-framework
+      trigger: false
+    - get: aws-ingestion
+      trigger: false
+    - get: aws-internal-compute
+      trigger: false
     - get: secrets-management
       trigger: false
     - get: emr-ami
