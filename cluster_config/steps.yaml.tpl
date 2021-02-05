@@ -1,11 +1,5 @@
 ---
 BootstrapActions:
-- Name: "courtesy-flush-pushgateway"
-  HadoopJarStep:
-    Args:
-    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/flush-pushgateway.sh"
-    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
-  ActionOnFailure: "${action_on_failure}"
 - Name: "start_ssm"
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/start_ssm.sh"
@@ -22,6 +16,12 @@ BootstrapActions:
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/metrics-setup.sh"
 Steps:
+- Name: "courtesy-flush-pushgateway"
+  HadoopJarStep:
+    Args:
+    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/flush-pushgateway.sh"
+    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+  ActionOnFailure: "${action_on_failure}"
 - Name: "hive-setup"
   HadoopJarStep:
     Args:
