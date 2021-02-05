@@ -321,7 +321,7 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
 
     resources = [
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/pdm-dataset/*",
-      "${data.terraform_remote_state.common.outputs.published_bucket.arn}/aws-analytical-env-metrics-data/*"
+      "${data.terraform_remote_state.common.outputs.published_bucket.arn}/aws-analytical-env-metrics-data/*",
     ]
 
     condition {
