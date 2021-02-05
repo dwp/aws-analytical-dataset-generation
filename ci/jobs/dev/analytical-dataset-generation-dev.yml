@@ -17,6 +17,8 @@ jobs:
       trigger: false
     - get: aws-internal-compute
       trigger: false
+    - get: aws-common-intrastructure
+      trigger: false
     - get: secrets-management
       trigger: false
     - get: emr-ami
@@ -44,24 +46,31 @@ jobs:
   - .: (( inject meta.plan.terraform-plan ))
     params:
       TF_WORKSPACE: default
-  - .: (( inject meta.plan.terraform-output-internal-compute ))
-    config:
-      params:
-        TF_WORKSPACE: default
-        AWS_ACC: ((aws_account.development))
-        AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
-  - .: (( inject meta.plan.terraform-output-ingest ))
-    config:
-      params:
-        TF_WORKSPACE: default
-        AWS_ACC: ((aws_account.development))
-        AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
-  - .: (( inject meta.plan.terraform-output-adg ))
-    config:
-      params:
-        TF_WORKSPACE: default
-        AWS_ACC: ((aws_account.development))
-        AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+  - in_parallel:
+    - .: (( inject meta.plan.terraform-output-internal-compute ))
+      config:
+        params:
+          TF_WORKSPACE: default
+          AWS_ACC: ((aws_account.development))
+          AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+    - .: (( inject meta.plan.terraform-output-ingest ))
+      config:
+        params:
+          TF_WORKSPACE: default
+          AWS_ACC: ((aws_account.development))
+          AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+    - .: (( inject meta.plan.terraform-output-adg ))
+      config:
+        params:
+          TF_WORKSPACE: default
+          AWS_ACC: ((aws_account.development))
+          AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+    - .: (( inject meta.plan.terraform-output-common-infrastructure ))
+      config:
+        params:
+          TF_WORKSPACE: default
+          AWS_ACC: ((aws_account.development))
+          AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
   - .: (( inject meta.plan.e2e-tests))
     config:
       params:
