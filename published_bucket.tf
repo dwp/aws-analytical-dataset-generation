@@ -238,12 +238,6 @@ resource "aws_iam_policy" "analytical_dataset_crown_read_only_non_pii" {
   policy      = data.aws_iam_policy_document.analytical_dataset_crown_read_only_non_pii.json
 }
 
-resource "aws_iam_policy" "analytical_dataset_generator_read_write_non_pii" {
-  name        = "AnalyticalDatasetGeneratorReadWriteNonPii"
-  description = "Allow read writing of non-pii data"
-  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_write_non_pii.json
-}
-
 # policy for s3 read access of both non-pii and pii PDM data
 
 data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
