@@ -238,59 +238,6 @@ resource "aws_iam_policy" "analytical_dataset_crown_read_only_non_pii" {
   policy      = data.aws_iam_policy_document.analytical_dataset_crown_read_only_non_pii.json
 }
 
-# bucket policy for the published non-pii bucket
-
-data "aws_iam_policy_document" "analytical_dataset_generator_read_write_non_pii" {
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:GetBucketLocation",
-      "s3:ListBucket",
-    ]
-
-    resources = [
-      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:GetObject*",
-      "s3:DeleteObject*",
-      "s3:PutObject*",
-    ]
-
-    resources = [
-      format("arn:aws:s3:::%s/%s/*", data.terraform_remote_state.common.outputs.published_nonsensitive.bucket, local.published_nonsensitive_prefix)
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
-    ]
-
-    resources = [
-      data.terraform_remote_state.common.outputs.published_nonsensitive_cmk.arn,
-    ]
-  }
-}
-
-resource "aws_iam_policy" "analytical_dataset_generator_read_write_non_pii" {
-  name        = "AnalyticalDatasetGeneratorReadWriteNonPii"
-  description = "Allow read writing of non-pii data"
-  policy      = data.aws_iam_policy_document.analytical_dataset_generator_read_write_non_pii.json
-}
-
 # policy for s3 read access of both non-pii and pii PDM data
 
 data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
@@ -304,7 +251,6 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
 
     resources = [
       data.terraform_remote_state.common.outputs.published_bucket.arn,
-      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
   }
 
@@ -319,7 +265,6 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
     resources = [
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/pdm-dataset/*",
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/aws-analytical-env-metrics-data/*",
-      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
 
   }
@@ -334,7 +279,6 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
 
     resources = [
       data.terraform_remote_state.common.outputs.published_bucket_cmk.arn,
-      data.terraform_remote_state.common.outputs.published_nonsensitive_cmk.arn,
     ]
   }
 }
@@ -358,7 +302,6 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
 
     resources = [
       data.terraform_remote_state.common.outputs.published_bucket.arn,
-      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
   }
 
@@ -373,7 +316,6 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
     resources = [
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/pdm-dataset/*",
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/aws-analytical-env-metrics-data/*",
-      data.terraform_remote_state.common.outputs.published_nonsensitive.arn,
     ]
 
     condition {
@@ -397,7 +339,6 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
 
     resources = [
       data.terraform_remote_state.common.outputs.published_bucket_cmk.arn,
-      data.terraform_remote_state.common.outputs.published_nonsensitive_cmk.arn,
     ]
   }
 }

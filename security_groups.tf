@@ -221,7 +221,7 @@ resource "aws_security_group_rule" "ingress_to_dks" {
   from_port   = 8443
   to_port     = 8443
 
-  cidr_blocks = data.terraform_remote_state.internal_compute.outputs.adg_subnet.cidr_blocks
+  cidr_blocks = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.cidr_blocks
 
   security_group_id = data.terraform_remote_state.crypto.outputs.dks_sg_id[local.environment]
 }
