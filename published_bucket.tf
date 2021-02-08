@@ -348,11 +348,3 @@ resource "aws_iam_policy" "pdm_read_non_pii_only" {
   description = "Allow read access to a subset of the PDM tables containing less sensitive data called non-pii"
   policy      = data.aws_iam_policy_document.pdm_read_non_pii_only.json
 }
-
-output "published_bucket_cmk" {
-  value = data.terraform_remote_state.common.outputs.published_bucket_cmk
-}
-
-output "published_bucket" {
-  value = data.terraform_remote_state.common.outputs.published_bucket
-}
