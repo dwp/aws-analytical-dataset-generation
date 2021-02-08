@@ -104,7 +104,6 @@ def main(
         create_hive_tables_on_published(
             spark, list_of_processed_collections, published_database_name, args, run_id
         )
-        close_spark(spark)
         create_adg_status_csv(
             args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp
         )
@@ -630,6 +629,7 @@ if __name__ == "__main__":
         run_id,
         s3_resource
     )
+    close_spark(spark)
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
