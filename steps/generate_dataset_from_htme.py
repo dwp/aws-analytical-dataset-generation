@@ -467,6 +467,7 @@ def create_hive_tables_on_published_for_collection_threaded(spark, all_processed
                     create_hive_table_on_published_for_collection,
                     spark,
                     collection_name,
+                    collection_json_location,
                     published_database_name,
                     args,
                     run_id
@@ -482,7 +483,7 @@ def create_hive_tables_on_published_for_collection_threaded(spark, all_processed
             raise BaseException(ex)
 
 
-def create_hive_table_on_published_for_collection(spark, collection_name, published_database_name, args, run_id):
+def create_hive_table_on_published_for_collection(spark, collection_name, collection_json_location, published_database_name, args, run_id):
     hive_table_name = get_collection(collection_name)
     hive_table_name = hive_table_name.replace("/", "_")
     src_hive_table = published_database_name + "." + hive_table_name
