@@ -436,20 +436,16 @@ def create_hive_tables_on_published(
             )
             create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
             spark.sql(create_db_query)
-        for (collection_name, collection_json_location) in all_processed_collections:
-            hive_table_name = get_collection(collection_name)
-            hive_table_name = hive_table_name.replace("/", "_")
-            src_hive_table = published_database_name + "." + hive_table_name
-            the_logger.info(
-                "Creating Hive table for : %s for correlation id : %s and run id: %s",
-                src_hive_table,
-                args.correlation_id,
-                run_id,
-            )
-            src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
-            src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
-            spark.sql(src_hive_drop_query)
-            spark.sql(src_hive_create_query)
+        
+        for result in create_hive_tables_on_published_for_collection_threaded(
+            spark,
+            all_processed_collections,
+            published_database_name,
+            args,
+            run_id
+        ):
+            the_logger.info(f"Processed published hive tables for collection `{result}`")
+
     except BaseException as ex:
         the_logger.error(
             "Problem with creating Hive tables for correlation id: %s and run id: %s %s ",
@@ -459,6 +455,49 @@ def create_hive_tables_on_published(
         )
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
+
+
+def create_hive_tables_on_published_for_collection_threaded(spark, all_processed_collections, published_database_name, args, run_id):
+    results = []
+    
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for (collection_name, collection_json_location) in all_processed_collections:
+            results.append(
+                executor.submit(
+                    create_hive_table_on_published_for_collection,
+                    spark,
+                    collection_name,
+                    published_database_name,
+                    args,
+                    run_id
+                )
+            )
+
+    wait(results)
+    
+    for result in results:
+        try:
+            yield result.result()
+        except Exception as ex:
+            raise BaseException(ex)
+
+
+def create_hive_table_on_published_for_collection(spark, collection_name, published_database_name, args, run_id):
+    hive_table_name = get_collection(collection_name)
+    hive_table_name = hive_table_name.replace("/", "_")
+    src_hive_table = published_database_name + "." + hive_table_name
+    the_logger.info(
+        "Creating Hive table for : %s for correlation id : %s and run id: %s",
+        src_hive_table,
+        args.correlation_id,
+        run_id,
+    )
+    src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
+    src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+    spark.sql(src_hive_drop_query)
+    spark.sql(src_hive_create_query)
+    return collection_name
+
 
 def get_filesize( s3_client, s3_htme_bucket, collection_file_key):
     metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
