@@ -513,7 +513,7 @@ def get_spark_session():
 
 
 def close_spark(spark):
-    spark.sparkContext.close()
+    spark.sparkContext.stop()
     spark.stop()
 
 
