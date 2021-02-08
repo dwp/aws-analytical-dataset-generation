@@ -227,6 +227,30 @@ meta:
         outputs:
           - name: terraform-output-internal-compute
 
+    terraform-output-common-infrastructure:
+      task: terraform-output-common-infrastructure
+      .: (( inject meta.plan.terraform-common-config ))
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.terraform_repository))
+            tag: ((dataworks.terraform_version))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              terraform workspace show
+              terraform init
+              terraform output --json > ../terraform-output-common-infrastructure/outputs.json
+          dir: aws-common-infrastructure
+        inputs:
+          - name: aws-common-infrastructure
+        outputs:
+          - name: terraform-output-common-infrastructure
+
     terraform-output-ingest:
       task: terraform-output-ingest
       .: (( inject meta.plan.terraform-common-config ))
@@ -384,7 +408,11 @@ meta:
               "../../../terraform-output-internal-compute/outputs.json" \
               "" \
               "" \
-              "../../../terraform-output-adg/outputs.json"
+              "../../../terraform-output-adg/outputs.json" \
+              "" \
+              "" \
+              "" \
+              "../../../terraform-output-common-infrastructure/outputs.json"
         inputs:
           - name: aws-dataworks-e2e-framework
           - name: aws-analytical-dataset-generation
@@ -392,6 +420,7 @@ meta:
           - name: terraform-output-ingest
           - name: terraform-output-internal-compute
           - name: terraform-output-adg
+          - name: terraform-output-common-infrastructure
 
     start-cluster:
       task: start-cluster

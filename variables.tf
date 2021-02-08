@@ -97,7 +97,7 @@ variable "emr_core_instance_count" {
     qa          = "5"
     integration = "5"
     preprod     = "5"
-    production  = "22"
+    production  = "35"
   }
 }
 
@@ -117,7 +117,7 @@ variable "spark_executor_instances" {
     qa          = 14
     integration = 14
     preprod     = 14
-    production  = 250 # More than possible as it won't create them if no core or memory available
+    production  = 500 # More than possible as it won't create them if no core or memory available
   }
 }
 
