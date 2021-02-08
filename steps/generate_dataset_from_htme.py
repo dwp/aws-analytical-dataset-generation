@@ -1,7 +1,6 @@
 import argparse
 import ast
 import base64
-import concurrent.futures
 import csv
 import itertools
 import os
@@ -19,6 +18,7 @@ from requests.packages.urllib3.util.retry import Retry
 from boto3.dynamodb.conditions import Key
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
+from concurrent.futures import ThreadPoolExecutor, wait
 
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
@@ -74,7 +74,7 @@ def main(
         list_of_dicts_filtered = get_collections_in_secrets(
             list_of_dicts, secrets_collections, args
         )
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor() as executor:
             all_processed_collections = executor.map(
                 consolidate_rdd_per_collection,
                 list_of_dicts_filtered,
@@ -460,7 +460,7 @@ def create_hive_tables_on_published(
 def create_hive_tables_on_published_for_collection_threaded(spark, all_processed_collections, published_database_name, args, run_id):
     results = []
     
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor() as executor:
         for (collection_name, collection_json_location) in all_processed_collections:
             results.append(
                 executor.submit(
