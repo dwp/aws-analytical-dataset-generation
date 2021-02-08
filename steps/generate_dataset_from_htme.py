@@ -104,6 +104,7 @@ def main(
         create_hive_tables_on_published(
             spark, list_of_processed_collections, published_database_name, args, run_id
         )
+        close_spark(spark)
         create_adg_status_csv(
             args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp
         )
@@ -509,6 +510,11 @@ def get_spark_session():
     )
     spark.conf.set("spark.scheduler.mode", "FAIR")
     return spark
+
+
+def close_spark(spark):
+    spark.sparkContext.close()
+    spark.stop()
 
 
 def get_todays_date():
