@@ -130,6 +130,12 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "log_group_name": "$${cwa_steps_loggrp_name}",
             "log_stream_name": "flush-pushgateway.log",
             "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/create-mongo-latest-dbs.log",
+            "log_group_name": "$${cwa_steps_loggrp_name}",
+            "log_stream_name": "create-mongo-latest-dbs.log",
+            "timezone": "UTC"
           }
         ]
       }
