@@ -511,6 +511,11 @@ def get_spark_session():
     return spark
 
 
+def close_spark(spark):
+    spark.sparkContext.stop()
+    spark.stop()
+
+
 def get_todays_date():
     return datetime.now().strftime("%Y-%m-%d")
 
@@ -624,6 +629,7 @@ if __name__ == "__main__":
         run_id,
         s3_resource
     )
+    close_spark(spark)
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
