@@ -12,6 +12,7 @@ from datetime import datetime
 from itertools import groupby
 
 import boto3
+import botocore
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -162,8 +163,11 @@ def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
     return filtered_list
 
 
-def get_client(service_name):
-    client = boto3.client(service_name)
+def get_s3_client():
+    client_config = botocore.config.Config(
+        max_pool_connections=100,
+    )
+    client = boto3.client("s3", config=client_config)
     return client
 
 
@@ -675,7 +679,7 @@ if __name__ == "__main__":
     published_database_name = "${published_db}"
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
-    s3_client = get_client("s3")
+    s3_client = get_s3_client()
     s3_resource = get_s3_resource()
     secrets_response = retrieve_secrets()
     secrets_collections = get_collections(secrets_response, args)
