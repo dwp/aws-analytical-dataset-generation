@@ -443,7 +443,7 @@ meta:
               export AWS_DEFAULT_REGION
               source /assume-role
               set +x
-              export topic_arn=arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACC}:uc_export_to_crown_completion_status_sns
+              export topic_arn=arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACC}:export_status_sns_fulls
               export message_json=$(cat <<EOF
               {
                 "correlation_id": "$CORRELATION_ID",
