@@ -145,8 +145,7 @@ resource "aws_s3_bucket_object" "download_sql_sh" {
   {
     version               = local.mongo_latest_version[local.environment]
     s3_artefact_bucket_id = data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id
-    s3_config_bucket_id   = format("s3://%s", data.terraform_remote_state.common.outputs.config_bucket.id)
-    pdm_log_level         = local.adg_log_level[local.environment]
+    adg_log_level         = local.adg_log_level[local.environment]
     environment_name      = local.environment
   }
   )
