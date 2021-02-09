@@ -45,5 +45,5 @@ def send_sns_message(
 if __name__ == "__main__":
     publish_bucket = "${publish_bucket}"
     status_topic_arn = "${status_topic_arn}"
-    adg_param_key = "analytical-dataset/adg_output/adg_params.csv"
+    adg_param_key = "analytical-dataset/full/adg_output/adg_params.csv"
     send_sns_message(publish_bucket, status_topic_arn, adg_param_key)
