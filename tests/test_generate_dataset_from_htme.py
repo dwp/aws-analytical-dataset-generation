@@ -12,6 +12,8 @@ from moto import mock_s3, mock_dynamodb2
 import steps
 from steps import generate_dataset_from_htme
 
+INVALID_SNAPSHOT_TYPE = "abc"
+VALID_SNAPSHOT_TYPE = "full"
 MOCK_LOCALHOST_URL = "http://localhost:1000"
 
 COMPLETED_STATUS = "Completed"
@@ -35,9 +37,9 @@ PUBLISHED_DATABASE_NAME = "test_db"
 RUN_ID = 1
 CORRELATION_ID = "12345"
 AWS_REGION = "eu-west-2"
-S3_PREFIX_ADG = "${file_location}/" + f"{RUN_TIME_STAMP}"
+S3_PREFIX_ADG = "${file_location}/full/" + f"{RUN_TIME_STAMP}"
 ADG_HIVE_TABLES_METADATA_FILE_LOCATION = "${file_location}/adg_output"
-ADG_OUTPUT_FILE_KEY = "${file_location}/adg_output/adg_params.csv"
+ADG_OUTPUT_FILE_KEY = "${file_location}/full/adg_output/adg_params.csv"
 
 
 def test_retrieve_secrets(monkeypatch):
@@ -108,11 +110,12 @@ def test_get_collections_in_secrets():
 def test_consolidate_rdd_per_collection_with_one_collection(
     spark, monkeypatch, handle_server, aws_credentials
 ):
+    mocked_args = mock_args()
     tbl_name = "core_contract"
     collection_location = "core"
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
-    target_object_key = f"${{file_location}}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
+    target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
     target_object_tag = {"Key": "collection_tag", "Value": "crown"}
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
@@ -145,7 +148,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         RUN_TIME_STAMP,
         S3_PUBLISH_BUCKET,
         PUBLISHED_DATABASE_NAME,
-        mock_args(),
+        mocked_args,
         RUN_ID,
         s3_resource
     )
@@ -351,6 +354,7 @@ def mock_args():
     args = argparse.Namespace()
     args.correlation_id = CORRELATION_ID
     args.s3_prefix = S3_PREFIX
+    args.snapshot_type = VALID_SNAPSHOT_TYPE
     return args
 
 
@@ -407,4 +411,21 @@ def test_retry_requests_with_3_retries():
         generate_dataset_from_htme.retry_requests(retries=3).post(MOCK_LOCALHOST_URL)
     end_time = time.perf_counter()
     assert round(end_time - start_time) == 6
+
+def test_validate_required_args_with_missing_args():
+    args = argparse.Namespace()
+    with pytest.raises(argparse.ArgumentError) as argument_error:
+        generate_dataset_from_htme.validate_required_args(args)
+    assert str(argument_error.value) == 'ArgumentError: The following required arguments are missing: correlation_id, s3_prefix, snapshot_type'
+
+
+def test_validate_required_args_with_invalid_values_for_snapshot_type():
+    args = argparse.Namespace()
+    args.correlation_id = CORRELATION_ID
+    args.s3_prefix = S3_PREFIX
+    args.snapshot_type = INVALID_SNAPSHOT_TYPE
+    with pytest.raises(argparse.ArgumentError) as argument_error:
+        generate_dataset_from_htme.validate_required_args(args)
+    assert str(argument_error.value) == 'ArgumentError: Valid values for snapshot_type are: full, incremental'
+
 
