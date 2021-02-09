@@ -146,7 +146,7 @@ resource "aws_iam_role_policy_attachment" "adg_emr_launcher_policy_execution" {
 }
 
 resource "aws_sns_topic_subscription" "uc_export_to_crown_completion_status_subscription" {
-  topic_arn = data.terraform_remote_state.internal_compute.outputs.uc_export_to_crown_completion_status_sns_topic.arn
+  topic_arn = data.terraform_remote_state.internal_compute.outputs.export_status_sns_fulls.arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.adg_emr_launcher.arn
 }
@@ -156,7 +156,7 @@ resource "aws_lambda_permission" "adg_emr_launcher_subscription_eccs" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.adg_emr_launcher.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = data.terraform_remote_state.internal_compute.outputs.uc_export_to_crown_completion_status_sns_topic.arn
+  source_arn    = data.terraform_remote_state.internal_compute.outputs.export_status_sns_fulls.arn
 }
 
 
