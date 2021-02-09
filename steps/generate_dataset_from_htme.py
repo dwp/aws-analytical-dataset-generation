@@ -24,13 +24,9 @@ from pyspark.sql import SparkSession
 from steps.logger import setup_logging
 
 ARG_SNAPSHOT_TYPE_VALID_VALUES = ["full", "incremental"]
-
 ARG_SNAPSHOT_TYPE = "snapshot_type"
-
 ARG_S3_PREFIX = "s3_prefix"
-
 ARG_CORRELATION_ID = "correlation_id"
-
 IN_PROGRESS_STATUS = "In Progress"
 FAILED_STATUS = "Failed"
 COMPLETED_STATUS = "Completed"
