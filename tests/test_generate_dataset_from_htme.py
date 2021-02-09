@@ -27,6 +27,7 @@ DB_CORE_ACCOUNTS = "db.core.accounts"
 DB_CORE_CONTRACT_FILE_NAME = f"{DB_CORE_CONTRACT}.01002.4040.gz.enc"
 DB_CORE_ACCOUNTS_FILE_NAME = f"{DB_CORE_ACCOUNTS}.01002.4040.gz.enc"
 S3_PREFIX = "mongo/ucdata"
+SNAPSHOT_TYPE_FULL = "full"
 S3_HTME_BUCKET = "test"
 S3_PUBLISH_BUCKET = "target"
 SECRETS = "{'collections_all': {'db.core.contract': 'crown'}}"
@@ -53,7 +54,7 @@ def test_retrieve_secrets(monkeypatch):
                 return Client()
 
     monkeypatch.setattr(boto3, "session", MockSession)
-    assert generate_dataset_from_htme.retrieve_secrets() == ast.literal_eval(SECRETS)
+    assert generate_dataset_from_htme.retrieve_secrets(mock_args()) == ast.literal_eval(SECRETS)
 
 
 def test_get_collections():
@@ -308,16 +309,16 @@ def test_exception_when_decompression_fails(
 @mock_dynamodb2
 def test_log_start_of_batch():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
-    assert generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb) == 1
+    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb) == 1
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
 
 
 @mock_dynamodb2
 def test_log_start_of_batch_for_multiple_runs():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
-    generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb)
+    generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb)
     # Ran second time to increment Run_Id by 1 to 2
-    assert generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb) == 2
+    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb) == 2
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
 
 
@@ -325,7 +326,7 @@ def test_log_start_of_batch_for_multiple_runs():
 def test_log_end_of_batch():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
     generate_dataset_from_htme.log_end_of_batch(
-        CORRELATION_ID, RUN_ID, COMPLETED_STATUS, dynamodb
+        mock_args(), RUN_ID, COMPLETED_STATUS, dynamodb
     )
     assert query_audit_table_status(dynamodb) == COMPLETED_STATUS
 
