@@ -57,6 +57,17 @@ resource "aws_s3_bucket_object" "flush_pushgateway" {
   )
 }
 
+resource "aws_s3_bucket_object" "courtesy_flush" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key        = "component/analytical-dataset-generation/courtesy-flush.sh"
+  content = templatefile("${path.module}/steps/courtesy-flush.sh",
+    {
+      adg_pushgateway_hostname = data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname
+    }
+  )
+}
+
 resource "aws_s3_bucket_object" "create-mongo-latest-dbs" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
