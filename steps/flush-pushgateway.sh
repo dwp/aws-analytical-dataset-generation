@@ -12,13 +12,17 @@ set -euo pipefail
     function log_wrapper_message() {
         log_adg_message "$${1}" "flush-pushgateway.sh" "Running as: ,$USER"
     }
-    
-    log_wrapper_message "Sleeping for 5m"
-    
-    sleep 75 # scrape interval is 60, scrape timeout is 10, 5 for the pot
-    
-    log_wrapper_message "Flushing the ADG pushgateway"
-    curl -X PUT http://${adg_pushgateway_hostname}:9091/api/v1/admin/wipe
-    log_wrapper_message "Done flushing the ADG pushgateway"
+    if [ -z "$FLUSHED" ]; then
+        log_wrapper_message "Flushing the ADG pushgateway"
+        curl -X PUT http://${adg_pushgateway_hostname}:9091/api/v1/admin/wipe
+        log_wrapper_message "Done flushing the ADG pushgateway"
+        export FLUSHED="true"
+    else
+        log_wrapper_message "Sleeping for 2m"
+        sleep 120
+        log_wrapper_message "Flushing the ADG pushgateway"
+        curl -X PUT http://${adg_pushgateway_hostname}:9091/api/v1/admin/wipe
+        log_wrapper_message "Done flushing the ADG pushgateway"
+    done
     
 ) >> /var/log/adg/flush-pushgateway.log 2>&1

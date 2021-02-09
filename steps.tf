@@ -64,7 +64,7 @@ resource "aws_s3_bucket_object" "create-mongo-latest-dbs" {
   content = templatefile("${path.module}/steps/create-mongo-latest-dbs.sh",
     {
       publish_bucket   = format("s3://%s", data.terraform_remote_state.common.outputs.published_bucket.id)
-      processed_bucket = format("s3://%s", data.terraform_remote_state.common.outputs.processed_bucket.id) 
+      processed_bucket = format("s3://%s", data.terraform_remote_state.common.outputs.processed_bucket.id)
     }
   )
 }
