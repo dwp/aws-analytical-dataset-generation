@@ -23,6 +23,10 @@ from concurrent.futures import ThreadPoolExecutor, wait
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
 
+ARG_SNAPSHOT_TYPE_VALID_VALUES = ["full", "incremental"]
+ARG_SNAPSHOT_TYPE = "snapshot_type"
+ARG_S3_PREFIX = "s3_prefix"
+ARG_CORRELATION_ID = "correlation_id"
 IN_PROGRESS_STATUS = "In Progress"
 FAILED_STATUS = "Failed"
 COMPLETED_STATUS = "Completed"
@@ -46,13 +50,39 @@ def get_parameters():
     # Parse command line inputs and set defaults
     parser.add_argument("--correlation_id", default="0")
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
+    parser.add_argument("--snapshot_type", default="full")
     args, unrecognized_args = parser.parse_known_args()
     the_logger.warning(
         "Unrecognized args %s found for the correlation id %s",
         unrecognized_args,
         args.correlation_id,
     )
+    validate_required_args(args)
+
     return args
+
+
+def validate_required_args(args):
+    required_args = [ARG_CORRELATION_ID, ARG_S3_PREFIX, ARG_SNAPSHOT_TYPE]
+    missing_args = []
+    for required_message_key in required_args:
+        if required_message_key not in args:
+            missing_args.append(required_message_key)
+    if missing_args:
+        raise argparse.ArgumentError(
+            None,
+            "ArgumentError: The following required arguments are missing: {}".format(
+                ", ".join(missing_args)
+            ),
+        )
+    if args.snapshot_type not in ARG_SNAPSHOT_TYPE_VALID_VALUES:
+        raise argparse.ArgumentError(
+            None,
+            "ArgumentError: Valid values for snapshot_type are: {}".format(
+                ", ".join(ARG_SNAPSHOT_TYPE_VALID_VALUES)
+            ),
+        )
+
 
 
 def main(
@@ -105,7 +135,7 @@ def main(
             spark, list_of_processed_collections, published_database_name, args, run_id
         )
         create_adg_status_csv(
-            args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp
+            args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp, args.snapshot_type
         )
     else:
         the_logger.error(
@@ -231,12 +261,9 @@ def consolidate_rdd_per_collection(
             )
             collection_name_key = get_collection(collection_name)
             collection_name_key = collection_name_key.replace("_", "-")
-            json_location_prefix = "${file_location}/%s/%s" % (
-                run_time_stamp,
-                collection_name_key,
-            )
-
-            json_location = "s3://%s/%s" % (s3_publish_bucket, json_location_prefix)
+            file_location = "${file_location}"
+            json_location_prefix = f"{file_location}/{args.snapshot_type}/{run_time_stamp}/{collection_name_key}"
+            json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
             persist_json(json_location, consolidated_rdd_mapped)
             the_logger.info(
                 "Applying Tags for prefix : %s for correlation id : %s and run id: %s",
@@ -262,7 +289,7 @@ def consolidate_rdd_per_collection(
             args.correlation_id,
             run_id,
         )
-        adg_json_prefix = "analytical-dataset/%s" % (run_time_stamp)
+        adg_json_prefix = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
         add_folder_size_metric('all_collections',s3_htme_bucket, args.s3_prefix,"htme_collection_size.csv",s3_resource)
         add_folder_size_metric('all_collections', s3_publish_bucket, adg_json_prefix,"adg_collection_size.csv",s3_resource)
     except BaseException as ex:
@@ -624,17 +651,17 @@ def log_end_of_batch(correlation_id, run_id, status, dynamodb=None):
         sys.exit(-1)
 
 
-def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_stamp):
+def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_stamp, snapshot_type):
     file_location = "${file_location}"
 
     with open("adg_params.csv", "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["correlation_id", "s3_prefix"])
-        writer.writerow([correlation_id, f"{file_location}/{run_time_stamp}"])
+        writer.writerow([correlation_id, f"{file_location}/{snapshot_type}/{run_time_stamp}"])
 
     with open("adg_params.csv", "rb") as data:
         s3_client.upload_fileobj(
-            data, publish_bucket, f"{file_location}/adg_output/adg_params.csv"
+            data, publish_bucket, f"{file_location}/{snapshot_type}/adg_output/adg_params.csv"
         )
 
 
