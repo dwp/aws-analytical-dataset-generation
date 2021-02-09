@@ -57,6 +57,12 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_secretsmanager
   policy_arn = aws_iam_policy.analytical_dataset_secretsmanager.arn
 }
 
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_read_write_processed_bucket" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.adg_read_write_processed_bucket.arn
+}
+
+
 data "aws_iam_policy_document" "analytical_dataset_generator_write_logs" {
   statement {
     effect = "Allow"
