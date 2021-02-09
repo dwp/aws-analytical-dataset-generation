@@ -50,7 +50,7 @@ def get_parameters():
     # Parse command line inputs and set defaults
     parser.add_argument("--correlation_id", default="0")
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
-    parser.add_argument("--snapshot_type")
+    parser.add_argument("--snapshot_type", default="full")
     args, unrecognized_args = parser.parse_known_args()
     the_logger.warning(
         "Unrecognized args %s found for the correlation id %s",
