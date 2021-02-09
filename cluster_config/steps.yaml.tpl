@@ -15,6 +15,9 @@ BootstrapActions:
 - Name: "metrics-setup"
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/metrics-setup.sh"
+- Name: "download-pdm-sql"
+  ScriptBootstrapAction:
+    Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/download_sql.sh"
 Steps:
 - Name: "courtesy-flush"
   HadoopJarStep:
