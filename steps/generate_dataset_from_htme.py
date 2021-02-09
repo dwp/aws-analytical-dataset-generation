@@ -661,7 +661,7 @@ def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_st
 
     with open("adg_params.csv", "rb") as data:
         s3_client.upload_fileobj(
-            data, publish_bucket, f"{file_location}/adg_output/adg_params.csv"
+            data, publish_bucket, f"{file_location}/{snapshot_type}/adg_output/adg_params.csv"
         )
 
 
