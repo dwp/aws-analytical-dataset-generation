@@ -1,19 +1,7 @@
 locals {
-  emr_cluster_name                = "aws-analytical-dataset-generator"
-  master_instance_type            = "m5.2xlarge"
-  core_instance_type              = "m5.2xlarge"
-  core_instance_count             = 1
-  task_instance_type              = "m5.2xlarge"
-  ebs_root_volume_size            = 100
-  ebs_config_size                 = 250
-  ebs_config_type                 = "gp2"
-  ebs_config_volumes_per_instance = 1
-  autoscaling_min_capacity        = 0
-  autoscaling_max_capacity        = 5
-  dks_port                        = 8443
-  dynamo_meta_name                = "DataGen-metadata"
-  hbase_root_path                 = format("s3://%s", data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir)
-  secret_name                     = "/concourse/dataworks/adg"
+  emr_cluster_name = "aws-analytical-dataset-generator"
+  hbase_root_path  = format("s3://%s", data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir)
+  secret_name      = "/concourse/dataworks/adg/full"
   common_tags = {
     Environment  = local.environment
     Application  = local.emr_cluster_name
@@ -130,9 +118,8 @@ locals {
   cw_agent_yarnspark_loggrp_name       = "/app/analytical_dataset_generator/yarn-spark_logs"
   cw_agent_metrics_collection_interval = 60
 
-  s3_log_prefix            = "emr/analytical_dataset_generator"
-  emrfs_metadata_tablename = "Analytical_Dataset_Generation_Metadata"
-  data_pipeline_metadata   = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
+  s3_log_prefix          = "emr/analytical_dataset_generator"
+  data_pipeline_metadata = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
 
   published_nonsensitive_prefix = "runmetadata"
   hive_metastore_instance_type = {

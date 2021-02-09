@@ -31,6 +31,7 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       cwa_bootstrap_loggrp_name       = aws_cloudwatch_log_group.adg_cw_bootstrap_loggroup.name
       cwa_steps_loggrp_name           = aws_cloudwatch_log_group.adg_cw_steps_loggroup.name
       cwa_yarnspark_loggrp_name       = aws_cloudwatch_log_group.adg_cw_yarnspark_loggroup.name
+      name                            = local.emr_cluster_name
   })
 }
 
@@ -89,4 +90,50 @@ resource "aws_s3_bucket_object" "cloudwatch_sh" {
       emr_release = var.emr_release[local.environment]
     }
   )
+}
+resource "aws_s3_bucket_object" "metrics_setup_sh" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key        = "component/analytical-dataset-generation/metrics-setup.sh"
+  content = templatefile("${path.module}/bootstrap_actions/metrics-setup.sh",
+    {
+      proxy_url          = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
+      metrics_properties = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_properties.key)
+      metrics_pom        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_pom.key)
+      metrics_jar        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_jar.key)
+      prometheus_config  = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.prometheus_config.key)
+    }
+  )
+}
+
+resource "aws_s3_bucket_object" "metrics_properties" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key        = "component/analytical-dataset-generation/metrics/metrics.properties"
+  content = templatefile("${path.module}/bootstrap_actions/metrics_config/metrics.properties",
+    {
+      adg_pushgateway_hostname = data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname
+    }
+  )
+}
+
+resource "aws_s3_bucket_object" "metrics_pom" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key        = "component/analytical-dataset-generation/metrics/pom.xml"
+  content    = file("${path.module}/bootstrap_actions/metrics_config/pom.xml")
+}
+
+resource "aws_s3_bucket_object" "prometheus_config" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key        = "component/analytical-dataset-generation/metrics/prometheus_config.yml"
+  content    = file("${path.module}/bootstrap_actions/metrics_config/prometheus_config.yml")
+}
+
+resource "aws_s3_bucket_object" "metrics_jar" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key        = "component/analytical-dataset-generation/metrics/adg-exporter.jar"
+  content    = filebase64("${var.analytical_dataset_generation_exporter_jar.base_path}/exporter-${var.analytical_dataset_generation_exporter_jar.version}.jar")
 }

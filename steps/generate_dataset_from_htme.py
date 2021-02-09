@@ -1,7 +1,6 @@
 import argparse
 import ast
 import base64
-import concurrent.futures
 import csv
 import itertools
 import os
@@ -14,9 +13,12 @@ from itertools import groupby
 
 import boto3
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 from boto3.dynamodb.conditions import Key
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
+from concurrent.futures import ThreadPoolExecutor, wait
 
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
@@ -72,7 +74,7 @@ def main(
         list_of_dicts_filtered = get_collections_in_secrets(
             list_of_dicts, secrets_collections, args
         )
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor() as executor:
             all_processed_collections = executor.map(
                 consolidate_rdd_per_collection,
                 list_of_dicts_filtered,
@@ -332,11 +334,25 @@ def get_plaintext_key_calling_dks(
     return key
 
 
+def retry_requests(retries=10, backoff=1):
+    retry_strategy = Retry(
+        total=retries,
+        backoff_factor=backoff,
+        status_forcelist=[429, 500, 502, 503, 504],
+        method_whitelist=frozenset(['POST'])
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    requests_session = requests.Session()
+    requests_session.mount("https://", adapter)
+    requests_session.mount("http://", adapter)
+    return requests_session
+
+
 def call_dks(cek, kek, args, run_id):
     try:
         url = "${url}"
-        params = {"keyId": kek}
-        result = requests.post(
+        params = {"keyId": kek, "correlationId": args.correlation_id}
+        result = retry_requests().post(
             url,
             params=params,
             data=cek,
@@ -420,20 +436,16 @@ def create_hive_tables_on_published(
             )
             create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
             spark.sql(create_db_query)
-        for (collection_name, collection_json_location) in all_processed_collections:
-            hive_table_name = get_collection(collection_name)
-            hive_table_name = hive_table_name.replace("/", "_")
-            src_hive_table = published_database_name + "." + hive_table_name
-            the_logger.info(
-                "Creating Hive table for : %s for correlation id : %s and run id: %s",
-                src_hive_table,
-                args.correlation_id,
-                run_id,
-            )
-            src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
-            src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
-            spark.sql(src_hive_drop_query)
-            spark.sql(src_hive_create_query)
+        
+        for result in create_hive_tables_on_published_for_collection_threaded(
+            spark,
+            all_processed_collections,
+            published_database_name,
+            args,
+            run_id
+        ):
+            the_logger.info(f"Processed published hive tables for collection `{result}`")
+
     except BaseException as ex:
         the_logger.error(
             "Problem with creating Hive tables for correlation id: %s and run id: %s %s ",
@@ -443,6 +455,50 @@ def create_hive_tables_on_published(
         )
         log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
         sys.exit(-1)
+
+
+def create_hive_tables_on_published_for_collection_threaded(spark, all_processed_collections, published_database_name, args, run_id):
+    results = []
+    
+    with ThreadPoolExecutor() as executor:
+        for (collection_name, collection_json_location) in all_processed_collections:
+            results.append(
+                executor.submit(
+                    create_hive_table_on_published_for_collection,
+                    spark,
+                    collection_name,
+                    collection_json_location,
+                    published_database_name,
+                    args,
+                    run_id
+                )
+            )
+
+    wait(results)
+    
+    for result in results:
+        try:
+            yield result.result()
+        except Exception as ex:
+            raise BaseException(ex)
+
+
+def create_hive_table_on_published_for_collection(spark, collection_name, collection_json_location, published_database_name, args, run_id):
+    hive_table_name = get_collection(collection_name)
+    hive_table_name = hive_table_name.replace("/", "_")
+    src_hive_table = published_database_name + "." + hive_table_name
+    the_logger.info(
+        "Creating Hive table for : %s for correlation id : %s and run id: %s",
+        src_hive_table,
+        args.correlation_id,
+        run_id,
+    )
+    src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
+    src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+    spark.sql(src_hive_drop_query)
+    spark.sql(src_hive_create_query)
+    return collection_name
+
 
 def get_filesize( s3_client, s3_htme_bucket, collection_file_key):
     metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
@@ -493,6 +549,11 @@ def get_spark_session():
     )
     spark.conf.set("spark.scheduler.mode", "FAIR")
     return spark
+
+
+def close_spark(spark):
+    spark.sparkContext.stop()
+    spark.stop()
 
 
 def get_todays_date():
@@ -608,6 +669,7 @@ if __name__ == "__main__":
         run_id,
         s3_resource
     )
+    close_spark(spark)
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)

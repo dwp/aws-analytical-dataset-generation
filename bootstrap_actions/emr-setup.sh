@@ -109,6 +109,15 @@ for F in $(echo $TRUSTSTORE_ALIASES | sed "s/,/ /g"); do
  (sudo cat "$F.crt"; echo) >> analytical_ca.pem;
 done
 
+UUID=$(dbus-uuidgen | cut -c 1-8)
+TOKEN=$(curl -X PUT -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" "http://169.254.169.254/latest/api/token")
+export INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token:$TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id)
+export INSTANCE_ROLE=$(jq .instanceRole /mnt/var/lib/info/extraInstanceData.json)
+export HOSTNAME=${name}-$${INSTANCE_ROLE//\"}-$UUID
+
+hostname $HOSTNAME
+aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value=$HOSTNAME
+
 log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 
-) >> /var/log/adg/nohup.log 2>&1
+) >> /var/log/adg/emr-setup.log 2>&1

@@ -1,6 +1,8 @@
 import argparse
 import ast
 import zlib
+import requests
+import time
 
 import boto3
 import pytest
@@ -9,6 +11,8 @@ from moto import mock_s3, mock_dynamodb2
 
 import steps
 from steps import generate_dataset_from_htme
+
+MOCK_LOCALHOST_URL = "http://localhost:1000"
 
 COMPLETED_STATUS = "Completed"
 HASH_KEY = "Correlation_Id"
@@ -379,3 +383,28 @@ def mock_get_dynamodb_resource(service_name):
         ProvisionedThroughput={"ReadCapacityUnits": 10, "WriteCapacityUnits": 10},
     )
     return dynamodb
+
+
+def test_retry_requests_with_no_retries():
+    start_time = time.perf_counter()
+    with pytest.raises(requests.exceptions.ConnectionError):
+        generate_dataset_from_htme.retry_requests(retries=0).post(MOCK_LOCALHOST_URL)
+    end_time = time.perf_counter()
+    assert round(end_time - start_time) == 0
+
+
+def test_retry_requests_with_2_retries():
+    start_time = time.perf_counter()
+    with pytest.raises(requests.exceptions.ConnectionError):
+        generate_dataset_from_htme.retry_requests(retries=2).post(MOCK_LOCALHOST_URL)
+    end_time = time.perf_counter()
+    assert round(end_time - start_time) == 2
+
+
+def test_retry_requests_with_3_retries():
+    start_time = time.perf_counter()
+    with pytest.raises(requests.exceptions.ConnectionError):
+        generate_dataset_from_htme.retry_requests(retries=3).post(MOCK_LOCALHOST_URL)
+    end_time = time.perf_counter()
+    assert round(end_time - start_time) == 6
+

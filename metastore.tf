@@ -1,6 +1,6 @@
 resource "aws_db_subnet_group" "internal_compute" {
   name       = "hive-metastore"
-  subnet_ids = data.terraform_remote_state.internal_compute.outputs.pdm_subnet.ids
+  subnet_ids = data.terraform_remote_state.internal_compute.outputs.hive_metastore_subnet.ids
 
   tags = merge(local.common_tags, { Name = "hive-metastore" })
 }
@@ -237,6 +237,12 @@ resource "aws_secretsmanager_secret" "metadata_store_bgdc" {
   tags        = local.common_tags
 }
 
+resource "aws_secretsmanager_secret" "metadata_store_kickstart_adg" {
+  name        = "metadata-store-${var.metadata_store_kickstart_username}"
+  description = "${var.metadata_store_kickstart_username} SQL user for Metadata Store"
+  tags        = local.common_tags
+}
+
 output "hive_metastore" {
   value = {
     security_group = aws_security_group.hive_metastore
@@ -254,3 +260,5 @@ output "metadata_store_users" {
     }
   }
 }
+
+

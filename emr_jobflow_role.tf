@@ -57,6 +57,12 @@ resource "aws_iam_role_policy_attachment" "emr_analytical_dataset_secretsmanager
   policy_arn = aws_iam_policy.analytical_dataset_secretsmanager.arn
 }
 
+resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_read_write_processed_bucket" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.adg_read_write_processed_bucket.arn
+}
+
+
 data "aws_iam_policy_document" "analytical_dataset_generator_write_logs" {
   statement {
     effect = "Allow"
@@ -208,7 +214,6 @@ data "aws_iam_policy_document" "analytical_dataset_generator_write_dynamodb" {
     ]
 
     resources = [
-      "arn:aws:dynamodb:${var.region}:${local.account[local.environment]}:table/${local.emrfs_metadata_tablename}",
       "arn:aws:dynamodb:${var.region}:${local.account[local.environment]}:table/${local.data_pipeline_metadata}"
     ]
   }
@@ -231,6 +236,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_metadata_change" {
 
     actions = [
       "ec2:ModifyInstanceMetadataOptions",
+      "ec2:*Tags",
     ]
 
     resources = [

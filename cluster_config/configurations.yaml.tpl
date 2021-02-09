@@ -19,17 +19,17 @@ Configurations:
     "spark.executor.extraJavaOptions": "-XX:+UseG1GC -XX:+UnlockDiagnosticVMOptions -XX:+G1SummarizeConcMark -XX:InitiatingHeapOccupancyPercent=35 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:OnOutOfMemoryError='kill -9 %p' -Dhttp.proxyHost='${proxy_http_host}' -Dhttp.proxyPort='${proxy_http_port}' -Dhttp.nonProxyHosts='${proxy_no_proxy}' -Dhttps.proxyHost='${proxy_https_host}' -Dhttps.proxyPort='${proxy_https_port}'"
     "spark.driver.extraJavaOptions": "-XX:+UseG1GC -XX:+UnlockDiagnosticVMOptions -XX:+G1SummarizeConcMark -XX:InitiatingHeapOccupancyPercent=35 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:OnOutOfMemoryError='kill -9 %p' -Dhttp.proxyHost='${proxy_http_host}' -Dhttp.proxyPort='${proxy_http_port}' -Dhttp.nonProxyHosts='${proxy_no_proxy}' -Dhttps.proxyHost='${proxy_https_host}' -Dhttps.proxyPort='${proxy_https_port}'"
     "spark.sql.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
-    "spark.executor.cores": "${spark_executor_cores}"
-    "spark.executor.memory": "${spark_executor_memory}G"
-    "spark.yarn.executor.memoryOverhead": "${spark_yarn_executor_memory_overhead}G"
-    "spark.driver.memory": "${spark_driver_memory}G"
-    "spark.driver.cores": "${spark_driver_cores}"
-    "spark.executor.instances": "${spark_executor_instances}"
-    "spark.default.parallelism": "${spark_default_parallelism}"
     "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
     "spark.kryoserializer.buffer.max": "${spark_kyro_buffer}"
     "spark.driver.maxResultSize": "0"
     "spark.dynamicAllocation.enabled": "false"
+    "spark.executor.cores": "${spark_executor_cores}"
+    "spark.executor.memory": "${spark_executor_memory}G"
+    "spark.executor.memoryOverhead": "${spark_yarn_executor_memory_overhead}G"
+    "spark.driver.memory": "${spark_driver_memory}G"
+    "spark.driver.cores": "${spark_driver_cores}"
+    "spark.executor.instances": "${spark_executor_instances}"
+    "spark.default.parallelism": "${spark_default_parallelism}"
 
 - Classification: "spark-hive-site"
   Properties:
@@ -72,14 +72,8 @@ Configurations:
 
 - Classification: "emrfs-site"
   Properties:
-    "fs.s3.consistent": "true"
-    "fs.s3.consistent.metadata.read.capacity": "800"
-    "fs.s3.consistent.metadata.write.capacity": "200"
     "fs.s3.maxConnections": "10000"
-    "fs.s3.consistent.retryPolicyType": "fixed"
-    "fs.s3.consistent.retryPeriodSeconds": "2"
-    "fs.s3.consistent.retryCount": "10"
-    "fs.s3.consistent.metadata.tableName": "${emrfs_metadata_tablename}"
+    "fs.s3.maxRetries": "20"
 - Classification: "spark-env"
   Configurations:
   - Classification: "export"
@@ -87,3 +81,15 @@ Configurations:
       "PYSPARK_PYTHON": "/usr/bin/python3"
       "S3_PUBLISH_BUCKET": "${s3_published_bucket}"
       "S3_HTME_BUCKET": "${s3_htme_bucket}"
+- Classification: "hadoop-env"
+  Configurations:
+  - Classification: "export"
+    Properties:
+      "HADOOP_NAMENODE_OPTS": "\"-javaagent:/opt/emr/metrics/dependencies/jmx_prometheus_javaagent-0.14.0.jar=7101:/opt/emr/metrics/prometheus_config.yml\""
+      "HADOOP_DATANODE_OPTS": "\"-javaagent:/opt/emr/metrics/dependencies/jmx_prometheus_javaagent-0.14.0.jar=7103:/opt/emr/metrics/prometheus_config.yml\""
+- Classification: "yarn-env"
+  Configurations:
+  - Classification: "export"
+    Properties:
+      "YARN_RESOURCEMANAGER_OPTS": "\"-javaagent:/opt/emr/metrics/dependencies/jmx_prometheus_javaagent-0.14.0.jar=7105:/opt/emr/metrics/prometheus_config.yml\""
+      "YARN_NODEMANAGER_OPTS": "\"-javaagent:/opt/emr/metrics/dependencies/jmx_prometheus_javaagent-0.14.0.jar=7107:/opt/emr/metrics/prometheus_config.yml\""

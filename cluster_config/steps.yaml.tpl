@@ -12,17 +12,26 @@ BootstrapActions:
 - Name: "installer"
   ScriptBootstrapAction:
     Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/installer.sh"
-Steps:
 - Name: "metrics-setup"
+  ScriptBootstrapAction:
+    Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/metrics-setup.sh"
+Steps:
+- Name: "courtesy-flush"
   HadoopJarStep:
     Args:
-    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/metrics-setup.sh"
+    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/courtesy-flush.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
 - Name: "hive-setup"
   HadoopJarStep:
     Args:
     - "s3://${s3_config_bucket}/component/analytical-dataset-generation/hive-setup.sh"
+    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+  ActionOnFailure: "${action_on_failure}"
+- Name: "create-mongo-latest-dbs"
+  HadoopJarStep:
+    Args:
+    - "s3://${s3_config_bucket}/component/analytical-dataset-generation/create-mongo-latest-dbs.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
 - Name: "submit-job"

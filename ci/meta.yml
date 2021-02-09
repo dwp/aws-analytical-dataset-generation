@@ -50,7 +50,7 @@ meta:
           AWS_DEFAULT_REGION: ((dataworks.aws_region))
           USERNAME: placeholder
           PARAM_NAME: placeholder
-          PRIVILEGES: ''
+          PRIVILEGES: ""
         run:
           path: sh
           args:
@@ -122,7 +122,14 @@ meta:
         params:
           USERNAME: "bgdc-reader"
           PARAM_NAME: "metadata-store-bgdc-reader"
-          PRIVILEGES: SELECT
+          PRIVILEGES: "SELECT, ALL:NEXT_LOCK_ID, ALL:HIVE_LOCKS"
+    rotate-kickstart-adg-writer-password:
+      .: (( inject meta.plan.rotate-mysql-password ))
+      config:
+        params:
+          USERNAME: "kickstart-adg-writer"
+          PARAM_NAME: "metadata-store-kickstart-adg-writer"
+          PRIVILEGES: ALL
     rotate-master-password:
       .: (( inject meta.plan.rotate-mysql-master-password ))
       config:
@@ -219,6 +226,30 @@ meta:
           - name: aws-internal-compute
         outputs:
           - name: terraform-output-internal-compute
+
+    terraform-output-common-infrastructure:
+      task: terraform-output-common-infrastructure
+      .: (( inject meta.plan.terraform-common-config ))
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.terraform_repository))
+            tag: ((dataworks.terraform_version))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              terraform workspace show
+              terraform init
+              terraform output --json > ../terraform-output-common-infrastructure/outputs.json
+          dir: aws-common-infrastructure
+        inputs:
+          - name: aws-common-infrastructure
+        outputs:
+          - name: terraform-output-common-infrastructure
 
     terraform-output-ingest:
       task: terraform-output-ingest
@@ -335,6 +366,8 @@ meta:
           type: docker-image
           source:
             repository: dwpdigital/python3-pyspark-pytest
+#            pinning this to specific tag as the latest image is failing some tests due to upgraded dependencies
+            tag: 0.0.17
         run:
           path: sh
           dir: aws-analytical-dataset-generation
@@ -355,8 +388,7 @@ meta:
           type: docker-image
           source:
             repository: ((dataworks.docker_python_boto_behave_repository))
-            version: 0.0.24
-            tag: 0.0.24
+            tag: ((dataworks.docker_python_boto_behave_version))
         params:
           AWS_DEFAULT_REGION: ((dataworks.aws_region))
           NUMBER_OF_TOPICS_TO_USE: "3"
@@ -376,7 +408,11 @@ meta:
               "../../../terraform-output-internal-compute/outputs.json" \
               "" \
               "" \
-              "../../../terraform-output-adg/outputs.json"
+              "../../../terraform-output-adg/outputs.json" \
+              "" \
+              "" \
+              "" \
+              "../../../terraform-output-common-infrastructure/outputs.json"
         inputs:
           - name: aws-dataworks-e2e-framework
           - name: aws-analytical-dataset-generation
@@ -384,6 +420,7 @@ meta:
           - name: terraform-output-ingest
           - name: terraform-output-internal-compute
           - name: terraform-output-adg
+          - name: terraform-output-common-infrastructure
 
     start-cluster:
       task: start-cluster
