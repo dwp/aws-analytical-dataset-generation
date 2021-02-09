@@ -39,7 +39,7 @@ CORRELATION_ID = "12345"
 AWS_REGION = "eu-west-2"
 S3_PREFIX_ADG = "${file_location}/full/" + f"{RUN_TIME_STAMP}"
 ADG_HIVE_TABLES_METADATA_FILE_LOCATION = "${file_location}/adg_output"
-ADG_OUTPUT_FILE_KEY = "${file_location}/adg_output/adg_params.csv"
+ADG_OUTPUT_FILE_KEY = "${file_location}/full/adg_output/adg_params.csv"
 
 
 def test_retrieve_secrets(monkeypatch):
