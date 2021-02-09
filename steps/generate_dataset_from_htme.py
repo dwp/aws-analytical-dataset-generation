@@ -46,13 +46,31 @@ def get_parameters():
     # Parse command line inputs and set defaults
     parser.add_argument("--correlation_id", default="0")
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
+    parser.add_argument("--snapshot_type")
     args, unrecognized_args = parser.parse_known_args()
     the_logger.warning(
         "Unrecognized args %s found for the correlation id %s",
         unrecognized_args,
         args.correlation_id,
     )
+    validate_required_args(args)
+
     return args
+
+
+def validate_required_args(args):
+    required_args = ["correlation_id", "s3_prefix", "snapshot_type"]
+    missing_args = []
+    for required_message_key in required_args:
+        if required_message_key not in args:
+            missing_args.append(required_message_key)
+    if missing_args:
+        raise argparse.ArgumentError(
+            None,
+            "ArgumentError: The following required arguments are missing: {}".format(
+                ", ".join(missing_args)
+            ),
+        )
 
 
 def main(

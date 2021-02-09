@@ -408,3 +408,11 @@ def test_retry_requests_with_3_retries():
     end_time = time.perf_counter()
     assert round(end_time - start_time) == 6
 
+def validate_required_args():
+    args = argparse.Namespace()
+    with pytest.raises(argparse.ArgumentError) as argument_error:
+        validate_required_args(args)
+    assert argument_error.value == 'ArgumentError: The following required arguments are missing: correlation_id, s3_prefix, snapshot_type'
+
+
+
