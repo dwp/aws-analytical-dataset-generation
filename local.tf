@@ -1,7 +1,8 @@
 locals {
-  emr_cluster_name = "aws-analytical-dataset-generator"
-  hbase_root_path  = format("s3://%s", data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir)
-  secret_name      = "/concourse/dataworks/adg/full"
+  emr_cluster_name        = "aws-analytical-dataset-generator"
+  hbase_root_path         = format("s3://%s", data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir)
+  secret_name_full        = "/concourse/dataworks/adg/fulls"
+  secret_name_incremental = "/concourse/dataworks/adg/incrementals"
   common_tags = {
     Environment  = local.environment
     Application  = local.emr_cluster_name

@@ -8,27 +8,34 @@ import re
 import sys
 import time
 import zlib
+import concurrent.futures
 from datetime import datetime
 from itertools import groupby
 
 import boto3
+import botocore
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from boto3.dynamodb.conditions import Key
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
-from concurrent.futures import ThreadPoolExecutor, wait
 
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
 
+ARG_SNAPSHOT_TYPE = "snapshot_type"
+ARG_S3_PREFIX = "s3_prefix"
+ARG_CORRELATION_ID = "correlation_id"
 IN_PROGRESS_STATUS = "In Progress"
 FAILED_STATUS = "Failed"
 COMPLETED_STATUS = "Completed"
 DATA_PRODUCT_NAME = "ADG"
 AUDIT_TABLE_HASH_KEY = "Correlation_Id"
 AUDIT_TABLE_RANGE_KEY = "Run_Id"
+SNAPSHOT_TYPE_INCREMENTAL = "incremental"
+SNAPSHOT_TYPE_FULL = "full"
+ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -46,13 +53,40 @@ def get_parameters():
     # Parse command line inputs and set defaults
     parser.add_argument("--correlation_id", default="0")
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
+    parser.add_argument("--snapshot_type", default="full")
     args, unrecognized_args = parser.parse_known_args()
+    args.snapshot_type = SNAPSHOT_TYPE_INCREMENTAL if args.snapshot_type == SNAPSHOT_TYPE_INCREMENTAL else SNAPSHOT_TYPE_FULL
     the_logger.warning(
         "Unrecognized args %s found for the correlation id %s",
         unrecognized_args,
         args.correlation_id,
     )
+    validate_required_args(args)
+
     return args
+
+
+def validate_required_args(args):
+    required_args = [ARG_CORRELATION_ID, ARG_S3_PREFIX, ARG_SNAPSHOT_TYPE]
+    missing_args = []
+    for required_message_key in required_args:
+        if required_message_key not in args:
+            missing_args.append(required_message_key)
+    if missing_args:
+        raise argparse.ArgumentError(
+            None,
+            "ArgumentError: The following required arguments are missing: {}".format(
+                ", ".join(missing_args)
+            ),
+        )
+    if args.snapshot_type not in ARG_SNAPSHOT_TYPE_VALID_VALUES:
+        raise argparse.ArgumentError(
+            None,
+            "ArgumentError: Valid values for snapshot_type are: {}".format(
+                ", ".join(ARG_SNAPSHOT_TYPE_VALID_VALUES)
+            ),
+        )
+
 
 
 def main(
@@ -74,7 +108,7 @@ def main(
         list_of_dicts_filtered = get_collections_in_secrets(
             list_of_dicts, secrets_collections, args
         )
-        with ThreadPoolExecutor() as executor:
+        with concurrent.futures.ThreadPoolExecutor() as executor:
             all_processed_collections = executor.map(
                 consolidate_rdd_per_collection,
                 list_of_dicts_filtered,
@@ -95,26 +129,26 @@ def main(
             args.correlation_id,
             str(ex),
         )
-        log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS)
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
     # Create hive tables only if all the collections have been processed successfully else raise exception
     list_of_processed_collections = list(all_processed_collections)
-    if len(list_of_processed_collections) == len(secrets_collections):
-        create_hive_tables_on_published(
-            spark, list_of_processed_collections, published_database_name, args, run_id
-        )
-        create_adg_status_csv(
-            args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp
-        )
-    else:
+    if not len(list_of_processed_collections) == len(secrets_collections) and args.snapshot_type == SNAPSHOT_TYPE_FULL:
         the_logger.error(
             "Not all collections have been processed looks like there is missing data, stopping Spark for correlation id: %s and run id : %s",
             args.correlation_id,
             run_id,
         )
-        log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS)
         sys.exit(-1)
+    else:
+        create_hive_tables_on_published(
+            spark, list_of_processed_collections, published_database_name, args, run_id
+        )
+        create_adg_status_csv(
+            args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp, args.snapshot_type
+        )
 
 
 def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
@@ -132,8 +166,11 @@ def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
     return filtered_list
 
 
-def get_client(service_name):
-    client = boto3.client(service_name)
+def get_s3_client():
+    client_config = botocore.config.Config(
+        max_pool_connections=100,
+    )
+    client = boto3.client("s3", config=client_config)
     return client
 
 
@@ -231,12 +268,9 @@ def consolidate_rdd_per_collection(
             )
             collection_name_key = get_collection(collection_name)
             collection_name_key = collection_name_key.replace("_", "-")
-            json_location_prefix = "${file_location}/%s/%s" % (
-                run_time_stamp,
-                collection_name_key,
-            )
-
-            json_location = "s3://%s/%s" % (s3_publish_bucket, json_location_prefix)
+            file_location = "${file_location}"
+            json_location_prefix = f"{file_location}/{args.snapshot_type}/{run_time_stamp}/{collection_name_key}"
+            json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
             persist_json(json_location, consolidated_rdd_mapped)
             the_logger.info(
                 "Applying Tags for prefix : %s for correlation id : %s and run id: %s",
@@ -262,7 +296,7 @@ def consolidate_rdd_per_collection(
             args.correlation_id,
             run_id,
         )
-        adg_json_prefix = "analytical-dataset/%s" % (run_time_stamp)
+        adg_json_prefix = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
         add_folder_size_metric('all_collections',s3_htme_bucket, args.s3_prefix,"htme_collection_size.csv",s3_resource)
         add_folder_size_metric('all_collections', s3_publish_bucket, adg_json_prefix,"adg_collection_size.csv",s3_resource)
     except BaseException as ex:
@@ -273,7 +307,7 @@ def consolidate_rdd_per_collection(
             collection_name,
             str(ex),
         )
-        log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS)
         sys.exit(-1)
     return (collection_name, json_location)
 
@@ -296,8 +330,7 @@ def get_metadatafor_key(key, s3_client, s3_htme_bucket):
     return metadata
 
 
-def retrieve_secrets():
-    secret_name = "${secret_name}"
+def retrieve_secrets(args, secret_name):
     # Create a Secrets Manager client
     session = boto3.session.Session()
     client = session.client(service_name="secretsmanager")
@@ -370,7 +403,7 @@ def call_dks(cek, kek, args, run_id):
             run_id,
             str(ex),
         )
-        log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS)
         sys.exit(-1)
     return content["plaintextDataKey"]
 
@@ -392,7 +425,7 @@ def decrypt(plain_text_key, iv_key, data, args, run_id):
             run_id,
             str(ex),
         )
-        log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS)
         sys.exit(-1)
     return decrypted
 
@@ -434,18 +467,18 @@ def create_hive_tables_on_published(
                 args.correlation_id,
                 run_id,
             )
+            published_database_name = ( published_database_name if args.snapshot_type == SNAPSHOT_TYPE_FULL
+                                        else f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}" )
             create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
             spark.sql(create_db_query)
         
-        for result in create_hive_tables_on_published_for_collection_threaded(
+        create_hive_tables_on_published_for_collection_threaded(
             spark,
             all_processed_collections,
             published_database_name,
             args,
             run_id
-        ):
-            the_logger.info(f"Processed published hive tables for collection `{result}`")
-
+        )
     except BaseException as ex:
         the_logger.error(
             "Problem with creating Hive tables for correlation id: %s and run id: %s %s ",
@@ -453,35 +486,36 @@ def create_hive_tables_on_published(
             run_id,
             str(ex),
         )
-        log_end_of_batch(args.correlation_id, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS)
         sys.exit(-1)
 
 
 def create_hive_tables_on_published_for_collection_threaded(spark, all_processed_collections, published_database_name, args, run_id):
-    results = []
+    completed_collections = []
     
-    with ThreadPoolExecutor() as executor:
-        for (collection_name, collection_json_location) in all_processed_collections:
-            results.append(
-                executor.submit(
-                    create_hive_table_on_published_for_collection,
-                    spark,
-                    collection_name,
-                    collection_json_location,
-                    published_database_name,
-                    args,
-                    run_id
-                )
-            )
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = {
+            executor.submit(
+                create_hive_table_on_published_for_collection,
+                spark,
+                collection_name,
+                collection_json_location,
+                published_database_name,
+                args,
+                run_id
+            ): (collection_name, collection_json_location) for (collection_name, collection_json_location) in all_processed_collections
+        }
 
-    wait(results)
+        for result in concurrent.futures.as_completed(results):
+            completed_collection = results[result]
+            completed_collections.append(completed_collection)
+            try:
+                data = result.result()
+                the_logger.info(f"Created published hive table for collection `{completed_collection}`")
+            except Exception as exc:
+                raise BaseException(exc)
     
-    for result in results:
-        try:
-            yield result.result()
-        except Exception as ex:
-            raise BaseException(ex)
-
+    return completed_collections
 
 def create_hive_table_on_published_for_collection(spark, collection_name, collection_json_location, published_database_name, args, run_id):
     hive_table_name = get_collection(collection_name)
@@ -551,19 +585,14 @@ def get_spark_session():
     return spark
 
 
-def close_spark(spark):
-    spark.sparkContext.stop()
-    spark.stop()
-
-
 def get_todays_date():
     return datetime.now().strftime("%Y-%m-%d")
 
 
-def log_start_of_batch(correlation_id, dynamodb=None):
+def log_start_of_batch(args, dynamodb=None):
     """Logging start of batch in metadata audit table as In Progress"""
     the_logger.info(
-        "Updating audit table with start status for correlation_id %s", correlation_id
+        "Updating audit table with start status for correlation_id %s", args.correlation_id
     )
     try:
         if not dynamodb:
@@ -572,90 +601,93 @@ def log_start_of_batch(correlation_id, dynamodb=None):
         table = dynamodb.Table(data_pipeline_metadata)
         run_id = 1
         response = table.query(
-            KeyConditionExpression=Key(AUDIT_TABLE_HASH_KEY).eq(correlation_id),
+            KeyConditionExpression=Key(AUDIT_TABLE_HASH_KEY).eq(args.correlation_id),
             ScanIndexForward=False,
         )
         # If this is the first entry for correlation_id then create a new entry with Run_Id as 1 else increment it by 1
         if not response["Items"]:
-            put_item(correlation_id, run_id, table, IN_PROGRESS_STATUS)
+            put_item(args, run_id, table, IN_PROGRESS_STATUS)
         else:
             run_id = response["Items"][0][AUDIT_TABLE_RANGE_KEY] + 1
-            put_item(correlation_id, run_id, table, IN_PROGRESS_STATUS)
+            put_item(args, run_id, table, IN_PROGRESS_STATUS)
     except BaseException as ex:
         the_logger.error(
             "Problem updating audit table start status for correlation id : %s %s",
-            correlation_id,
+            args.correlation_id,
             str(ex),
         )
         sys.exit(-1)
     return run_id
 
 
-def put_item(correlation_id, run_id, table, status):
+def put_item(args, run_id, table, status):
     table.put_item(
         Item={
-            AUDIT_TABLE_HASH_KEY: correlation_id,
+            AUDIT_TABLE_HASH_KEY: args.correlation_id,
             AUDIT_TABLE_RANGE_KEY: run_id,
             "Date": get_todays_date(),
-            "DataProduct": DATA_PRODUCT_NAME,
+            "DataProduct": f"{DATA_PRODUCT_NAME}-{args.snapshot_type}",
             "Status": status,
         }
     )
 
 
-def log_end_of_batch(correlation_id, run_id, status, dynamodb=None):
+def log_end_of_batch(args, run_id, status, dynamodb=None):
     """Logging end of batch in metadata audit table as Completed/Failed"""
     the_logger.info(
-        "Updating audit table with end status for correlation_id %s", correlation_id
+        "Updating audit table with end status for correlation_id %s", args.correlation_id
     )
     try:
         if not dynamodb:
             dynamodb = get_resource("dynamodb")
         data_pipeline_metadata = "${data_pipeline_metadata}"
         table = dynamodb.Table(data_pipeline_metadata)
-        put_item(correlation_id, run_id, table, status)
+        put_item(args, run_id, table, status)
     except BaseException as ex:
         the_logger.error(
             "Problem updating audit table end status for correlation id: %s and run id : %s %s",
-            correlation_id,
+            args.correlation_id,
             run_id,
             str(ex),
         )
         sys.exit(-1)
 
 
-def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_stamp):
+def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_stamp, snapshot_type):
     file_location = "${file_location}"
 
     with open("adg_params.csv", "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["correlation_id", "s3_prefix"])
-        writer.writerow([correlation_id, f"{file_location}/{run_time_stamp}"])
+        writer.writerow([correlation_id, f"{file_location}/{snapshot_type}/{run_time_stamp}"])
 
     with open("adg_params.csv", "rb") as data:
         s3_client.upload_fileobj(
-            data, publish_bucket, f"{file_location}/adg_output/adg_params.csv"
+            data, publish_bucket, f"{file_location}/{snapshot_type}/adg_output/adg_params.csv"
         )
 
 
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
-        "Processing spark job for correlation id : %s" % args.correlation_id
+        "Processing spark job for correlation id : %s and snapshot_type : %s", args.correlation_id, args.snapshot_type
     )
     spark = get_spark_session()
     run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     published_database_name = "${published_db}"
+    secret_name_full = "${secret_name_full}"
+    secret_name_incremental = "${secret_name_incremental}"
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
-    s3_client = get_client("s3")
+    s3_client = get_s3_client()
     s3_resource = get_s3_resource()
-    secrets_response = retrieve_secrets()
+    secret_name = secret_name_incremental if args.snapshot_type==SNAPSHOT_TYPE_INCREMENTAL else secret_name_full
+    secrets_response = retrieve_secrets(args, secret_name)
     secrets_collections = get_collections(secrets_response, args)
     keys_map = {}
     start_time = time.perf_counter()
     dynamodb = get_resource("dynamodb")
-    run_id = log_start_of_batch(args.correlation_id, dynamodb)
+    run_id = log_start_of_batch(args, dynamodb)
     main(
         spark,
         s3_client,
@@ -669,7 +701,6 @@ if __name__ == "__main__":
         run_id,
         s3_resource
     )
-    close_spark(spark)
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)

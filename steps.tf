@@ -3,15 +3,16 @@ resource "aws_s3_bucket_object" "generate_dataset_from_htme_script" {
   key    = "component/analytical-dataset-generation/generate_dataset_from_htme.py"
   content = templatefile("${path.module}/steps/generate_dataset_from_htme.py",
     {
-      secret_name            = local.secret_name
-      published_db           = local.published_db
-      hive_metastore_backend = local.hive_metastore_backend[local.environment]
-      data_pipeline_metadata = local.data_pipeline_metadata
-      file_location          = "analytical-dataset"
-      url                    = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
-      aws_default_region     = "eu-west-2"
-      log_path               = "/var/log/adg/generate-analytical-dataset.log"
-      s3_prefix              = var.htme_data_location[local.environment]
+      secret_name_full        = local.secret_name_full
+      secret_name_incremental = local.secret_name_incremental
+      published_db            = local.published_db
+      hive_metastore_backend  = local.hive_metastore_backend[local.environment]
+      data_pipeline_metadata  = local.data_pipeline_metadata
+      file_location           = "analytical-dataset"
+      url                     = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
+      aws_default_region      = "eu-west-2"
+      log_path                = "/var/log/adg/generate-analytical-dataset.log"
+      s3_prefix               = var.htme_data_location[local.environment]
     }
   )
 }

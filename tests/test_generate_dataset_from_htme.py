@@ -12,6 +12,8 @@ from moto import mock_s3, mock_dynamodb2
 import steps
 from steps import generate_dataset_from_htme
 
+INVALID_SNAPSHOT_TYPE = "abc"
+SNAPSHOT_TYPE_FULL = "full"
 MOCK_LOCALHOST_URL = "http://localhost:1000"
 
 COMPLETED_STATUS = "Completed"
@@ -25,6 +27,7 @@ DB_CORE_ACCOUNTS = "db.core.accounts"
 DB_CORE_CONTRACT_FILE_NAME = f"{DB_CORE_CONTRACT}.01002.4040.gz.enc"
 DB_CORE_ACCOUNTS_FILE_NAME = f"{DB_CORE_ACCOUNTS}.01002.4040.gz.enc"
 S3_PREFIX = "mongo/ucdata"
+SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 S3_HTME_BUCKET = "test"
 S3_PUBLISH_BUCKET = "target"
 SECRETS = "{'collections_all': {'db.core.contract': 'crown'}}"
@@ -35,9 +38,16 @@ PUBLISHED_DATABASE_NAME = "test_db"
 RUN_ID = 1
 CORRELATION_ID = "12345"
 AWS_REGION = "eu-west-2"
-S3_PREFIX_ADG = "${file_location}/" + f"{RUN_TIME_STAMP}"
-ADG_HIVE_TABLES_METADATA_FILE_LOCATION = "${file_location}/adg_output"
-ADG_OUTPUT_FILE_KEY = "${file_location}/adg_output/adg_params.csv"
+S3_PREFIX_ADG_FULL = f"${{file_location}}/{SNAPSHOT_TYPE_FULL}/{RUN_TIME_STAMP}"
+ADG_OUTPUT_FILE_KEY_FULL = (
+    f"${{file_location}}/{SNAPSHOT_TYPE_FULL}/adg_output/adg_params.csv"
+)
+S3_PREFIX_ADG_INCREMENTAL = (
+    f"${{file_location}}/{SNAPSHOT_TYPE_INCREMENTAL}/{RUN_TIME_STAMP}"
+)
+ADG_OUTPUT_FILE_KEY_INCREMENTAL = (
+    f"${{file_location}}/{SNAPSHOT_TYPE_INCREMENTAL}/adg_output/adg_params.csv"
+)
 
 
 def test_retrieve_secrets(monkeypatch):
@@ -51,7 +61,9 @@ def test_retrieve_secrets(monkeypatch):
                 return Client()
 
     monkeypatch.setattr(boto3, "session", MockSession)
-    assert generate_dataset_from_htme.retrieve_secrets() == ast.literal_eval(SECRETS)
+    assert generate_dataset_from_htme.retrieve_secrets(mock_args(), SNAPSHOT_TYPE_FULL) == ast.literal_eval(
+        SECRETS
+    )
 
 
 def test_get_collections():
@@ -105,14 +117,38 @@ def test_get_collections_in_secrets():
 
 
 @mock_s3
-def test_consolidate_rdd_per_collection_with_one_collection(
+def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_full(
     spark, monkeypatch, handle_server, aws_credentials
+):
+    mocked_args = mock_args()
+    verify_processed_data(
+        mocked_args, monkeypatch, spark, S3_PREFIX_ADG_FULL, ADG_OUTPUT_FILE_KEY_FULL
+    )
+
+
+@mock_s3
+def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_incremental(
+    spark, monkeypatch, handle_server, aws_credentials
+):
+    mocked_args = mock_args()
+    mocked_args.snapshot_type = SNAPSHOT_TYPE_INCREMENTAL
+    verify_processed_data(
+        mocked_args,
+        monkeypatch,
+        spark,
+        S3_PREFIX_ADG_INCREMENTAL,
+        ADG_OUTPUT_FILE_KEY_INCREMENTAL,
+    )
+
+
+def verify_processed_data(
+    mocked_args, monkeypatch, spark, s3_prefix_adg, adg_output_key
 ):
     tbl_name = "core_contract"
     collection_location = "core"
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
-    target_object_key = f"${{file_location}}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
+    target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
     target_object_tag = {"Key": "collection_tag", "Value": "crown"}
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
@@ -128,14 +164,7 @@ def test_consolidate_rdd_per_collection_with_one_collection(
             "datakeyencryptionkeyid": "123",
         },
     )
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "persist_json", mock_persist_json)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
-    monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
-    )
+    monkeypatch_with_mocks(monkeypatch)
     generate_dataset_from_htme.main(
         spark,
         s3_client,
@@ -145,9 +174,9 @@ def test_consolidate_rdd_per_collection_with_one_collection(
         RUN_TIME_STAMP,
         S3_PUBLISH_BUCKET,
         PUBLISHED_DATABASE_NAME,
-        mock_args(),
+        mocked_args,
         RUN_ID,
-        s3_resource
+        s3_resource,
     )
     assert len(s3_client.list_buckets()["Buckets"]) == 2
     assert (
@@ -168,21 +197,17 @@ def test_consolidate_rdd_per_collection_with_one_collection(
     ]
     assert (
         CORRELATION_ID
-        in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET, Key=ADG_OUTPUT_FILE_KEY)[
-            "Body"
-        ]
+        in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET, Key=adg_output_key)["Body"]
+        .read()
+        .decode()
+    )
+    assert (
+        s3_prefix_adg
+        in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET, Key=adg_output_key)["Body"]
         .read()
         .decode()
     )
 
-    assert (
-        S3_PREFIX_ADG
-        in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET, Key=ADG_OUTPUT_FILE_KEY)[
-            "Body"
-        ]
-        .read()
-        .decode()
-    )
 
 def test_consolidate_rdd_per_collection_with_multiple_collections(
     spark, monkeypatch, handle_server, aws_credentials
@@ -217,14 +242,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
             "datakeyencryptionkeyid": "123",
         },
     )
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "persist_json", mock_persist_json)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
-    monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
-    )
+    monkeypatch_with_mocks(monkeypatch)
     generate_dataset_from_htme.main(
         spark,
         s3_client,
@@ -236,7 +254,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         PUBLISHED_DATABASE_NAME,
         mock_args(),
         RUN_ID,
-        s3_resource
+        s3_resource,
     )
     assert core_contract_collection_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
@@ -246,7 +264,22 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     ]
 
 
-def test_create_hive_on_published(spark, handle_server, aws_credentials, monkeypatch):
+def monkeypatch_with_mocks(monkeypatch):
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
+    monkeypatch.setattr(
+        steps.generate_dataset_from_htme, "persist_json", mock_persist_json
+    )
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
+    monkeypatch.setattr(
+        steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
+    )
+
+
+def test_create_hive_on_published_for_full(
+    spark, handle_server, aws_credentials, monkeypatch
+):
     json_location = "s3://test/t"
     collection_name = "tabtest"
     all_processed_collections = [(collection_name, json_location)]
@@ -254,7 +287,9 @@ def test_create_hive_on_published(spark, handle_server, aws_credentials, monkeyp
         spark, all_processed_collections, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID
     )
 
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "persist_json", mock_persist_json)
+    monkeypatch.setattr(
+        steps.generate_dataset_from_htme, "persist_json", mock_persist_json
+    )
     assert generate_dataset_from_htme.get_collection(collection_name) in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
     ]
@@ -298,23 +333,23 @@ def test_exception_when_decompression_fails(
             PUBLISHED_DATABASE_NAME,
             mock_args(),
             RUN_ID,
-            s3_resource
+            s3_resource,
         )
 
 
 @mock_dynamodb2
 def test_log_start_of_batch():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
-    assert generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb) == 1
+    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb) == 1
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
 
 
 @mock_dynamodb2
 def test_log_start_of_batch_for_multiple_runs():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
-    generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb)
+    generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb)
     # Ran second time to increment Run_Id by 1 to 2
-    assert generate_dataset_from_htme.log_start_of_batch(CORRELATION_ID, dynamodb) == 2
+    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb) == 2
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
 
 
@@ -322,7 +357,7 @@ def test_log_start_of_batch_for_multiple_runs():
 def test_log_end_of_batch():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
     generate_dataset_from_htme.log_end_of_batch(
-        CORRELATION_ID, RUN_ID, COMPLETED_STATUS, dynamodb
+        mock_args(), RUN_ID, COMPLETED_STATUS, dynamodb
     )
     assert query_audit_table_status(dynamodb) == COMPLETED_STATUS
 
@@ -351,6 +386,7 @@ def mock_args():
     args = argparse.Namespace()
     args.correlation_id = CORRELATION_ID
     args.s3_prefix = S3_PREFIX
+    args.snapshot_type = SNAPSHOT_TYPE_FULL
     return args
 
 
@@ -363,9 +399,11 @@ def mock_create_hive_tables_on_published(
 ):
     return published_database_name
 
+
 # Mocking because we don't have the compression codec libraries available in test phase
 def mock_persist_json(json_location, values):
     values.saveAsTextFile(json_location)
+
 
 @mock_dynamodb2
 def mock_get_dynamodb_resource(service_name):
@@ -408,3 +446,25 @@ def test_retry_requests_with_3_retries():
     end_time = time.perf_counter()
     assert round(end_time - start_time) == 6
 
+
+def test_validate_required_args_with_missing_args():
+    args = argparse.Namespace()
+    with pytest.raises(argparse.ArgumentError) as argument_error:
+        generate_dataset_from_htme.validate_required_args(args)
+    assert (
+        str(argument_error.value)
+        == "ArgumentError: The following required arguments are missing: correlation_id, s3_prefix, snapshot_type"
+    )
+
+
+def test_validate_required_args_with_invalid_values_for_snapshot_type():
+    args = argparse.Namespace()
+    args.correlation_id = CORRELATION_ID
+    args.s3_prefix = S3_PREFIX
+    args.snapshot_type = INVALID_SNAPSHOT_TYPE
+    with pytest.raises(argparse.ArgumentError) as argument_error:
+        generate_dataset_from_htme.validate_required_args(args)
+    assert (
+        str(argument_error.value)
+        == "ArgumentError: Valid values for snapshot_type are: full, incremental"
+    )
