@@ -137,3 +137,16 @@ resource "aws_s3_bucket_object" "metrics_jar" {
   key        = "component/analytical-dataset-generation/metrics/adg-exporter.jar"
   content    = filebase64("${var.analytical_dataset_generation_exporter_jar.base_path}/exporter-${var.analytical_dataset_generation_exporter_jar.version}.jar")
 }
+
+resource "aws_s3_bucket_object" "download_sql_sh" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "component/analytical-dataset-generation/download_sql.sh"
+  content = templatefile("${path.module}/bootstrap_actions/download_sql.sh",
+  {
+    version               = local.mongo_latest_version[local.environment]
+    s3_artefact_bucket_id = data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id
+    adg_log_level         = local.adg_log_level[local.environment]
+    environment_name      = local.environment
+  }
+  )
+}
