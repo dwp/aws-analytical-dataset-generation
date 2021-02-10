@@ -489,7 +489,7 @@ def create_hive_tables_on_published(
 def create_hive_tables_on_published_for_collection_threaded(spark, all_processed_collections, published_database_name, args, run_id):
     completed_collections = []
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=35) as executor:
+    with concurrent.futures.ThreadPoolExecutor() as executor:
         results = {
             executor.submit(
                 create_hive_table_on_published_for_collection,
