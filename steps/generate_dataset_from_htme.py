@@ -559,20 +559,28 @@ def add_folder_size_metric(collection_name, s3_bucket, s3_prefix,filename,s3_res
         str(total_size))
 
 def add_metric(metrics_file, collection_name, value):
-    path = "/opt/emr/metrics/"
-    if not os.path.exists(path):
-        os.makedirs(path)
-    metrics_path = f"{path}{metrics_file}"
-    if not os.path.exists(metrics_path):
-        os.mknod(metrics_path)
-    with open(metrics_path, "r") as f:
-        lines = f.readlines()
-    with open(metrics_path, "w") as f:
-        for line in lines:
-            if not line.startswith(get_collection(collection_name)):
-                f.write(line)
-        collection_name = get_collection(collection_name).replace("/", "_")
-        f.write(collection_name + "," + value + "\n")
+    try:
+        path = "/opt/emr/metrics/"
+        if not os.path.exists(path):
+            os.makedirs(path)
+        metrics_path = f"{path}{metrics_file}"
+        if not os.path.exists(metrics_path):
+            os.mknod(metrics_path)
+        with open(metrics_path, "r") as f:
+            lines = f.readlines()
+        with open(metrics_path, "w") as f:
+            for line in lines:
+                if not line.startswith(get_collection(collection_name)):
+                    f.write(line)
+            collection_name = get_collection(collection_name).replace("/", "_")
+            f.write(collection_name + "," + value + "\n")
+    except Exception as ex:
+        the_logger.warn(
+            "Problem adding metric with file of '%s', collection name of '%s' and exception of '%s'",
+            metrics_file,
+            collection_name,
+            str(ex)
+        )
 
 
 def get_spark_session(args):
