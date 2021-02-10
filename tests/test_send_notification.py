@@ -19,7 +19,9 @@ def test_send_sns_message():
     s3_client.create_bucket(Bucket=PUBLISH_BUCKET)
     test_data = b"CORRELATION_ID,S3_PREFIX\nabcd,analytical-dataset/2020-10-10"
     s3_client.put_object(
-        Body=test_data, Bucket=PUBLISH_BUCKET, Key=ADG_PARAM_KEY,
+        Body=test_data,
+        Bucket=PUBLISH_BUCKET,
+        Key=ADG_PARAM_KEY,
     )
 
     topics_json = sns_client.list_topics()
