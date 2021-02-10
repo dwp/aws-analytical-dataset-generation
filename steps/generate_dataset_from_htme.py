@@ -331,7 +331,7 @@ def get_metadatafor_key(key, s3_client, s3_htme_bucket):
 
 
 def retrieve_secrets(args):
-    secret_name = "${secret_name}"+f"/${args.snapshot_type}"
+    secret_name = "${secret_name}"+f"/{args.snapshot_type}"
     # Create a Secrets Manager client
     session = boto3.session.Session()
     client = session.client(service_name="secretsmanager")
@@ -469,7 +469,7 @@ def create_hive_tables_on_published(
                 run_id,
             )
             published_database_name = ( published_database_name if args.snapshot_type == SNAPSHOT_TYPE_FULL
-                                        else f"${published_database_name}_${SNAPSHOT_TYPE_INCREMENTAL}" )
+                                        else f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}" )
             create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
             spark.sql(create_db_query)
         
@@ -627,7 +627,7 @@ def put_item(args, run_id, table, status):
             AUDIT_TABLE_HASH_KEY: args.correlation_id,
             AUDIT_TABLE_RANGE_KEY: run_id,
             "Date": get_todays_date(),
-            "DataProduct": f"${DATA_PRODUCT_NAME}-${args.snapshot_type}",
+            "DataProduct": f"{DATA_PRODUCT_NAME}-{args.snapshot_type}",
             "Status": status,
         }
     )
