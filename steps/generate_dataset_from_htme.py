@@ -701,7 +701,7 @@ if __name__ == "__main__":
         run_id,
         s3_resource
     )
-    log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
+    log_end_of_batch(args, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
     add_metric("processing_times.csv", "all_collections", str(total_time))
