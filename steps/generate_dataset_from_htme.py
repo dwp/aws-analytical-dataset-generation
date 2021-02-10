@@ -55,7 +55,7 @@ def get_parameters():
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
     parser.add_argument("--snapshot_type", default="full")
     args, unrecognized_args = parser.parse_known_args()
-    args.snapshot_type = SNAPSHOT_TYPE_INCREMENTAL if args.snapshot_type == SNAPSHOT_TYPE_INCREMENTAL else SNAPSHOT_TYPE_FULL
+    args.snapshot_type = SNAPSHOT_TYPE_INCREMENTAL if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL else SNAPSHOT_TYPE_FULL
     the_logger.warning(
         "Unrecognized args %s found for the correlation id %s",
         unrecognized_args,
@@ -79,7 +79,7 @@ def validate_required_args(args):
                 ", ".join(missing_args)
             ),
         )
-    if args.snapshot_type not in ARG_SNAPSHOT_TYPE_VALID_VALUES:
+    if args.snapshot_type.lower() not in ARG_SNAPSHOT_TYPE_VALID_VALUES:
         raise argparse.ArgumentError(
             None,
             "ArgumentError: Valid values for snapshot_type are: {}".format(
@@ -134,7 +134,7 @@ def main(
         sys.exit(-1)
     # Create hive tables only if all the collections have been processed successfully else raise exception
     list_of_processed_collections = list(all_processed_collections)
-    if not len(list_of_processed_collections) == len(secrets_collections) and args.snapshot_type == SNAPSHOT_TYPE_FULL:
+    if not len(list_of_processed_collections) == len(secrets_collections) and args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL:
         the_logger.error(
             "Not all collections have been processed looks like there is missing data, stopping Spark for correlation id: %s and run id : %s",
             args.correlation_id,
@@ -269,7 +269,7 @@ def consolidate_rdd_per_collection(
             collection_name_key = get_collection(collection_name)
             collection_name_key = collection_name_key.replace("_", "-")
             file_location = "${file_location}"
-            json_location_prefix = f"{file_location}/{args.snapshot_type}/{run_time_stamp}/{collection_name_key}"
+            json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}"
             json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
             persist_json(json_location, consolidated_rdd_mapped)
             the_logger.info(
@@ -296,7 +296,7 @@ def consolidate_rdd_per_collection(
             args.correlation_id,
             run_id,
         )
-        adg_json_prefix = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
+        adg_json_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
         add_folder_size_metric('all_collections',s3_htme_bucket, args.s3_prefix,"htme_collection_size.csv",s3_resource)
         add_folder_size_metric('all_collections', s3_publish_bucket, adg_json_prefix,"adg_collection_size.csv",s3_resource)
     except BaseException as ex:
@@ -467,7 +467,7 @@ def create_hive_tables_on_published(
                 args.correlation_id,
                 run_id,
             )
-            published_database_name = ( published_database_name if args.snapshot_type == SNAPSHOT_TYPE_FULL
+            published_database_name = ( published_database_name if args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL
                                         else f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}" )
             create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
             spark.sql(create_db_query)
@@ -576,7 +576,7 @@ def get_spark_session(args):
     spark = (
         SparkSession.builder.master("yarn")
         .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
-        .config("spark.metrics.namespace", f"adg_{args.snapshot_type}")
+        .config("spark.metrics.namespace", f"adg_{args.snapshot_type.lower()}")
         .appName("spike")
         .enableHiveSupport()
         .getOrCreate()
@@ -626,7 +626,7 @@ def put_item(args, run_id, table, status):
             AUDIT_TABLE_HASH_KEY: args.correlation_id,
             AUDIT_TABLE_RANGE_KEY: run_id,
             "Date": get_todays_date(),
-            "DataProduct": f"{DATA_PRODUCT_NAME}-{args.snapshot_type}",
+            "DataProduct": f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
             "Status": status,
         }
     )
@@ -670,7 +670,7 @@ def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_st
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
-        "Processing spark job for correlation id : %s and snapshot_type : %s", args.correlation_id, args.snapshot_type
+        "Processing spark job for correlation id : %s and snapshot_type : %s", args.correlation_id, args.snapshot_type.lower()
     )
     spark = get_spark_session(args)
     run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -681,7 +681,7 @@ if __name__ == "__main__":
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_s3_client()
     s3_resource = get_s3_resource()
-    secret_name = secret_name_incremental if args.snapshot_type==SNAPSHOT_TYPE_INCREMENTAL else secret_name_full
+    secret_name = secret_name_incremental if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL else secret_name_full
     secrets_response = retrieve_secrets(args, secret_name)
     secrets_collections = get_collections(secrets_response, args)
     keys_map = {}
