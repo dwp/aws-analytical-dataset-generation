@@ -4,16 +4,16 @@ jobs:
     plan:
       - in_parallel:
         - get: aws-analytical-dataset-generation-pr
-          trigger: true
+          trigger: false
           version: every
         - get: emr-launcher-release
-          trigger: true
+          trigger: false
         - get: manage-mysql-user-release
-          trigger: true
+          trigger: false
         - get: analytical-dataset-generation-exporter-release
-          trigger: true
+          trigger: false
         - get: emr-ami
-          trigger: true
+          trigger: false
         - get: secrets-management
           trigger: false
       - put: aws-analytical-dataset-generation-pr
