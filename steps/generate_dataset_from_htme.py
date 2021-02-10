@@ -8,17 +8,18 @@ import re
 import sys
 import time
 import zlib
+import concurrent.futures
 from datetime import datetime
 from itertools import groupby
 
 import boto3
+import botocore
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from boto3.dynamodb.conditions import Key
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
-from concurrent.futures import ThreadPoolExecutor, wait
 
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
@@ -104,7 +105,7 @@ def main(
         list_of_dicts_filtered = get_collections_in_secrets(
             list_of_dicts, secrets_collections, args
         )
-        with ThreadPoolExecutor() as executor:
+        with concurrent.futures.ThreadPoolExecutor() as executor:
             all_processed_collections = executor.map(
                 consolidate_rdd_per_collection,
                 list_of_dicts_filtered,
@@ -162,8 +163,11 @@ def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
     return filtered_list
 
 
-def get_client(service_name):
-    client = boto3.client(service_name)
+def get_s3_client():
+    client_config = botocore.config.Config(
+        max_pool_connections=100,
+    )
+    client = boto3.client("s3", config=client_config)
     return client
 
 
@@ -464,15 +468,13 @@ def create_hive_tables_on_published(
             create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
             spark.sql(create_db_query)
         
-        for result in create_hive_tables_on_published_for_collection_threaded(
+        create_hive_tables_on_published_for_collection_threaded(
             spark,
             all_processed_collections,
             published_database_name,
             args,
             run_id
-        ):
-            the_logger.info(f"Processed published hive tables for collection `{result}`")
-
+        )
     except BaseException as ex:
         the_logger.error(
             "Problem with creating Hive tables for correlation id: %s and run id: %s %s ",
@@ -485,30 +487,31 @@ def create_hive_tables_on_published(
 
 
 def create_hive_tables_on_published_for_collection_threaded(spark, all_processed_collections, published_database_name, args, run_id):
-    results = []
+    completed_collections = []
     
-    with ThreadPoolExecutor() as executor:
-        for (collection_name, collection_json_location) in all_processed_collections:
-            results.append(
-                executor.submit(
-                    create_hive_table_on_published_for_collection,
-                    spark,
-                    collection_name,
-                    collection_json_location,
-                    published_database_name,
-                    args,
-                    run_id
-                )
-            )
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = {
+            executor.submit(
+                create_hive_table_on_published_for_collection,
+                spark,
+                collection_name,
+                collection_json_location,
+                published_database_name,
+                args,
+                run_id
+            ): (collection_name, collection_json_location) for (collection_name, collection_json_location) in all_processed_collections
+        }
 
-    wait(results)
+        for result in concurrent.futures.as_completed(results):
+            completed_collection = results[result]
+            completed_collections.append(completed_collection)
+            try:
+                data = result.result()
+                the_logger.info(f"Created published hive table for collection `{completed_collection}`")
+            except Exception as exc:
+                raise BaseException(ex)
     
-    for result in results:
-        try:
-            yield result.result()
-        except Exception as ex:
-            raise BaseException(ex)
-
+    return completed_collections
 
 def create_hive_table_on_published_for_collection(spark, collection_name, collection_json_location, published_database_name, args, run_id):
     hive_table_name = get_collection(collection_name)
@@ -576,11 +579,6 @@ def get_spark_session():
     )
     spark.conf.set("spark.scheduler.mode", "FAIR")
     return spark
-
-
-def close_spark(spark):
-    spark.sparkContext.stop()
-    spark.stop()
 
 
 def get_todays_date():
@@ -675,7 +673,7 @@ if __name__ == "__main__":
     published_database_name = "${published_db}"
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
-    s3_client = get_client("s3")
+    s3_client = get_s3_client()
     s3_resource = get_s3_resource()
     secrets_response = retrieve_secrets()
     secrets_collections = get_collections(secrets_response, args)
@@ -696,7 +694,6 @@ if __name__ == "__main__":
         run_id,
         s3_resource
     )
-    close_spark(spark)
     log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
