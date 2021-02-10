@@ -559,7 +559,10 @@ def add_folder_size_metric(collection_name, s3_bucket, s3_prefix,filename,s3_res
         str(total_size))
 
 def add_metric(metrics_file, collection_name, value):
-    metrics_path = f"/opt/emr/metrics/{metrics_file}"
+    path = "/opt/emr/metrics/"
+    if not os.path.exists(path):
+        os.makedirs(path)
+    metrics_path = f"{path}{metrics_file}"
     if not os.path.exists(metrics_path):
         os.mknod(metrics_path)
     with open(metrics_path, "r") as f:
