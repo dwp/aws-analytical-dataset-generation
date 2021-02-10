@@ -514,7 +514,7 @@ def create_hive_tables_on_published_for_collection_threaded(spark, all_processed
                 data = result.result()
                 the_logger.info(f"Created published hive table for collection `{completed_collection}`")
             except Exception as exc:
-                raise BaseException(ex)
+                raise BaseException(exc)
     
     return completed_collections
 
