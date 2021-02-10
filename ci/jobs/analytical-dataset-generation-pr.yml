@@ -4,7 +4,7 @@ jobs:
     plan:
       - in_parallel:
         - get: aws-analytical-dataset-generation-pr
-          trigger: false
+          trigger: true
           version: every
         - get: emr-launcher-release
           trigger: false
