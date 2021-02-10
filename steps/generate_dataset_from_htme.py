@@ -572,11 +572,11 @@ def add_metric(metrics_file, collection_name, value):
         f.write(collection_name + "," + value + "\n")
 
 
-def get_spark_session():
+def get_spark_session(args):
     spark = (
         SparkSession.builder.master("yarn")
         .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
-        .config("spark.metrics.namespace", "adg")
+        .config("spark.metrics.namespace", f"adg_{args.snapshot_type}")
         .appName("spike")
         .enableHiveSupport()
         .getOrCreate()
@@ -672,7 +672,7 @@ if __name__ == "__main__":
     the_logger.info(
         "Processing spark job for correlation id : %s and snapshot_type : %s", args.correlation_id, args.snapshot_type
     )
-    spark = get_spark_session()
+    spark = get_spark_session(args)
     run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     published_database_name = "${published_db}"
     secret_name_full = "${secret_name_full}"
