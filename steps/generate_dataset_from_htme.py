@@ -24,7 +24,6 @@ from concurrent.futures import ThreadPoolExecutor, wait
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
 
-ARG_SNAPSHOT_TYPE_VALID_VALUES = ["full", "incremental"]
 ARG_SNAPSHOT_TYPE = "snapshot_type"
 ARG_S3_PREFIX = "s3_prefix"
 ARG_CORRELATION_ID = "correlation_id"
@@ -36,6 +35,7 @@ AUDIT_TABLE_HASH_KEY = "Correlation_Id"
 AUDIT_TABLE_RANGE_KEY = "Run_Id"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
+ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
