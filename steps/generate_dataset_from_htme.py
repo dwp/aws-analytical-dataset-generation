@@ -330,8 +330,7 @@ def get_metadatafor_key(key, s3_client, s3_htme_bucket):
     return metadata
 
 
-def retrieve_secrets(args):
-    secret_name = "${secret_name}"+f"/{args.snapshot_type}"
+def retrieve_secrets(args, secret_name):
     # Create a Secrets Manager client
     session = boto3.session.Session()
     client = session.client(service_name="secretsmanager")
@@ -676,11 +675,14 @@ if __name__ == "__main__":
     spark = get_spark_session()
     run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     published_database_name = "${published_db}"
+    secret_name_full = "${secret_name_full}"
+    secret_name_incremental = "${secret_name_incremental}"
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_s3_client()
     s3_resource = get_s3_resource()
-    secrets_response = retrieve_secrets(args)
+    secret_name = secret_name_incremental if args.snapshot_type==SNAPSHOT_TYPE_INCREMENTAL else secret_name_full
+    secrets_response = retrieve_secrets(args, secret_name)
     secrets_collections = get_collections(secrets_response, args)
     keys_map = {}
     start_time = time.perf_counter()

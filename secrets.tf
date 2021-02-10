@@ -1,5 +1,9 @@
-data "aws_secretsmanager_secret" "adg_secret" {
-  name = local.secret_name
+data "aws_secretsmanager_secret" "adg_secret_full" {
+  name = local.secret_name_full
+}
+
+data "aws_secretsmanager_secret" "adg_secret_incremental" {
+  name = local.secret_name_incremental
 }
 
 data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
@@ -11,7 +15,8 @@ data "aws_iam_policy_document" "analytical_dataset_secretsmanager" {
     ]
 
     resources = [
-      data.aws_secretsmanager_secret.adg_secret.arn
+      data.aws_secretsmanager_secret.adg_secret_full.arn,
+      data.aws_secretsmanager_secret.adg_secret_incremental.arn
     ]
   }
 }

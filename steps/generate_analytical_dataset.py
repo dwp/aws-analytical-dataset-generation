@@ -97,7 +97,7 @@ def spark_process(collection):
 
 
 def retrieve_secrets():
-    secret_name = "${secret_name}"
+    secret_name = "${secret_name_full}"
     # Create a Secrets Manager client
     session = boto3.session.Session()
     client = session.client(service_name="secretsmanager")

@@ -61,7 +61,7 @@ def test_retrieve_secrets(monkeypatch):
                 return Client()
 
     monkeypatch.setattr(boto3, "session", MockSession)
-    assert generate_dataset_from_htme.retrieve_secrets(mock_args()) == ast.literal_eval(
+    assert generate_dataset_from_htme.retrieve_secrets(mock_args(), SNAPSHOT_TYPE_FULL) == ast.literal_eval(
         SECRETS
     )
 
