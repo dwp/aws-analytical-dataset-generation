@@ -48,4 +48,4 @@ rm /tmp/adg-exporter.b64
 
 hostname >> $METRICS_FILEPATH/hostname.txt
 
-) >> /var/log/adg/nohup.log 2>&1
+) >> /var/log/adg/metrics-setup.log 2>&1
