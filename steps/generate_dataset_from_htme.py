@@ -592,6 +592,7 @@ def get_spark_session(args):
         .config("spark.network.timeout", "500000")
         .config("spark.hadoop.fs.s3.maxRetries", "20")
         .config("spark.rpc.numRetries", "10")
+        .config("spark.task.maxFailures", "10")
         .appName("spike")
         .enableHiveSupport()
         .getOrCreate()
