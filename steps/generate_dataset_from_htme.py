@@ -588,7 +588,7 @@ def get_spark_session(args):
         SparkSession.builder.master("yarn")
         .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
         .config("spark.metrics.namespace", f"adg_{args.snapshot_type.lower()}")
-        .config("spark.executor.heartbeatInterval", "50000")
+        .config("spark.executor.heartbeatInterval", "300000")
         .config("spark.network.timeout", "500000")
         .config("spark.hadoop.fs.s3.maxRetries", "20")
         .config("spark.rpc.numRetries", "10")
