@@ -475,7 +475,12 @@ meta:
               export AWS_DEFAULT_REGION
               source /assume-role
               set +x
-              for CLUSTER_ID in $(aws emr list-clusters --active | jq --arg snapshotType "$SNAPSHOT_TYPE" -r '.Clusters[] | select(.Name | test("analytical-dataset-generator-$snapshotType")) | .Id');
+
+              snapshot_type_qualified="analytical-dataset-generator-$SNAPSHOT_TYPE"
+
+              echo "Stopping cluster named '$snapshot_type_qualified'"
+
+              for CLUSTER_ID in $(aws emr list-clusters --active | jq --arg snapshotType "$snapshot_type_qualified" -r '.Clusters[] | select(.Name | test($snapshotType)) | .Id');
               do
                 aws emr terminate-clusters --cluster-ids $CLUSTER_ID
               done
