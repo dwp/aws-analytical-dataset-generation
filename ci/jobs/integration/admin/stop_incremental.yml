@@ -1,5 +1,5 @@
 jobs:
-  - name: int-stop-cluster
+  - name: int-stop-incremental-clusters
     plan:
       - get: aws-analytical-dataset-generation
         trigger: false
@@ -7,3 +7,4 @@ jobs:
         config:
           params:
             AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
+            SNAPSHOT_TYPE: "incremental"

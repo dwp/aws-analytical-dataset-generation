@@ -10,3 +10,4 @@ jobs:
             AWS_ACC: ((aws_account.production))
             S3_PREFIX: businessdata/mongo/ucdata/2021-02-10/full/
             CORRELATION_ID: ingest_emr_scheduled_tasks_export_snapshots_to_crown_production_full_71_full
+            SNAPSHOT_TYPE: full

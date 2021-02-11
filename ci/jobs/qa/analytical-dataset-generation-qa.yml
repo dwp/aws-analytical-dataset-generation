@@ -83,3 +83,9 @@ jobs:
           config:
             params:
               AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+              SNAPSHOT_TYPE: "full"
+        - .: (( inject meta.plan.stop-cluster ))
+          config:
+            params:
+              AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+              SNAPSHOT_TYPE: "incremental"

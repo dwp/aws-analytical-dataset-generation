@@ -17,23 +17,28 @@ groups:
   - name: admin-dev
     jobs:
       - dev-start-cluster
-      - dev-stop-cluster
+      - dev-stop-full-clusters
+      - dev-stop-incremental-clusters
   - name: admin-qa
     jobs:
       - qa-start-cluster
-      - qa-stop-cluster
+      - qa-stop-full-clusters
+      - qa-stop-incremental-clusters
   - name: admin-int
     jobs:
       - int-start-cluster
-      - int-stop-cluster
+      - int-stop-full-clusters
+      - int-stop-incremental-clusters
   - name: admin-preprod
     jobs:
       - preprod-start-cluster
-      - preprod-stop-cluster
+      - preprod-stop-full-clusters
+      - preprod-stop-incremental-clusters
   - name: admin-prod
     jobs:
       - prod-start-cluster
-      - prod-stop-cluster
+      - prod-stop-full-clusters
+      - prod-stop-incremental-clusters
   - name: rotate-passwords-adg-reader
     jobs:
       - rotate-mysql-password-adg-reader-development
