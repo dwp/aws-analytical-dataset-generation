@@ -18,10 +18,14 @@ PII_KEY = "pii"
 TRUE_VALUE = "true"
 DB_KEY = "db"
 TABLE_KEY= "table"
-TAG_SET = [{NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE}, {NAME_KEY: DB_KEY, VALUE_KEY: 'core'}, {
-    NAME_KEY: TABLE_KEY, VALUE_KEY: 'contract'}]
-INVALID_SNAPSHOT_TYPE = "abc"
 SNAPSHOT_TYPE_FULL = "full"
+SNAPSHOT_TYPE_INCREMENTAL = "incremental"
+SNAPSHOT_TYPE_KEY = "snapshot_type"
+TAG_SET_FULL = [{NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE}, {NAME_KEY: DB_KEY, VALUE_KEY: 'core'}, {
+    NAME_KEY: TABLE_KEY, VALUE_KEY: 'contract'}, {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_FULL}]
+TAG_SET_INCREMENTAL = [{NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE}, {NAME_KEY: DB_KEY, VALUE_KEY: 'core'}, {
+    NAME_KEY: TABLE_KEY, VALUE_KEY: 'contract'}, {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_INCREMENTAL}]
+INVALID_SNAPSHOT_TYPE = "abc"
 MOCK_LOCALHOST_URL = "http://localhost:1000"
 COMPLETED_STATUS = "Completed"
 HASH_KEY = "Correlation_Id"
@@ -34,7 +38,6 @@ DB_CORE_ACCOUNTS = "db.core.accounts"
 DB_CORE_CONTRACT_FILE_NAME = f"{DB_CORE_CONTRACT}.01002.4040.gz.enc"
 DB_CORE_ACCOUNTS_FILE_NAME = f"{DB_CORE_ACCOUNTS}.01002.4040.gz.enc"
 S3_PREFIX = "mongo/ucdata"
-SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 S3_HTME_BUCKET = "test"
 S3_PUBLISH_BUCKET = "target"
 SECRETS = "{'collections_all': {'db.core.contract': {'pii' : 'true', 'db' : 'core', 'table' : 'contract'}}}"
@@ -151,6 +154,7 @@ def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_increm
 def verify_processed_data(
     mocked_args, monkeypatch, spark, s3_prefix_adg, adg_output_key
 ):
+    tag_set = TAG_SET_FULL if mocked_args.snapshot_type == SNAPSHOT_TYPE_FULL else TAG_SET_INCREMENTAL
     tbl_name = "core_contract"
     collection_location = "core"
     collection_name = "contract"
@@ -196,7 +200,7 @@ def verify_processed_data(
         s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)[
             "TagSet"
         ]
-        == TAG_SET
+        == tag_set
     )
     assert tbl_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
@@ -345,7 +349,7 @@ def test_exception_when_decompression_fails(
 
 def test_get_tags():
     tag_value = SECRETS_COLLECTIONS[DB_CORE_CONTRACT]
-    assert generate_dataset_from_htme.get_tags(tag_value) == TAG_SET
+    assert generate_dataset_from_htme.get_tags(tag_value , SNAPSHOT_TYPE_FULL) == TAG_SET_FULL
 
 @mock_dynamodb2
 def test_log_start_of_batch():
