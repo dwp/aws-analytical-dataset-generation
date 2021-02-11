@@ -10,6 +10,8 @@ jobs:
       params:
         globs:
           - "*.zip"
+      passed:
+        - analytical-dataset-generation-qa
     - get: secrets-management
       trigger: false
       passed:
