@@ -349,7 +349,7 @@ def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket, snapshot_type):
         "Contents"
     ]:
         tags_set_value = (
-            "default"
+            [{"Key": "collection_tag", "Value": "NOT_SET"}]
             if tag_value is None or tag_value == ""
             else get_tags(tag_value, snapshot_type)
         )
