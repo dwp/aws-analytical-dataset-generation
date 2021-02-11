@@ -82,7 +82,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_success" {
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
-  alarm_description         = "Monitoring adg completion"
+  alarm_description         = "Monitoring adg full completion"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -174,7 +174,7 @@ EOF
 
 
 resource "aws_cloudwatch_metric_alarm" "adg_incremental_success" {
-  alarm_name                = "adg_completed_all_steps"
+  alarm_name                = "adg_incremental_completed_all_steps"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
   metric_name               = "TriggeredRules"
@@ -182,7 +182,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_success" {
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
-  alarm_description         = "Monitoring adg completion"
+  alarm_description         = "Monitoring adg incremental completion"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
