@@ -593,6 +593,7 @@ def get_spark_session(args):
         .config("spark.hadoop.fs.s3.maxRetries", "20")
         .config("spark.rpc.numRetries", "10")
         .config("spark.task.maxFailures", "10")
+        .config("spark.scheduler.mode", "FAIR")
         .appName("spike")
         .enableHiveSupport()
         .getOrCreate()
