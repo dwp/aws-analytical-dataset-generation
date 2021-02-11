@@ -476,11 +476,18 @@ meta:
               source /assume-role
               set +x
 
-              snapshot_type_qualified="analytical-dataset-generator-$SNAPSHOT_TYPE"
+              echo "Stopping clusters for ${SNAPSHOT_TYPE}"
 
-              echo "Stopping cluster named '$snapshot_type_qualified'"
-
-              for CLUSTER_ID in $(aws emr list-clusters --active | jq --arg snapshotType "$snapshot_type_qualified" -r '.Clusters[] | select(.Name | test($snapshotType)) | .Id');
-              do
-                aws emr terminate-clusters --cluster-ids $CLUSTER_ID
-              done
+              if [[ "${SNAPSHOT_TYPE}" == "full" ]]; then
+                for CLUSTER_ID in $(aws emr list-clusters --active | jq -r '.Clusters[] | select(.Name | test("analytical-dataset-generator-full")) | .Id');
+                do
+                  echo "Stopping cluster with id of ${CLUSTER_ID}"
+                  aws emr terminate-clusters --cluster-ids $CLUSTER_ID
+                done
+              else
+                for CLUSTER_ID in $(aws emr list-clusters --active | jq -r '.Clusters[] | select(.Name | test("analytical-dataset-generator-incremental")) | .Id');
+                do
+                  echo "Stopping cluster with id of ${CLUSTER_ID}"
+                  aws emr terminate-clusters --cluster-ids $CLUSTER_ID
+                done
+              fi
