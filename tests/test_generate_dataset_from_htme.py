@@ -12,10 +12,21 @@ from moto import mock_s3, mock_dynamodb2
 import steps
 from steps import generate_dataset_from_htme
 
-INVALID_SNAPSHOT_TYPE = "abc"
+VALUE_KEY = 'Value'
+NAME_KEY = 'Key'
+PII_KEY = "pii"
+TRUE_VALUE = "true"
+DB_KEY = "db"
+TABLE_KEY= "table"
 SNAPSHOT_TYPE_FULL = "full"
+SNAPSHOT_TYPE_INCREMENTAL = "incremental"
+SNAPSHOT_TYPE_KEY = "snapshot_type"
+TAG_SET_FULL = [{NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE}, {NAME_KEY: DB_KEY, VALUE_KEY: 'core'}, {
+    NAME_KEY: TABLE_KEY, VALUE_KEY: 'contract'}, {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_FULL}]
+TAG_SET_INCREMENTAL = [{NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE}, {NAME_KEY: DB_KEY, VALUE_KEY: 'core'}, {
+    NAME_KEY: TABLE_KEY, VALUE_KEY: 'contract'}, {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_INCREMENTAL}]
+INVALID_SNAPSHOT_TYPE = "abc"
 MOCK_LOCALHOST_URL = "http://localhost:1000"
-
 COMPLETED_STATUS = "Completed"
 HASH_KEY = "Correlation_Id"
 RANGE_KEY = "DataProduct"
@@ -27,11 +38,10 @@ DB_CORE_ACCOUNTS = "db.core.accounts"
 DB_CORE_CONTRACT_FILE_NAME = f"{DB_CORE_CONTRACT}.01002.4040.gz.enc"
 DB_CORE_ACCOUNTS_FILE_NAME = f"{DB_CORE_ACCOUNTS}.01002.4040.gz.enc"
 S3_PREFIX = "mongo/ucdata"
-SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 S3_HTME_BUCKET = "test"
 S3_PUBLISH_BUCKET = "target"
-SECRETS = "{'collections_all': {'db.core.contract': 'crown'}}"
-SECRETS_COLLECTIONS = {DB_CORE_CONTRACT: "crown"}
+SECRETS = "{'collections_all': {'db.core.contract': {'pii' : 'true', 'db' : 'core', 'table' : 'contract'}}}"
+SECRETS_COLLECTIONS = {DB_CORE_CONTRACT: {'pii' : 'true', 'db' : 'core', 'table' : 'contract'}}
 KEYS_MAP = {"test_ciphertext": "test_key"}
 RUN_TIME_STAMP = "2020-10-10_10-10-10"
 PUBLISHED_DATABASE_NAME = "test_db"
@@ -144,12 +154,12 @@ def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_increm
 def verify_processed_data(
     mocked_args, monkeypatch, spark, s3_prefix_adg, adg_output_key
 ):
+    tag_set = TAG_SET_FULL if mocked_args.snapshot_type == SNAPSHOT_TYPE_FULL else TAG_SET_INCREMENTAL
     tbl_name = "core_contract"
     collection_location = "core"
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
     target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
-    target_object_tag = {"Key": "collection_tag", "Value": "crown"}
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -189,8 +199,8 @@ def verify_processed_data(
     assert (
         s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)[
             "TagSet"
-        ][0]
-        == target_object_tag
+        ]
+        == tag_set
     )
     assert tbl_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
@@ -216,7 +226,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     core_accounts_collection_name = "core_accounts"
     test_data = '{"name":"abcd"}\n{"name":"xyz"}'
     secret_collections = SECRETS_COLLECTIONS
-    secret_collections[DB_CORE_ACCOUNTS] = "crown"
+    secret_collections[DB_CORE_ACCOUNTS] = {PII_KEY : TRUE_VALUE, DB_KEY : 'core', TABLE_KEY : 'accounts'}
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -336,6 +346,10 @@ def test_exception_when_decompression_fails(
             s3_resource,
         )
 
+
+def test_get_tags():
+    tag_value = SECRETS_COLLECTIONS[DB_CORE_CONTRACT]
+    assert generate_dataset_from_htme.get_tags(tag_value , SNAPSHOT_TYPE_FULL) == TAG_SET_FULL
 
 @mock_dynamodb2
 def test_log_start_of_batch():
