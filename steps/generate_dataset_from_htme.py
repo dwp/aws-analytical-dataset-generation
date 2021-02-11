@@ -590,6 +590,7 @@ def get_spark_session(args):
         .config("spark.metrics.namespace", f"adg_{args.snapshot_type.lower()}")
         .config("spark.executor.heartbeatInterval", "50000")
         .config("spark.network.timeout", "500000")
+        .config("spark.hadoop.fs.s3.maxRetries", "20")
         .appName("spike")
         .enableHiveSupport()
         .getOrCreate()
