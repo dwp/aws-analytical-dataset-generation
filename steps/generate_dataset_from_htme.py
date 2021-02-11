@@ -32,7 +32,10 @@ FAILED_STATUS = "Failed"
 COMPLETED_STATUS = "Completed"
 DATA_PRODUCT_NAME = "ADG"
 AUDIT_TABLE_HASH_KEY = "Correlation_Id"
-AUDIT_TABLE_RANGE_KEY = "Run_Id"
+AUDIT_TABLE_RANGE_KEY = "DataProduct"
+AUDIT_TABLE_RUN_ID_KEY = "Run_Id"
+AUDIT_TABLE_DATE_KEY = "Date"
+AUDIT_TABLE_STATUS_KEY = "Status"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
 ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
@@ -641,10 +644,10 @@ def put_item(args, run_id, table, status):
     table.put_item(
         Item={
             AUDIT_TABLE_HASH_KEY: args.correlation_id,
-            AUDIT_TABLE_RANGE_KEY: run_id,
-            "Date": get_todays_date(),
-            "DataProduct": f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
-            "Status": status,
+            AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
+            AUDIT_TABLE_RUN_ID_KEY: run_id,
+            AUDIT_TABLE_DATE_KEY: get_todays_date(),
+            AUDIT_TABLE_STATUS_KEY: status,
         }
     )
 
