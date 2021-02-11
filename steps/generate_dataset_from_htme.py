@@ -24,6 +24,9 @@ from Crypto.Util import Counter
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
 
+SNAPSHOT_TYPE_KEY = "snapshot_type"
+VALUE_KEY = "Value"
+KEY_KEY = "Key"
 ARG_SNAPSHOT_TYPE = "snapshot_type"
 ARG_S3_PREFIX = "s3_prefix"
 ARG_CORRELATION_ID = "correlation_id"
@@ -281,7 +284,7 @@ def consolidate_rdd_per_collection(
                 args.correlation_id,
                 run_id,
             )
-            tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
+            tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket, args.snapshot_type)
         add_metric('htme_collection_size.csv',collection_name,str(total_collection_size))
         add_folder_size_metric(collection_name, s3_publish_bucket, json_location_prefix,"adg_collection_size.csv",s3_resource)
         the_logger.info(
@@ -344,7 +347,7 @@ def retrieve_secrets(args, secret_name):
     return response_dict
 
 
-def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket):
+def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket, snapshot_type):
     default_value = "default"
 
     if tag_value is None or tag_value == "":
@@ -355,8 +358,16 @@ def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket):
         s3_client.put_object_tagging(
             Bucket=s3_publish_bucket,
             Key=key["Key"],
-            Tagging={"TagSet": [{"Key": "collection_tag", "Value": tag_value}]},
+            Tagging={"TagSet": get_tags(tag_value, snapshot_type)},
         )
+
+
+def get_tags(tag_value, snapshot_type):
+    tag_set = []
+    for k,v in tag_value.items():
+        tag_set.append({KEY_KEY:k, VALUE_KEY:v})
+    tag_set.append({KEY_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: snapshot_type})
+    return tag_set
 
 
 def get_plaintext_key_calling_dks(
@@ -439,6 +450,7 @@ def decompress(compressed_text):
 
 def persist_json(json_location, values):
     values.saveAsTextFile(json_location, compressionCodecClass="com.hadoop.compression.lzo.LzopCodec")
+
 
 
 def get_collection(collection_name):
