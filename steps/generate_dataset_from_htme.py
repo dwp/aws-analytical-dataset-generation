@@ -272,7 +272,7 @@ def consolidate_rdd_per_collection(
             collection_name_key = get_collection(collection_name)
             collection_name_key = collection_name_key.replace("_", "-")
             file_location = "${file_location}"
-            json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}"
+            json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
             json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
             persist_json(json_location, consolidated_rdd_mapped)
             the_logger.info(
@@ -345,17 +345,19 @@ def retrieve_secrets(args, secret_name):
 
 
 def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket, snapshot_type):
-    default_value = "default"
-
-    if tag_value is None or tag_value == "":
-        tag_value = default_value
     for key in s3_client.list_objects(Bucket=s3_publish_bucket, Prefix=prefix)[
         "Contents"
     ]:
+        tags_set_value = (
+            "default"
+            if tag_value is None or tag_value == ""
+            else get_tags(tag_value, snapshot_type)
+        )
+
         s3_client.put_object_tagging(
             Bucket=s3_publish_bucket,
             Key=key["Key"],
-            Tagging={"TagSet": get_tags(tag_value, snapshot_type)},
+            Tagging={"TagSet": tags_set_value},
         )
 
 
