@@ -628,7 +628,7 @@ def log_start_of_batch(args, dynamodb=None):
         if not response["Items"]:
             put_item(args, run_id, table, IN_PROGRESS_STATUS)
         else:
-            run_id = response["Items"][0][AUDIT_TABLE_RANGE_KEY] + 1
+            run_id = response["Items"][0][AUDIT_TABLE_RUN_ID_KEY] + 1
             put_item(args, run_id, table, IN_PROGRESS_STATUS)
     except BaseException as ex:
         the_logger.error(
