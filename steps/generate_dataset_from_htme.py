@@ -352,8 +352,15 @@ def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket):
         s3_client.put_object_tagging(
             Bucket=s3_publish_bucket,
             Key=key["Key"],
-            Tagging={"TagSet": [{"Key": "collection_tag", "Value": tag_value}]},
+            Tagging={"TagSet": get_tags(tag_value)},
         )
+
+
+def get_tags(tag_value):
+    tag_set = []
+    for k,v in tag_value.items():
+        tag_set.append({"Key":k, "Value":v})
+    return tag_set
 
 
 def get_plaintext_key_calling_dks(
@@ -436,6 +443,7 @@ def decompress(compressed_text):
 
 def persist_json(json_location, values):
     values.saveAsTextFile(json_location, compressionCodecClass="com.hadoop.compression.lzo.LzopCodec")
+
 
 
 def get_collection(collection_name):

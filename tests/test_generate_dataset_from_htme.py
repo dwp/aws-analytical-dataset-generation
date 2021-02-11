@@ -12,10 +12,17 @@ from moto import mock_s3, mock_dynamodb2
 import steps
 from steps import generate_dataset_from_htme
 
+VALUE_KEY = 'Value'
+NAME_KEY = 'Key'
+PII_KEY = "pii"
+TRUE_VALUE = "true"
+DB_KEY = "db"
+TABLE_KEY= "table"
+TAG_SET = [{NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE}, {NAME_KEY: DB_KEY, VALUE_KEY: 'core'}, {
+    NAME_KEY: TABLE_KEY, VALUE_KEY: 'contract'}]
 INVALID_SNAPSHOT_TYPE = "abc"
 SNAPSHOT_TYPE_FULL = "full"
 MOCK_LOCALHOST_URL = "http://localhost:1000"
-
 COMPLETED_STATUS = "Completed"
 HASH_KEY = "Correlation_Id"
 RANGE_KEY = "Run_Id"
@@ -30,8 +37,8 @@ S3_PREFIX = "mongo/ucdata"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 S3_HTME_BUCKET = "test"
 S3_PUBLISH_BUCKET = "target"
-SECRETS = "{'collections_all': {'db.core.contract': 'crown'}}"
-SECRETS_COLLECTIONS = {DB_CORE_CONTRACT: "crown"}
+SECRETS = "{'collections_all': {'db.core.contract': {'pii' : 'true', 'db' : 'core', 'table' : 'contract'}}}"
+SECRETS_COLLECTIONS = {DB_CORE_CONTRACT: {'pii' : 'true', 'db' : 'core', 'table' : 'contract'}}
 KEYS_MAP = {"test_ciphertext": "test_key"}
 RUN_TIME_STAMP = "2020-10-10_10-10-10"
 PUBLISHED_DATABASE_NAME = "test_db"
@@ -149,7 +156,6 @@ def verify_processed_data(
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
     target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
-    target_object_tag = {"Key": "collection_tag", "Value": "crown"}
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -189,8 +195,8 @@ def verify_processed_data(
     assert (
         s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)[
             "TagSet"
-        ][0]
-        == target_object_tag
+        ]
+        == TAG_SET
     )
     assert tbl_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
@@ -216,7 +222,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     core_accounts_collection_name = "core_accounts"
     test_data = '{"name":"abcd"}\n{"name":"xyz"}'
     secret_collections = SECRETS_COLLECTIONS
-    secret_collections[DB_CORE_ACCOUNTS] = "crown"
+    secret_collections[DB_CORE_ACCOUNTS] = {PII_KEY : TRUE_VALUE, DB_KEY : 'core', TABLE_KEY : 'accounts'}
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -336,6 +342,10 @@ def test_exception_when_decompression_fails(
             s3_resource,
         )
 
+
+def test_get_tags():
+    tag_value = SECRETS_COLLECTIONS[DB_CORE_CONTRACT]
+    assert generate_dataset_from_htme.get_tags(tag_value) == TAG_SET
 
 @mock_dynamodb2
 def test_log_start_of_batch():
