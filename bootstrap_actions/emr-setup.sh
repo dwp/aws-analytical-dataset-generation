@@ -47,6 +47,10 @@ export no_proxy="$FULL_NO_PROXY"
 export NO_PROXY="$FULL_NO_PROXY"
 export ADG_LOG_LEVEL="${ADG_LOG_LEVEL}"
 
+PUB_BUCKET_ID="${publish_bucket_id}"
+echo "export PUBLISH_BUCKET_ID=$${PUB_BUCKET_ID}" | sudo tee /etc/profile.d/buckets.sh
+source /etc/profile.d/buckets.sh
+
 echo "Setup cloudwatch logs"
 sudo /opt/emr/cloudwatch.sh \
     "${cwa_metrics_collection_interval}" "${cwa_namespace}"  "${cwa_log_group_name}" \
