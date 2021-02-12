@@ -93,11 +93,21 @@ variable "emr_instance_type_core_three" {
 
 variable "emr_core_instance_count" {
   default = {
-    development = "5"
-    qa          = "5"
-    integration = "5"
-    preprod     = "5"
-    production  = "25"
+    development = "3"
+    qa          = "3"
+    integration = "3"
+    preprod     = "3"
+    production  = "15"
+  }
+}
+
+variable "emr_core_spot_instance_count" {
+  default = {
+    development = "2"
+    qa          = "2"
+    integration = "2"
+    preprod     = "2"
+    production  = "10"
   }
 }
 

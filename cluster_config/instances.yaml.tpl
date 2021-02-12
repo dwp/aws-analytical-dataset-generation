@@ -24,6 +24,7 @@ Instances:
   - InstanceFleetType: "CORE"
     Name: CORE
     TargetOnDemandCapacity: ${core_instance_count}
+    TargetSpotCapacity: ${core_spot_instance_count}
     InstanceTypeConfigs:
     - EbsConfiguration:
         EbsBlockDeviceConfigs:
@@ -46,3 +47,11 @@ Instances:
             VolumeType: "gp2"
           VolumesPerInstance: 1
       InstanceType: "${instance_type_core_three}"
+      BidPriceAsPercentageOfOnDemandPrice: "100"
+    LaunchSpecifications:
+    - OnDemandSpecification: 
+        AllocationStrategy: "lowest-price"
+        - SpotSpecification: 
+            AllocationStrategy: "capacity-optimized"
+            TimeoutDurationMinutes: "120"
+            TimeoutAction: "TERMINATE_CLUSTER"
