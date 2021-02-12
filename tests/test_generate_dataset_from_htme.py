@@ -29,7 +29,7 @@ INVALID_SNAPSHOT_TYPE = "abc"
 MOCK_LOCALHOST_URL = "http://localhost:1000"
 COMPLETED_STATUS = "Completed"
 HASH_KEY = "Correlation_Id"
-RANGE_KEY = "Run_Id"
+RANGE_KEY = "DataProduct"
 IN_PROGRESS_STATUS = "In Progress"
 MOTO_SERVER_URL = "http://127.0.0.1:5000"
 DYNAMODB_AUDIT_TABLENAME = "${data_pipeline_metadata}"
@@ -430,7 +430,7 @@ def mock_get_dynamodb_resource(service_name):
         ],
         AttributeDefinitions=[
             {"AttributeName": HASH_KEY, "AttributeType": "S"},
-            {"AttributeName": RANGE_KEY, "AttributeType": "N"},
+            {"AttributeName": RANGE_KEY, "AttributeType": "S"},
         ],
         ProvisionedThroughput={"ReadCapacityUnits": 10, "WriteCapacityUnits": 10},
     )

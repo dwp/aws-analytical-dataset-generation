@@ -10,3 +10,4 @@ jobs:
             AWS_ACC: ((aws_account.integration))
             S3_PREFIX: businessdata/mongo/ucdata/2020-08-07/full/
             CORRELATION_ID: test
+            SNAPSHOT_TYPE: full

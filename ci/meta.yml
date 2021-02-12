@@ -475,7 +475,19 @@ meta:
               export AWS_DEFAULT_REGION
               source /assume-role
               set +x
-              for CLUSTER_ID in $(aws emr list-clusters --active | jq -r '.Clusters[] | select(.Name | test("analytical-dataset-generator")) | .Id');
-              do
-                aws emr terminate-clusters --cluster-ids $CLUSTER_ID
-              done
+
+              echo "Stopping clusters for ${SNAPSHOT_TYPE}"
+
+              if [[ "${SNAPSHOT_TYPE}" == "full" ]]; then
+                for CLUSTER_ID in $(aws emr list-clusters --active | jq -r '.Clusters[] | select(.Name | test("analytical-dataset-generator-full")) | .Id');
+                do
+                  echo "Stopping cluster with id of ${CLUSTER_ID}"
+                  aws emr terminate-clusters --cluster-ids $CLUSTER_ID
+                done
+              else
+                for CLUSTER_ID in $(aws emr list-clusters --active | jq -r '.Clusters[] | select(.Name | test("analytical-dataset-generator-incremental")) | .Id');
+                do
+                  echo "Stopping cluster with id of ${CLUSTER_ID}"
+                  aws emr terminate-clusters --cluster-ids $CLUSTER_ID
+                done
+              fi
