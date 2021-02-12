@@ -54,4 +54,4 @@ Instances:
         - SpotSpecification: 
             AllocationStrategy: "capacity-optimized"
             TimeoutDurationMinutes: "120"
-            TimeoutAction: "TERMINATE_CLUSTER"
+            TimeoutAction: "SWITCH_TO_ON_DEMAND"
