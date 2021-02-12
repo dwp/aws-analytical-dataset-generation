@@ -146,7 +146,7 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
 }
 CWAGENTCONFIG
 
-%{ if emr_release == "5.29.0" ~}
+%{ if emr_release == "5.31.0" ~}
 # Download and install CloudWatch Agent
 curl https://s3.$${AWS_DEFAULT_REGION}.amazonaws.com/amazoncloudwatch-agent-$${AWS_DEFAULT_REGION}/centos/amd64/latest/amazon-cloudwatch-agent.rpm -O
 rpm -U ./amazon-cloudwatch-agent.rpm
