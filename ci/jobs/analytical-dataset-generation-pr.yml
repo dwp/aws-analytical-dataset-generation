@@ -3,19 +3,19 @@ jobs:
     max_in_flight: 1
     plan:
       - in_parallel:
-        - get: aws-analytical-dataset-generation-pr
-          trigger: true
-          version: every
-        - get: emr-launcher-release
-          trigger: false
-        - get: manage-mysql-user-release
-          trigger: false
-        - get: analytical-dataset-generation-exporter-release
-          trigger: false
-        - get: emr-ami
-          trigger: false
-        - get: secrets-management
-          trigger: false
+          - get: aws-analytical-dataset-generation-pr
+            trigger: true
+            version: every
+          - get: emr-launcher-release
+            trigger: false
+          - get: manage-mysql-user-release
+            trigger: false
+          - get: analytical-dataset-generation-exporter-release
+            trigger: false
+          - get: al2-emr-ami
+            trigger: false
+          - get: secrets-management
+            trigger: false
       - put: aws-analytical-dataset-generation-pr
         params:
           path: aws-analytical-dataset-generation-pr
@@ -73,4 +73,3 @@ jobs:
           params:
             path: aws-analytical-dataset-generation-pr
             status: success
-

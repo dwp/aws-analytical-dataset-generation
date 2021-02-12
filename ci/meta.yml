@@ -152,7 +152,7 @@ meta:
           args:
             - -exc
             - |
-              export TF_VAR_emr_ami_id=$(cat ../emr-ami/id)
+              export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
@@ -168,7 +168,7 @@ meta:
           - name: emr-launcher-release
           - name: manage-mysql-user-release
           - name: analytical-dataset-generation-exporter-release
-          - name: emr-ami
+          - name: al2-emr-ami
 
     terraform-plan:
       task: terraform-plan
@@ -186,7 +186,7 @@ meta:
           args:
             - -exc
             - |
-              export TF_VAR_emr_ami_id=$(cat ../emr-ami/id)
+              export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
@@ -201,7 +201,7 @@ meta:
           - name: emr-launcher-release
           - name: manage-mysql-user-release
           - name: analytical-dataset-generation-exporter-release
-          - name: emr-ami
+          - name: al2-emr-ami
 
     terraform-output-internal-compute:
       task: terraform-output-internal-compute
@@ -366,7 +366,7 @@ meta:
           type: docker-image
           source:
             repository: dwpdigital/python3-pyspark-pytest
-#            pinning this to specific tag as the latest image is failing some tests due to upgraded dependencies
+            #            pinning this to specific tag as the latest image is failing some tests due to upgraded dependencies
             tag: 0.0.17
         run:
           path: sh
