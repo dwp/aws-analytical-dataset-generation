@@ -85,6 +85,7 @@ resources:
         owner-id: ((dataworks.aws_management_acc))
         is-public: false
         state: available
+        name: dw-al2-emr-ami-*
 
   - name: manage-mysql-user-release
     type: github-release
