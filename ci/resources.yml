@@ -19,7 +19,7 @@ resources:
   - name: aws-analytical-dataset-generation-branch
     type: git
     source:
-      branch: test
+      branch: emr-6
       repository: dwp/aws-analytical-dataset-generation
       uri: https://github.com/dwp/aws-analytical-dataset-generation.git
     check_every: 720h

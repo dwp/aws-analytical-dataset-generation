@@ -1,6 +1,6 @@
 variable "emr_release_label" {
   description = "Version of AWS EMR to deploy with associated applicatoins"
-  default     = "emr-6.2.0"
+  default     = "emr-5.31.0"
 }
 
 variable "emr_applications" {
@@ -44,10 +44,10 @@ variable "analytical_dataset_generation_exporter_jar" {
 variable "emr_release" {
   default = {
     development = "6.2.0"
-    qa          = "6.2.0"
-    integration = "6.2.0"
-    preprod     = "6.2.0"
-    production  = "6.2.0"
+    qa          = "5.31.0"
+    integration = "5.31.0"
+    preprod     = "5.31.0"
+    production  = "5.31.0"
   }
 }
 
