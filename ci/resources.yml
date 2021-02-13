@@ -16,6 +16,15 @@ resources:
     check_every: 720h
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
+  - name: aws-analytical-dataset-generation-branch
+    type: git
+    source:
+      branch: test
+      repository: dwp/aws-analytical-dataset-generation
+      uri: https://github.com/dwp/aws-analytical-dataset-generation.git
+    check_every: 720h
+    webhook_token: ((dataworks.concourse_github_webhook_token))
+
   - name: aws-ingestion
     type: git
     source:
