@@ -263,7 +263,7 @@ data "aws_iam_policy_document" "pdm_read_pii_and_non_pii" {
     ]
 
     resources = [
-      "${data.terraform_remote_state.common.outputs.published_bucket.arn}/pdm-dataset/*",
+      "${data.terraform_remote_state.common.outputs.published_bucket.arn}/data/uc/*",
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/aws-analytical-env-metrics-data/*",
     ]
 
@@ -314,7 +314,7 @@ data "aws_iam_policy_document" "pdm_read_non_pii_only" {
     ]
 
     resources = [
-      "${data.terraform_remote_state.common.outputs.published_bucket.arn}/pdm-dataset/*",
+      "${data.terraform_remote_state.common.outputs.published_bucket.arn}/data/uc/*",
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/aws-analytical-env-metrics-data/*",
     ]
 
