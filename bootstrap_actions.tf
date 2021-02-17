@@ -32,6 +32,7 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       cwa_steps_loggrp_name           = aws_cloudwatch_log_group.adg_cw_steps_loggroup.name
       cwa_yarnspark_loggrp_name       = aws_cloudwatch_log_group.adg_cw_yarnspark_loggroup.name
       name                            = local.emr_cluster_name
+      publish_bucket_id               = data.terraform_remote_state.common.outputs.published_bucket.id
   })
 }
 
@@ -142,11 +143,11 @@ resource "aws_s3_bucket_object" "download_sql_sh" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/download_sql.sh"
   content = templatefile("${path.module}/bootstrap_actions/download_sql.sh",
-  {
-    version               = local.mongo_latest_version[local.environment]
-    s3_artefact_bucket_id = data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id
-    adg_log_level         = local.adg_log_level[local.environment]
-    environment_name      = local.environment
-  }
+    {
+      version               = local.mongo_latest_version[local.environment]
+      s3_artefact_bucket_id = data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id
+      adg_log_level         = local.adg_log_level[local.environment]
+      environment_name      = local.environment
+    }
   )
 }

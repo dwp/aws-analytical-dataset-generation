@@ -75,7 +75,7 @@ resources:
     check_every: 1h
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
-  - name: emr-ami
+  - name: al2-emr-ami
     type: ami
     check_every: 1h
     source:
@@ -85,7 +85,7 @@ resources:
         owner-id: ((dataworks.aws_management_acc))
         is-public: false
         state: available
-        name: dw-emr-ami-*
+        name: dw-al2-emr-ami-*
 
   - name: manage-mysql-user-release
     type: github-release

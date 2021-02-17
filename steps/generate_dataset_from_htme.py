@@ -24,6 +24,9 @@ from Crypto.Util import Counter
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
 
+SNAPSHOT_TYPE_KEY = "snapshot_type"
+VALUE_KEY = "Value"
+KEY_KEY = "Key"
 ARG_SNAPSHOT_TYPE = "snapshot_type"
 ARG_S3_PREFIX = "s3_prefix"
 ARG_CORRELATION_ID = "correlation_id"
@@ -32,7 +35,10 @@ FAILED_STATUS = "Failed"
 COMPLETED_STATUS = "Completed"
 DATA_PRODUCT_NAME = "ADG"
 AUDIT_TABLE_HASH_KEY = "Correlation_Id"
-AUDIT_TABLE_RANGE_KEY = "Run_Id"
+AUDIT_TABLE_RANGE_KEY = "DataProduct"
+AUDIT_TABLE_RUN_ID_KEY = "Run_Id"
+AUDIT_TABLE_DATE_KEY = "Date"
+AUDIT_TABLE_STATUS_KEY = "Status"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
 ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
@@ -269,7 +275,7 @@ def consolidate_rdd_per_collection(
             collection_name_key = get_collection(collection_name)
             collection_name_key = collection_name_key.replace("_", "-")
             file_location = "${file_location}"
-            json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}"
+            json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
             json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
             persist_json(json_location, consolidated_rdd_mapped)
             the_logger.info(
@@ -278,7 +284,7 @@ def consolidate_rdd_per_collection(
                 args.correlation_id,
                 run_id,
             )
-            tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket)
+            tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket, args.snapshot_type)
         add_metric('htme_collection_size.csv',collection_name,str(total_collection_size))
         add_folder_size_metric(collection_name, s3_publish_bucket, json_location_prefix,"adg_collection_size.csv",s3_resource)
         the_logger.info(
@@ -341,19 +347,29 @@ def retrieve_secrets(args, secret_name):
     return response_dict
 
 
-def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket):
-    default_value = "default"
-
-    if tag_value is None or tag_value == "":
-        tag_value = default_value
+def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket, snapshot_type):
     for key in s3_client.list_objects(Bucket=s3_publish_bucket, Prefix=prefix)[
         "Contents"
     ]:
+        tags_set_value = (
+            [{"Key": "collection_tag", "Value": "NOT_SET"}]
+            if tag_value is None or tag_value == ""
+            else get_tags(tag_value, snapshot_type)
+        )
+
         s3_client.put_object_tagging(
             Bucket=s3_publish_bucket,
             Key=key["Key"],
-            Tagging={"TagSet": [{"Key": "collection_tag", "Value": tag_value}]},
+            Tagging={"TagSet": tags_set_value},
         )
+
+
+def get_tags(tag_value, snapshot_type):
+    tag_set = []
+    for k,v in tag_value.items():
+        tag_set.append({KEY_KEY:k, VALUE_KEY:v})
+    tag_set.append({KEY_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: snapshot_type})
+    return tag_set
 
 
 def get_plaintext_key_calling_dks(
@@ -436,6 +452,7 @@ def decompress(compressed_text):
 
 def persist_json(json_location, values):
     values.saveAsTextFile(json_location, compressionCodecClass="com.hadoop.compression.lzo.LzopCodec")
+
 
 
 def get_collection(collection_name):
@@ -559,17 +576,28 @@ def add_folder_size_metric(collection_name, s3_bucket, s3_prefix,filename,s3_res
         str(total_size))
 
 def add_metric(metrics_file, collection_name, value):
-    metrics_path = f"/opt/emr/metrics/{metrics_file}"
-    if not os.path.exists(metrics_path):
-        os.mknod(metrics_path)
-    with open(metrics_path, "r") as f:
-        lines = f.readlines()
-    with open(metrics_path, "w") as f:
-        for line in lines:
-            if not line.startswith(get_collection(collection_name)):
-                f.write(line)
-        collection_name = get_collection(collection_name).replace("/", "_")
-        f.write(collection_name + "," + value + "\n")
+    try:
+        path = "/opt/emr/metrics/"
+        if not os.path.exists(path):
+            os.makedirs(path)
+        metrics_path = f"{path}{metrics_file}"
+        if not os.path.exists(metrics_path):
+            os.mknod(metrics_path)
+        with open(metrics_path, "r") as f:
+            lines = f.readlines()
+        with open(metrics_path, "w") as f:
+            for line in lines:
+                if not line.startswith(get_collection(collection_name)):
+                    f.write(line)
+            collection_name = get_collection(collection_name).replace("/", "_")
+            f.write(collection_name + "," + value + "\n")
+    except Exception as ex:
+        the_logger.warn(
+            "Problem adding metric with file of '%s', collection name of '%s' and exception of '%s'",
+            metrics_file,
+            collection_name,
+            str(ex)
+        )
 
 
 def get_spark_session(args):
@@ -577,6 +605,13 @@ def get_spark_session(args):
         SparkSession.builder.master("yarn")
         .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
         .config("spark.metrics.namespace", f"adg_{args.snapshot_type.lower()}")
+        .config("spark.executor.heartbeatInterval", "300000")
+        .config("spark.network.timeout", "500000")
+        .config("spark.hadoop.fs.s3.maxRetries", "20")
+        .config("spark.rpc.numRetries", "10")
+        .config("spark.task.maxFailures", "10")
+        .config("spark.scheduler.mode", "FAIR")
+        .config("spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version", "2")
         .appName("spike")
         .enableHiveSupport()
         .getOrCreate()
@@ -608,7 +643,7 @@ def log_start_of_batch(args, dynamodb=None):
         if not response["Items"]:
             put_item(args, run_id, table, IN_PROGRESS_STATUS)
         else:
-            run_id = response["Items"][0][AUDIT_TABLE_RANGE_KEY] + 1
+            run_id = response["Items"][0][AUDIT_TABLE_RUN_ID_KEY] + 1
             put_item(args, run_id, table, IN_PROGRESS_STATUS)
     except BaseException as ex:
         the_logger.error(
@@ -624,10 +659,10 @@ def put_item(args, run_id, table, status):
     table.put_item(
         Item={
             AUDIT_TABLE_HASH_KEY: args.correlation_id,
-            AUDIT_TABLE_RANGE_KEY: run_id,
-            "Date": get_todays_date(),
-            "DataProduct": f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
-            "Status": status,
+            AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
+            AUDIT_TABLE_RUN_ID_KEY: run_id,
+            AUDIT_TABLE_DATE_KEY: get_todays_date(),
+            AUDIT_TABLE_STATUS_KEY: status,
         }
     )
 
@@ -701,7 +736,7 @@ if __name__ == "__main__":
         run_id,
         s3_resource
     )
-    log_end_of_batch(args.correlation_id, run_id, COMPLETED_STATUS, dynamodb)
+    log_end_of_batch(args, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
     add_metric("processing_times.csv", "all_collections", str(total_time))

@@ -1,6 +1,6 @@
 variable "emr_release_label" {
   description = "Version of AWS EMR to deploy with associated applicatoins"
-  default     = "emr-5.29.0"
+  default     = "emr-5.31.0"
 }
 
 variable "emr_applications" {
@@ -43,11 +43,11 @@ variable "analytical_dataset_generation_exporter_jar" {
 
 variable "emr_release" {
   default = {
-    development = "5.29.0"
-    qa          = "5.29.0"
-    integration = "5.29.0"
-    preprod     = "5.29.0"
-    production  = "5.29.0"
+    development = "5.31.0"
+    qa          = "5.31.0"
+    integration = "5.31.0"
+    preprod     = "5.31.0"
+    production  = "5.31.0"
   }
 }
 
@@ -83,11 +83,21 @@ variable "emr_instance_type_core_two" {
 
 variable "emr_instance_type_core_three" {
   default = {
-    development = "m5d.2xlarge"
-    qa          = "m5d.2xlarge"
-    integration = "m5d.2xlarge"
-    preprod     = "m5d.2xlarge"
-    production  = "m5d.24xlarge"
+    development = "r5a.2xlarge"
+    qa          = "r5a.2xlarge"
+    integration = "r5a.2xlarge"
+    preprod     = "r5a.2xlarge"
+    production  = "r5a.24xlarge"
+  }
+}
+
+variable "emr_instance_type_core_four" {
+  default = {
+    development = "r5.2xlarge"
+    qa          = "r5.2xlarge"
+    integration = "r5.2xlarge"
+    preprod     = "r5.2xlarge"
+    production  = "r5.24xlarge"
   }
 }
 
@@ -97,7 +107,7 @@ variable "emr_core_instance_count" {
     qa          = "5"
     integration = "5"
     preprod     = "5"
-    production  = "35"
+    production  = "25"
   }
 }
 
@@ -117,7 +127,7 @@ variable "spark_executor_instances" {
     qa          = 14
     integration = 14
     preprod     = 14
-    production  = 500 # More than possible as it won't create them if no core or memory available
+    production  = 350 # More than possible as it won't create them if no core or memory available
   }
 }
 
