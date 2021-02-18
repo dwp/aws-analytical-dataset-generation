@@ -7,11 +7,11 @@ jobs:
             resource: meta-development
           - get: aws-analytical-dataset-generation
             resource: aws-analytical-dataset-generation-branch
-            trigger: true
+            trigger: false
           - get: emr-launcher-release
-            trigger: true
+            trigger: false
           - get: analytical-dataset-generation-exporter-release
-            trigger: true
+            trigger: false
           - get: aws-dataworks-e2e-framework
             trigger: false
           - get: aws-ingestion
@@ -23,9 +23,9 @@ jobs:
           - get: secrets-management
             trigger: false
           - get: al2-emr-ami
-            trigger: true
+            trigger: false
           - get: manage-mysql-user-release
-            trigger: true
+            trigger: false
             params:
               globs:
                 - "*.zip"
