@@ -1,6 +1,7 @@
 groups:
   - name: master
     jobs:
+      - emr-6-analytical-dataset-generation-dev
       - analytical-dataset-generation-dev
       - analytical-dataset-generation-qa
       - analytical-dataset-generation-integration

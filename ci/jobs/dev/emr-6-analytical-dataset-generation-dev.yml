@@ -1,12 +1,12 @@
 jobs:
-  - name: analytical-dataset-generation-dev
+  - name: emr-6-analytical-dataset-generation-dev
     max_in_flight: 1
     plan:
       - in_parallel:
           - put: meta
             resource: meta-development
           - get: aws-analytical-dataset-generation
-            resource: aws-analytical-dataset-generation
+            resource: aws-analytical-dataset-generation-branch
             trigger: true
           - get: emr-launcher-release
             trigger: true
