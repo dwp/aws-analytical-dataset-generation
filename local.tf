@@ -206,4 +206,12 @@ locals {
     preprod     = "0.0.19"
     production  = "0.0.19"
   }
+
+  skip_sns_notification_on_adg_completion = {
+    development = "true"
+    qa          = "true"
+    integration = "true"
+    preprod     = "true"
+    production  = "false"
+  }
 }
