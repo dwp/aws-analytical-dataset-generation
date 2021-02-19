@@ -48,6 +48,7 @@ resource "aws_s3_bucket_object" "steps" {
     {
       s3_config_bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
       action_on_failure = local.step_fail_action[local.environment]
+      s3_published_bucket = data.terraform_remote_state.common.outputs.published_bucket.id
     }
   )
 }
