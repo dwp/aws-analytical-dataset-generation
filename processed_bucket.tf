@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_write" {
     ]
 
     resources = [
-      data.terraform_remote_state.common.outputs.processed_bucket.arn,
+      "${data.terraform_remote_state.common.outputs.processed_bucket.arn}/*"
     ]
   }
 
