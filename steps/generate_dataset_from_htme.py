@@ -9,7 +9,7 @@ import sys
 import time
 import zlib
 import concurrent.futures
-from datetime import datetime
+from datetime import datetime, timedelta
 from itertools import groupby
 
 import boto3
@@ -42,6 +42,7 @@ AUDIT_TABLE_STATUS_KEY = "Status"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
 ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
+TTL_KEY = "TimeToExist"
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -640,11 +641,12 @@ def log_start_of_batch(args, dynamodb=None):
             ScanIndexForward=False,
         )
         # If this is the first entry for correlation_id then create a new entry with Run_Id as 1 else increment it by 1
+        ttl = get_ttl(datetime.now(), 168)
         if not response["Items"]:
-            put_item(args, run_id, table, IN_PROGRESS_STATUS)
+            put_item(args, run_id, table, IN_PROGRESS_STATUS, ttl)
         else:
             run_id = response["Items"][0][AUDIT_TABLE_RUN_ID_KEY] + 1
-            put_item(args, run_id, table, IN_PROGRESS_STATUS)
+            put_item(args, run_id, table, IN_PROGRESS_STATUS, ttl)
     except BaseException as ex:
         the_logger.error(
             "Problem updating audit table start status for correlation id : %s %s",
@@ -655,7 +657,7 @@ def log_start_of_batch(args, dynamodb=None):
     return run_id
 
 
-def put_item(args, run_id, table, status):
+def put_item(args, run_id, table, status, ttl):
     table.put_item(
         Item={
             AUDIT_TABLE_HASH_KEY: args.correlation_id,
@@ -663,8 +665,14 @@ def put_item(args, run_id, table, status):
             AUDIT_TABLE_RUN_ID_KEY: run_id,
             AUDIT_TABLE_DATE_KEY: get_todays_date(),
             AUDIT_TABLE_STATUS_KEY: status,
+            TTL_KEY: ttl,
         }
     )
+
+
+def get_ttl(base_datetime, hours_to_add):
+    timestamp = base_datetime + timedelta(hours=hours_to_add)
+    return int((timestamp - datetime(1970, 1, 1)).total_seconds() * 1000.0)
 
 
 def log_end_of_batch(args, run_id, status, dynamodb=None):
@@ -677,7 +685,8 @@ def log_end_of_batch(args, run_id, status, dynamodb=None):
             dynamodb = get_resource("dynamodb")
         data_pipeline_metadata = "${data_pipeline_metadata}"
         table = dynamodb.Table(data_pipeline_metadata)
-        put_item(args, run_id, table, status)
+        ttl = get_ttl(datetime.now(), 168)
+        put_item(args, run_id, table, status, ttl)
     except BaseException as ex:
         the_logger.error(
             "Problem updating audit table end status for correlation id: %s and run id : %s %s",
