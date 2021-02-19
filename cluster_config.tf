@@ -34,7 +34,7 @@ resource "aws_s3_bucket_object" "instances" {
       instance_type_core_one   = var.emr_instance_type_core_one[local.environment]
       instance_type_core_two   = var.emr_instance_type_core_two[local.environment]
       instance_type_core_three = var.emr_instance_type_core_three[local.environment]
-      instance_type_core_four = var.emr_instance_type_core_four[local.environment]
+      instance_type_core_four  = var.emr_instance_type_core_four[local.environment]
       instance_type_master     = var.emr_instance_type_master[local.environment]
       core_instance_count      = var.emr_core_instance_count[local.environment]
     }
@@ -46,8 +46,9 @@ resource "aws_s3_bucket_object" "steps" {
   key    = "emr/adg/steps.yaml"
   content = templatefile("${path.module}/cluster_config/steps.yaml.tpl",
     {
-      s3_config_bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
-      action_on_failure = local.step_fail_action[local.environment]
+      s3_config_bucket    = data.terraform_remote_state.common.outputs.config_bucket.id
+      action_on_failure   = local.step_fail_action[local.environment]
+      s3_published_bucket = data.terraform_remote_state.common.outputs.published_bucket.id
     }
   )
 }
