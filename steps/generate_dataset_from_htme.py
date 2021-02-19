@@ -685,7 +685,8 @@ def log_end_of_batch(args, run_id, status, dynamodb=None):
             dynamodb = get_resource("dynamodb")
         data_pipeline_metadata = "${data_pipeline_metadata}"
         table = dynamodb.Table(data_pipeline_metadata)
-        put_item(args, run_id, table, status)
+        ttl = get_ttl(datetime.now(), 168)
+        put_item(args, run_id, table, status, ttl)
     except BaseException as ex:
         the_logger.error(
             "Problem updating audit table end status for correlation id: %s and run id : %s %s",
