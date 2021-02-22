@@ -1,24 +1,9 @@
 #!/usr/bin/env bash
-echo "Creating shared directory"
-sudo mkdir -p /opt/shared
-sudo mkdir -p /opt/emr
-sudo mkdir -p /var/log/adg
-sudo chown hadoop:hadoop /opt/emr
-sudo chown hadoop:hadoop /opt/shared
-sudo chown hadoop:hadoop /var/log/adg
-echo "${VERSION}" > /opt/emr/version
-echo "${ADG_LOG_LEVEL}" > /opt/emr/log_level
-echo "${ENVIRONMENT_NAME}" > /opt/emr/environment
-
 echo "Installing scripts"
-aws s3 cp "${S3_COMMON_LOGGING_SHELL}"        /opt/shared/common_logging.sh
-aws s3 cp "${S3_LOGGING_SHELL}"               /opt/emr/logging.sh
 aws s3 cp "${S3_CLOUDWATCH_SHELL}"            /opt/emr/cloudwatch.sh
 aws s3 cp "${S3_SEND_SNS_NOTIFICATION}"       /opt/emr/send_notification.py
 
 echo "Changing the Permissions"
-chmod u+x /opt/shared/common_logging.sh
-chmod u+x /opt/emr/logging.sh
 chmod u+x /opt/emr/cloudwatch.sh
 chmod u+x /opt/emr/send_notification.py
 
@@ -96,7 +81,6 @@ EOF
     --truststore-aliases "${truststore_aliases}" \
     --truststore-certs "${truststore_certs}" \
     --jks-only true >> /var/log/adg/acm-cert-retriever.log 2>&1
-    
     
     sudo -E acm-cert-retriever \
     --acm-cert-arn "${acm_cert_arn}" \

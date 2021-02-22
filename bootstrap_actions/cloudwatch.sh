@@ -26,13 +26,13 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
           {
             "file_path": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
             "log_group_name": "$${cwa_log_group_name}",
-            "log_stream_name": "amazon-cloudwatch-agent.log",
+            "log_stream_name": "{instance_id}-amazon-cloudwatch-agent.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/messages",
             "log_group_name": "$${cwa_log_group_name}",
-            "log_stream_name": "messages",
+            "log_stream_name": "{instance_id}-messages",
             "timezone": "UTC"
           },
           {
@@ -50,91 +50,97 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
           {
             "file_path": "/var/log/adg/acm-cert-retriever.log",
             "log_group_name": "$${cwa_bootstrap_loggrp_name}",
-            "log_stream_name": "acm-cert-retriever.log",
+            "log_stream_name": "{instance_id}-acm-cert-retriever.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/nohup.log",
             "log_group_name": "$${cwa_bootstrap_loggrp_name}",
-            "log_stream_name": "nohup.log",
+            "log_stream_name": "{instance_id}-nohup.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/emr-setup.log",
             "log_group_name": "$${cwa_bootstrap_loggrp_name}",
-            "log_stream_name": "emr-setup.log",
+            "log_stream_name": "{instance_id}-emr-setup.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/install-pycrypto.log",
             "log_group_name": "$${cwa_bootstrap_loggrp_name}",
-            "log_stream_name": "install-pycrypto.log",
+            "log_stream_name": "{instance_id}-install-pycrypto.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/download_scripts.log",
+            "log_group_name": "$${cwa_bootstrap_loggrp_name}",
+            "log_stream_name": "{instance_id}-download-scripts.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/install-requests.log",
             "log_group_name": "$${cwa_bootstrap_loggrp_name}",
-            "log_stream_name": "install-requests.log",
+            "log_stream_name": "{instance_id}-install-requests.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/install-boto3.log",
             "log_group_name": "$${cwa_bootstrap_loggrp_name}",
-            "log_stream_name": "install-boto3.log",
+            "log_stream_name": "{instance_id}-install-boto3.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/hive-tables-creation.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "hive-tables-creation.log",
+            "log_stream_name": "{instance_id}-hive-tables-creation.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/create-hive-tables.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "create-hive-tables.log",
+            "log_stream_name": "{instance_id}-create-hive-tables.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/generate-analytical-dataset.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "generate-analytical-dataset.log",
+            "log_stream_name": "{instance_id}-generate-analytical-dataset.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/hadoop-yarn/containers/application_*/container_*/stdout**",
             "log_group_name": "$${cwa_yarnspark_loggrp_name}",
-            "log_stream_name": "spark-stdout.log",
+            "log_stream_name": "{instance_id}-spark-stdout.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/hadoop-yarn/containers/application_*/container_*/stderr**",
             "log_group_name": "$${cwa_yarnspark_loggrp_name}",
-            "log_stream_name": "spark-stderror.log",
+            "log_stream_name": "{instance_id}-spark-stderror.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/hadoop-yarn/yarn-yarn-nodemanager**.log",
             "log_group_name": "$${cwa_yarnspark_loggrp_name}",
-            "log_stream_name": "yarn_nodemanager.log",
+            "log_stream_name": "{instance_id}-yarn_nodemanager.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/adg_params.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "adg_params.log",
+            "log_stream_name": "{instance_id}-adg_params.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/flush-pushgateway.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "flush-pushgateway.log",
+            "log_stream_name": "{instance_id}-flush-pushgateway.log",
             "timezone": "UTC"
           },
           {
             "file_path": "/var/log/adg/create-mongo-latest-dbs.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "create-mongo-latest-dbs.log",
+            "log_stream_name": "{instance_id}-create-mongo-latest-dbs.log",
             "timezone": "UTC"
           }
         ]
