@@ -200,11 +200,11 @@ locals {
   }
 
   mongo_latest_version = {
-    development = "0.0.19"
-    qa          = "0.0.19"
-    integration = "0.0.19"
-    preprod     = "0.0.19"
-    production  = "0.0.19"
+    development = "0.0.20"
+    qa          = "0.0.20"
+    integration = "0.0.20"
+    preprod     = "0.0.20"
+    production  = "0.0.20"
   }
 
   skip_sns_notification_on_adg_completion = {
