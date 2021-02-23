@@ -73,9 +73,9 @@ Configurations:
     "hive.strict.checks.cartesian.product": "false"
     "hive.exec.parallel": "true"
     %{~ if environment == "production" ~}
-    "hive.tez.container.size":"16384"
-    "hive.tez.java.opts":"-Xmx13107m"
-    "hive.auto.convert.join.noconditionaltask.size":"5461"
+    "hive.tez.container.size": "16384"
+    "hive.tez.java.opts": "-Xmx13107m"
+    "hive.auto.convert.join.noconditionaltask.size": "5461"
     %{~ endif ~}
 
 - Classification: "emrfs-site"
