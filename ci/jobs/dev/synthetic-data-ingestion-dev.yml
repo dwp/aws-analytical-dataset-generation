@@ -14,9 +14,19 @@ jobs:
           - get: aws-management-infrastructure
             trigger: false
       - .: (( inject meta.plan.terraform-bootstrap ))
-      - .: (( inject meta.plan.terraform-output-ingest ))
-      - .: (( inject meta.plan.terraform-output-internal-compute ))
-      - .: (( inject meta.plan.terraform-output-management-infra ))
+      - in_parallel:
+        - .: (( inject meta.plan.terraform-output-ingest ))
+          config:
+            params:
+              TF_WORKSPACE: default
+        - .: (( inject meta.plan.terraform-output-internal-compute ))
+          config:
+            params:
+              TF_WORKSPACE: default
+        - .: (( inject meta.plan.terraform-output-management-infra ))
+          config:
+            params:
+              TF_WORKSPACE: default
       - .: (( inject meta.plan.synthetic-data-ingestion ))
         config:
           params:
