@@ -17,15 +17,19 @@ jobs:
         config:
           params:
             TF_WORKSPACE: integration
-      - .: (( inject meta.plan.terraform-output-ingest ))
-        config:
-          params:
-            TF_WORKSPACE: integration
-      - .: (( inject meta.plan.terraform-output-internal-compute ))
-        config:
-          params:
-            TF_WORKSPACE: integration
-      - .: (( inject meta.plan.terraform-output-management-infra ))
+      - in_parallel:
+        - .: (( inject meta.plan.terraform-output-ingest ))
+          config:
+            params:
+              TF_WORKSPACE: integration
+        - .: (( inject meta.plan.terraform-output-internal-compute ))
+          config:
+            params:
+              TF_WORKSPACE: integration
+        - .: (( inject meta.plan.terraform-output-management-infra ))
+          config:
+            params:
+              TF_WORKSPACE: default
       - .: (( inject meta.plan.synthetic-data-ingestion ))
         config:
           params:
