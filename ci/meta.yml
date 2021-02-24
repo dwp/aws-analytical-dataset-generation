@@ -339,7 +339,6 @@ meta:
             repository: ((dataworks.docker_python_boto_behave_repository))
             tag: ((dataworks.docker_python_boto_behave_version))
         params:
-          AWS_REGION: ((dataworks.aws_region))
           AWS_DEFAULT_REGION: ((dataworks.aws_region))
           NUMBER_OF_TOPICS_TO_USE: "3"
           E2E_TEST_TIMEOUT: 300
@@ -351,6 +350,8 @@ meta:
           args:
             - -exc
             - |
+              source /assume-role
+
               cd src/runners
               ./run-ci.sh \
               "../../../meta"
