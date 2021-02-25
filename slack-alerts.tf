@@ -118,7 +118,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_terminated" {
     {
       Name              = "adg_full_terminated",
       notification_type = "Information",
-      severity          = "Critical"
+      severity          = "High"
     },
   )
 }
