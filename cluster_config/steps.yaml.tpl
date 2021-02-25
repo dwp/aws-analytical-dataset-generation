@@ -64,24 +64,10 @@ Steps:
     - "file:/var/ci/flush-pushgateway.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
-- Name: "build-day-1-ContractClaimant"
+- Name: "build-day-1-all"
   HadoopJarStep:
     Args:
-    - "/opt/emr/aws-mongo-latest/update/executeUpdateContractClaimant.sh"
-    - "${s3_published_bucket}"
-    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
-  ActionOnFailure: "${action_on_failure}"
-- Name: "build-day-1-ToDo"
-  HadoopJarStep:
-    Args:
-    - "/opt/emr/aws-mongo-latest/update/executeUpdateToDo.sh"
-    - "${s3_published_bucket}"
-    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
-  ActionOnFailure: "${action_on_failure}"
-- Name: "build-day-1-Statement"
-  HadoopJarStep:
-    Args:
-    - "/opt/emr/aws-mongo-latest/update/executeUpdateStatement.sh"
+    - "/opt/emr/aws-mongo-latest/update/executeUpdateAll.sh"
     - "${s3_published_bucket}"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
