@@ -1,7 +1,7 @@
 resource "aws_emr_security_configuration" "ebs_emrfs_em" {
   name          = "adg_ebs_emrfs"
   configuration = jsonencode(local.ebs_emrfs_em)
-}
+
 
 resource "aws_s3_bucket_object" "cluster" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
@@ -113,7 +113,7 @@ resource "aws_s3_bucket_object" "configurations" {
       s3_htme_bucket                      = data.terraform_remote_state.ingest.outputs.s3_buckets.htme_bucket
       spark_kyro_buffer                   = local.spark_kyro_buffer
       hive_metsatore_username             = data.terraform_remote_state.internal_compute.outputs.metadata_store_users.adg_writer.username
-      hive_metastore_pwd                  = data.terraform_remote_state.internal_compute.outputs.metadata_store_users.adg_writer.secre_name
+      hive_metastore_pwd                  = data.terraform_remote_state.internal_compute.outputs.metadata_store_users.adg_writer.secret_name
       hive_metastore_endpoint             = aws_rds_cluster.hive_metastore.endpoint
       hive_metastore_database_name        = data.terraform_remote_state.internal_compute.outputs.hive_metastore_v2.database_name
       hive_metastore_backend              = local.hive_metastore_backend[local.environment]
