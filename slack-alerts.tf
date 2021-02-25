@@ -141,7 +141,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_success" {
   tags = merge(
     local.common_tags,
     {
-      Name              = "adg_fill_success",
+      Name              = "adg_full_success",
       notification_type = "Information",
       severity          = "Critical"
     },
@@ -268,7 +268,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_terminated" {
     {
       Name              = "adg_incremental_terminated",
       notification_type = "Information",
-      severity          = "Critical"
+      severity          = "High"
     },
   )
 }
@@ -291,7 +291,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_success" {
   tags = merge(
     local.common_tags,
     {
-      Name              = "adg_fill_success",
+      Name              = "adg_full_success",
       notification_type = "Information",
       severity          = "Critical"
     },
