@@ -112,8 +112,8 @@ resource "aws_s3_bucket_object" "configurations" {
       proxy_https_port                    = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
       s3_htme_bucket                      = data.terraform_remote_state.ingest.outputs.s3_buckets.htme_bucket
       spark_kyro_buffer                   = local.spark_kyro_buffer
-      hive_metsatore_username             = var.metadata_store_adg_writer_username
-      hive_metastore_pwd                  = aws_secretsmanager_secret.metadata_store_adg_writer.name
+      hive_metsatore_username             = data.terraform_remote_state.internal_compute.outputs.metadata_store_users.adg_writer.username
+      hive_metastore_pwd                  = data.terraform_remote_state.internal_compute.outputs.metadata_store_users.adg_writer.secre_name
       hive_metastore_endpoint             = aws_rds_cluster.hive_metastore.endpoint
       hive_metastore_database_name        = data.terraform_remote_state.internal_compute.outputs.hive_metastore_v2.database_name
       hive_metastore_backend              = local.hive_metastore_backend[local.environment]
