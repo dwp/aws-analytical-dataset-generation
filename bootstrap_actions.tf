@@ -5,16 +5,26 @@ resource "aws_s3_bucket_object" "metadata_script" {
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
 }
 
+resource "aws_s3_bucket_object" "download_scripts_sh" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "component/analytical-dataset-generation/download_scripts.sh"
+  content = templatefile("${path.module}/bootstrap_actions/download_scripts.sh",
+    {
+      VERSION                 = local.adg_version[local.environment]
+      ADG_LOG_LEVEL           = local.adg_log_level[local.environment]
+      ENVIRONMENT_NAME        = local.environment
+      S3_COMMON_LOGGING_SHELL = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, data.terraform_remote_state.common.outputs.application_logging_common_file.s3_id)
+      S3_LOGGING_SHELL        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logging_script.key)
+      scripts_location        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, "component/analytical-dataset-generation")
+  })
+}
+
 resource "aws_s3_bucket_object" "emr_setup_sh" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/emr-setup.sh"
   content = templatefile("${path.module}/bootstrap_actions/emr-setup.sh",
     {
-      VERSION                         = local.adg_version[local.environment]
       ADG_LOG_LEVEL                   = local.adg_log_level[local.environment]
-      ENVIRONMENT_NAME                = local.environment
-      S3_COMMON_LOGGING_SHELL         = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, data.terraform_remote_state.common.outputs.application_logging_common_file.s3_id)
-      S3_LOGGING_SHELL                = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logging_script.key)
       S3_SEND_SNS_NOTIFICATION        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.send_notification_script.key)
       aws_default_region              = "eu-west-2"
       full_proxy                      = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
@@ -92,6 +102,7 @@ resource "aws_s3_bucket_object" "cloudwatch_sh" {
     }
   )
 }
+
 resource "aws_s3_bucket_object" "metrics_setup_sh" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn

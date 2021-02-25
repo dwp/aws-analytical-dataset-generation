@@ -8,6 +8,7 @@ import boto3
 import pytest
 from boto3.dynamodb.conditions import Key
 from moto import mock_s3, mock_dynamodb2
+from datetime import datetime
 
 import steps
 from steps import generate_dataset_from_htme
@@ -482,3 +483,15 @@ def test_validate_required_args_with_invalid_values_for_snapshot_type():
         str(argument_error.value)
         == "ArgumentError: Valid values for snapshot_type are: full, incremental"
     )
+
+
+def test_get_ttl():
+    base_datetime = datetime.strptime("2020-12-25T03:02:01.000", "%Y-%m-%dT%H:%M:%S.%f")
+    expected = 1608908521000
+    actual = generate_dataset_from_htme.get_ttl(base_datetime, 12)
+    assert expected == actual
+
+
+def test_get_ttl_takes_in_datetime_now():
+    actual = generate_dataset_from_htme.get_ttl(datetime.now(), 12)
+    assert actual is not None

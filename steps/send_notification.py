@@ -14,8 +14,14 @@ the_logger = setup_logging(
 
 
 def send_sns_message(
-    publish_bucket, status_topic_arn, adg_param_key, sns_client=None, s3_client=None
+    publish_bucket, status_topic_arn, adg_param_key, skip_message_sending, sns_client=None, s3_client=None
 ):
+    if skip_message_sending.lower() == "true":
+        the_logger.info(
+            f"Skipping SNS message sending due to skip_message_sending value of {skip_message_sending}",
+        )
+        return None
+
     payload = {}
     csv_name = "adg_params.csv"
     if not sns_client:
@@ -45,5 +51,6 @@ def send_sns_message(
 if __name__ == "__main__":
     publish_bucket = "${publish_bucket}"
     status_topic_arn = "${status_topic_arn}"
+    skip_message_sending = "${skip_message_sending}"
     adg_param_key = "analytical-dataset/full/adg_output/adg_params.csv"
-    send_sns_message(publish_bucket, status_topic_arn, adg_param_key)
+    send_sns_message(publish_bucket, status_topic_arn, adg_param_key, skip_message_sending)
