@@ -115,7 +115,7 @@ resource "aws_s3_bucket_object" "configurations" {
       hive_metsatore_username             = var.metadata_store_adg_writer_username
       hive_metastore_pwd                  = aws_secretsmanager_secret.metadata_store_adg_writer.name
       hive_metastore_endpoint             = aws_rds_cluster.hive_metastore.endpoint
-      hive_metastore_database_name        = aws_rds_cluster.hive_metastore.database_name
+      hive_metastore_database_name        = data.terraform_remote_state.internal_compute.outputs.hive_metastore_v2.database_name
       hive_metastore_backend              = local.hive_metastore_backend[local.environment]
       spark_executor_cores                = local.spark_executor_cores[local.environment]
       spark_executor_memory               = local.spark_executor_memory[local.environment]
