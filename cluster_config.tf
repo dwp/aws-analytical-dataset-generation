@@ -1,7 +1,7 @@
 resource "aws_emr_security_configuration" "ebs_emrfs_em" {
   name          = "adg_ebs_emrfs"
   configuration = jsonencode(local.ebs_emrfs_em)
-
+}
 
 resource "aws_s3_bucket_object" "cluster" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
