@@ -285,7 +285,7 @@ meta:
             repository: ((dataworks.docker_python_boto_behave_repository))
             tag: ((dataworks.docker_python_boto_behave_version))
         run:
-          dir: aws-dataworks-e2e-framework
+          dir: dataworks-behavioural-framework
           path: sh
           args:
             - -exc
@@ -295,7 +295,7 @@ meta:
               cd src/runners
               ./run-ci.sh "" "../../../terraform-output-ingest/outputs.json" "../../../terraform-output-internal-compute/outputs.json" "" "../../../terraform-output-management-infra/outputs.json"
         inputs:
-          - name: aws-dataworks-e2e-framework
+          - name: dataworks-behavioural-framework
           - name: terraform-output-ingest
           - name: terraform-config
           - name: terraform-output-management-infra
@@ -346,7 +346,7 @@ meta:
           ASSUME_DURATION: 3600
         run:
           path: sh
-          dir: aws-dataworks-e2e-framework
+          dir: dataworks-behavioural-framework
           args:
             - -exc
             - |
@@ -356,7 +356,7 @@ meta:
               ./run-ci.sh \
               "../../../meta"
         inputs:
-          - name: aws-dataworks-e2e-framework
+          - name: dataworks-behavioural-framework
           - name: aws-analytical-dataset-generation
           - name: meta
 

@@ -14,7 +14,7 @@ jobs:
             trigger: true
           - get: secrets-management
             trigger: false
-          - get: aws-dataworks-e2e-framework
+          - get: dataworks-behavioural-framework
             trigger: false
           - get: emr-launcher-release
             trigger: true
