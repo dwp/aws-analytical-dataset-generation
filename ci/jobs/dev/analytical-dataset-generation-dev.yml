@@ -12,7 +12,7 @@ jobs:
             trigger: true
           - get: analytical-dataset-generation-exporter-release
             trigger: true
-          - get: aws-dataworks-e2e-framework
+          - get: dataworks-behavioural-framework
             trigger: false
           - get: secrets-management
             trigger: false
