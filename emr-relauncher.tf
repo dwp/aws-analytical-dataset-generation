@@ -28,7 +28,7 @@ resource "aws_lambda_function" "adg_emr_relauncher" {
       SNS_TOPIC             = data.terraform_remote_state.internal_compute.outputs.export_status_sns_fulls.arn
       TABLE_NAME            = local.data_pipeline_metadata
       STEPS_TO_NOT_RETRY    = "flush-pushgateway"
-      MAX_RETRY_COUNT       = "2"
+      MAX_RETRY_COUNT       = local.adg_max_retry_count[local.environment]
       LOG_LEVEL             = "info"
     }
   }
@@ -36,13 +36,13 @@ resource "aws_lambda_function" "adg_emr_relauncher" {
 
 resource "aws_cloudwatch_event_target" "adg_emr_relauncher_target_full" {
   rule      = aws_cloudwatch_event_rule.adg_full_failed.name
-  target_id = "adg_emr_relauncher_target"
+  target_id = "adg_emr_relauncher_target_full"
   arn       = aws_lambda_function.adg_emr_relauncher.arn
 }
 
 resource "aws_cloudwatch_event_target" "adg_emr_relauncher_target_incremental" {
   rule      = aws_cloudwatch_event_rule.adg_incremental_failed.name
-  target_id = "adg_emr_relauncher_target"
+  target_id = "adg_emr_relauncher_target_incremental"
   arn       = aws_lambda_function.adg_emr_relauncher.arn
 }
 
@@ -53,7 +53,7 @@ resource "aws_iam_role" "adg_emr_relauncher_lambda_role" {
 }
 
 resource "aws_lambda_permission" "adg_emr_relauncher_invoke_permission_full" {
-  statement_id  = "AllowExecutionFromCloudWatch"
+  statement_id  = "AllowExecutionFromCloudWatchFull"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.adg_emr_relauncher.function_name
   principal     = "events.amazonaws.com"
@@ -61,7 +61,7 @@ resource "aws_lambda_permission" "adg_emr_relauncher_invoke_permission_full" {
 }
 
 resource "aws_lambda_permission" "adg_emr_relauncher_invoke_permission_incremental" {
-  statement_id  = "AllowExecutionFromCloudWatch"
+  statement_id  = "AllowExecutionFromCloudWatchIncremental"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.adg_emr_relauncher.function_name
   principal     = "events.amazonaws.com"
