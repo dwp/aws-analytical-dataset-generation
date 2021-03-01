@@ -669,9 +669,9 @@ def put_item(args, run_id, table, status, ttl):
             AUDIT_TABLE_RUN_ID_KEY: run_id,
             AUDIT_TABLE_DATE_KEY: get_todays_date(),
             AUDIT_TABLE_STATUS_KEY: status,
-            AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job"
-            AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id()
-            AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix
+            AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
+            AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
+            AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
             TTL_KEY: ttl,
         }
     )
