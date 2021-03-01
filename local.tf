@@ -98,7 +98,7 @@ locals {
 
   keep_cluster_alive = {
     development = true
-    qa          = true
+    qa          = false
     integration = false
     preprod     = false
     production  = false
@@ -106,7 +106,7 @@ locals {
 
   step_fail_action = {
     development = "CONTINUE"
-    qa          = "CONTINUE"
+    qa          = "TERMINATE_CLUSTER"
     integration = "TERMINATE_CLUSTER"
     preprod     = "TERMINATE_CLUSTER"
     production  = "TERMINATE_CLUSTER"
@@ -214,7 +214,7 @@ locals {
     preprod     = "true"
     production  = "false"
   }
-  
+
   adg_max_retry_count = {
     development = "0"
     qa          = "0"
