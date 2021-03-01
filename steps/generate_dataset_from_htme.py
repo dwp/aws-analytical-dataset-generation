@@ -678,7 +678,6 @@ def get_spark_session(args):
         .enableHiveSupport()
         .getOrCreate()
     )
-    spark.conf.set("spark.scheduler.mode", "FAIR")
     return spark
 
 
