@@ -10,7 +10,6 @@ ADG_PARAM_KEY = "analytical-dataset/adg_output/adg_params.csv"
 @mock_sns
 @mock_s3
 def test_send_sns_message():
-
     sns_client = boto3.client(service_name="sns", region_name=AWS_REGION)
     sns_client.create_topic(
         Name="status_topic", Attributes={"DisplayName": "test-topic"}
@@ -28,7 +27,15 @@ def test_send_sns_message():
     status_topic_arn = topics_json["Topics"][0]["TopicArn"]
 
     response = send_notification.send_sns_message(
-        PUBLISH_BUCKET, status_topic_arn, ADG_PARAM_KEY, sns_client, s3_client
+        PUBLISH_BUCKET, status_topic_arn, ADG_PARAM_KEY, "false", sns_client, s3_client
     )
 
     assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+
+
+def test_skip_sns_message():
+    response = send_notification.send_sns_message(
+        PUBLISH_BUCKET, "test-arn", ADG_PARAM_KEY, "true"
+    )
+
+    assert response is None

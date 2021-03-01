@@ -1,0 +1,29 @@
+jobs:
+  - name: update-pipeline
+    plan:
+      - get: aws-analytical-dataset-generation
+        resource: aws-analytical-dataset-generation-update-pipeline
+        trigger: true
+      - task: aviator
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: ((dataworks.docker_aviator_repository))
+              version: ((dataworks.docker_aviator_version))
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                sed -i 's/fly/nofly/' aviator.yml
+                /usr/bin/aviator -f aviator.yml
+                mv aviator_pipeline.yml ../pipeline
+            dir: aws-analytical-dataset-generation
+          inputs:
+            - name: aws-analytical-dataset-generation
+          outputs:
+            - name: pipeline
+      - set_pipeline: analytical-dataset-generation
+        file: pipeline/aviator_pipeline.yml

@@ -9,7 +9,7 @@ jobs:
             trigger: false
           - get: aws-internal-compute
             trigger: false
-          - get: aws-dataworks-e2e-framework
+          - get: dataworks-behavioural-framework
             trigger: false
           - get: aws-management-infrastructure
             trigger: false
@@ -17,15 +17,19 @@ jobs:
         config:
           params:
             TF_WORKSPACE: qa
-      - .: (( inject meta.plan.terraform-output-ingest ))
-        config:
-          params:
-            TF_WORKSPACE: qa
-      - .: (( inject meta.plan.terraform-output-internal-compute ))
-        config:
-          params:
-            TF_WORKSPACE: qa
-      - .: (( inject meta.plan.terraform-output-management-infra ))
+      - in_parallel:
+        - .: (( inject meta.plan.terraform-output-ingest ))
+          config:
+            params:
+              TF_WORKSPACE: qa
+        - .: (( inject meta.plan.terraform-output-internal-compute ))
+          config:
+            params:
+              TF_WORKSPACE: qa
+        - .: (( inject meta.plan.terraform-output-management-infra ))
+          config:
+            params:
+              TF_WORKSPACE: default
       - .: (( inject meta.plan.synthetic-data-ingestion ))
         config:
           params:

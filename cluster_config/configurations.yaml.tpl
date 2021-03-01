@@ -69,6 +69,14 @@ Configurations:
     "javax.jdo.option.ConnectionPassword": "${hive_metastore_pwd}"
     "hive.metastore.client.socket.timeout": "7200"
     %{~ endif ~}
+    "hive.mapred.mode": "nonstrict"
+    "hive.strict.checks.cartesian.product": "false"
+    "hive.exec.parallel": "true"
+    %{~ if environment == "production" ~}
+    "hive.tez.container.size": "32768"
+    "hive.tez.java.opts": "-Xmx26214m"
+    "hive.auto.convert.join.noconditionaltask.size": "10922"
+    %{~ endif ~}
 
 - Classification: "emrfs-site"
   Properties:
