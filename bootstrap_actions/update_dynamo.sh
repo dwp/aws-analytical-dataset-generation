@@ -17,6 +17,7 @@
   STEP_DETAILS_DIR=/mnt/var/lib/info/steps
   CORRELATION_ID_FILE=/opt/emr/correlation_id.txt
   S3_PREFIX_FILE=/opt/emr/s3_prefix.txt
+  SNAPSHOT_TYPE_FILE=/opt/emr/snapshot_type.txt
   RUN_ID=1
   DATE=$(date '+%Y-%m-%d')
   STATUS="In-Progress"
@@ -27,15 +28,14 @@
 
   FINAL_STEP_NAME="collect-metrics"
 
-  while [[ ! -f $CORRELATION_ID_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]]
+  while [[ ! -f $CORRELATION_ID_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]]
   do
     sleep 5
   done
 
-  if [[ -f "$CORRELATION_ID_FILE" ]]  && [[ -f $S3_PREFIX_FILE ]]; then
-      CORRELATION_ID=`cat $CORRELATION_ID_FILE`
-      S3_PREFIX=`cat $S3_PREFIX_FILE`
-  fi
+  CORRELATION_ID=`cat $CORRELATION_ID_FILE`
+  S3_PREFIX=`cat $S3_PREFIX_FILE`
+  DATA_PRODUCT="ADG-" + `cat $SNAPSHOT_TYPE_FILE`
 
   while [ ! -f $STEP_DEATILS_DIR/*.json ]
   do
@@ -48,6 +48,7 @@
   JSON_STRING=`jq '.Run_Id.N = "'$RUN_ID'"'<<<$JSON_STRING`
   JSON_STRING=`jq '.Status.S = "'$STATUS'"'<<<$JSON_STRING`
   JSON_STRING=`jq '.Cluster_Id.S = "'$CLUSTER_ID'"'<<<$JSON_STRING`
+  JSON_STRING=`jq '.S3_Prefix.S = "'$S3_PREFIX'"'<<<$JSON_STRING`
   JSON_STRING=`jq '.S3_Prefix.S = "'$S3_PREFIX'"'<<<$JSON_STRING`
 
 
