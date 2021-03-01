@@ -1,0 +1,26 @@
+{
+  "Correlation_Id": {
+    "S": ""
+  },
+  "DataProduct": {
+    "S": "ADG"
+  },
+  "Date": {
+    "S": ""
+  },
+  "Run_Id": {
+    "N": ""
+  },
+  "Status": {
+    "S": ""
+  },
+  "CurrentStep": {
+    "S": ""
+  },
+  "Cluster_Id": {
+    "S": ""
+  },
+  "S3_Prefix": {
+    "S": ""
+  }
+}

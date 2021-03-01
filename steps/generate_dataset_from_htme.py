@@ -23,6 +23,7 @@ from Crypto.Util import Counter
 
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
+from steps.resume_step import should_skip_step
 
 SNAPSHOT_TYPE_KEY = "snapshot_type"
 VALUE_KEY = "Value"
@@ -711,11 +712,25 @@ def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_st
         )
 
 
+def exit_if_skipping_step():
+    if should_skip_step(the_logger, "submit-job"):
+        the_logger.info(
+            "Step needs to be skipped so will exit without error"
+        )
+        sys.exit(0)
+
+
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
         "Processing spark job for correlation id : %s and snapshot_type : %s", args.correlation_id, args.snapshot_type.lower()
     )
+
+    the_logger.info(
+        "Checking if skip should be skipped"
+    )
+    exit_if_skipping_step()
+
     spark = get_spark_session(args)
     run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     published_database_name = "${published_db}"
