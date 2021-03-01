@@ -8,6 +8,7 @@ import re
 import sys
 import time
 import zlib
+import json
 import concurrent.futures
 from datetime import datetime, timedelta
 from itertools import groupby
@@ -683,7 +684,8 @@ def get_cluster_id():
 
     if os.path.isfile(file_name):
         with open(file_name, "r") as file_to_open:
-            cluster_id = file_to_open.read().replace("\"", "")
+            flow_json = json.loads(file_to_open.read())
+            cluster_id = flow_json["jobFlowId"].replace("\"", "")
 
     return cluster_id
 

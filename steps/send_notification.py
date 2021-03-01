@@ -58,7 +58,7 @@ def exit_if_skipping_step(skip_message_sending):
         the_logger.info(
             "Step needs to be skipped so will exit without error"
         )
-        sys.exit(0)
+        return True
     
 
     return False

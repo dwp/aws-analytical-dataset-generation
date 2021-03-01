@@ -22,7 +22,6 @@
   DATE=$(date '+%Y-%m-%d')
   STATUS="In-Progress"
   CURRENT_STEP=""
-  DATA_PRODUCT="ADG"
   CLUSTER_ID=`cat /mnt/var/lib/info/job-flow.json | jq '.jobFlowId'`
   CLUSTER_ID=$${CLUSTER_ID//\"}
 
@@ -44,11 +43,11 @@
 
   JSON_STRING=`cat /opt/emr/dynamo_schema.json`
   JSON_STRING=`jq '.Correlation_Id.S = "'$CORRELATION_ID'"'<<<$JSON_STRING`
+  JSON_STRING=`jq '.DataProduct.S = "'$DATA_PRODUCT'"'<<<$JSON_STRING`
   JSON_STRING=`jq '.Date.S = "'$DATE'"'<<<$JSON_STRING`
   JSON_STRING=`jq '.Run_Id.N = "'$RUN_ID'"'<<<$JSON_STRING`
   JSON_STRING=`jq '.Status.S = "'$STATUS'"'<<<$JSON_STRING`
   JSON_STRING=`jq '.Cluster_Id.S = "'$CLUSTER_ID'"'<<<$JSON_STRING`
-  JSON_STRING=`jq '.S3_Prefix.S = "'$S3_PREFIX'"'<<<$JSON_STRING`
   JSON_STRING=`jq '.S3_Prefix.S = "'$S3_PREFIX'"'<<<$JSON_STRING`
 
 
