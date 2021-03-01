@@ -1,4 +1,5 @@
 import boto3
+import pytest
 from steps import send_notification
 from moto import mock_sns, mock_s3
 
@@ -34,8 +35,10 @@ def test_send_sns_message():
 
 
 def test_skip_sns_message():
-    response = send_notification.send_sns_message(
-        PUBLISH_BUCKET, "test-arn", ADG_PARAM_KEY, "true"
-    )
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        response = send_notification.send_sns_message(
+            PUBLISH_BUCKET, "test-arn", ADG_PARAM_KEY, "true"
+        )
 
-    assert response is None
+    assert pytest_wrapped_e.type == SystemExit
+    assert pytest_wrapped_e.value.code == 0
