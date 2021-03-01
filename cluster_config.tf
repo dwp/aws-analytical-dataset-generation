@@ -3,6 +3,11 @@ resource "aws_emr_security_configuration" "ebs_emrfs_em" {
   configuration = jsonencode(local.ebs_emrfs_em)
 }
 
+#TODO remove this
+output "security_configuration" {
+  value = aws_emr_security_configuration.ebs_emrfs_em
+}
+
 resource "aws_s3_bucket_object" "cluster" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "emr/adg/cluster.yaml"
