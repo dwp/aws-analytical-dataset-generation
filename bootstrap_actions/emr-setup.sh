@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 echo "Installing scripts"
-aws s3 cp "${S3_CLOUDWATCH_SHELL}"            /opt/emr/cloudwatch.sh
-aws s3 cp "${S3_SEND_SNS_NOTIFICATION}"       /opt/emr/send_notification.py
+$(which aws) s3 cp "${S3_CLOUDWATCH_SHELL}"            /opt/emr/cloudwatch.sh
+$(which aws) s3 cp "${S3_SEND_SNS_NOTIFICATION}"       /opt/emr/send_notification.py
+$(which aws) s3 cp "${RESUME_STEP_SHELL}"              /opt/emr/resume_step.sh
+$(which aws) s3 cp "${update_dynamo_sh}"               /opt/emr/update_dynamo.sh
+$(which aws) s3 cp "${dynamo_schema_json}"             /opt/emr/dynamo_schema.json
 
 echo "Changing the Permissions"
 chmod u+x /opt/emr/cloudwatch.sh
 chmod u+x /opt/emr/send_notification.py
+chmod u+x /opt/emr/resume_step.sh
+chmod u+x /opt/emr/update_dynamo.sh
+
+/opt/emr/update_dynamo.sh &
 
 (
     # Import the logging functions

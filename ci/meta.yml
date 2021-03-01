@@ -385,7 +385,8 @@ meta:
               export message_json=$(cat <<EOF
               {
                 "correlation_id": "$CORRELATION_ID",
-                "s3_prefix": "$S3_PREFIX"
+                "s3_prefix": "$S3_PREFIX",
+                "snapshot_type": "$SNAPSHOT_TYPE"
               }
               EOF
               )

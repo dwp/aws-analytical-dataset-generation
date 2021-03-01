@@ -9,7 +9,7 @@ BootstrapActions:
 - Name: "metadata"
   ScriptBootstrapAction:
     Path: "file:/var/ci/metadata.sh"
-- Name: "get-dks-cert"
+- Name: "emr-setup"
   ScriptBootstrapAction:
     Path: "file:/var/ci/emr-setup.sh"
 - Name: "installer"
