@@ -27,7 +27,7 @@
 
   FINAL_STEP_NAME="collect-metrics"
 
-  while [[ ! -f $CORRELATION_ID_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]]
+  while [[ ! -f $CORRELATION_ID_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]] && [[ ! -f $SNAPSHOT_TYPE_FILE ]]
   do
     sleep 5
   done
