@@ -44,7 +44,7 @@ variable "analytical_dataset_generation_exporter_jar" {
 variable "emr_release" {
   default = {
     development = "6.2.0"
-    qa          = "5.31.0"
+    qa          = "6.2.0"
     integration = "5.31.0"
     preprod     = "5.31.0"
     production  = "5.31.0"
