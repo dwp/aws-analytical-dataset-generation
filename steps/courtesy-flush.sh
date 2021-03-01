@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Set the ddb values as this is the initial step
+CORRELATION_ID=$2
+S3_PREFIX=$4
+echo $CORRELATION_ID >>     /opt/emr/correlation_id.txt
+echo $S3_PREFIX >>          /opt/emr/s3_prefix.txt
+
 set -euo pipefail
 (
     # Import the logging functions

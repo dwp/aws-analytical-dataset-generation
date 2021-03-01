@@ -40,6 +40,9 @@ AUDIT_TABLE_RANGE_KEY = "DataProduct"
 AUDIT_TABLE_RUN_ID_KEY = "Run_Id"
 AUDIT_TABLE_DATE_KEY = "Date"
 AUDIT_TABLE_STATUS_KEY = "Status"
+AUDIT_TABLE_CLUSTER_ID_KEY = "Cluster_Id"
+AUDIT_TABLE_CURRENT_STEP_KEY = "CurrentStep"
+AUDIT_TABLE_S3_PREFIX_KEY = "S3_Prefix"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
 ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
@@ -666,9 +669,23 @@ def put_item(args, run_id, table, status, ttl):
             AUDIT_TABLE_RUN_ID_KEY: run_id,
             AUDIT_TABLE_DATE_KEY: get_todays_date(),
             AUDIT_TABLE_STATUS_KEY: status,
+            AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job"
+            AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id()
+            AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix
             TTL_KEY: ttl,
         }
     )
+
+
+def get_cluster_id():
+    cluster_id = "NOT_SET"
+    file_name = "/mnt/var/lib/info/job-flow.json"
+
+    if os.path.isfile(file_name):
+        with open(file_name, "r") as file_to_open:
+            cluster_id = file_to_open.read().replace("\"", "")
+
+    return cluster_id
 
 
 def get_ttl(base_datetime, hours_to_add):
