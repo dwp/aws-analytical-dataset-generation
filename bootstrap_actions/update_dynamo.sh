@@ -25,7 +25,7 @@
   CLUSTER_ID=`cat /mnt/var/lib/info/job-flow.json | jq '.jobFlowId'`
   CLUSTER_ID=$${CLUSTER_ID//\"}
 
-  FINAL_STEP_NAME="collect-metrics"
+  FINAL_STEP_NAME="flush-pushgateway"
 
   while [[ ! -f $CORRELATION_ID_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]] && [[ ! -f $SNAPSHOT_TYPE_FILE ]]
   do

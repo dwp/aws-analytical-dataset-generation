@@ -32,9 +32,9 @@ KEY_KEY = "Key"
 ARG_SNAPSHOT_TYPE = "snapshot_type"
 ARG_S3_PREFIX = "s3_prefix"
 ARG_CORRELATION_ID = "correlation_id"
-IN_PROGRESS_STATUS = "In Progress"
-FAILED_STATUS = "Failed"
-COMPLETED_STATUS = "Completed"
+IN_PROGRESS_STATUS = "In-Progress"
+FAILED_STATUS = "FAILED"
+COMPLETED_STATUS = "COMPLETED"
 DATA_PRODUCT_NAME = "ADG"
 AUDIT_TABLE_HASH_KEY = "Correlation_Id"
 AUDIT_TABLE_RANGE_KEY = "DataProduct"
@@ -631,7 +631,7 @@ def get_todays_date():
 
 
 def log_start_of_batch(args, dynamodb=None):
-    """Logging start of batch in metadata audit table as In Progress"""
+    """Logging start of batch in metadata audit table as In-Progress"""
     the_logger.info(
         "Updating audit table with start status for correlation_id %s", args.correlation_id
     )
