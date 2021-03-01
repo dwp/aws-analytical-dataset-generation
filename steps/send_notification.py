@@ -18,7 +18,8 @@ the_logger = setup_logging(
 def send_sns_message(
     publish_bucket, status_topic_arn, adg_param_key, skip_message_sending, sns_client=None, s3_client=None
 ):
-    exit_if_skipping_step(skip_message_sending)
+    if exit_if_skipping_step(skip_message_sending):
+        return None
 
     payload = {}
     csv_name = "adg_params.csv"
@@ -51,13 +52,16 @@ def exit_if_skipping_step(skip_message_sending):
         the_logger.info(
             f"Skipping SNS message sending due to skip_message_sending value of {skip_message_sending}",
         )
-        sys.exit(0)
+        return True
 
     if should_skip_step(the_logger, "submit-job"):
         the_logger.info(
             "Step needs to be skipped so will exit without error"
         )
         sys.exit(0)
+    
+
+    return False
 
 
 if __name__ == "__main__":

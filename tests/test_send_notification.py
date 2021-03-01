@@ -35,10 +35,8 @@ def test_send_sns_message():
 
 
 def test_skip_sns_message():
-    with pytest.raises(SystemExit) as pytest_wrapped_e:
-        response = send_notification.send_sns_message(
-            PUBLISH_BUCKET, "test-arn", ADG_PARAM_KEY, "true"
-        )
+    response = send_notification.send_sns_message(
+        PUBLISH_BUCKET, "test-arn", ADG_PARAM_KEY, "true"
+    )
 
-    assert pytest_wrapped_e.type == SystemExit
-    assert pytest_wrapped_e.value.code == 0
+    assert response is None
