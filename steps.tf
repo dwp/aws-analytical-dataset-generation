@@ -24,6 +24,7 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
     {
       python_logger               = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
       generate_analytical_dataset = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_dataset_from_htme_script.key)
+      python_resume_script        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.resume_step.key)
       published_db                = local.published_db
     }
   )
@@ -35,6 +36,12 @@ resource "aws_s3_bucket_object" "logger" {
   content = file("${path.module}/steps/logger.py")
 }
 
+resource "aws_s3_bucket_object" "resume_step" {
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/resume_step.py"
+  content = file("${path.module}/steps/resume_step.py")
+}
+
 resource "aws_s3_bucket_object" "send_notification_script" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/send_notification.py"
@@ -42,7 +49,7 @@ resource "aws_s3_bucket_object" "send_notification_script" {
     {
       publish_bucket       = data.terraform_remote_state.common.outputs.published_bucket.id
       status_topic_arn     = aws_sns_topic.adg_completion_status_sns.arn
-      log_path             = "/var/log/adg/adg_params.log"
+      log_path             = "/var/log/adg/sns_notification.log"
       skip_message_sending = local.skip_sns_notification_on_adg_completion[local.environment]
     }
   )

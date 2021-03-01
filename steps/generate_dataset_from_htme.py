@@ -8,6 +8,7 @@ import re
 import sys
 import time
 import zlib
+import json
 import concurrent.futures
 from datetime import datetime, timedelta
 from itertools import groupby
@@ -23,6 +24,7 @@ from Crypto.Util import Counter
 
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
+from steps.resume_step import should_skip_step
 
 SNAPSHOT_TYPE_KEY = "snapshot_type"
 VALUE_KEY = "Value"
@@ -30,15 +32,18 @@ KEY_KEY = "Key"
 ARG_SNAPSHOT_TYPE = "snapshot_type"
 ARG_S3_PREFIX = "s3_prefix"
 ARG_CORRELATION_ID = "correlation_id"
-IN_PROGRESS_STATUS = "In Progress"
-FAILED_STATUS = "Failed"
-COMPLETED_STATUS = "Completed"
+IN_PROGRESS_STATUS = "In-Progress"
+FAILED_STATUS = "FAILED"
+COMPLETED_STATUS = "COMPLETED"
 DATA_PRODUCT_NAME = "ADG"
 AUDIT_TABLE_HASH_KEY = "Correlation_Id"
 AUDIT_TABLE_RANGE_KEY = "DataProduct"
 AUDIT_TABLE_RUN_ID_KEY = "Run_Id"
 AUDIT_TABLE_DATE_KEY = "Date"
 AUDIT_TABLE_STATUS_KEY = "Status"
+AUDIT_TABLE_CLUSTER_ID_KEY = "Cluster_Id"
+AUDIT_TABLE_CURRENT_STEP_KEY = "CurrentStep"
+AUDIT_TABLE_S3_PREFIX_KEY = "S3_Prefix"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
 ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
@@ -626,7 +631,7 @@ def get_todays_date():
 
 
 def log_start_of_batch(args, dynamodb=None):
-    """Logging start of batch in metadata audit table as In Progress"""
+    """Logging start of batch in metadata audit table as In-Progress"""
     the_logger.info(
         "Updating audit table with start status for correlation_id %s", args.correlation_id
     )
@@ -665,9 +670,24 @@ def put_item(args, run_id, table, status, ttl):
             AUDIT_TABLE_RUN_ID_KEY: run_id,
             AUDIT_TABLE_DATE_KEY: get_todays_date(),
             AUDIT_TABLE_STATUS_KEY: status,
+            AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
+            AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
+            AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
             TTL_KEY: ttl,
         }
     )
+
+
+def get_cluster_id():
+    cluster_id = "NOT_SET"
+    file_name = "/mnt/var/lib/info/job-flow.json"
+
+    if os.path.isfile(file_name):
+        with open(file_name, "r") as file_to_open:
+            flow_json = json.loads(file_to_open.read())
+            cluster_id = flow_json["jobFlowId"].replace("\"", "")
+
+    return cluster_id
 
 
 def get_ttl(base_datetime, hours_to_add):
@@ -711,11 +731,25 @@ def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_st
         )
 
 
+def exit_if_skipping_step():
+    if should_skip_step(the_logger, "submit-job"):
+        the_logger.info(
+            "Step needs to be skipped so will exit without error"
+        )
+        sys.exit(0)
+
+
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
         "Processing spark job for correlation id : %s and snapshot_type : %s", args.correlation_id, args.snapshot_type.lower()
     )
+
+    the_logger.info(
+        "Checking if skip should be skipped"
+    )
+    exit_if_skipping_step()
+
     spark = get_spark_session(args)
     run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     published_database_name = "${published_db}"
