@@ -132,9 +132,9 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/adg_params.log",
+            "file_path": "/var/log/adg/sns_notification.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "{instance_id}-adg_params.log",
+            "log_stream_name": "{instance_id}-sns_notification.log",
             "timezone": "UTC"
           },
           {

@@ -49,7 +49,7 @@ resource "aws_s3_bucket_object" "send_notification_script" {
     {
       publish_bucket       = data.terraform_remote_state.common.outputs.published_bucket.id
       status_topic_arn     = aws_sns_topic.adg_completion_status_sns.arn
-      log_path             = "/var/log/adg/adg_params.log"
+      log_path             = "/var/log/adg/sns_notification.log"
       skip_message_sending = local.skip_sns_notification_on_adg_completion[local.environment]
     }
   )
