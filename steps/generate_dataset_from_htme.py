@@ -67,7 +67,11 @@ def get_parameters():
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
     parser.add_argument("--snapshot_type", default="full")
     args, unrecognized_args = parser.parse_known_args()
-    args.snapshot_type = SNAPSHOT_TYPE_INCREMENTAL if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL else SNAPSHOT_TYPE_FULL
+    args.snapshot_type = (
+        SNAPSHOT_TYPE_INCREMENTAL
+        if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
+        else SNAPSHOT_TYPE_FULL
+    )
     the_logger.warning(
         "Unrecognized args %s found for the correlation id %s",
         unrecognized_args,
@@ -100,7 +104,6 @@ def validate_required_args(args):
         )
 
 
-
 def main(
     spark,
     s3_client,
@@ -112,7 +115,7 @@ def main(
     published_database_name,
     args,
     run_id,
-    s3_resource
+    s3_resource,
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -133,7 +136,7 @@ def main(
                 itertools.repeat(s3_publish_bucket),
                 itertools.repeat(args),
                 itertools.repeat(run_id),
-                itertools.repeat(s3_resource)
+                itertools.repeat(s3_resource),
             )
     except Exception as ex:
         the_logger.error(
@@ -146,7 +149,10 @@ def main(
         sys.exit(-1)
     # Create hive tables only if all the collections have been processed successfully else raise exception
     list_of_processed_collections = list(all_processed_collections)
-    if not len(list_of_processed_collections) == len(secrets_collections) and args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL:
+    if (
+        not len(list_of_processed_collections) == len(secrets_collections)
+        and args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL
+    ):
         the_logger.error(
             "Not all collections have been processed looks like there is missing data, stopping Spark for correlation id: %s and run id : %s",
             args.correlation_id,
@@ -159,7 +165,11 @@ def main(
             spark, list_of_processed_collections, published_database_name, args, run_id
         )
         create_adg_status_csv(
-            args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp, args.snapshot_type
+            args.correlation_id,
+            s3_publish_bucket,
+            s3_client,
+            run_time_stamp,
+            args.snapshot_type,
         )
 
 
@@ -179,9 +189,7 @@ def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
 
 
 def get_s3_client():
-    client_config = botocore.config.Config(
-        max_pool_connections=100,
-    )
+    client_config = botocore.config.Config(max_pool_connections=100,)
     client = boto3.client("s3", config=client_config)
     return client
 
@@ -189,8 +197,10 @@ def get_s3_client():
 def get_resource(service_name):
     return boto3.resource(service_name, region_name="${aws_default_region}")
 
+
 def get_s3_resource():
     return boto3.resource("s3", region_name="${aws_default_region}")
+
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
     keys = []
@@ -234,7 +244,7 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     run_id,
-    s3_resource
+    s3_resource,
 ):
     try:
         for collection_name, collection_files_keys in collection.items():
@@ -255,7 +265,9 @@ def consolidate_rdd_per_collection(
                 metadata = get_metadatafor_key(
                     collection_file_key, s3_client, s3_htme_bucket
                 )
-                total_collection_size += get_filesize(s3_client, s3_htme_bucket, collection_file_key)
+                total_collection_size += get_filesize(
+                    s3_client, s3_htme_bucket, collection_file_key
+                )
                 ciphertext = metadata["ciphertext"]
                 datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
                 iv = metadata["iv"]
@@ -290,9 +302,23 @@ def consolidate_rdd_per_collection(
                 args.correlation_id,
                 run_id,
             )
-            tag_objects(json_location_prefix, tag_value, s3_client, s3_publish_bucket, args.snapshot_type)
-        add_metric('htme_collection_size.csv',collection_name,str(total_collection_size))
-        add_folder_size_metric(collection_name, s3_publish_bucket, json_location_prefix,"adg_collection_size.csv",s3_resource)
+            tag_objects(
+                json_location_prefix,
+                tag_value,
+                s3_client,
+                s3_publish_bucket,
+                args.snapshot_type,
+            )
+        add_metric(
+            "htme_collection_size.csv", collection_name, str(total_collection_size)
+        )
+        add_folder_size_metric(
+            collection_name,
+            s3_publish_bucket,
+            json_location_prefix,
+            "adg_collection_size.csv",
+            s3_resource,
+        )
         the_logger.info(
             "Creating Hive tables of collection : %s for correlation id : %s and run id : %s",
             collection_name,
@@ -308,9 +334,23 @@ def consolidate_rdd_per_collection(
             args.correlation_id,
             run_id,
         )
-        adg_json_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
-        add_folder_size_metric('all_collections',s3_htme_bucket, args.s3_prefix,"htme_collection_size.csv",s3_resource)
-        add_folder_size_metric('all_collections', s3_publish_bucket, adg_json_prefix,"adg_collection_size.csv",s3_resource)
+        adg_json_prefix = (
+            f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
+        )
+        add_folder_size_metric(
+            "all_collections",
+            s3_htme_bucket,
+            args.s3_prefix,
+            "htme_collection_size.csv",
+            s3_resource,
+        )
+        add_folder_size_metric(
+            "all_collections",
+            s3_publish_bucket,
+            adg_json_prefix,
+            "adg_collection_size.csv",
+            s3_resource,
+        )
     except BaseException as ex:
         the_logger.error(
             "Error processing for correlation id: %s and run id : %s for collection %s %s",
@@ -372,8 +412,8 @@ def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket, snapshot_type):
 
 def get_tags(tag_value, snapshot_type):
     tag_set = []
-    for k,v in tag_value.items():
-        tag_set.append({KEY_KEY:k, VALUE_KEY:v})
+    for k, v in tag_value.items():
+        tag_set.append({KEY_KEY: k, VALUE_KEY: v})
     tag_set.append({KEY_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: snapshot_type})
     return tag_set
 
@@ -394,7 +434,7 @@ def retry_requests(retries=10, backoff=1):
         total=retries,
         backoff_factor=backoff,
         status_forcelist=[429, 500, 502, 503, 504],
-        method_whitelist=frozenset(['POST'])
+        method_whitelist=frozenset(["POST"]),
     )
     adapter = HTTPAdapter(max_retries=retry_strategy)
     requests_session = requests.Session()
@@ -457,8 +497,9 @@ def decompress(compressed_text):
 
 
 def persist_json(json_location, values):
-    values.saveAsTextFile(json_location, compressionCodecClass="com.hadoop.compression.lzo.LzopCodec")
-
+    values.saveAsTextFile(
+        json_location, compressionCodecClass="com.hadoop.compression.lzo.LzopCodec"
+    )
 
 
 def get_collection(collection_name):
@@ -490,17 +531,16 @@ def create_hive_tables_on_published(
                 args.correlation_id,
                 run_id,
             )
-            published_database_name = ( published_database_name if args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL
-                                        else f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}" )
+            published_database_name = (
+                published_database_name
+                if args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL
+                else f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
+            )
             create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
             spark.sql(create_db_query)
-        
+
         create_hive_tables_on_published_for_collection_threaded(
-            spark,
-            all_processed_collections,
-            published_database_name,
-            args,
-            run_id
+            spark, all_processed_collections, published_database_name, args, run_id
         )
     except BaseException as ex:
         the_logger.error(
@@ -513,9 +553,11 @@ def create_hive_tables_on_published(
         sys.exit(-1)
 
 
-def create_hive_tables_on_published_for_collection_threaded(spark, all_processed_collections, published_database_name, args, run_id):
+def create_hive_tables_on_published_for_collection_threaded(
+    spark, all_processed_collections, published_database_name, args, run_id
+):
     completed_collections = []
-    
+
     with concurrent.futures.ThreadPoolExecutor() as executor:
         results = {
             executor.submit(
@@ -525,8 +567,9 @@ def create_hive_tables_on_published_for_collection_threaded(spark, all_processed
                 collection_json_location,
                 published_database_name,
                 args,
-                run_id
-            ): (collection_name, collection_json_location) for (collection_name, collection_json_location) in all_processed_collections
+                run_id,
+            ): (collection_name, collection_json_location)
+            for (collection_name, collection_json_location) in all_processed_collections
         }
 
         for result in concurrent.futures.as_completed(results):
@@ -534,13 +577,23 @@ def create_hive_tables_on_published_for_collection_threaded(spark, all_processed
             completed_collections.append(completed_collection)
             try:
                 data = result.result()
-                the_logger.info(f"Created published hive table for collection `{completed_collection}`")
+                the_logger.info(
+                    f"Created published hive table for collection `{completed_collection}`"
+                )
             except Exception as exc:
                 raise BaseException(exc)
-    
+
     return completed_collections
 
-def create_hive_table_on_published_for_collection(spark, collection_name, collection_json_location, published_database_name, args, run_id):
+
+def create_hive_table_on_published_for_collection(
+    spark,
+    collection_name,
+    collection_json_location,
+    published_database_name,
+    args,
+    run_id,
+):
     hive_table_name = get_collection(collection_name)
     hive_table_name = hive_table_name.replace("/", "_")
     src_hive_table = published_database_name + "." + hive_table_name
@@ -557,10 +610,11 @@ def create_hive_table_on_published_for_collection(spark, collection_name, collec
     return collection_name
 
 
-def get_filesize( s3_client, s3_htme_bucket, collection_file_key):
+def get_filesize(s3_client, s3_htme_bucket, collection_file_key):
     metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
     filesize = metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"]
     return int(filesize)
+
 
 def add_filesize_metric(
     collection_name, s3_client, s3_htme_bucket, collection_file_key
@@ -572,14 +626,15 @@ def add_filesize_metric(
         metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"],
     )
 
-def add_folder_size_metric(collection_name, s3_bucket, s3_prefix,filename,s3_resource):
+
+def add_folder_size_metric(
+    collection_name, s3_bucket, s3_prefix, filename, s3_resource
+):
     total_size = 0
     for obj in s3_resource.Bucket(s3_bucket).objects.filter(Prefix=s3_prefix):
         total_size += obj.size
-    add_metric(
-        filename,
-        collection_name,
-        str(total_size))
+    add_metric(filename, collection_name, str(total_size))
+
 
 def add_metric(metrics_file, collection_name, value):
     try:
@@ -602,7 +657,7 @@ def add_metric(metrics_file, collection_name, value):
             "Problem adding metric with file of '%s', collection name of '%s' and exception of '%s'",
             metrics_file,
             collection_name,
-            str(ex)
+            str(ex),
         )
 
 
@@ -612,6 +667,7 @@ def get_spark_session(args):
         .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
         .config("spark.metrics.namespace", f"adg_{args.snapshot_type.lower()}")
         .config("spark.executor.heartbeatInterval", "300000")
+        .config("spark.storage.blockManagerSlaveTimeoutMs", "500000")
         .config("spark.network.timeout", "500000")
         .config("spark.hadoop.fs.s3.maxRetries", "20")
         .config("spark.rpc.numRetries", "10")
@@ -633,7 +689,8 @@ def get_todays_date():
 def log_start_of_batch(args, dynamodb=None):
     """Logging start of batch in metadata audit table as In-Progress"""
     the_logger.info(
-        "Updating audit table with start status for correlation_id %s", args.correlation_id
+        "Updating audit table with start status for correlation_id %s",
+        args.correlation_id,
     )
     try:
         if not dynamodb:
@@ -685,7 +742,7 @@ def get_cluster_id():
     if os.path.isfile(file_name):
         with open(file_name, "r") as file_to_open:
             flow_json = json.loads(file_to_open.read())
-            cluster_id = flow_json["jobFlowId"].replace("\"", "")
+            cluster_id = flow_json["jobFlowId"].replace('"', "")
 
     return cluster_id
 
@@ -698,7 +755,8 @@ def get_ttl(base_datetime, hours_to_add):
 def log_end_of_batch(args, run_id, status, dynamodb=None):
     """Logging end of batch in metadata audit table as Completed/Failed"""
     the_logger.info(
-        "Updating audit table with end status for correlation_id %s", args.correlation_id
+        "Updating audit table with end status for correlation_id %s",
+        args.correlation_id,
     )
     try:
         if not dynamodb:
@@ -717,37 +775,41 @@ def log_end_of_batch(args, run_id, status, dynamodb=None):
         sys.exit(-1)
 
 
-def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_stamp, snapshot_type):
+def create_adg_status_csv(
+    correlation_id, publish_bucket, s3_client, run_time_stamp, snapshot_type
+):
     file_location = "${file_location}"
 
     with open("adg_params.csv", "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["correlation_id", "s3_prefix"])
-        writer.writerow([correlation_id, f"{file_location}/{snapshot_type}/{run_time_stamp}"])
+        writer.writerow(
+            [correlation_id, f"{file_location}/{snapshot_type}/{run_time_stamp}"]
+        )
 
     with open("adg_params.csv", "rb") as data:
         s3_client.upload_fileobj(
-            data, publish_bucket, f"{file_location}/{snapshot_type}/adg_output/adg_params.csv"
+            data,
+            publish_bucket,
+            f"{file_location}/{snapshot_type}/adg_output/adg_params.csv",
         )
 
 
 def exit_if_skipping_step():
     if should_skip_step(the_logger, "submit-job"):
-        the_logger.info(
-            "Step needs to be skipped so will exit without error"
-        )
+        the_logger.info("Step needs to be skipped so will exit without error")
         sys.exit(0)
 
 
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
-        "Processing spark job for correlation id : %s and snapshot_type : %s", args.correlation_id, args.snapshot_type.lower()
+        "Processing spark job for correlation id : %s and snapshot_type : %s",
+        args.correlation_id,
+        args.snapshot_type.lower(),
     )
 
-    the_logger.info(
-        "Checking if skip should be skipped"
-    )
+    the_logger.info("Checking if skip should be skipped")
     exit_if_skipping_step()
 
     spark = get_spark_session(args)
@@ -759,7 +821,11 @@ if __name__ == "__main__":
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_s3_client()
     s3_resource = get_s3_resource()
-    secret_name = secret_name_incremental if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL else secret_name_full
+    secret_name = (
+        secret_name_incremental
+        if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
+        else secret_name_full
+    )
     secrets_response = retrieve_secrets(args, secret_name)
     secrets_collections = get_collections(secrets_response, args)
     keys_map = {}
@@ -777,7 +843,7 @@ if __name__ == "__main__":
         published_database_name,
         args,
         run_id,
-        s3_resource
+        s3_resource,
     )
     log_end_of_batch(args, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
