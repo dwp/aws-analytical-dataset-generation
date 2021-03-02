@@ -39,6 +39,10 @@
     sleep 5
   done
 
+  get_ttl() {
+      TIME_NOW=$(($(date +'%s * 1000 + %-N / 1000000')))
+      echo $((TIME_NOW + 604800000))
+  }
 
   processed_files=()
   dynamo_update_item() {
@@ -46,8 +50,10 @@
     status="$2"
     run_id="$3"
 
-    update_expression="SET Date = :s, Cluster_Id = :v, S3_Prefix_Snapshots = :w, Snapshot_Type = :x"
-    expression_values="\":s\": {\"S\":\"$DATE\"},\":v\": {\"S\":\"$CLUSTER_ID\"},\":w\": {\"S\":\"$S3_PREFIX\"},\":x\": {\"S\":\"$SNAPSHOT_TYPE\"}"
+    ttl_value=$(get_ttl)
+
+    update_expression="SET Date = :s, Cluster_Id = :v, S3_Prefix_Snapshots = :w, Snapshot_Type = :x, TimeToExist = :z"
+    expression_values="\":s\": {\"S\":\"$DATE\"},\":v\": {\"S\":\"$CLUSTER_ID\"},\":w\": {\"S\":\"$S3_PREFIX\"},\":x\": {\"S\":\"$SNAPSHOT_TYPE\"},\":z\": {\"N\":$ttl_value}"
 
     if [[ ! -z "$current_step" ]]; then
         update_expression="$update_expression, CurrentStep = :y"
@@ -101,6 +107,7 @@
         PREVIOUS_STEP=$CURRENT_STEP
       done
     done
+    sleep 5
     check_step_dir
   }
 
