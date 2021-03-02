@@ -377,6 +377,15 @@ def test_log_end_of_batch():
     assert query_audit_table_status(dynamodb) == COMPLETED_STATUS
 
 
+@mock_dynamodb2
+def test_log_end_of_batch_with_adg_prefix():
+    dynamodb = mock_get_dynamodb_resource("dynamodb")
+    generate_dataset_from_htme.log_end_of_batch(
+        mock_args(), RUN_ID, COMPLETED_STATUS, "test", dynamodb
+    )
+    assert query_audit_table_status(dynamodb) == COMPLETED_STATUS
+
+
 def query_audit_table_status(dynamodb):
     table = dynamodb.Table(DYNAMODB_AUDIT_TABLENAME)
     response = table.query(

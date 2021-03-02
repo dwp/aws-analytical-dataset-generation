@@ -166,7 +166,6 @@ def main(
         create_adg_status_csv(
             args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp, args.snapshot_type
         )
-        log_end_of_batch(args, run_id, COMPLETED_STATUS, output_location)
 
 
 def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
@@ -641,6 +640,8 @@ def log_start_of_batch(args, dynamodb=None):
     the_logger.info(
         "Updating audit table with start status for correlation_id %s", args.correlation_id
     )
+    file_location = "${file_location}"
+    output_location = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
     try:
         if not dynamodb:
             dynamodb = get_resource("dynamodb")
@@ -657,7 +658,7 @@ def log_start_of_batch(args, dynamodb=None):
             put_item(args, run_id, table, IN_PROGRESS_STATUS, ttl)
         else:
             run_id = response["Items"][0][AUDIT_TABLE_RUN_ID_KEY] + 1
-            put_item(args, run_id, table, IN_PROGRESS_STATUS, ttl)
+            put_item(args, run_id, table, IN_PROGRESS_STATUS, ttl, output_location)
     except BaseException as ex:
         the_logger.error(
             "Problem updating audit table start status for correlation id : %s %s",
@@ -669,33 +670,21 @@ def log_start_of_batch(args, dynamodb=None):
 
 
 def put_item(args, run_id, table, status, ttl, s3_prefix_adg=None):
-    if s3_prefix_adg is None:
-        payload = {
-            AUDIT_TABLE_HASH_KEY: args.correlation_id,
-            AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
-            AUDIT_TABLE_RUN_ID_KEY: run_id,
-            AUDIT_TABLE_DATE_KEY: get_todays_date(),
-            AUDIT_TABLE_STATUS_KEY: status,
-            AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
-            AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
-            AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
-            AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
-            TTL_KEY: ttl,
-        }
-    else:
-        payload = {
-            AUDIT_TABLE_HASH_KEY: args.correlation_id,
-            AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
-            AUDIT_TABLE_RUN_ID_KEY: run_id,
-            AUDIT_TABLE_DATE_KEY: get_todays_date(),
-            AUDIT_TABLE_STATUS_KEY: status,
-            AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
-            AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
-            AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
-            AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
-            AUDIT_TABLE_S3_PREFIX_ADG_KEY: s3_prefix_adg,
-            TTL_KEY: ttl,
-        }
+    payload = {
+        AUDIT_TABLE_HASH_KEY: args.correlation_id,
+        AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
+        AUDIT_TABLE_RUN_ID_KEY: run_id,
+        AUDIT_TABLE_DATE_KEY: get_todays_date(),
+        AUDIT_TABLE_STATUS_KEY: status,
+        AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
+        AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
+        AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
+        AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
+        TTL_KEY: ttl,
+    }
+
+    if s3_prefix_adg is not None:
+        payload[AUDIT_TABLE_S3_PREFIX_ADG_KEY] = s3_prefix_adg
 
     table.put_item(Item=payload)
 
