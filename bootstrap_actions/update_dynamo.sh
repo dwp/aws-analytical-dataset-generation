@@ -53,7 +53,7 @@
     ttl_value=$(get_ttl)
 
     update_expression="SET Date = :s, Cluster_Id = :v, S3_Prefix_Snapshots = :w, Snapshot_Type = :x, TimeToExist = :z"
-    expression_values="\":s\": {\"S\":\"$DATE\"},\":v\": {\"S\":\"$CLUSTER_ID\"},\":w\": {\"S\":\"$S3_PREFIX\"},\":x\": {\"S\":\"$SNAPSHOT_TYPE\"},\":z\": {\"N\":$ttl_value}"
+    expression_values="\":s\": {\"S\":\"$DATE\"},\":v\": {\"S\":\"$CLUSTER_ID\"},\":w\": {\"S\":\"$S3_PREFIX\"},\":x\": {\"S\":\"$SNAPSHOT_TYPE\"},\":z\": {\"N\":\"$ttl_value\"}"
 
     if [[ ! -z "$current_step" ]]; then
         update_expression="$update_expression, CurrentStep = :y"
