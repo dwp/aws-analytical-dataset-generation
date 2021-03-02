@@ -47,25 +47,25 @@
     run_id="$3"
 
     update_expression="SET Date = :s, Cluster_Id = :v, S3_Prefix_Snapshots = :w, Snapshot_Type = :x"
-    expression_values="\":s\": {\"S\":\"${DATE}\"},\":v\": {\"S\":\"${CLUSTER_ID}\"},\":w\": {\"S\":\"${S3_PREFIX}\"},\":x\": {\"S\":\"${SNAPSHOT_TYPE}\"}"
+    expression_values="\":s\": {\"S\":\"$DATE\"},\":v\": {\"S\":\"$CLUSTER_ID\"},\":w\": {\"S\":\"$S3_PREFIX\"},\":x\": {\"S\":\"$SNAPSHOT_TYPE\"}"
 
     if [[ ! -z "$current_step" ]]; then
         update_expression="$update_expression, CurrentStep = :y"
-        expression_values="$expression_values,\":y\": {\"S\":\"${current_step}\"}"
+        expression_values="$expression_values,\":y\": {\"S\":\"$current_step\"}"
     fi
 
     if [[ ! -z "$status" ]]; then
         update_expression="$update_expression, Status = :u"
-        expression_values="$expression_values,\":u\": {\"S\":\"${status}\"}"
+        expression_values="$expression_values,\":u\": {\"S\":\"$status\"}"
     fi
 
     if [[ ! -z "$run_id" ]]; then
         update_expression="$update_expression, Run_Id = :t"
-        expression_values="$expression_values,\":t\": {\"N\":\"${run_id}\"}"
+        expression_values="$expression_values,\":t\": {\"N\":\"$run_id\"}"
     fi
 
     $(which aws) dynamodb update-item  --table-name "${dynamodb_table_name}" \
-        --key "{\"Correlation_Id\":{\"S\":\"${CORRELATION_ID}\"},\"DataProduct\":{\"S\":\"${DATA_PRODUCT}\"}}" \
+        --key "{\"Correlation_Id\":{\"S\":\"$CORRELATION_ID\"},\"DataProduct\":{\"S\":\"$DATA_PRODUCT\"}}" \
         --update-expression "$update_expression" \
         --expression-attribute-values "{$expression_values}"
   }

@@ -214,7 +214,7 @@ locals {
     preprod     = "true"
     production  = "false"
   }
-  
+
   adg_max_retry_count = {
     development = "0"
     qa          = "0"
