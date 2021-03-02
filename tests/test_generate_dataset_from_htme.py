@@ -393,7 +393,7 @@ def mock_add_metric(metrics_file, collection_name, value):
     return value
 
 
-def mock_decrypt(plain_text_key, iv_key, data, args, run_id):
+def mock_decrypt(plain_text_key, iv_key, data, args, run_id, run_time_stamp):
     return data
 
 
@@ -405,7 +405,7 @@ def mock_args():
     return args
 
 
-def mock_call_dks(cek, kek, args, run_id):
+def mock_call_dks(cek, kek, args, run_id, run_time_stamp):
     return kek
 
 

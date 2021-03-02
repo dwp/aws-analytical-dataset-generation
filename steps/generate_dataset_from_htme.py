@@ -146,7 +146,7 @@ def main(
             args.correlation_id,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
     # Create hive tables only if all the collections have been processed successfully else raise exception
@@ -157,7 +157,7 @@ def main(
             args.correlation_id,
             run_id,
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         sys.exit(-1)
     else:
         create_hive_tables_on_published(
@@ -265,11 +265,11 @@ def consolidate_rdd_per_collection(
                 datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
                 iv = metadata["iv"]
                 plain_text_key = get_plaintext_key_calling_dks(
-                    ciphertext, datakeyencryptionkeyid, keys_map, args, run_id
+                    ciphertext, datakeyencryptionkeyid, keys_map, args, run_id, run_time_stamp
                 )
                 decrypted = encrypted.mapValues(
                     lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(
-                        plain_text_key, iv, val, args, run_id
+                        plain_text_key, iv, val, args, run_id, run_time_stamp
                     )
                 )
                 decompressed = decrypted.mapValues(decompress)
@@ -324,7 +324,7 @@ def consolidate_rdd_per_collection(
             collection_name,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         sys.exit(-1)
     return (collection_name, json_location)
 
@@ -384,12 +384,12 @@ def get_tags(tag_value, snapshot_type):
 
 
 def get_plaintext_key_calling_dks(
-    encryptedkey, keyencryptionkeyid, keys_map, args, run_id
+    encryptedkey, keyencryptionkeyid, keys_map, args, run_id, run_time_stamp
 ):
     if keys_map.get(encryptedkey):
         key = keys_map[encryptedkey]
     else:
-        key = call_dks(encryptedkey, keyencryptionkeyid, args, run_id)
+        key = call_dks(encryptedkey, keyencryptionkeyid, args, run_id, run_time_stamp)
         keys_map[encryptedkey] = key
     return key
 
@@ -408,7 +408,7 @@ def retry_requests(retries=10, backoff=1):
     return requests_session
 
 
-def call_dks(cek, kek, args, run_id):
+def call_dks(cek, kek, args, run_id, run_time_stamp):
     try:
         url = "${url}"
         params = {"keyId": kek, "correlationId": args.correlation_id}
@@ -430,7 +430,7 @@ def call_dks(cek, kek, args, run_id):
             run_id,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         sys.exit(-1)
     return content["plaintextDataKey"]
 
@@ -439,7 +439,7 @@ def read_binary(spark, file_path):
     return spark.sparkContext.binaryFiles(file_path)
 
 
-def decrypt(plain_text_key, iv_key, data, args, run_id):
+def decrypt(plain_text_key, iv_key, data, args, run_id, run_time_stamp):
     try:
         iv_int = int(base64.b64decode(iv_key).hex(), 16)
         ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
@@ -452,7 +452,7 @@ def decrypt(plain_text_key, iv_key, data, args, run_id):
             run_id,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         sys.exit(-1)
     return decrypted
 
@@ -485,7 +485,7 @@ def get_collections(secrets_response, args):
 
 
 def create_hive_tables_on_published(
-    spark, all_processed_collections, published_database_name, args, run_id
+    spark, all_processed_collections, published_database_name, args, run_id, run_time_stamp
 ):
     try:
         # Check to create database only if the backend is Aurora as Glue database is created through terraform
@@ -514,7 +514,7 @@ def create_hive_tables_on_published(
             run_id,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         sys.exit(-1)
 
 
