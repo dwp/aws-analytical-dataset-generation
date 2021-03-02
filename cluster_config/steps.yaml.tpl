@@ -9,7 +9,7 @@ BootstrapActions:
 - Name: "metadata"
   ScriptBootstrapAction:
     Path: "file:/var/ci/metadata.sh"
-- Name: "get-dks-cert"
+- Name: "emr-setup"
   ScriptBootstrapAction:
     Path: "file:/var/ci/emr-setup.sh"
 - Name: "installer"
@@ -21,17 +21,14 @@ BootstrapActions:
 - Name: "download-mongo-latest-sql"
   ScriptBootstrapAction:
     Path: "file:/var/ci/download_sql.sh"
+- Name: "hive-setup"
+  ScriptBootstrapAction:
+    Path: "file:/var/ci/hive-setup.sh"
 Steps:
 - Name: "courtesy-flush"
   HadoopJarStep:
     Args:
     - "file:/var/ci/courtesy-flush.sh"
-    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
-  ActionOnFailure: "${action_on_failure}"
-- Name: "hive-setup"
-  HadoopJarStep:
-    Args:
-    - "file:/var/ci/hive-setup.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
 - Name: "create-mongo-latest-dbs"

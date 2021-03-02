@@ -79,6 +79,14 @@ resources:
     check_every: 5m
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
+  - name: emr-relauncher-release
+    type: github-release
+    source:
+      owner: dwp
+      repository: dataworks-emr-relauncher
+    check_every: 1h
+    webhook_token: ((dataworks.concourse_github_webhook_token))
+
   - name: analytical-dataset-generation-exporter-release
     type: github-release
     source:

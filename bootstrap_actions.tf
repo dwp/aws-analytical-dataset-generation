@@ -19,6 +19,12 @@ resource "aws_s3_bucket_object" "download_scripts_sh" {
   })
 }
 
+resource "aws_s3_bucket_object" "resume_step_script" {
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/resume_step.sh"
+  content = file("${path.module}/bootstrap_actions/resume_step.sh")
+}
+
 resource "aws_s3_bucket_object" "emr_setup_sh" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/emr-setup.sh"
@@ -26,6 +32,7 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
     {
       ADG_LOG_LEVEL                   = local.adg_log_level[local.environment]
       S3_SEND_SNS_NOTIFICATION        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.send_notification_script.key)
+      RESUME_STEP_SHELL               = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.resume_step_script.key)
       aws_default_region              = "eu-west-2"
       full_proxy                      = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
       full_no_proxy                   = local.no_proxy
@@ -43,6 +50,8 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       cwa_yarnspark_loggrp_name       = aws_cloudwatch_log_group.adg_cw_yarnspark_loggroup.name
       name                            = local.emr_cluster_name
       publish_bucket_id               = data.terraform_remote_state.common.outputs.published_bucket.id
+      update_dynamo_sh                = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.update_dynamo_sh.key)
+      dynamo_schema_json              = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.dynamo_json_file.key)
   })
 }
 
@@ -159,6 +168,37 @@ resource "aws_s3_bucket_object" "download_sql_sh" {
       s3_artefact_bucket_id = data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id
       adg_log_level         = local.adg_log_level[local.environment]
       environment_name      = local.environment
+    }
+  )
+}
+
+resource "aws_s3_bucket_object" "dynamo_json_file" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key        = "component/analytical-dataset-generation/dynamo_schema.json"
+  content    = file("${path.module}/bootstrap_actions/dynamo_schema.json")
+}
+
+resource "aws_s3_bucket_object" "update_dynamo_sh" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key        = "component/analytical-dataset-generation/update_dynamo.sh"
+  content = templatefile("${path.module}/bootstrap_actions/update_dynamo.sh",
+    {
+      dynamodb_table_name = local.data_pipeline_metadata
+    }
+  )
+}
+
+resource "aws_s3_bucket_object" "hive_setup_sh" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "component/analytical-dataset-generation/hive-setup.sh"
+  content = templatefile("${path.module}/bootstrap_actions/hive-setup.sh",
+    {
+      python_logger               = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
+      generate_analytical_dataset = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_dataset_from_htme_script.key)
+      python_resume_script        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.resume_step.key)
+      published_db                = local.published_db
     }
   )
 }

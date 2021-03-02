@@ -157,6 +157,7 @@ meta:
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
               export TF_VAR_pdm_emr_launcher_zip="{base_path = \"../pdm-emr-launcher-release\", version = \"$(cat ../pdm-emr-launcher-release/version)\"}"
+              export TF_VAR_adg_emr_relauncher_zip="{base_path = \"../emr-relauncher-release\", version = \"$(cat ../emr-relauncher-release/version)\"}"
               export TF_VAR_manage_mysql_user_zip="{base_path = \"../manage-mysql-user-release\", version = \"$(cat ../manage-mysql-user-release/version)\"}"
               export TF_VAR_analytical_dataset_generation_exporter_jar="{base_path = \"../analytical-dataset-generation-exporter-release\", version = \"$(ls ../analytical-dataset-generation-exporter-release/*.jar | sed -e 's/^.*exporter-//' -e 's/.jar$//')\"}"
               terraform init
@@ -168,6 +169,7 @@ meta:
           - name: terraform-config
           - name: emr-launcher-release
           - name: pdm-emr-launcher-release
+          - name: emr-relauncher-release
           - name: manage-mysql-user-release
           - name: analytical-dataset-generation-exporter-release
           - name: al2-emr-ami
@@ -193,6 +195,7 @@ meta:
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
               export TF_VAR_pdm_emr_launcher_zip="{base_path = \"../pdm-emr-launcher-release\", version = \"$(cat ../pdm-emr-launcher-release/version)\"}"
+              export TF_VAR_adg_emr_relauncher_zip="{base_path = \"../emr-relauncher-release\", version = \"$(cat ../emr-relauncher-release/version)\"}"
               export TF_VAR_manage_mysql_user_zip="{base_path = \"../manage-mysql-user-release\", version = \"$(cat ../manage-mysql-user-release/version)\"}"
               export TF_VAR_analytical_dataset_generation_exporter_jar="{base_path = \"../analytical-dataset-generation-exporter-release\", version = \"$(ls ../analytical-dataset-generation-exporter-release/*.jar | sed -e 's/^.*exporter-//' -e 's/.jar$//')\"}"
               terraform init
@@ -203,6 +206,7 @@ meta:
           - name: terraform-config
           - name: emr-launcher-release
           - name: pdm-emr-launcher-release
+          - name: emr-relauncher-release
           - name: manage-mysql-user-release
           - name: analytical-dataset-generation-exporter-release
           - name: al2-emr-ami
@@ -389,7 +393,8 @@ meta:
               export message_json=$(cat <<EOF
               {
                 "correlation_id": "$CORRELATION_ID",
-                "s3_prefix": "$S3_PREFIX"
+                "s3_prefix": "$S3_PREFIX",
+                "snapshot_type": "$SNAPSHOT_TYPE"
               }
               EOF
               )

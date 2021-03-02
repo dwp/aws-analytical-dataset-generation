@@ -11,6 +11,8 @@ jobs:
             trigger: true
           - get: pdm-emr-launcher-release
             trigger: true
+          - get: emr-relauncher-release
+            trigger: true
           - get: analytical-dataset-generation-exporter-release
             trigger: true
           - get: dataworks-behavioural-framework

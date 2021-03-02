@@ -54,9 +54,21 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/nohup.log",
+            "file_path": "/var/log/adg/hive_setup.log",
             "log_group_name": "$${cwa_bootstrap_loggrp_name}",
-            "log_stream_name": "{instance_id}-nohup.log",
+            "log_stream_name": "{instance_id}-hive_setup.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/installer.log",
+            "log_group_name": "$${cwa_bootstrap_loggrp_name}",
+            "log_stream_name": "{instance_id}-installer.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/metrics_setup.log",
+            "log_group_name": "$${cwa_bootstrap_loggrp_name}",
+            "log_stream_name": "{instance_id}-metrics_setup.log",
             "timezone": "UTC"
           },
           {
@@ -69,6 +81,12 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "file_path": "/var/log/adg/install-pycrypto.log",
             "log_group_name": "$${cwa_bootstrap_loggrp_name}",
             "log_stream_name": "{instance_id}-install-pycrypto.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/update_dynamo_sh.log",
+            "log_group_name": "$${cwa_bootstrap_loggrp_name}",
+            "log_stream_name": "{instance_id}-update_dynamo_sh.log",
             "timezone": "UTC"
           },
           {
@@ -126,9 +144,9 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/adg_params.log",
+            "file_path": "/var/log/adg/sns_notification.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "{instance_id}-adg_params.log",
+            "log_stream_name": "{instance_id}-sns_notification.log",
             "timezone": "UTC"
           },
           {

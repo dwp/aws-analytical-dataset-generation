@@ -28,10 +28,10 @@ TAG_SET_INCREMENTAL = [{NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE}, {NAME_KEY: DB
     NAME_KEY: TABLE_KEY, VALUE_KEY: 'contract'}, {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_INCREMENTAL}]
 INVALID_SNAPSHOT_TYPE = "abc"
 MOCK_LOCALHOST_URL = "http://localhost:1000"
-COMPLETED_STATUS = "Completed"
+COMPLETED_STATUS = "COMPLETED"
 HASH_KEY = "Correlation_Id"
 RANGE_KEY = "DataProduct"
-IN_PROGRESS_STATUS = "In Progress"
+IN_PROGRESS_STATUS = "In-Progress"
 MOTO_SERVER_URL = "http://127.0.0.1:5000"
 DYNAMODB_AUDIT_TABLENAME = "${data_pipeline_metadata}"
 DB_CORE_CONTRACT = "db.core.contract"
@@ -295,7 +295,7 @@ def test_create_hive_on_published_for_full(
     collection_name = "tabtest"
     all_processed_collections = [(collection_name, json_location)]
     steps.generate_dataset_from_htme.create_hive_tables_on_published(
-        spark, all_processed_collections, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID
+        spark, all_processed_collections, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID, RUN_TIME_STAMP
     )
 
     monkeypatch.setattr(
@@ -355,16 +355,16 @@ def test_get_tags():
 @mock_dynamodb2
 def test_log_start_of_batch():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
-    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb) == 1
+    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), RUN_TIME_STAMP, dynamodb) == 1
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
 
 
 @mock_dynamodb2
 def test_log_start_of_batch_for_multiple_runs():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
-    generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb)
+    generate_dataset_from_htme.log_start_of_batch(mock_args(), RUN_TIME_STAMP, dynamodb)
     # Ran second time to increment Run_Id by 1 to 2
-    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb) == 2
+    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), RUN_TIME_STAMP, dynamodb) == 2
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
 
 
@@ -372,7 +372,7 @@ def test_log_start_of_batch_for_multiple_runs():
 def test_log_end_of_batch():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
     generate_dataset_from_htme.log_end_of_batch(
-        mock_args(), RUN_ID, COMPLETED_STATUS, dynamodb
+        mock_args(), RUN_ID, COMPLETED_STATUS, RUN_TIME_STAMP, dynamodb
     )
     assert query_audit_table_status(dynamodb) == COMPLETED_STATUS
 
@@ -393,7 +393,7 @@ def mock_add_metric(metrics_file, collection_name, value):
     return value
 
 
-def mock_decrypt(plain_text_key, iv_key, data, args, run_id):
+def mock_decrypt(plain_text_key, iv_key, data, args, run_id, run_time_stamp):
     return data
 
 
@@ -405,7 +405,7 @@ def mock_args():
     return args
 
 
-def mock_call_dks(cek, kek, args, run_id):
+def mock_call_dks(cek, kek, args, run_id, run_time_stamp):
     return kek
 
 
