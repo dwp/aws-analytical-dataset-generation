@@ -355,14 +355,14 @@ def test_get_tags():
 @mock_dynamodb2
 def test_log_start_of_batch():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
-    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb) == 1
+    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), RUN_TIME_STAMP, dynamodb) == 1
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
 
 
 @mock_dynamodb2
 def test_log_start_of_batch_for_multiple_runs():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
-    generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb)
+    generate_dataset_from_htme.log_start_of_batch(mock_args(), RUN_TIME_STAMP, dynamodb)
     # Ran second time to increment Run_Id by 1 to 2
     assert generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb) == 2
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
@@ -372,7 +372,7 @@ def test_log_start_of_batch_for_multiple_runs():
 def test_log_end_of_batch():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
     generate_dataset_from_htme.log_end_of_batch(
-        mock_args(), RUN_ID, COMPLETED_STATUS, dynamodb
+        mock_args(), RUN_ID, COMPLETED_STATUS, RUN_TIME_STAMP, dynamodb
     )
     assert query_audit_table_status(dynamodb) == COMPLETED_STATUS
 

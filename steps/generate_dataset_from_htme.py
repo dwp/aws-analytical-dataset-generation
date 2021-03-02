@@ -635,7 +635,7 @@ def get_todays_date():
     return datetime.now().strftime("%Y-%m-%d")
 
 
-def log_start_of_batch(args, dynamodb=None):
+def log_start_of_batch(args, run_time_stamp, dynamodb=None):
     """Logging start of batch in metadata audit table as In-Progress"""
     the_logger.info(
         "Updating audit table with start status for correlation_id %s", args.correlation_id
@@ -706,7 +706,7 @@ def get_ttl(base_datetime, hours_to_add):
     return int((timestamp - datetime(1970, 1, 1)).total_seconds() * 1000.0)
 
 
-def log_end_of_batch(args, run_id, status, dynamodb=None):
+def log_end_of_batch(args, run_id, status, run_time_stamp, dynamodb=None):
     """Logging end of batch in metadata audit table as Completed/Failed"""
     the_logger.info(
         "Updating audit table with end status for correlation_id %s", args.correlation_id
@@ -778,7 +778,7 @@ if __name__ == "__main__":
     keys_map = {}
     start_time = time.perf_counter()
     dynamodb = get_resource("dynamodb")
-    run_id = log_start_of_batch(args, dynamodb)
+    run_id = log_start_of_batch(args, run_time_stamp, dynamodb)
     main(
         spark,
         s3_client,
@@ -792,7 +792,7 @@ if __name__ == "__main__":
         run_id,
         s3_resource
     )
-    log_end_of_batch(args, run_id, COMPLETED_STATUS, dynamodb)
+    log_end_of_batch(args, run_id, COMPLETED_STATUS, run_time_stamp, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
     add_metric("processing_times.csv", "all_collections", str(total_time))
