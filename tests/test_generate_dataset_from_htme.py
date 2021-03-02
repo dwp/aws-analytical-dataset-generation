@@ -372,7 +372,7 @@ def test_log_start_of_batch_for_multiple_runs():
 def test_log_end_of_batch():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
     generate_dataset_from_htme.log_end_of_batch(
-        mock_args(), RUN_ID, COMPLETED_STATUS, dynamodb
+        mock_args(), RUN_ID, COMPLETED_STATUS, None, dynamodb
     )
     assert query_audit_table_status(dynamodb) == COMPLETED_STATUS
 
