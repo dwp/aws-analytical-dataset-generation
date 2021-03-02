@@ -75,3 +75,14 @@ resource "aws_s3_bucket_object" "create-mongo-latest-dbs" {
     }
   )
 }
+
+resource "aws_s3_bucket_object" "update-audit-table-sh" {
+  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
+  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
+  key        = "component/analytical-dataset-generation/update-audit-table.sh"
+  content = templatefile("${path.module}/steps/update-audit-table.sh",
+  {
+    dynamodb_table_name = local.data_pipeline_metadata
+  }
+  )
+}

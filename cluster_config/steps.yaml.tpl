@@ -68,4 +68,9 @@ Steps:
     - "${s3_published_bucket}"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
-
+- Name: "build-day-1-update-audit-table.sh"
+  HadoopJarStep:
+    Args:
+    - "file:/var/ci/update-audit-table.sh"
+    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+  ActionOnFailure: "${action_on_failure}"
