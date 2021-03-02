@@ -181,6 +181,10 @@ def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
 def get_s3_client():
     client_config = botocore.config.Config(
         max_pool_connections=100,
+        retries = {
+            'max_attempts': 10,
+            'mode': 'standard'
+        }
     )
     client = boto3.client("s3", config=client_config)
     return client
