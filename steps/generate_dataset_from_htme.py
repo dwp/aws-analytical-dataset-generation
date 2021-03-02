@@ -44,6 +44,7 @@ AUDIT_TABLE_STATUS_KEY = "Status"
 AUDIT_TABLE_CLUSTER_ID_KEY = "Cluster_Id"
 AUDIT_TABLE_CURRENT_STEP_KEY = "CurrentStep"
 AUDIT_TABLE_S3_PREFIX_KEY = "S3_Prefix_Snapshots"
+AUDIT_TABLE_S3_PREFIX_ADG_KEY = "S3_Prefix_Analytical_DataSet"
 AUDIT_TABLE_SNAPSHOT_TYPE_KEY = "Snapshot_Type"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
@@ -115,6 +116,9 @@ def main(
     run_id,
     s3_resource
 ):
+    file_location = "${file_location}"
+    output_location = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
+
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
         list_of_dicts = group_keys_by_collection(keys)
@@ -142,7 +146,7 @@ def main(
             args.correlation_id,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, output_location)
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
     # Create hive tables only if all the collections have been processed successfully else raise exception
@@ -153,7 +157,7 @@ def main(
             args.correlation_id,
             run_id,
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, output_location)
         sys.exit(-1)
     else:
         create_hive_tables_on_published(
@@ -162,6 +166,7 @@ def main(
         create_adg_status_csv(
             args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp, args.snapshot_type
         )
+        log_end_of_batch(args, run_id, FAILED_STATUS, output_location)
 
 
 def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
@@ -663,21 +668,24 @@ def log_start_of_batch(args, dynamodb=None):
     return run_id
 
 
-def put_item(args, run_id, table, status, ttl):
-    table.put_item(
-        Item={
-            AUDIT_TABLE_HASH_KEY: args.correlation_id,
-            AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
-            AUDIT_TABLE_RUN_ID_KEY: run_id,
-            AUDIT_TABLE_DATE_KEY: get_todays_date(),
-            AUDIT_TABLE_STATUS_KEY: status,
-            AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
-            AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
-            AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
-            AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
-            TTL_KEY: ttl,
-        }
-    )
+def put_item(args, run_id, table, status, ttl, s3_prefix_adg=None):
+    payload = {
+        AUDIT_TABLE_HASH_KEY: args.correlation_id,
+        AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
+        AUDIT_TABLE_RUN_ID_KEY: run_id,
+        AUDIT_TABLE_DATE_KEY: get_todays_date(),
+        AUDIT_TABLE_STATUS_KEY: status,
+        AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
+        AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
+        AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
+        AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
+        TTL_KEY: ttl,
+    }
+
+    if s3_prefix_adg is not None:
+        payload[AUDIT_TABLE_S3_PREFIX_ADG_KEY] = s3_prefix_adg
+
+    table.put_item(Item=payload)
 
 
 def get_cluster_id():
@@ -697,7 +705,7 @@ def get_ttl(base_datetime, hours_to_add):
     return int((timestamp - datetime(1970, 1, 1)).total_seconds() * 1000.0)
 
 
-def log_end_of_batch(args, run_id, status, dynamodb=None):
+def log_end_of_batch(args, run_id, status, s3_prefix_adg=None, dynamodb=None):
     """Logging end of batch in metadata audit table as Completed/Failed"""
     the_logger.info(
         "Updating audit table with end status for correlation_id %s", args.correlation_id
@@ -708,7 +716,7 @@ def log_end_of_batch(args, run_id, status, dynamodb=None):
         data_pipeline_metadata = "${data_pipeline_metadata}"
         table = dynamodb.Table(data_pipeline_metadata)
         ttl = get_ttl(datetime.now(), 168)
-        put_item(args, run_id, table, status, ttl)
+        put_item(args, run_id, table, status, ttl, s3_prefix_adg)
     except BaseException as ex:
         the_logger.error(
             "Problem updating audit table end status for correlation id: %s and run id : %s %s",
@@ -781,7 +789,7 @@ if __name__ == "__main__":
         run_id,
         s3_resource
     )
-    log_end_of_batch(args, run_id, COMPLETED_STATUS, dynamodb)
+    log_end_of_batch(args, run_id, COMPLETED_STATUS, None, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
     add_metric("processing_times.csv", "all_collections", str(total_time))
