@@ -43,7 +43,8 @@ AUDIT_TABLE_DATE_KEY = "Date"
 AUDIT_TABLE_STATUS_KEY = "Status"
 AUDIT_TABLE_CLUSTER_ID_KEY = "Cluster_Id"
 AUDIT_TABLE_CURRENT_STEP_KEY = "CurrentStep"
-AUDIT_TABLE_S3_PREFIX_KEY = "S3_Prefix"
+AUDIT_TABLE_S3_PREFIX_KEY = "S3_Prefix_Snapshots"
+AUDIT_TABLE_SNAPSHOT_TYPE_KEY = "Snapshot_Type"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
 ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
@@ -673,6 +674,7 @@ def put_item(args, run_id, table, status, ttl):
             AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
             AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
             AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
+            AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
             TTL_KEY: ttl,
         }
     )
