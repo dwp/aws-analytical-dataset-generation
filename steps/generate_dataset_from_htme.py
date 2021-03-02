@@ -174,7 +174,7 @@ def get_s3_client():
 
 def get_s3_resource():
     return boto3.resource("s3", region_name="${aws_default_region}")
-    
+
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
     keys = []
@@ -493,7 +493,6 @@ def create_hive_tables_on_published_for_collection_threaded(spark, all_processed
                 collection_json_location,
                 published_database_name,
                 args,
-                run_id
             ): (collection_name, collection_json_location) for (collection_name, collection_json_location) in all_processed_collections
         }
 
@@ -508,7 +507,7 @@ def create_hive_tables_on_published_for_collection_threaded(spark, all_processed
     
     return completed_collections
 
-def create_hive_table_on_published_for_collection(spark, collection_name, collection_json_location, published_database_name, args, run_id):
+def create_hive_table_on_published_for_collection(spark, collection_name, collection_json_location, published_database_name, args):
     hive_table_name = get_collection(collection_name)
     hive_table_name = hive_table_name.replace("/", "_")
     src_hive_table = published_database_name + "." + hive_table_name
