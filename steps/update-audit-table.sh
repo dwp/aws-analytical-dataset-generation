@@ -18,7 +18,7 @@
     STATUS="Completed"
     CURRENT_STEP="update-audit-table.sh"
     CLUSTER_ID=`cat /mnt/var/lib/info/job-flow.json | jq '.jobFlowId'`
-    CLUSTER_ID=${CLUSTER_ID//\"}
+    CLUSTER_ID=$${CLUSTER_ID//\"}
     S3_PREFIX=`cat /opt/emr/s3_prefix.txt`
     SNAPSHOT_TYPE=`cat /opt/emr/snapshot_type.txt`
 
