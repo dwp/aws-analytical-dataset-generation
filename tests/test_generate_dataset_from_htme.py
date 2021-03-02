@@ -295,7 +295,7 @@ def test_create_hive_on_published_for_full(
     collection_name = "tabtest"
     all_processed_collections = [(collection_name, json_location)]
     steps.generate_dataset_from_htme.create_hive_tables_on_published(
-        spark, all_processed_collections, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID
+        spark, all_processed_collections, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID, RUN_TIME_STAMP
     )
 
     monkeypatch.setattr(

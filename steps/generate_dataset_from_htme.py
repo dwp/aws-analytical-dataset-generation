@@ -161,7 +161,7 @@ def main(
         sys.exit(-1)
     else:
         create_hive_tables_on_published(
-            spark, list_of_processed_collections, published_database_name, args, run_id
+            spark, list_of_processed_collections, published_database_name, args, run_id, run_time_stamp
         )
         create_adg_status_csv(
             args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp, args.snapshot_type
@@ -505,7 +505,7 @@ def create_hive_tables_on_published(
             all_processed_collections,
             published_database_name,
             args,
-            run_id
+            run_id,
         )
     except BaseException as ex:
         the_logger.error(
