@@ -8,6 +8,8 @@ jobs:
             version: every
           - get: emr-launcher-release
             trigger: false
+          - get: pdm-emr-launcher-release
+            trigger: false
           - get: manage-mysql-user-release
             trigger: false
           - get: analytical-dataset-generation-exporter-release

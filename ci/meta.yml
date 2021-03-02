@@ -156,6 +156,7 @@ meta:
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
+              export TF_VAR_pdm_emr_launcher_zip="{base_path = \"../pdm-emr-launcher-release\", version = \"$(cat ../pdm-emr-launcher-release/version)\"}"
               export TF_VAR_manage_mysql_user_zip="{base_path = \"../manage-mysql-user-release\", version = \"$(cat ../manage-mysql-user-release/version)\"}"
               export TF_VAR_analytical_dataset_generation_exporter_jar="{base_path = \"../analytical-dataset-generation-exporter-release\", version = \"$(ls ../analytical-dataset-generation-exporter-release/*.jar | sed -e 's/^.*exporter-//' -e 's/.jar$//')\"}"
               terraform init
@@ -166,6 +167,7 @@ meta:
           - name: aws-analytical-dataset-generation
           - name: terraform-config
           - name: emr-launcher-release
+          - name: pdm-emr-launcher-release
           - name: manage-mysql-user-release
           - name: analytical-dataset-generation-exporter-release
           - name: al2-emr-ami
@@ -190,6 +192,7 @@ meta:
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
+              export TF_VAR_pdm_emr_launcher_zip="{base_path = \"../pdm-emr-launcher-release\", version = \"$(cat ../pdm-emr-launcher-release/version)\"}"
               export TF_VAR_manage_mysql_user_zip="{base_path = \"../manage-mysql-user-release\", version = \"$(cat ../manage-mysql-user-release/version)\"}"
               export TF_VAR_analytical_dataset_generation_exporter_jar="{base_path = \"../analytical-dataset-generation-exporter-release\", version = \"$(ls ../analytical-dataset-generation-exporter-release/*.jar | sed -e 's/^.*exporter-//' -e 's/.jar$//')\"}"
               terraform init
@@ -199,6 +202,7 @@ meta:
           - name: aws-analytical-dataset-generation
           - name: terraform-config
           - name: emr-launcher-release
+          - name: pdm-emr-launcher-release
           - name: manage-mysql-user-release
           - name: analytical-dataset-generation-exporter-release
           - name: al2-emr-ami

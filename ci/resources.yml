@@ -71,6 +71,14 @@ resources:
     check_every: 1h
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
+  - name: pdm-emr-launcher-release
+    type: github-release
+    source:
+      owner: dwp
+      repository: dataworks-pdm-emr-launcher
+    check_every: 5m
+    webhook_token: ((dataworks.concourse_github_webhook_token))
+
   - name: analytical-dataset-generation-exporter-release
     type: github-release
     source:

@@ -22,6 +22,10 @@ jobs:
             trigger: true
             passed:
               - analytical-dataset-generation-preprod
+          - get: pdm-emr-launcher-release
+            trigger: true
+            passed:
+              - analytical-dataset-generation-preprod
           - get: analytical-dataset-generation-exporter-release
             trigger: true
             passed:
