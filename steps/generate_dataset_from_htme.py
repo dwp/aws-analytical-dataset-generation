@@ -146,7 +146,7 @@ def main(
             args.correlation_id,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS, output_location)
+        log_end_of_batch(args, run_id, FAILED_STATUS)
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
     # Create hive tables only if all the collections have been processed successfully else raise exception
@@ -157,7 +157,7 @@ def main(
             args.correlation_id,
             run_id,
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS, output_location)
+        log_end_of_batch(args, run_id, FAILED_STATUS)
         sys.exit(-1)
     else:
         create_hive_tables_on_published(
@@ -706,18 +706,20 @@ def get_ttl(base_datetime, hours_to_add):
     return int((timestamp - datetime(1970, 1, 1)).total_seconds() * 1000.0)
 
 
-def log_end_of_batch(args, run_id, status, s3_prefix_adg=None, dynamodb=None):
+def log_end_of_batch(args, run_id, status, dynamodb=None):
     """Logging end of batch in metadata audit table as Completed/Failed"""
     the_logger.info(
         "Updating audit table with end status for correlation_id %s", args.correlation_id
     )
+    file_location = "${file_location}"
+    output_location = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
     try:
         if not dynamodb:
             dynamodb = get_resource("dynamodb")
         data_pipeline_metadata = "${data_pipeline_metadata}"
         table = dynamodb.Table(data_pipeline_metadata)
         ttl = get_ttl(datetime.now(), 168)
-        put_item(args, run_id, table, status, ttl, s3_prefix_adg)
+        put_item(args, run_id, table, status, ttl, output_location)
     except BaseException as ex:
         the_logger.error(
             "Problem updating audit table end status for correlation id: %s and run id : %s %s",
@@ -790,7 +792,7 @@ if __name__ == "__main__":
         run_id,
         s3_resource
     )
-    log_end_of_batch(args, run_id, COMPLETED_STATUS, None, dynamodb)
+    log_end_of_batch(args, run_id, COMPLETED_STATUS, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
     add_metric("processing_times.csv", "all_collections", str(total_time))
