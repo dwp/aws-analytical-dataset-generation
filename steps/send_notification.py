@@ -2,8 +2,10 @@ import json
 import boto3
 import csv
 import os
+import sys
 
 from steps.logger import setup_logging
+from steps.resume_step import should_skip_step
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -16,10 +18,7 @@ the_logger = setup_logging(
 def send_sns_message(
     publish_bucket, status_topic_arn, adg_param_key, skip_message_sending, sns_client=None, s3_client=None
 ):
-    if skip_message_sending.lower() == "true":
-        the_logger.info(
-            f"Skipping SNS message sending due to skip_message_sending value of {skip_message_sending}",
-        )
+    if exit_if_skipping_step(skip_message_sending):
         return None
 
     payload = {}
@@ -46,6 +45,23 @@ def send_sns_message(
         "message response", sns_response,
     )
     return sns_response
+
+
+def exit_if_skipping_step(skip_message_sending):
+    if skip_message_sending.lower() == "true":
+        the_logger.info(
+            f"Skipping SNS message sending due to skip_message_sending value of {skip_message_sending}",
+        )
+        return True
+
+    if should_skip_step(the_logger, "submit-job"):
+        the_logger.info(
+            "Step needs to be skipped so will exit without error"
+        )
+        return True
+    
+
+    return False
 
 
 if __name__ == "__main__":
