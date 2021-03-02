@@ -166,7 +166,7 @@ def main(
         create_adg_status_csv(
             args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp, args.snapshot_type
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS, output_location)
+        log_end_of_batch(args, run_id, COMPLETED_STATUS, output_location)
 
 
 def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
