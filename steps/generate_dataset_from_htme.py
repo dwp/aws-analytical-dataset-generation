@@ -43,7 +43,9 @@ AUDIT_TABLE_DATE_KEY = "Date"
 AUDIT_TABLE_STATUS_KEY = "Status"
 AUDIT_TABLE_CLUSTER_ID_KEY = "Cluster_Id"
 AUDIT_TABLE_CURRENT_STEP_KEY = "CurrentStep"
-AUDIT_TABLE_S3_PREFIX_KEY = "S3_Prefix"
+AUDIT_TABLE_S3_PREFIX_KEY = "S3_Prefix_Snapshots"
+AUDIT_TABLE_S3_PREFIX_ADG_KEY = "S3_Prefix_Analytical_DataSet"
+AUDIT_TABLE_SNAPSHOT_TYPE_KEY = "Snapshot_Type"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
 ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
@@ -141,7 +143,7 @@ def main(
             args.correlation_id,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
     # Create hive tables only if all the collections have been processed successfully else raise exception
@@ -152,11 +154,11 @@ def main(
             args.correlation_id,
             run_id,
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         sys.exit(-1)
     else:
         create_hive_tables_on_published(
-            spark, list_of_processed_collections, published_database_name, args, run_id
+            spark, list_of_processed_collections, published_database_name, args, run_id, run_time_stamp
         )
         create_adg_status_csv(
             args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp, args.snapshot_type
@@ -260,11 +262,11 @@ def consolidate_rdd_per_collection(
                 datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
                 iv = metadata["iv"]
                 plain_text_key = get_plaintext_key_calling_dks(
-                    ciphertext, datakeyencryptionkeyid, keys_map, args, run_id
+                    ciphertext, datakeyencryptionkeyid, keys_map, args, run_id, run_time_stamp
                 )
                 decrypted = encrypted.mapValues(
                     lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(
-                        plain_text_key, iv, val, args, run_id
+                        plain_text_key, iv, val, args, run_id, run_time_stamp
                     )
                 )
                 decompressed = decrypted.mapValues(decompress)
@@ -319,7 +321,7 @@ def consolidate_rdd_per_collection(
             collection_name,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         sys.exit(-1)
     return (collection_name, json_location)
 
@@ -379,12 +381,12 @@ def get_tags(tag_value, snapshot_type):
 
 
 def get_plaintext_key_calling_dks(
-    encryptedkey, keyencryptionkeyid, keys_map, args, run_id
+    encryptedkey, keyencryptionkeyid, keys_map, args, run_id, run_time_stamp
 ):
     if keys_map.get(encryptedkey):
         key = keys_map[encryptedkey]
     else:
-        key = call_dks(encryptedkey, keyencryptionkeyid, args, run_id)
+        key = call_dks(encryptedkey, keyencryptionkeyid, args, run_id, run_time_stamp)
         keys_map[encryptedkey] = key
     return key
 
@@ -403,7 +405,7 @@ def retry_requests(retries=10, backoff=1):
     return requests_session
 
 
-def call_dks(cek, kek, args, run_id):
+def call_dks(cek, kek, args, run_id, run_time_stamp):
     try:
         url = "${url}"
         params = {"keyId": kek, "correlationId": args.correlation_id}
@@ -425,7 +427,7 @@ def call_dks(cek, kek, args, run_id):
             run_id,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         sys.exit(-1)
     return content["plaintextDataKey"]
 
@@ -434,7 +436,7 @@ def read_binary(spark, file_path):
     return spark.sparkContext.binaryFiles(file_path)
 
 
-def decrypt(plain_text_key, iv_key, data, args, run_id):
+def decrypt(plain_text_key, iv_key, data, args, run_id, run_time_stamp):
     try:
         iv_int = int(base64.b64decode(iv_key).hex(), 16)
         ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
@@ -447,7 +449,7 @@ def decrypt(plain_text_key, iv_key, data, args, run_id):
             run_id,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         sys.exit(-1)
     return decrypted
 
@@ -480,7 +482,7 @@ def get_collections(secrets_response, args):
 
 
 def create_hive_tables_on_published(
-    spark, all_processed_collections, published_database_name, args, run_id
+    spark, all_processed_collections, published_database_name, args, run_id, run_time_stamp
 ):
     try:
         # Check to create database only if the backend is Aurora as Glue database is created through terraform
@@ -500,7 +502,7 @@ def create_hive_tables_on_published(
             all_processed_collections,
             published_database_name,
             args,
-            run_id
+            run_id,
         )
     except BaseException as ex:
         the_logger.error(
@@ -509,7 +511,7 @@ def create_hive_tables_on_published(
             run_id,
             str(ex),
         )
-        log_end_of_batch(args, run_id, FAILED_STATUS)
+        log_end_of_batch(args, run_id, FAILED_STATUS, run_time_stamp)
         sys.exit(-1)
 
 
@@ -630,11 +632,13 @@ def get_todays_date():
     return datetime.now().strftime("%Y-%m-%d")
 
 
-def log_start_of_batch(args, dynamodb=None):
+def log_start_of_batch(args, run_time_stamp, dynamodb=None):
     """Logging start of batch in metadata audit table as In-Progress"""
     the_logger.info(
         "Updating audit table with start status for correlation_id %s", args.correlation_id
     )
+    file_location = "${file_location}"
+    output_location = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
     try:
         if not dynamodb:
             dynamodb = get_resource("dynamodb")
@@ -651,7 +655,7 @@ def log_start_of_batch(args, dynamodb=None):
             put_item(args, run_id, table, IN_PROGRESS_STATUS, ttl)
         else:
             run_id = response["Items"][0][AUDIT_TABLE_RUN_ID_KEY] + 1
-            put_item(args, run_id, table, IN_PROGRESS_STATUS, ttl)
+            put_item(args, run_id, table, IN_PROGRESS_STATUS, ttl, output_location)
     except BaseException as ex:
         the_logger.error(
             "Problem updating audit table start status for correlation id : %s %s",
@@ -662,20 +666,24 @@ def log_start_of_batch(args, dynamodb=None):
     return run_id
 
 
-def put_item(args, run_id, table, status, ttl):
-    table.put_item(
-        Item={
-            AUDIT_TABLE_HASH_KEY: args.correlation_id,
-            AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
-            AUDIT_TABLE_RUN_ID_KEY: run_id,
-            AUDIT_TABLE_DATE_KEY: get_todays_date(),
-            AUDIT_TABLE_STATUS_KEY: status,
-            AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
-            AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
-            AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
-            TTL_KEY: ttl,
-        }
-    )
+def put_item(args, run_id, table, status, ttl, s3_prefix_adg=None):
+    payload = {
+        AUDIT_TABLE_HASH_KEY: args.correlation_id,
+        AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
+        AUDIT_TABLE_RUN_ID_KEY: run_id,
+        AUDIT_TABLE_DATE_KEY: get_todays_date(),
+        AUDIT_TABLE_STATUS_KEY: status,
+        AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
+        AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
+        AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
+        AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
+        TTL_KEY: ttl,
+    }
+
+    if s3_prefix_adg is not None:
+        payload[AUDIT_TABLE_S3_PREFIX_ADG_KEY] = s3_prefix_adg
+
+    table.put_item(Item=payload)
 
 
 def get_cluster_id():
@@ -695,18 +703,20 @@ def get_ttl(base_datetime, hours_to_add):
     return int((timestamp - datetime(1970, 1, 1)).total_seconds() * 1000.0)
 
 
-def log_end_of_batch(args, run_id, status, dynamodb=None):
+def log_end_of_batch(args, run_id, status, run_time_stamp, dynamodb=None):
     """Logging end of batch in metadata audit table as Completed/Failed"""
     the_logger.info(
         "Updating audit table with end status for correlation_id %s", args.correlation_id
     )
+    file_location = "${file_location}"
+    output_location = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
     try:
         if not dynamodb:
             dynamodb = get_resource("dynamodb")
         data_pipeline_metadata = "${data_pipeline_metadata}"
         table = dynamodb.Table(data_pipeline_metadata)
         ttl = get_ttl(datetime.now(), 168)
-        put_item(args, run_id, table, status, ttl)
+        put_item(args, run_id, table, status, ttl, output_location)
     except BaseException as ex:
         the_logger.error(
             "Problem updating audit table end status for correlation id: %s and run id : %s %s",
@@ -765,7 +775,7 @@ if __name__ == "__main__":
     keys_map = {}
     start_time = time.perf_counter()
     dynamodb = get_resource("dynamodb")
-    run_id = log_start_of_batch(args, dynamodb)
+    run_id = log_start_of_batch(args, run_time_stamp, dynamodb)
     main(
         spark,
         s3_client,
@@ -779,7 +789,7 @@ if __name__ == "__main__":
         run_id,
         s3_resource
     )
-    log_end_of_batch(args, run_id, COMPLETED_STATUS, dynamodb)
+    log_end_of_batch(args, run_id, COMPLETED_STATUS, run_time_stamp, dynamodb)
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
     add_metric("processing_times.csv", "all_collections", str(total_time))

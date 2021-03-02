@@ -49,7 +49,8 @@
   JSON_STRING=`jq '.Run_Id.N = "'$RUN_ID'"'<<<$JSON_STRING`
   JSON_STRING=`jq '.Status.S = "'$STATUS'"'<<<$JSON_STRING`
   JSON_STRING=`jq '.Cluster_Id.S = "'$CLUSTER_ID'"'<<<$JSON_STRING`
-  JSON_STRING=`jq '.S3_Prefix.S = "'$S3_PREFIX'"'<<<$JSON_STRING`
+  JSON_STRING=`jq '.S3_Prefix_Snapshots.S = "'$S3_PREFIX'"'<<<$JSON_STRING`
+  JSON_STRING=`jq '.Snapshot_Type.S = "'$SNAPSHOT_TYPE'"'<<<$JSON_STRING`
 
 
   processed_files=()
