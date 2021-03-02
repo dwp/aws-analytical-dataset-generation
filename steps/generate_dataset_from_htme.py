@@ -656,7 +656,7 @@ def log_start_of_batch(args, run_time_stamp, dynamodb=None):
         # If this is the first entry for correlation_id then create a new entry with Run_Id as 1 else increment it by 1
         ttl = get_ttl(datetime.now(), 168)
         if not response["Items"]:
-            put_item(args, run_id, table, IN_PROGRESS_STATUS, ttl)
+            put_item(args, run_id, table, IN_PROGRESS_STATUS, ttl, output_location)
         else:
             run_id = response["Items"][0][AUDIT_TABLE_RUN_ID_KEY] + 1
             put_item(args, run_id, table, IN_PROGRESS_STATUS, ttl, output_location)
@@ -670,8 +670,8 @@ def log_start_of_batch(args, run_time_stamp, dynamodb=None):
     return run_id
 
 
-def put_item(args, run_id, table, status, ttl, s3_prefix_adg=None):
-    payload = {
+def put_item(args, run_id, table, status, ttl, s3_prefix_adg):
+    table.put_item(Item={
         AUDIT_TABLE_HASH_KEY: args.correlation_id,
         AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
         AUDIT_TABLE_RUN_ID_KEY: run_id,
@@ -681,13 +681,9 @@ def put_item(args, run_id, table, status, ttl, s3_prefix_adg=None):
         AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
         AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
         AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
+        AUDIT_TABLE_S3_PREFIX_ADG_KEY: s3_prefix_adg,
         TTL_KEY: ttl,
-    }
-
-    if s3_prefix_adg is not None:
-        payload[AUDIT_TABLE_S3_PREFIX_ADG_KEY] = s3_prefix_adg
-
-    table.put_item(Item=payload)
+    })
 
 
 def get_cluster_id():
