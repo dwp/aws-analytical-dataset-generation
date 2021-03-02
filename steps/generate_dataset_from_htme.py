@@ -669,21 +669,33 @@ def log_start_of_batch(args, dynamodb=None):
 
 
 def put_item(args, run_id, table, status, ttl, s3_prefix_adg=None):
-    payload = {
-        AUDIT_TABLE_HASH_KEY: args.correlation_id,
-        AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
-        AUDIT_TABLE_RUN_ID_KEY: run_id,
-        AUDIT_TABLE_DATE_KEY: get_todays_date(),
-        AUDIT_TABLE_STATUS_KEY: status,
-        AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
-        AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
-        AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
-        AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
-        TTL_KEY: ttl,
-    }
-
-    if s3_prefix_adg is not None:
-        payload[AUDIT_TABLE_S3_PREFIX_ADG_KEY] = s3_prefix_adg
+    if s3_prefix_adg is None:
+        payload = {
+            AUDIT_TABLE_HASH_KEY: args.correlation_id,
+            AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
+            AUDIT_TABLE_RUN_ID_KEY: run_id,
+            AUDIT_TABLE_DATE_KEY: get_todays_date(),
+            AUDIT_TABLE_STATUS_KEY: status,
+            AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
+            AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
+            AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
+            AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
+            TTL_KEY: ttl,
+        }
+    else:
+        payload = {
+            AUDIT_TABLE_HASH_KEY: args.correlation_id,
+            AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
+            AUDIT_TABLE_RUN_ID_KEY: run_id,
+            AUDIT_TABLE_DATE_KEY: get_todays_date(),
+            AUDIT_TABLE_STATUS_KEY: status,
+            AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
+            AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
+            AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
+            AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
+            AUDIT_TABLE_S3_PREFIX_ADG_KEY: s3_prefix_adg,
+            TTL_KEY: ttl,
+        }
 
     table.put_item(Item=payload)
 
