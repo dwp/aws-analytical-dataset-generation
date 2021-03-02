@@ -364,7 +364,7 @@ def test_log_start_of_batch_for_multiple_runs():
     dynamodb = mock_get_dynamodb_resource("dynamodb")
     generate_dataset_from_htme.log_start_of_batch(mock_args(), RUN_TIME_STAMP, dynamodb)
     # Ran second time to increment Run_Id by 1 to 2
-    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), dynamodb) == 2
+    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), RUN_TIME_STAMP, dynamodb) == 2
     assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
 
 

@@ -116,9 +116,6 @@ def main(
     run_id,
     s3_resource
 ):
-    file_location = "${file_location}"
-    output_location = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
-
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
         list_of_dicts = group_keys_by_collection(keys)
