@@ -671,19 +671,41 @@ def log_start_of_batch(args, run_time_stamp, dynamodb=None):
 
 
 def put_item(args, run_id, table, status, ttl, s3_prefix_adg):
-    table.put_item(Item={
-        AUDIT_TABLE_HASH_KEY: args.correlation_id,
-        AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
-        AUDIT_TABLE_RUN_ID_KEY: run_id,
-        AUDIT_TABLE_DATE_KEY: get_todays_date(),
-        AUDIT_TABLE_STATUS_KEY: status,
-        AUDIT_TABLE_CURRENT_STEP_KEY: "submit-job",
-        AUDIT_TABLE_CLUSTER_ID_KEY: get_cluster_id(),
-        AUDIT_TABLE_S3_PREFIX_KEY: args.s3_prefix,
-        AUDIT_TABLE_SNAPSHOT_TYPE_KEY: args.snapshot_type.lower(),
-        AUDIT_TABLE_S3_PREFIX_ADG_KEY: s3_prefix_adg,
-        TTL_KEY: ttl,
-    })
+    table.update_item(
+        Key={
+            AUDIT_TABLE_HASH_KEY: args.correlation_id,
+            AUDIT_TABLE_RANGE_KEY: f"{DATA_PRODUCT_NAME}-{args.snapshot_type.lower()}",
+        },
+        AttributeUpdates={
+            AUDIT_TABLE_RUN_ID_KEY: {
+                'Value': run_id,
+            },
+            AUDIT_TABLE_DATE_KEY: {
+                'Value': get_todays_date(),
+            },
+            AUDIT_TABLE_STATUS_KEY: {
+                'Value': status,
+            },
+            AUDIT_TABLE_CURRENT_STEP_KEY: {
+                'Value': "submit-job",
+            },
+            AUDIT_TABLE_CLUSTER_ID_KEY: {
+                'Value': get_cluster_id(),
+            },
+            AUDIT_TABLE_S3_PREFIX_KEY: {
+                'Value': args.s3_prefix,
+            },
+            AUDIT_TABLE_SNAPSHOT_TYPE_KEY: {
+                'Value': args.snapshot_type.lower(),
+            },
+            AUDIT_TABLE_S3_PREFIX_ADG_KEY: {
+                'Value': s3_prefix_adg,
+            },
+            TTL_KEY: {
+                'Value': ttl,
+            },
+        }
+    )
 
 
 def get_cluster_id():
