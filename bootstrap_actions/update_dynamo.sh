@@ -64,24 +64,29 @@
     ttl_value=$(get_ttl)
     output_location_value=$(get_output_location)
 
-    update_expression="SET #d = :s, Cluster_Id = :v, S3_Prefix_Snapshots = :w, S3_Prefix_Analytical_DataSet = :b, Snapshot_Type = :x, TimeToExist = :z"
-    expression_values="\":s\": {\"S\":\"$DATE\"}, \":v\": {\"S\":\"$CLUSTER_ID\"}, \":w\": {\"S\":\"$S3_PREFIX\"}, \":b\": {\"S\":\"$output_location_value\"}, \":x\": {\"S\":\"$SNAPSHOT_TYPE\"}, \":z\": {\"N\":\"$ttl_value\"}"
+    update_expression="SET #d = :s, Cluster_Id = :v, S3_Prefix_Snapshots = :w, Snapshot_Type = :x, TimeToExist = :z"
+    expression_values="\":s\": {\"S\":\"$DATE\"}, \":v\": {\"S\":\"$CLUSTER_ID\"}, \":w\": {\"S\":\"$S3_PREFIX\"}, \":x\": {\"S\":\"$SNAPSHOT_TYPE\"}, \":z\": {\"N\":\"$ttl_value\"}"
     expression_names="\"#d\":\"Date\""
 
-    if [[ ! -z "$current_step" && "$current_step" != "NOT_SET" ]]; then
+    if [[ ! -z "$current_step" ]] && [[ "$current_step" != "NOT_SET" ]]; then
         update_expression="$update_expression, CurrentStep = :y"
         expression_values="$expression_values, \":y\": {\"S\":\"$current_step\"}"
     fi
 
-    if [[ ! -z "$status" && "$status" != "NOT_SET" ]]; then
+    if [[ ! -z "$status" ]] && [[ "$status" != "NOT_SET" ]]; then
         update_expression="$update_expression, #a = :u"
         expression_values="$expression_values, \":u\": {\"S\":\"$status\"}"
         expression_names="$expression_names, \"#a\":\"Status\""
     fi
 
-    if [[ ! -z "$run_id" && "$run_id" != "NOT_SET" ]]; then
+    if [[ ! -z "$run_id" ]] && [[ "$run_id" != "NOT_SET" ]]; then
         update_expression="$update_expression, Run_Id = :t"
         expression_values="$expression_values, \":t\": {\"N\":\"$run_id\"}"
+    fi
+
+    if [[ ! -z "$output_location_value" ]] && [[ "$output_location_value" != "NOT_SET" ]]; then
+        update_expression="$update_expression, S3_Prefix_Analytical_DataSet = :b"
+        expression_values="$expression_values,, \":b\": {\"S\":\"$output_location_value\"}"
     fi
 
     $(which aws) dynamodb update-item  --table-name "${dynamodb_table_name}" \
@@ -122,7 +127,6 @@
         PREVIOUS_STEP=$CURRENT_STEP
       done
     done
-    sleep 5
     check_step_dir
   }
 
