@@ -40,7 +40,7 @@ git-hooks: ## Set up hooks in .git/hooks
 .PHONY: get-dependencies
 get-dependencies: ## Get dependencies that are normally managed by pipeline
 	@{ \
-		for github_repository in emr-launcher manage-mysql-user; do \
+		for github_repository in emr-launcher manage-mysql-user dataworks-pdm-emr-launcher; do \
 			export REPO=$${github_repository}; \
 			./get_release.sh; \
 		done \
