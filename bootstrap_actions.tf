@@ -185,7 +185,7 @@ resource "aws_s3_bucket_object" "update_dynamo_sh" {
   key        = "component/analytical-dataset-generation/update_dynamo.sh"
   content = templatefile("${path.module}/bootstrap_actions/update_dynamo.sh",
     {
-      dynamodb_table_name = local.data_pipeline_metadata
+      dynamodb_table_name     = local.data_pipeline_metadata
     }
   )
 }

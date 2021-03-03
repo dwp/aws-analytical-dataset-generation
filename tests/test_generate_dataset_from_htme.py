@@ -6,8 +6,7 @@ import time
 
 import boto3
 import pytest
-from boto3.dynamodb.conditions import Key
-from moto import mock_s3, mock_dynamodb2
+from moto import mock_s3
 from datetime import datetime
 
 import steps
@@ -28,12 +27,7 @@ TAG_SET_INCREMENTAL = [{NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE}, {NAME_KEY: DB
     NAME_KEY: TABLE_KEY, VALUE_KEY: 'contract'}, {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_INCREMENTAL}]
 INVALID_SNAPSHOT_TYPE = "abc"
 MOCK_LOCALHOST_URL = "http://localhost:1000"
-COMPLETED_STATUS = "COMPLETED"
-HASH_KEY = "Correlation_Id"
-RANGE_KEY = "DataProduct"
-IN_PROGRESS_STATUS = "In-Progress"
 MOTO_SERVER_URL = "http://127.0.0.1:5000"
-DYNAMODB_AUDIT_TABLENAME = "${data_pipeline_metadata}"
 DB_CORE_CONTRACT = "db.core.contract"
 DB_CORE_ACCOUNTS = "db.core.accounts"
 DB_CORE_CONTRACT_FILE_NAME = f"{DB_CORE_CONTRACT}.01002.4040.gz.enc"
@@ -46,7 +40,6 @@ SECRETS_COLLECTIONS = {DB_CORE_CONTRACT: {'pii' : 'true', 'db' : 'core', 'table'
 KEYS_MAP = {"test_ciphertext": "test_key"}
 RUN_TIME_STAMP = "2020-10-10_10-10-10"
 PUBLISHED_DATABASE_NAME = "test_db"
-RUN_ID = 1
 CORRELATION_ID = "12345"
 AWS_REGION = "eu-west-2"
 S3_PREFIX_ADG_FULL = f"${{file_location}}/{SNAPSHOT_TYPE_FULL}/{RUN_TIME_STAMP}"
@@ -186,7 +179,6 @@ def verify_processed_data(
         S3_PUBLISH_BUCKET,
         PUBLISHED_DATABASE_NAME,
         mocked_args,
-        RUN_ID,
         s3_resource,
     )
     assert len(s3_client.list_buckets()["Buckets"]) == 2
@@ -264,7 +256,6 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         s3_publish_bucket_for_multiple_collections,
         PUBLISHED_DATABASE_NAME,
         mock_args(),
-        RUN_ID,
         s3_resource,
     )
     assert core_contract_collection_name in [
@@ -283,9 +274,6 @@ def monkeypatch_with_mocks(monkeypatch):
     )
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
-    monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
-    )
 
 
 def test_create_hive_on_published_for_full(
@@ -295,7 +283,7 @@ def test_create_hive_on_published_for_full(
     collection_name = "tabtest"
     all_processed_collections = [(collection_name, json_location)]
     steps.generate_dataset_from_htme.create_hive_tables_on_published(
-        spark, all_processed_collections, PUBLISHED_DATABASE_NAME, mock_args(), RUN_ID, RUN_TIME_STAMP
+        spark, all_processed_collections, PUBLISHED_DATABASE_NAME, mock_args(), RUN_TIME_STAMP
     )
 
     monkeypatch.setattr(
@@ -330,9 +318,6 @@ def test_exception_when_decompression_fails(
         )
         monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
         monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
-        monkeypatch.setattr(
-            steps.generate_dataset_from_htme, "get_resource", mock_get_dynamodb_resource
-        )
         generate_dataset_from_htme.main(
             spark,
             s3_client,
@@ -343,7 +328,6 @@ def test_exception_when_decompression_fails(
             S3_PUBLISH_BUCKET,
             PUBLISHED_DATABASE_NAME,
             mock_args(),
-            RUN_ID,
             s3_resource,
         )
 
@@ -351,38 +335,6 @@ def test_exception_when_decompression_fails(
 def test_get_tags():
     tag_value = SECRETS_COLLECTIONS[DB_CORE_CONTRACT]
     assert generate_dataset_from_htme.get_tags(tag_value , SNAPSHOT_TYPE_FULL) == TAG_SET_FULL
-
-@mock_dynamodb2
-def test_log_start_of_batch():
-    dynamodb = mock_get_dynamodb_resource("dynamodb")
-    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), RUN_TIME_STAMP, dynamodb) == 1
-    assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
-
-
-@mock_dynamodb2
-def test_log_start_of_batch_for_multiple_runs():
-    dynamodb = mock_get_dynamodb_resource("dynamodb")
-    generate_dataset_from_htme.log_start_of_batch(mock_args(), RUN_TIME_STAMP, dynamodb)
-    # Ran second time to increment Run_Id by 1 to 2
-    assert generate_dataset_from_htme.log_start_of_batch(mock_args(), RUN_TIME_STAMP, dynamodb) == 2
-    assert query_audit_table_status(dynamodb) == IN_PROGRESS_STATUS
-
-
-@mock_dynamodb2
-def test_log_end_of_batch():
-    dynamodb = mock_get_dynamodb_resource("dynamodb")
-    generate_dataset_from_htme.log_end_of_batch(
-        mock_args(), RUN_ID, COMPLETED_STATUS, RUN_TIME_STAMP, dynamodb
-    )
-    assert query_audit_table_status(dynamodb) == COMPLETED_STATUS
-
-
-def query_audit_table_status(dynamodb):
-    table = dynamodb.Table(DYNAMODB_AUDIT_TABLENAME)
-    response = table.query(
-        KeyConditionExpression=Key(HASH_KEY).eq(CORRELATION_ID), ScanIndexForward=False
-    )
-    return response["Items"][0]["Status"]
 
 
 def mock_decompress(compressed_text):
@@ -393,7 +345,7 @@ def mock_add_metric(metrics_file, collection_name, value):
     return value
 
 
-def mock_decrypt(plain_text_key, iv_key, data, args, run_id, run_time_stamp):
+def mock_decrypt(plain_text_key, iv_key, data, args, run_time_stamp):
     return data
 
 
@@ -405,12 +357,12 @@ def mock_args():
     return args
 
 
-def mock_call_dks(cek, kek, args, run_id, run_time_stamp):
+def mock_call_dks(cek, kek, args, run_time_stamp):
     return kek
 
 
 def mock_create_hive_tables_on_published(
-    spark, all_processed_collections, published_database_name, args, run_id
+    spark, all_processed_collections, published_database_name, args
 ):
     return published_database_name
 
@@ -418,24 +370,6 @@ def mock_create_hive_tables_on_published(
 # Mocking because we don't have the compression codec libraries available in test phase
 def mock_persist_json(json_location, values):
     values.saveAsTextFile(json_location)
-
-
-@mock_dynamodb2
-def mock_get_dynamodb_resource(service_name):
-    dynamodb = boto3.resource(service_name, region_name=AWS_REGION)
-    dynamodb.create_table(
-        TableName=DYNAMODB_AUDIT_TABLENAME,
-        KeySchema=[
-            {"AttributeName": HASH_KEY, "KeyType": "HASH"},  # Partition key
-            {"AttributeName": RANGE_KEY, "KeyType": "RANGE"},  # Sort key
-        ],
-        AttributeDefinitions=[
-            {"AttributeName": HASH_KEY, "AttributeType": "S"},
-            {"AttributeName": RANGE_KEY, "AttributeType": "S"},
-        ],
-        ProvisionedThroughput={"ReadCapacityUnits": 10, "WriteCapacityUnits": 10},
-    )
-    return dynamodb
 
 
 def test_retry_requests_with_no_retries():
@@ -483,15 +417,3 @@ def test_validate_required_args_with_invalid_values_for_snapshot_type():
         str(argument_error.value)
         == "ArgumentError: Valid values for snapshot_type are: full, incremental"
     )
-
-
-def test_get_ttl():
-    base_datetime = datetime.strptime("2020-12-25T03:02:01.000", "%Y-%m-%dT%H:%M:%S.%f")
-    expected = 1608908521000
-    actual = generate_dataset_from_htme.get_ttl(base_datetime, 12)
-    assert expected == actual
-
-
-def test_get_ttl_takes_in_datetime_now():
-    actual = generate_dataset_from_htme.get_ttl(datetime.now(), 12)
-    assert actual is not None
