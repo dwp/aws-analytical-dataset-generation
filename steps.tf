@@ -74,7 +74,7 @@ resource "aws_s3_bucket_object" "pdm_cw_trigger" {
       pdm_lambda_launcher_name = local.pdm_lambda_launcher_name
       aws_region               = var.region
       aws_account_number       = local.account[local.environment]
-      pdm_lambda_launcher_arn  = aws_lambda_function.pdm_emr_late_launcher.arn
+      pdm_lambda_launcher_arn  = aws_lambda_function.pdm_emr_launcher.arn
     }
   )
 }
