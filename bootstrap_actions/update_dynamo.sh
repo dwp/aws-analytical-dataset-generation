@@ -64,7 +64,7 @@
     ttl_value=$(get_ttl)
     output_location_value=$(get_output_location)
 
-    log_wrapper_message "Updating DynamoDB with Date: $DATE, Cluster_Id: $CLUSTER_ID, S3_Prefix_Snapshots: $S3_PREFIX, S3_Prefix_Analytical_DataSet: $output_location_value, Snapshot_Type: $SNAPSHOT_TYPE, TimeToExist: $ttl_value, CurrentStep: $current_step, Status: $status, Run_Id: $run_id"
+    log_wrapper_message "Updating DynamoDB with Correlation_Id: $CORRELATION_ID, DataProduct: $DATA_PRODUCT, Date: $DATE, Cluster_Id: $CLUSTER_ID, S3_Prefix_Snapshots: $S3_PREFIX, S3_Prefix_Analytical_DataSet: $output_location_value, Snapshot_Type: $SNAPSHOT_TYPE, TimeToExist: $ttl_value, CurrentStep: $current_step, Status: $status, Run_Id: $run_id"
 
     update_expression="SET #d = :s, Cluster_Id = :v, S3_Prefix_Snapshots = :w, Snapshot_Type = :x, TimeToExist = :z"
     expression_values="\":s\": {\"S\":\"$DATE\"}, \":v\": {\"S\":\"$CLUSTER_ID\"}, \":w\": {\"S\":\"$S3_PREFIX\"}, \":x\": {\"S\":\"$SNAPSHOT_TYPE\"}, \":z\": {\"N\":\"$ttl_value\"}"
@@ -91,7 +91,7 @@
         expression_values="$expression_values, \":b\": {\"S\":\"$output_location_value\"}"
     fi
 
-    $(which aws) dynamodb update-item  --table-name "${dynamodb_table_name}" \
+    $(which aws) dynamodb update-item --table-name "${dynamodb_table_name}" \
         --key "{\"Correlation_Id\":{\"S\":\"$CORRELATION_ID\"},\"DataProduct\":{\"S\":\"$DATA_PRODUCT\"}}" \
         --update-expression "$update_expression" \
         --expression-attribute-values "{$expression_values}" \
