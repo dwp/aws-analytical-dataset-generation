@@ -17,7 +17,7 @@ bootstrap: ## Bootstrap local environment for first use
 		export AWS_PROFILE=$(aws_profile); \
 		export AWS_REGION=$(aws_region); \
 		python3 bootstrap_terraform.py; \
-		for github_repository in emr-launcher manage-mysql-user; do \
+		for github_repository in emr-launcher manage-mysql-user dataworks-pdm-emr-launcher dataworks-emr-relauncher analytical-dataset-generation-exporter; do \
 			export REPO=$${github_repository}; \
 			./get_lambda_release.sh; \
 		done \
@@ -40,7 +40,7 @@ git-hooks: ## Set up hooks in .git/hooks
 .PHONY: get-dependencies
 get-dependencies: ## Get dependencies that are normally managed by pipeline
 	@{ \
-		for github_repository in emr-launcher manage-mysql-user dataworks-pdm-emr-launcher dataworks-emr-relauncher; do \
+		for github_repository in emr-launcher manage-mysql-user dataworks-pdm-emr-launcher dataworks-emr-relaunche analytical-dataset-generation-exporter; do \
 			export REPO=$${github_repository}; \
 			./get_lambda_release.sh; \
 		done \
