@@ -11,6 +11,7 @@ main() {
   put_targets
 }
 
+#adding permission here because the CW rule is not managed by Terraform
 add_lambda_permission() {
   aws lambda add-permission \
     --function-name $${pdm_lambda_launcher_name} \
