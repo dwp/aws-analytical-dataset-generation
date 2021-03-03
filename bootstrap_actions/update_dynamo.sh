@@ -50,6 +50,7 @@
 
     if [[ -f $OUTPUT_LOCATION_FILE ]]; then
       OUTPUT_LOCATION=`cat $OUTPUT_LOCATION_FILE`
+    fi
 
     echo "$OUTPUT_LOCATION"
   }
@@ -75,7 +76,7 @@
     if [[ ! -z "$status" ]]; then
         update_expression="$update_expression, #s = :u"
         expression_values="$expression_values, \":u\": {\"S\":\"$status\"}"
-        expression_names="$expression_names, \"#s\":\"Status\""
+        expression_names="$expression_names, \"#a\":\"Status\""
     fi
 
     if [[ ! -z "$run_id" ]]; then
