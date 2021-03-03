@@ -1,4 +1,4 @@
-variable "dataworks_pdm_emr_launcher_zip" {
+variable "pdm_emr_launcher_zip" {
   type = map(string)
   default = {
     base_path = ""
@@ -7,7 +7,7 @@ variable "dataworks_pdm_emr_launcher_zip" {
 }
 
 resource "aws_lambda_function" "pdm_emr_launcher" {
-  filename = "${var.dataworks_pdm_emr_launcher_zip["base_path"]}/dataworks-pdm-emr-launcher-${var.dataworks_pdm_emr_launcher_zip["version"]}.zip"
+  filename = "${var.pdm_emr_launcher_zip["base_path"]}/dataworks-pdm-emr-launcher-${var.pdm_emr_launcher_zip["version"]}.zip"
   //  calling this pdm-emr-late-launcher because we already have a function called pdm-emr-launcher, can change this after we are sure that this works
   function_name = local.pdm_lambda_launcher_name
   role          = aws_iam_role.pdm_emr_launcher_lambda_role.arn
@@ -16,8 +16,8 @@ resource "aws_lambda_function" "pdm_emr_launcher" {
   source_code_hash = filebase64sha256(
     format(
       "%s/dataworks-pdm-emr-launcher-%s.zip",
-      var.dataworks_pdm_emr_launcher_zip["base_path"],
-      var.dataworks_pdm_emr_launcher_zip["version"]
+      var.pdm_emr_launcher_zip["base_path"],
+      var.pdm_emr_launcher_zip["version"]
     )
   )
   publish = false

@@ -32,7 +32,7 @@ variable "emr_ami_id" {
   default     = "ami-0672faa58b65ff88d"
 }
 
-variable "analytical_dataset_generation_exporter_zip" {
+variable "analytical_dataset_generation_exporter_jar" {
   type = map(string)
 
   default = {
