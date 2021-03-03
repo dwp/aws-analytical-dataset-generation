@@ -74,7 +74,7 @@
     fi
 
     if [[ ! -z "$status" ]]; then
-        update_expression="$update_expression, #s = :u"
+        update_expression="$update_expression, #a = :u"
         expression_values="$expression_values, \":u\": {\"S\":\"$status\"}"
         expression_names="$expression_names, \"#a\":\"Status\""
     fi
