@@ -110,17 +110,18 @@
         CURRENT_STEP=$(echo "$step_script_name" | sed 's:.*/::' | cut -f 1 -d '.')
         state=$(jq -r '.state' $i)
         if [[ "$state" == "FAILED" ]] || [[ "$state" == "CANCELLED" ]]; then
-          log_wrapper_message "Failed. Step Name: $CURRENT_STEP, Step status: $state"
+          log_wrapper_message "Failed step. Step Name: $CURRENT_STEP, Step status: $state"
           dynamo_update_item "$CURRENT_STEP" "FAILED" "NOT_SET"
           exit 0
         fi
         if [[ "$CURRENT_STEP" == "$FINAL_STEP_NAME" ]] && [[ "$state" == "COMPLETED" ]]; then
           dynamo_update_item "$CURRENT_STEP" "COMPLETED" "NOT_SET"
+          log_wrapper_message "All steps completed. Final step Name: $CURRENT_STEP, Step status: $state"
           exit 0
         fi
         if [[ $PREVIOUS_STATE != $state ]] && [[ $PREVIOUS_STEP != $CURRENT_STEP ]]; then
-          dynamo_update_item "$CURRENT_STEP" "COMPLETED" "NOT_SET"
-          log_wrapper_message "Success. Step Name: $CURRENT_STEP, Step status: $state"
+          dynamo_update_item "$CURRENT_STEP" "NOT_SET" "NOT_SET"
+          log_wrapper_message "Successful step. Last step name: $PREVIOUS_STEP, Last step status: $PREVIOUS_STATE, Current step name: $CURRENT_STEP, Current step status: $state"
           processed_files+=( $i )
         else
           sleep 5
