@@ -64,6 +64,8 @@
     ttl_value=$(get_ttl)
     output_location_value=$(get_output_location)
 
+    log_wrapper_message "Updating DynamoDB with Date: $DATE, Cluster_Id: $CLUSTER_ID, S3_Prefix_Snapshots: $S3_PREFIX, S3_Prefix_Analytical_DataSet: $output_location_value, Snapshot_Type: $SNAPSHOT_TYPE, TimeToExist: $ttl_value, CurrentStep: $current_step, Status: $status, Run_Id: $run_id"
+
     update_expression="SET #d = :s, Cluster_Id = :v, S3_Prefix_Snapshots = :w, Snapshot_Type = :x, TimeToExist = :z"
     expression_values="\":s\": {\"S\":\"$DATE\"}, \":v\": {\"S\":\"$CLUSTER_ID\"}, \":w\": {\"S\":\"$S3_PREFIX\"}, \":x\": {\"S\":\"$SNAPSHOT_TYPE\"}, \":z\": {\"N\":\"$ttl_value\"}"
     expression_names="\"#d\":\"Date\""
@@ -86,7 +88,7 @@
 
     if [[ ! -z "$output_location_value" ]] && [[ "$output_location_value" != "NOT_SET" ]]; then
         update_expression="$update_expression, S3_Prefix_Analytical_DataSet = :b"
-        expression_values="$expression_values,, \":b\": {\"S\":\"$output_location_value\"}"
+        expression_values="$expression_values, \":b\": {\"S\":\"$output_location_value\"}"
     fi
 
     $(which aws) dynamodb update-item  --table-name "${dynamodb_table_name}" \
@@ -147,7 +149,6 @@
     NEW_RUN_ID=$((CURRENT_RUN_ID+1))
     dynamo_update_item "NOT_SET" "In-Progress" "$NEW_RUN_ID"
   fi
-  log_wrapper_message "Updating DynamoDB with CORRELATION_ID: $CORRELATION_ID and RUN_ID: $NEW_RUN_ID"
 
   #kick off loop to process all step files
   check_step_dir
