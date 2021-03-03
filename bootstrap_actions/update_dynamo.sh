@@ -18,6 +18,7 @@
   CORRELATION_ID_FILE=/opt/emr/correlation_id.txt
   S3_PREFIX_FILE=/opt/emr/s3_prefix.txt
   SNAPSHOT_TYPE_FILE=/opt/emr/snapshot_type.txt
+  OUTPUT_LOCATION_FILE=/opt/emr/output_location.txt
   DATE=$(date '+%Y-%m-%d')
   CLUSTER_ID=`cat /mnt/var/lib/info/job-flow.json | jq '.jobFlowId'`
   CLUSTER_ID=$${CLUSTER_ID//\"}
@@ -44,6 +45,15 @@
       echo $((TIME_NOW + 604800000))
   }
 
+  get_output_location() {
+    OUTPUT_LOCATION="NOT_SET"
+
+    if [[ -f $OUTPUT_LOCATION_FILE ]]; then
+      OUTPUT_LOCATION=`cat $OUTPUT_LOCATION_FILE`
+
+    echo "$OUTPUT_LOCATION"
+  }
+
   processed_files=()
   dynamo_update_item() {
     current_step="$1"
@@ -51,30 +61,33 @@
     run_id="$3"
 
     ttl_value=$(get_ttl)
+    output_location_value=$(get_output_location)
 
-    update_expression="SET #d = :s, Cluster_Id = :v, S3_Prefix_Snapshots = :w, Snapshot_Type = :x, TimeToExist = :z"
-    expression_values="\":s\": {\"S\":\"$DATE\"},\":v\": {\"S\":\"$CLUSTER_ID\"},\":w\": {\"S\":\"$S3_PREFIX\"},\":x\": {\"S\":\"$SNAPSHOT_TYPE\"},\":z\": {\"N\":\"$ttl_value\"}"
+    update_expression="SET #d = :s, Cluster_Id = :v, S3_Prefix_Snapshots = :w, S3_Prefix_Analytical_DataSet = :b, Snapshot_Type = :x, TimeToExist = :z"
+    expression_values="\":s\": {\"S\":\"$DATE\"}, \":v\": {\"S\":\"$CLUSTER_ID\"}, \":w\": {\"S\":\"$S3_PREFIX\"}, \":b\": {\"S\":\"$output_location_value\"}, \":x\": {\"S\":\"$SNAPSHOT_TYPE\"}, \":z\": {\"N\":\"$ttl_value\"}"
+    expression_names="\"#d\":\"Date\""
 
     if [[ ! -z "$current_step" ]]; then
         update_expression="$update_expression, CurrentStep = :y"
-        expression_values="$expression_values,\":y\": {\"S\":\"$current_step\"}"
+        expression_values="$expression_values, \":y\": {\"S\":\"$current_step\"}"
     fi
 
     if [[ ! -z "$status" ]]; then
-        update_expression="$update_expression, Status = :u"
-        expression_values="$expression_values,\":u\": {\"S\":\"$status\"}"
+        update_expression="$update_expression, #s = :u"
+        expression_values="$expression_values, \":u\": {\"S\":\"$status\"}"
+        expression_names="$expression_names, \"#s\":\"Status\""
     fi
 
     if [[ ! -z "$run_id" ]]; then
         update_expression="$update_expression, Run_Id = :t"
-        expression_values="$expression_values,\":t\": {\"N\":\"$run_id\"}"
+        expression_values="$expression_values, \":t\": {\"N\":\"$run_id\"}"
     fi
 
     $(which aws) dynamodb update-item  --table-name "${dynamodb_table_name}" \
         --key "{\"Correlation_Id\":{\"S\":\"$CORRELATION_ID\"},\"DataProduct\":{\"S\":\"$DATA_PRODUCT\"}}" \
         --update-expression "$update_expression" \
         --expression-attribute-values "{$expression_values}" \
-        --expression-attribute-names '{"#d":"Date"}'
+        --expression-attribute-names "{$expression_names}"
   }
 
   check_step_dir() {

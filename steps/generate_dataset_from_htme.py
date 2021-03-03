@@ -626,6 +626,14 @@ def exit_if_skipping_step():
         sys.exit(0)
 
 
+def save_output_location(args, run_time_stamp):
+    file_location = "${file_location}"
+    output_location = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
+
+    with open("/opt/emr/output_location.txt", "wt") as output_location_file:
+        output_location_file.write(output_location)
+
+
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
@@ -639,6 +647,7 @@ if __name__ == "__main__":
 
     spark = get_spark_session(args)
     run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    save_output_location(args, run_time_stamp)
     published_database_name = "${published_db}"
     secret_name_full = "${secret_name_full}"
     secret_name_incremental = "${secret_name_incremental}"
