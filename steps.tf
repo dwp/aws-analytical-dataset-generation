@@ -7,7 +7,6 @@ resource "aws_s3_bucket_object" "generate_dataset_from_htme_script" {
       secret_name_incremental = local.secret_name_incremental
       published_db            = local.published_db
       hive_metastore_backend  = local.hive_metastore_backend[local.environment]
-      data_pipeline_metadata  = local.data_pipeline_metadata
       file_location           = "analytical-dataset"
       url                     = format("%s/datakey/actions/decrypt", data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment])
       aws_default_region      = "eu-west-2"
