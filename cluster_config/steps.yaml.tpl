@@ -58,9 +58,8 @@ Steps:
 - Name: "pdm-cw-trigger"
   HadoopJarStep:
     Args:
-    - "python3"
     - "/opt/emr/pdm_cw_trigger.sh"
-  Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
 - Name: "flush-pushgateway"
   HadoopJarStep:

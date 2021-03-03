@@ -34,7 +34,7 @@ resource "aws_lambda_function" "pdm_emr_launcher" {
 
 
 resource "aws_iam_role" "pdm_emr_launcher_lambda_role" {
-  name               = "pdm_emr_launcher_lambda_role"
+  name               = "pdm_emr_late_launcher_lambda_role"
   assume_role_policy = data.aws_iam_policy_document.pdm_emr_launcher_assume_policy.json
 }
 
