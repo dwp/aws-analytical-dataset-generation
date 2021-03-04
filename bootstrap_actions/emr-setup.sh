@@ -5,7 +5,6 @@ $(which aws) s3 cp "${S3_SEND_SNS_NOTIFICATION}"       /opt/emr/send_notificatio
 $(which aws) s3 cp "${RESUME_STEP_SHELL}"              /opt/emr/resume_step.sh
 $(which aws) s3 cp "${update_dynamo_sh}"               /opt/emr/update_dynamo.sh
 $(which aws) s3 cp "${dynamo_schema_json}"             /opt/emr/dynamo_schema.json
-$(which aws) s3 cp "${PDM_CW_TRIGGER_SHELL}"           /opt/emr/pdm-cw-trigger.sh
 
 
 echo "Changing the Permissions"
@@ -13,7 +12,6 @@ chmod u+x /opt/emr/cloudwatch.sh
 chmod u+x /opt/emr/send_notification.py
 chmod u+x /opt/emr/resume_step.sh
 chmod u+x /opt/emr/update_dynamo.sh
-chmod u+x /opt/emr/pdm-cw-trigger.sh
 
 /opt/emr/update_dynamo.sh &
 

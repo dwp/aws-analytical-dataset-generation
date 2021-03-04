@@ -64,22 +64,6 @@ resource "aws_s3_bucket_object" "courtesy_flush" {
 }
 
 
-resource "aws_s3_bucket_object" "pdm_cw_trigger" {
-  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
-  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
-  key        = "component/analytical-dataset-generation/pdm-cw-trigger.sh"
-  content = templatefile("${path.module}/steps/pdm-cw-trigger.sh",
-    {
-      pdm_lambda_cw_trigger    = local.pdm_lambda_cw_trigger
-      pdm_lambda_launcher_name = local.pdm_lambda_launcher_name
-      aws_region               = var.region
-      aws_account_number       = local.account[local.environment]
-      pdm_lambda_launcher_arn  = aws_lambda_function.pdm_emr_launcher.arn
-    }
-  )
-}
-
-
 resource "aws_s3_bucket_object" "create-mongo-latest-dbs" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn

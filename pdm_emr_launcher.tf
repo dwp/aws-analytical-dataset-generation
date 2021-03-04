@@ -6,7 +6,7 @@ variable "pdm_emr_launcher_zip" {
   }
 }
 
-resource "aws_lambda_function" "pdm_emr_launcher" {
+resource "aws_lambda_function" "pdm_cw_emr_launcher" {
   filename = "${var.pdm_emr_launcher_zip["base_path"]}/dataworks-pdm-emr-launcher-${var.pdm_emr_launcher_zip["version"]}.zip"
   //  calling this pdm-emr-late-launcher because we already have a function called pdm-emr-launcher, can change this after we are sure that this works
   function_name = local.pdm_lambda_launcher_name
@@ -32,10 +32,30 @@ resource "aws_lambda_function" "pdm_emr_launcher" {
   }
 }
 
+resource "aws_cloudwatch_event_rule" "pdm_cw_emr_launcher_schedule" {
+  name                = "pdm_cw_emr_launcher_schedule"
+  description         = "Triggers PDM EMR Launcher everyday at 7pm"
+  schedule_expression = format("cron(%s)", local.pdm_cw_emr_lambda_schedule[local.environment])
+}
+
+resource "aws_cloudwatch_event_target" "pdm_emr_launcher_target" {
+  rule      = aws_cloudwatch_event_rule.pdm_cw_emr_launcher_schedule.name
+  target_id = "pdm_cw_emr_launcher_target"
+  arn       = aws_lambda_function.pdm_cw_emr_launcher.arn
+}
+
 
 resource "aws_iam_role" "pdm_emr_launcher_lambda_role" {
   name               = "pdm_emr_late_launcher_lambda_role"
   assume_role_policy = data.aws_iam_policy_document.pdm_emr_launcher_assume_policy.json
+}
+
+resource "aws_lambda_permission" "pdm_emr_relauncher_invoke_permission" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.pdm_cw_emr_launcher.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.pdm_cw_emr_launcher_schedule.arn
 }
 
 data "aws_iam_policy_document" "pdm_emr_launcher_assume_policy" {
