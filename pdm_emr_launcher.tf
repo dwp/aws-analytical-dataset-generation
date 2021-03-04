@@ -8,7 +8,7 @@ variable "pdm_emr_launcher_zip" {
 
 resource "aws_lambda_function" "pdm_cw_emr_launcher" {
   filename = "${var.pdm_emr_launcher_zip["base_path"]}/dataworks-pdm-emr-launcher-${var.pdm_emr_launcher_zip["version"]}.zip"
-  //  calling this pdm-emr-late-launcher because we already have a function called pdm-emr-launcher, can change this after we are sure that this works
+  //  calling this pdm-cw-emr-launcher because we already have a function called pdm-emr-launcher, can change this after we are sure that this works
   function_name = local.pdm_lambda_launcher_name
   role          = aws_iam_role.pdm_emr_launcher_lambda_role.arn
   handler       = "event_handler.handler"
