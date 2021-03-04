@@ -51,11 +51,11 @@ locals {
   }
 
   pdm_cw_emr_lambda_schedule = {
-    development = "00 16 * * * *"
-    qa          = "00 19 * * * 2099"
-    integration = "00 19 * * * 2099"
-    preprod     = "00 19 * * * 2099"
-    production  = "00 19 * * * *"
+    development = "03 17 * * ? *"
+    qa          = "00 19 * * ? 2099"
+    integration = "00 19 * * ? 2099"
+    preprod     = "00 19 * * ? 2099"
+    production  = "00 19 * * ? *"
   }
 
   adg_log_level = {

@@ -51,7 +51,7 @@ resource "aws_iam_role" "pdm_emr_launcher_lambda_role" {
 }
 
 resource "aws_lambda_permission" "pdm_emr_relauncher_invoke_permission" {
-  statement_id  = "AllowExecutionFromCloudWatch"
+  statement_id  = "AllowExecutionFromCloudWatchPDMEMRLauncher"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.pdm_cw_emr_launcher.function_name
   principal     = "events.amazonaws.com"
