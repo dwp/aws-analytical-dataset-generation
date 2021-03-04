@@ -63,7 +63,6 @@ resource "aws_s3_bucket_object" "courtesy_flush" {
   )
 }
 
-
 resource "aws_s3_bucket_object" "create-mongo-latest-dbs" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
