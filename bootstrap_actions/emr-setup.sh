@@ -6,7 +6,6 @@ $(which aws) s3 cp "${RESUME_STEP_SHELL}"              /opt/emr/resume_step.sh
 $(which aws) s3 cp "${update_dynamo_sh}"               /opt/emr/update_dynamo.sh
 $(which aws) s3 cp "${dynamo_schema_json}"             /opt/emr/dynamo_schema.json
 
-
 echo "Changing the Permissions"
 chmod u+x /opt/emr/cloudwatch.sh
 chmod u+x /opt/emr/send_notification.py
