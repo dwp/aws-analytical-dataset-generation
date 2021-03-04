@@ -52,6 +52,7 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       publish_bucket_id               = data.terraform_remote_state.common.outputs.published_bucket.id
       update_dynamo_sh                = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.update_dynamo_sh.key)
       dynamo_schema_json              = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.dynamo_json_file.key)
+      PDM_CW_TRIGGER_SHELL            = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.pdm_cw_trigger.key)
   })
 }
 
