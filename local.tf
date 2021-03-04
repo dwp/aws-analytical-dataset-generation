@@ -3,7 +3,7 @@ locals {
   hbase_root_path          = format("s3://%s", data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir)
   secret_name_full         = "/concourse/dataworks/adg/fulls"
   secret_name_incremental  = "/concourse/dataworks/adg/incrementals"
-  pdm_lambda_launcher_name = "pdm_emr_late_launcher"
+  pdm_lambda_launcher_name = "pdm_cw_emr_launcher"
   pdm_lambda_cw_trigger    = "${local.pdm_lambda_launcher_name}-scheduled-rule"
   common_tags = {
     Environment  = local.environment
@@ -51,7 +51,7 @@ locals {
   }
 
   pdm_cw_emr_lambda_schedule = {
-    development = "03 17 * * ? *"
+    development = "15 17 * * ? *"
     qa          = "00 19 * * ? 2099"
     integration = "00 19 * * ? 2099"
     preprod     = "00 19 * * ? 2099"
