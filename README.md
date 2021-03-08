@@ -146,3 +146,18 @@ Node exporter runs on port 9100.
 
 To set up, repeat steps 6 to 9 of JMX exporter set-up for the node exporter port.
 
+## Dynamo-db table
+
+There is a dynamo-db table that exists which tracks the status of all ADG runs. This table is named `data_pipeline_metadata`. In order to populate this table, the `emr-setup` bootstrap step kicks off a shell script named `update_dynamo.sh` which runs in the background.
+
+This script waits for certain files to exist on the local file systems. These files contain information passed to the cluster from SNS (like the correlation id) and the first step of the cluster than saves them to the files.
+
+When the files are found, then the script updates dynamo db with a row for the current run of the cluster (when the row already exists, it's a retry scenario, see below). Then the script loops in the background for the lifecycle of the cluster. When a step is completed, the current step field is updated in dynamo db and when the cluster is finished the status is updated with the final cluster status. Cancelled clusters are set to failed.
+
+### Retries
+
+If a cluster fails, then the status is updated in the dynamo db table to failed. When a new cluster starts, before it inserts the new dynamo db row, it checks if one exists. If it does, then it checks the last run step and the status and if the status is failed, it saves off this status to a local file.
+
+Whenever a step starts on a cluster, it calls a common method which checks if this local file exists. If it does not (i.e. this is not a retry scenario) then the step continues a normal. However if the file does exist, then the step checks if the failed cluster was running the same step when it failed. If it was, then it runs the step as normal and the local files is deleted so as not to affect subsequent steps. However if the step name does not match, this step is assumed to have completed before and therefore is skipped this time.
+
+In this way, we are able to retry the entire cluster but not repeat steps that have already succeeded, therefore saving us potentially hours or time for retry scenarios.
