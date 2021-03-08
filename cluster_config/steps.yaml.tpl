@@ -48,6 +48,13 @@ Steps:
     - "/opt/emr/generate_dataset_from_htme.py"
     Jar: "command-runner.jar"
   ActionOnFailure: "${action_on_failure}"
+- Name: "sns-notification"
+  HadoopJarStep:
+    Args:
+    - "python3"
+    - "/opt/emr/send_notification.py"
+    Jar: "command-runner.jar"
+  ActionOnFailure: "${action_on_failure}"
 - Name: "flush-pushgateway"
   HadoopJarStep:
     Args:

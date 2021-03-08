@@ -51,7 +51,7 @@ locals {
   }
 
   pdm_cw_emr_lambda_schedule = {
-    development = "15 17 * * ? 2099"
+    development = "01 12 * * ? 2099"
     qa          = "00 15 * * ? 2099"
     integration = "00 15 * * ? 2099"
     preprod     = "00 15 * * ? 2099"

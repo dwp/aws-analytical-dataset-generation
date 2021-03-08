@@ -25,7 +25,7 @@ resource "aws_lambda_function" "pdm_cw_emr_launcher" {
 
   environment {
     variables = {
-      SNS_TOPIC  = aws_sns_topic.adg_completion_status_sns.arn
+      SNS_TOPIC  = aws_sns_topic.pdm_cw_trigger_sns.arn
       TABLE_NAME = local.data_pipeline_metadata
       LOG_LEVEL  = "debug"
     }
@@ -96,7 +96,7 @@ data "aws_iam_policy_document" "pdm_emr_launcher_sns_policy" {
     ]
 
     resources = [
-      aws_sns_topic.adg_completion_status_sns.arn
+      aws_sns_topic.pdm_cw_trigger_sns.arn
     ]
   }
 }
