@@ -619,7 +619,7 @@ def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_st
 
 
 def exit_if_skipping_step():
-    if should_skip_step(the_logger, "submit-job"):
+    if should_skip_step(the_logger, "spark-submit"):
         the_logger.info(
             "Step needs to be skipped so will exit without error"
         )

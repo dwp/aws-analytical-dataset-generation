@@ -12,8 +12,6 @@ chmod u+x /opt/emr/send_notification.py
 chmod u+x /opt/emr/resume_step.sh
 chmod u+x /opt/emr/update_dynamo.sh
 
-/opt/emr/update_dynamo.sh &
-
 (
     # Import the logging functions
     source /opt/emr/logging.sh
@@ -114,5 +112,7 @@ EOF
     aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value=$HOSTNAME
     
     log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
+
+    /opt/emr/update_dynamo.sh &
     
 ) >> /var/log/adg/emr-setup.log 2>&1
