@@ -165,25 +165,25 @@ along with other upgrades including Spark. Below is a list of steps taken to upg
 3. Create ingress/egress security group rules to the metastore in the `internal-compute` repo. Example below   
 
     ```
-        resource "aws_security_group_rule" "ingress_adg" {
-          description              = "Allow mysql traffic to Aurora RDS from ADG"
-          from_port                = 3306
-          protocol                 = "tcp"
-          security_group_id        = aws_security_group.hive_metastore_v2.id
-          to_port                  = 3306
-          type                     = "ingress"
-          source_security_group_id = data.terraform_remote_state.adg.outputs.adg_common_sg.id
-        }
-        
-        resource "aws_security_group_rule" "egress_adg" {
-          description              = "Allow mysql traffic to Aurora RDS from ADG"
-          from_port                = 3306
-          protocol                 = "tcp"
-          security_group_id        = data.terraform_remote_state.adg.outputs.adg_common_sg.id
-          to_port                  = 3306
-          type                     = "egress"
-          source_security_group_id = aws_security_group.hive_metastore_v2.id
-        }
+    resource "aws_security_group_rule" "ingress_adg" {
+      description              = "Allow mysql traffic to Aurora RDS from ADG"
+      from_port                = 3306
+      protocol                 = "tcp"
+      security_group_id        = aws_security_group.hive_metastore_v2.id
+      to_port                  = 3306
+      type                     = "ingress"
+      source_security_group_id = data.terraform_remote_state.adg.outputs.adg_common_sg.id
+    }
+    
+    resource "aws_security_group_rule" "egress_adg" {
+      description              = "Allow mysql traffic to Aurora RDS from ADG"
+      from_port                = 3306
+      protocol                 = "tcp"
+      security_group_id        = data.terraform_remote_state.adg.outputs.adg_common_sg.id
+      to_port                  = 3306
+      type                     = "egress"
+      source_security_group_id = aws_security_group.hive_metastore_v2.id
+    }
     ```
 
 3. Rotate the `adg-writer` user from the `internal-compute` pipeline so that when ADG starts up it can login to the metastore.
@@ -216,4 +216,9 @@ along with other upgrades including Spark. Below is a list of steps taken to upg
        <version>2.4-1.0.6</version>
    </dependency>
    ```
+   
+7. Bump the EMR version to 6.2.0 and launch the cluster.   
+
+Make sure that the first time anything uses the metastore it initialises with Hive 3, otherwise it will have to be rebuilt. 
+
 
