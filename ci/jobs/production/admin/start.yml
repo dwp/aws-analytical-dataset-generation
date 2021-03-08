@@ -11,4 +11,3 @@ jobs:
             S3_PREFIX: businessdata/mongo/ucdata/2021-03-05/incremental
             CORRELATION_ID: test
             SNAPSHOT_TYPE: full
-
