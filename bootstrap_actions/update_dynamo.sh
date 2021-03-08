@@ -45,7 +45,7 @@
     sleep 5
   done
 
-  if [[ ! -z "$status" ]] && [[ "$status" != "NOT_SET" ]]; then
+  if [[ "$SNAPSHOT_TYPE" == "incremental" ]]; then
     FINAL_STEP_NAME="executeUpdateAll"
   fi
 
