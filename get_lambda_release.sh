@@ -14,7 +14,7 @@ get_release() {
     for k in $(jq '.assets | keys | .[]' <<< "$RESPONSE"); do
         value=$(jq -r ".assets[$k]" <<< $RESPONSE);
         url=$(jq -r ".browser_download_url" <<< $value);
-        if  echo "$url" | grep -q "$rVERSION"; then
+        if  echo "$url" | grep -q "$VERSION"; then
             export ASSET=$url
             fetch_asset
         fi
