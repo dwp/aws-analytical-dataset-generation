@@ -23,7 +23,12 @@
   CLUSTER_ID=`cat /mnt/var/lib/info/job-flow.json | jq '.jobFlowId'`
   CLUSTER_ID=$${CLUSTER_ID//\"}
 
-  FINAL_STEP_NAME="build-day-1-all"
+  FAILED_STATUS="FAILED"
+  COMPLETED_STATUS="COMPLETED"
+  IN_PROGRESS_STATUS="IN_PROGRESS"
+  CANCELLED_STATUS="CANCELLED"
+
+  FINAL_STEP_NAME="flush-pushgateway"
 
   while [[ ! -f $CORRELATION_ID_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]] && [[ ! -f $SNAPSHOT_TYPE_FILE ]]
   do
@@ -39,6 +44,10 @@
   do
     sleep 5
   done
+
+  if [[ "$SNAPSHOT_TYPE" == "incremental" ]]; then
+    FINAL_STEP_NAME="executeUpdateAll"
+  fi
 
   get_ttl() {
       TIME_NOW=$(($(date +'%s * 1000 + %-N / 1000000')))
@@ -105,17 +114,17 @@
         continue
       fi
       state=$(jq -r '.state' $i)
-      while [[ "$state" != "COMPLETED" ]]; do
+      while [[ "$state" != "$COMPLETED_STATUS" ]]; do
         step_script_name=$(jq -r '.args[0]' $i)
         CURRENT_STEP=$(echo "$step_script_name" | sed 's:.*/::' | cut -f 1 -d '.')
         state=$(jq -r '.state' $i)
-        if [[ "$state" == "FAILED" ]] || [[ "$state" == "CANCELLED" ]]; then
+        if [[ "$state" == "$FAILED_STATUS" ]] || [[ "$state" == "$CANCELLED_STATUS" ]]; then
           log_wrapper_message "Failed step. Step Name: $CURRENT_STEP, Step status: $state"
-          dynamo_update_item "$CURRENT_STEP" "FAILED" "NOT_SET"
+          dynamo_update_item "$CURRENT_STEP" "$FAILED_STATUS" "NOT_SET"
           exit 0
         fi
-        if [[ "$CURRENT_STEP" == "$FINAL_STEP_NAME" ]] && [[ "$state" == "COMPLETED" ]]; then
-          dynamo_update_item "$CURRENT_STEP" "COMPLETED" "NOT_SET"
+        if [[ "$CURRENT_STEP" == "$FINAL_STEP_NAME" ]] && [[ "$state" == "$COMPLETED_STATUS" ]]; then
+          dynamo_update_item "$CURRENT_STEP" "$COMPLETED_STATUS" "NOT_SET"
           log_wrapper_message "All steps completed. Final step Name: $CURRENT_STEP, Step status: $state"
           exit 0
         fi
@@ -136,11 +145,11 @@
   #Check if row for this correlation ID already exists - in which case we need to increment the Run_Id
   response=`aws dynamodb get-item --table-name ${dynamodb_table_name} --key '{"Correlation_Id": {"S": "'$CORRELATION_ID'"}, "DataProduct": {"S": "'$DATA_PRODUCT'"}}'`
   if [[ -z $response ]]; then
-    dynamo_update_item "NOT_SET" "In-Progress" "1"
+    dynamo_update_item "NOT_SET" "$IN_PROGRESS_STATUS" "1"
   else
     LAST_STATUS=`echo $response | jq -r .'Item.Status.S'`
     log_wrapper_message "Status from previous run $LAST_STATUS"
-    if [[ "$LAST_STATUS" == "FAILED" ]]; then
+    if [[ "$LAST_STATUS" == "$FAILED_STATUS" ]]; then
       log_wrapper_message "Previous failed status found, creating step_to_start_from.txt"
       CURRENT_STEP=`echo $response | jq -r .'Item.CurrentStep.S'`
       echo $CURRENT_STEP >> /opt/emr/step_to_start_from.txt
@@ -148,7 +157,7 @@
 
     CURRENT_RUN_ID=`echo $response | jq -r .'Item.Run_Id.N'`
     NEW_RUN_ID=$((CURRENT_RUN_ID+1))
-    dynamo_update_item "NOT_SET" "In-Progress" "$NEW_RUN_ID"
+    dynamo_update_item "NOT_SET" "$IN_PROGRESS_STATUS" "$NEW_RUN_ID"
   fi
 
   #kick off loop to process all step files
