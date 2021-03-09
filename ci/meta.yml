@@ -157,7 +157,7 @@ meta:
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
               export TF_VAR_dataworks_pdm_emr_launcher_zip="{base_path = \"../dataworks-pdm-emr-launcher-release\", version = \"$(cat ../dataworks-pdm-emr-launcher-release/version)\"}"
-              export TF_VAR_dataworks_emr_relauncher_zip="{base_path = \"../dataowkrs-emr-relauncher-release\", version = \"$(cat ../dataworks-emr-relauncher-release/version)\"}"
+              export TF_VAR_dataworks_emr_relauncher_zip="{base_path = \"../dataworks-emr-relauncher-release\", version = \"$(cat ../dataworks-emr-relauncher-release/version)\"}"
               export TF_VAR_manage_mysql_user_zip="{base_path = \"../manage-mysql-user-release\", version = \"$(cat ../manage-mysql-user-release/version)\"}"
               export TF_VAR_analytical_dataset_generation_exporter_jar="{base_path = \"../analytical-dataset-generation-exporter-release\", version = \"$(ls ../analytical-dataset-generation-exporter-release/*.jar | sed -e 's/^.*exporter-//' -e 's/.jar$//')\"}"
               terraform init
