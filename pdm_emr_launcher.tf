@@ -1,4 +1,4 @@
-variable "dataworks_pdm_emr_launcher_zip" {
+variable "pdm_emr_launcher_zip" {
   type = map(string)
   default = {
     base_path = ""
