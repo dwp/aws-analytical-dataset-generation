@@ -26,12 +26,12 @@ fetch_asset(){
 
     if [[ -f ../${REPO}-release/$EXISTING_VERSION ]]; then
         echo "${REPO}-release/$EXISTING_VERSION already exists: Skipping download"
-        update_tfvars
     else
-        update_tfvars
         mkdir ../${REPO}-release
         (cd ../${REPO}-release/ && curl -L -O ${ASSET})
     fi
+
+    update_tfvars
 }
 
 get_release
