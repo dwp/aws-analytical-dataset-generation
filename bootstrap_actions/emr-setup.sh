@@ -114,5 +114,5 @@ EOF
     log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 
     /opt/emr/update_dynamo.sh &
-    
+
 ) >> /var/log/adg/emr-setup.log 2>&1
