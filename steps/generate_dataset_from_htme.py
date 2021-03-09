@@ -641,7 +641,7 @@ if __name__ == "__main__":
     )
 
     the_logger.info(
-        "Checking if skip should be skipped"
+        "Checking if step should be skipped"
     )
     exit_if_skipping_step()
 
