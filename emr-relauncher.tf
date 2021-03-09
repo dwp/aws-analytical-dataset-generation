@@ -1,4 +1,4 @@
-variable "dataworks_emr_relauncher_zip" {
+variable "adg_emr_relauncher_zip" {
   type = map(string)
 
   default = {
@@ -8,7 +8,7 @@ variable "dataworks_emr_relauncher_zip" {
 }
 
 resource "aws_lambda_function" "adg_emr_relauncher" {
-  filename      = "${var.dataworks_emr_relauncher_zip["base_path"]}/dataworks-emr-relauncher-${var.dataworks_emr_relauncher_zip["version"]}.zip"
+  filename      = "${var.adg_emr_relauncher_zip["base_path"]}/dataworks-emr-relauncher-${var.adg_emr_relauncher_zip["version"]}.zip"
   function_name = "adg_emr_relauncher"
   role          = aws_iam_role.adg_emr_relauncher_lambda_role.arn
   handler       = "event_handler.handler"
@@ -16,8 +16,8 @@ resource "aws_lambda_function" "adg_emr_relauncher" {
   source_code_hash = filebase64sha256(
     format(
       "%s/dataworks-emr-relauncher-%s.zip",
-      var.dataworks_emr_relauncher_zip["base_path"],
-      var.dataworks_emr_relauncher_zip["version"]
+      var.adg_emr_relauncher_zip["base_path"],
+      var.adg_emr_relauncher_zip["version"]
     )
   )
   publish = false
