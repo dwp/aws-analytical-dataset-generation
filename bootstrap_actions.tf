@@ -156,7 +156,7 @@ resource "aws_s3_bucket_object" "metrics_jar" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
   key        = "component/analytical-dataset-generation/metrics/adg-exporter.jar"
-  content    = filebase64("${var.analytical_dataset_generation_exporter_jar.base_path}/exporter-${var.analytical_dataset_generation_exporter_jar.version}.jar")
+  content    = filebase64("${var.analytical_dataset_generation_exporter_jar.base_path}/analytical-dataset-generation-exporter-${var.analytical_dataset_generation_exporter_jar.version}.jar")
 }
 
 resource "aws_s3_bucket_object" "download_sql_sh" {
