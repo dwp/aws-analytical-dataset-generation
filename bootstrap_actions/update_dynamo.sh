@@ -124,6 +124,9 @@
       state=$(jq -r '.state' $i)
       while [[ "$state" != "$COMPLETED_STATUS" ]]; do
         step_script_name=$(jq -r '.args[0]' $i)
+        if [[ "$step_script_name" == "python3" ]]; then
+            step_script_name=$(jq -r '.args[1]' $i)
+        fi
         CURRENT_STEP=$(echo "$step_script_name" | sed 's:.*/::' | cut -f 1 -d '.')
         state=$(jq -r '.state' $i)
         if [[ "$state" == "$FAILED_STATUS" ]] || [[ "$state" == "$CANCELLED_STATUS" ]]; then
