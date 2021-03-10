@@ -16,6 +16,18 @@ resource "aws_s3_bucket_object" "generate_dataset_from_htme_script" {
   )
 }
 
+resource "aws_s3_bucket_object" "create_pdm_trigger_script" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "component/analytical-dataset-generation/create_pdm_trigger.py"
+  content = templatefile("${path.module}/steps/create_pdm_trigger.py",
+    {
+      pdm_lambda_trigger_arn  = aws_lambda_function.pdm_cw_emr_launcher.
+      aws_default_region      = "eu-west-2"
+      log_path                = "/var/log/adg/create_pdm_trigger.log"
+    }
+  )
+}
+
 resource "aws_s3_bucket_object" "logger" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
   key     = "component/analytical-dataset-generation/logger.py"
