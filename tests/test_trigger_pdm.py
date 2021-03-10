@@ -1,7 +1,7 @@
 import boto3
 import unittest
 
-from steps import trigger_pdm
+from steps import create_pdm_trigger
 from datetime import datetime
 
 
@@ -38,7 +38,7 @@ def test_put_cloudwatch_event_rule():
     events_client.put_rule = mock.MagicMock()
 
     expected = "pdm_cw_emr_launcher_schedule_18_09_19_23_57_19"
-    actual = send_notification.put_cloudwatch_event_rule(
+    actual = create_pdm_trigger.put_cloudwatch_event_rule(
         events_client, now, cron
     )
 
@@ -60,7 +60,7 @@ def test_put_cloudwatch_event_target():
     events_client = mock.MagicMock()
     events_client.put_targets = mock.MagicMock()
 
-    actual = send_notification.put_cloudwatch_event_target(
+    actual = create_pdm_trigger.put_cloudwatch_event_target(
         events_client, now, cron
     )
 
@@ -83,7 +83,7 @@ def test_should_skip_returns_true_when_after_cut_off(monkeypatch):
         steps.resume_step, "should_skip_step", False
     )
 
-    actual = trigger_pdm.should_step_be_skipped(
+    actual = create_pdm_trigger.should_step_be_skipped(
         now, 
         do_not_trigger_after
     )
@@ -99,7 +99,7 @@ def test_should_skip_returns_true_when_after_cut_off_but_resume_step_returns_tru
         steps.resume_step, "should_skip_step", True
     )
 
-    actual = trigger_pdm.should_step_be_skipped(
+    actual = create_pdm_trigger.should_step_be_skipped(
         now, 
         do_not_trigger_after
     )
@@ -115,7 +115,7 @@ def test_should_skip_returns_false_when_before_cut_off_and_resume_step_returns_f
         steps.resume_step, "should_skip_step", False
     )
 
-    actual = trigger_pdm.should_step_be_skipped(
+    actual = create_pdm_trigger.should_step_be_skipped(
         now, 
         do_not_trigger_after
     )
@@ -128,7 +128,7 @@ def test_get_cron_gives_cut_out_time_when_before_cut_off():
     do_not_run_before = datetime.strptime("18/09/19 02:55:19", '%d/%m/%y %H:%M:%S')
 
     expected = "19 55 02 18 09 ? 19"
-    actual = trigger_pdm.get_cron(
+    actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before
     )
@@ -141,7 +141,7 @@ def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off():
     do_not_run_before = datetime.strptime("18/09/19 00:55:19", '%d/%m/%y %H:%M:%S')
 
     expected = "19 02 02 18 09 ? 19"
-    actual = trigger_pdm.get_cron(
+    actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before
     )
@@ -154,7 +154,7 @@ def test_get_cron_gives_cut_out_time_when_before_cut_off_over_date_boundary():
     do_not_run_before = datetime.strptime("19/09/19 01:55:19", '%d/%m/%y %H:%M:%S')
 
     expected = "19 55 01 19 09 ? 19"
-    actual = trigger_pdm.get_cron(
+    actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before
     )
@@ -167,7 +167,7 @@ def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off_over_date_boundary
     do_not_run_before = datetime.strptime("18/09/19 22:55:19", '%d/%m/%y %H:%M:%S')
 
     expected = "19 02 00 19 09 ? 19"
-    actual = trigger_pdm.get_cron(
+    actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before
     )
