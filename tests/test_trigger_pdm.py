@@ -8,29 +8,156 @@ from datetime import datetime
 from unittest import mock
 
 
-# @mock_events
-# def test_send_sns_message():
-#     sns_client = boto3.client(service_name="sns", region_name=AWS_REGION)
-#     sns_client.create_topic(
-#         Name="status_topic", Attributes={"DisplayName": "test-topic"}
-#     )
-#     s3_client = boto3.client(service_name="s3")
-#     s3_client.create_bucket(Bucket=PUBLISH_BUCKET)
-#     test_data = b"CORRELATION_ID,S3_PREFIX\nabcd,analytical-dataset/2020-10-10"
-#     s3_client.put_object(
-#         Body=test_data,
-#         Bucket=PUBLISH_BUCKET,
-#         Key=ADG_PARAM_KEY,
-#     )
+@mock.patch("steps.create_pdm_trigger.put_cloudwatch_event_target")
+@mock.patch("steps.create_pdm_trigger.put_cloudwatch_event_rule")
+@mock.patch("steps.create_pdm_trigger.get_cron")
+@mock.patch("steps.create_pdm_trigger.generate_do_not_run_before_date")
+@mock.patch("steps.create_pdm_trigger.get_events_client")
+@mock.patch("steps.create_pdm_trigger.should_step_be_skipped")
+@mock.patch("steps.create_pdm_trigger.generate_cut_off_date")
+@mock.patch("steps.create_pdm_trigger.get_now")
+def test_create_pdm_trigger(
+    self,
+    get_now_mock,
+    generate_cut_off_date_mock,
+    should_step_be_skipped_mock,
+    get_events_client_mock,
+    generate_do_not_run_before_date_mock,
+    get_cron_mock,
+    put_cloudwatch_event_rule_mock,
+    put_cloudwatch_event_target_mock,
+):
+    now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
+    do_not_run_after = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
+    do_not_run_before = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
+    cron = "test cron"
+    rule_name = "test rule"
 
-#     topics_json = sns_client.list_topics()
-#     status_topic_arn = topics_json["Topics"][0]["TopicArn"]
+    events_client = mock.MagicMock()
+    get_now_mock = mock.MagicMock()
+    generate_cut_off_date_mock = mock.MagicMock()
+    should_step_be_skipped_mock = mock.MagicMock()
+    get_events_client_mock = mock.MagicMock()
+    generate_do_not_run_before_date_mock = mock.MagicMock()
+    get_cron_mock = mock.MagicMock()
+    put_cloudwatch_event_rule_mock = mock.MagicMock()
+    put_cloudwatch_event_target_mock = mock.MagicMock()
 
-#     response = send_notification.send_sns_message(
-#         PUBLISH_BUCKET, status_topic_arn, ADG_PARAM_KEY, "false", sns_client, s3_client
-#     )
+    get_now_mock.return_value = now
+    generate_cut_off_date_mock.return_value = do_not_run_after
+    should_step_be_skipped_mock.return_value = False
+    get_events_client_mock.return_value = events_client
+    generate_do_not_run_before_date_mock.return_value = do_not_run_before
+    get_cron_mock.return_value = cron
+    put_cloudwatch_event_rule_mock.return_value = rule_name
+    
+    response = send_notification.create_pdm_trigger(
+        False, 
+    )
+    
+    get_now_mock.assert_called_once()
+    generate_cut_off_date_mock.assert_called_once()
+    should_step_be_skipped_mock.assert_called_once_with(
+        False,
+        now,
+        do_not_run_after,
+    )
+    get_events_client_mock.assert_called_once()
+    generate_do_not_run_before_date_mock.assert_called_once()
+    get_cron_mock.assert_called_once_with(
+        now,
+        do_not_run_before,
+    )
+    put_cloudwatch_event_rule_mock.assert_called_once_with(
+        events_client,
+        now,
+        cron,
+    )
+    put_cloudwatch_event_target_mock.assert_called_once_with(
+        events_client,
+        now,
+        rule_name,
+    )
 
-#     assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+
+def test_generate_do_not_run_before_date():
+    export_date = "2020-10-20"
+    export_date_file = "/tmp/test.txt"
+    if not os.path.isfile(export_date_file):
+        os.remove(export_date_file)
+
+    with open(export_date_file, "wt") as f:
+        export_date = f.write(export_date)
+
+    expected = datetime.strptime("20/10/2020 15:00:00", '%d/%m/%y %H:%M:%S')"
+    actual = create_pdm_trigger.generate_do_not_run_before_date(export_date_file)
+
+    assert actual == expected
+
+
+def test_generate_do_not_run_before_date_when_no_file():
+    export_date_file = "/tmp/test.txt"
+    if not os.path.isfile(export_date_file):
+        os.remove(export_date_file)
+
+    expected = None
+    actual = create_pdm_trigger.generate_do_not_run_before_date(export_date_file)
+
+    assert actual == expected
+
+
+def test_generate_do_not_run_before_date_when_empty_file():
+    export_date_file = "/tmp/test.txt"
+    if not os.path.isfile(export_date_file):
+        os.remove(export_date_file)
+
+    with open(export_date_file, "wt") as f:
+        export_date = f.write("")
+
+    expected = None
+    actual = create_pdm_trigger.generate_do_not_run_before_date(export_date_file)
+
+    assert actual == expected
+
+
+def test_generate_cut_off_date():
+    export_date = "2020-10-20"
+    export_date_file = "/tmp/test.txt"
+    if not os.path.isfile(export_date_file):
+        os.remove(export_date_file)
+
+    with open(export_date_file, "wt") as f:
+        export_date = f.write(export_date)
+
+    expected = datetime.strptime("21/10/2020 03:00:00", '%d/%m/%y %H:%M:%S')"
+    actual = create_pdm_trigger.generate_cut_off_date(export_date_file)
+
+    assert actual == expected
+
+
+def test_generate_cut_off_date_when_no_file():
+    export_date_file = "/tmp/test.txt"
+    if not os.path.isfile(export_date_file):
+        os.remove(export_date_file)
+
+    expected = None
+    actual = create_pdm_trigger.generate_cut_off_date(export_date_file)
+
+    assert actual == expected
+
+
+def test_generate_cut_off_date_when_empty_file():
+    export_date_file = "/tmp/test.txt"
+    if not os.path.isfile(export_date_file):
+        os.remove(export_date_file)
+
+    with open(export_date_file, "wt") as f:
+        export_date = f.write("")
+
+    expected = None
+    actual = create_pdm_trigger.generate_cut_off_date(export_date_file)
+
+    assert actual == expected
 
 
 def test_put_cloudwatch_event_rule():
@@ -87,6 +214,7 @@ def test_should_skip_returns_true_when_after_cut_off(monkeypatch):
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
+        False,
         now, 
         do_not_trigger_after
     )
@@ -103,6 +231,7 @@ def test_should_skip_returns_true_when_after_cut_off_but_resume_step_returns_tru
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
+        False,
         now, 
         do_not_trigger_after
     )
@@ -119,11 +248,29 @@ def test_should_skip_returns_false_when_before_cut_off_and_resume_step_returns_f
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
+        False,
         now, 
         do_not_trigger_after
     )
 
     assert False == actual
+
+
+def test_should_skip_returns_true_when_skip_setting_set_to_true(monkeypatch):
+    now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
+    do_not_trigger_after = datetime.strptime("18/09/19 23:59:19", '%d/%m/%y %H:%M:%S')
+
+    monkeypatch.setattr(
+        steps.create_pdm_trigger, "check_should_skip_step", return_false
+    )
+
+    actual = create_pdm_trigger.should_step_be_skipped(
+        True,
+        now, 
+        do_not_trigger_after
+    )
+
+    assert True == actual
 
 
 def test_get_cron_gives_cut_out_time_when_before_cut_off():
@@ -184,3 +331,7 @@ def return_true():
 
 def return_false():
     return False
+
+
+def cut_off_date():
+    return datetime.strptime("18/09/19 22:55:19", '%d/%m/%y %H:%M:%S')

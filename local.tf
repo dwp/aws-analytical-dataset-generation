@@ -217,6 +217,14 @@ locals {
     production  = "0.0.28"
   }
 
+  skip_pdm_trigger_on_adg_completion = {
+    development = "true"
+    qa          = "true"
+    integration = "true"
+    preprod     = "true"
+    production  = "false"
+  }
+
   skip_sns_notification_on_adg_completion = {
     development = "true"
     qa          = "true"

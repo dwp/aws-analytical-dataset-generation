@@ -12,20 +12,61 @@ the_logger = setup_logging(
     log_path="${log_path}",
 )
 
+EXPORT_DATE_FILE_NAME = "/opt/emr/export_date.txt"
+
 
 def create_pdm_trigger(
-    publish_bucket, status_topic_arn, adg_param_key, skip_message_sending, sns_client=None, s3_client=None
+    skip_pdm_trigger,
+    events_client=None
 ):
-    if exit_if_skipping_step(skip_message_sending):
+    now = get_now()
+    do_not_run_after = generate_cut_off_date(EXPORT_DATE_FILE_NAME)
+
+    if should_step_be_skipped(skip_pdm_trigger, now, do_not_run_after):
         return None
 
-    client = get_events_client()
-    now = datetime.now()
-    do_not_run_before = now.replace(hour=15, minute=00, second=00)
+    if events_client is None:
+        events_client = get_events_client()
+
+    do_not_run_before = generate_do_not_run_before_date(EXPORT_DATE_FILE_NAME)
     cron = get_cron(now, do_not_run_before)
 
     rule_name = put_cloudwatch_event_rule(client, now, cron)
     put_cloudwatch_event_target(client, now, rule_name)
+
+
+def get_now():
+    return datetime.now()
+
+
+def generate_cut_off_date(export_date_file):
+    if not os.path.isfile(export_date_file):
+        return None
+
+    with open(export_date_file, "r") as f:
+        export_date = f.readlines().split()
+
+    if not export_date:
+        return None
+
+    export_date_parsed = datetime.strptime(date_time_str, '%Y-%m-%d')
+    day_after_export_date = now + timedelta(days = 1)
+
+    return day_after_export_date.replace(hour=3, minute=00, second=00)
+
+
+def generate_do_not_run_before_date(export_date_file):
+    if not os.path.isfile(export_date_file):
+        return None
+
+    with open(export_date_file, "r") as f:
+        export_date = f.readlines().split()
+
+    if not export_date:
+        return None
+
+    export_date_parsed = datetime.strptime(date_time_str, '%Y-%m-%d')
+    return export_date_parsed.replace(hour=15, minute=00, second=00)
 
 
 def get_events_client():
@@ -81,7 +122,13 @@ def check_should_skip_step():
     return should_skip_step(the_logger, "trigger-pdm")
 
 
-def should_step_be_skipped(now, do_not_trigger_after):
+def should_step_be_skipped(skip_pdm_trigger, now, do_not_trigger_after):
+    if skip_pdm_trigger.lower() == "true":
+        the_logger.info(
+            f"Skipping PDM trigger due to skip_pdm_trigger value of {skip_pdm_trigger}",
+        )
+        return True
+
     if now > do_not_trigger_after:
         the_logger.info(
             f"Skipping PDM triggering as datetime now '{now}' if after cut off of '{do_not_trigger_after}'",
@@ -116,8 +163,5 @@ def get_cron(now, do_not_run_before):
 
 
 if __name__ == "__main__":
-    publish_bucket = "${publish_bucket}"
-    status_topic_arn = "${status_topic_arn}"
-    skip_message_sending = "${skip_message_sending}"
-    adg_param_key = "analytical-dataset/full/adg_output/adg_params.csv"
-    send_sns_message(publish_bucket, status_topic_arn, adg_param_key, skip_message_sending)
+    skip_pdm_trigger = "${skip_pdm_trigger}"
+    send_sns_message(skip_pdm_trigger)
