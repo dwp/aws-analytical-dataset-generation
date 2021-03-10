@@ -19,6 +19,8 @@
   S3_PREFIX_FILE=/opt/emr/s3_prefix.txt
   SNAPSHOT_TYPE_FILE=/opt/emr/snapshot_type.txt
   OUTPUT_LOCATION_FILE=/opt/emr/output_location.txt
+  EXPORT_DATE_FILE=/opt/emr/export_date.txt
+  
   DATE=$(date '+%Y-%m-%d')
   CLUSTER_ID=`cat /mnt/var/lib/info/job-flow.json | jq '.jobFlowId'`
   CLUSTER_ID=$${CLUSTER_ID//\"}
@@ -30,7 +32,7 @@
 
   FINAL_STEP_NAME="flush-pushgateway"
 
-  while [[ ! -f $CORRELATION_ID_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]] && [[ ! -f $SNAPSHOT_TYPE_FILE ]]
+  while [[ ! -f $CORRELATION_ID_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]] && [[ ! -f $SNAPSHOT_TYPE_FILE ]] && [[ ! -f $EXPORT_DATE_FILE ]]
   do
     sleep 5
   done
@@ -38,7 +40,13 @@
   CORRELATION_ID=`cat $CORRELATION_ID_FILE`
   S3_PREFIX=`cat $S3_PREFIX_FILE`
   SNAPSHOT_TYPE=`cat $SNAPSHOT_TYPE_FILE`
+  EXPORT_DATE=`cat $EXPORT_DATE_FILE`
   DATA_PRODUCT="ADG-$SNAPSHOT_TYPE"
+
+  if [[ -z "$EXPORT_DATE" ]]l; then
+    log_wrapper_message "Export date from file was empty, so defaulting to today's date"
+    EXPORT_DATE="$DATE"
+  fi
 
   while [ ! -f $STEP_DEATILS_DIR/*.json ]
   do
