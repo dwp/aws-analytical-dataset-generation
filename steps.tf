@@ -25,6 +25,7 @@ resource "aws_s3_bucket_object" "create_pdm_trigger_script" {
       aws_default_region      = "eu-west-2"
       log_path                = "/var/log/adg/create_pdm_trigger.log"
       skip_pdm_trigger        = local.skip_pdm_trigger_on_adg_completion[local.environment]
+      s3_prefix               = var.htme_data_location[local.environment]
     }
   )
 }
