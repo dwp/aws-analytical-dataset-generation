@@ -17,7 +17,7 @@ class TestReplayer(unittest.TestCase):
     @mock.patch("steps.create_pdm_trigger.get_events_client")
     @mock.patch("steps.create_pdm_trigger.should_step_be_skipped")
     @mock.patch("steps.create_pdm_trigger.generate_cut_off_date")
-    @mock.patch("steps.create_pdm_trigger.get_now")
+    @mock.patch("create_pdm_trigger.get_now")
     def test_create_pdm_trigger(
         self,
         get_now_mock,
