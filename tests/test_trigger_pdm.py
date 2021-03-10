@@ -83,7 +83,7 @@ def test_should_skip_returns_true_when_after_cut_off(monkeypatch):
     do_not_trigger_after = datetime.strptime("18/09/19 22:55:19", '%d/%m/%y %H:%M:%S')
 
     monkeypatch.setattr(
-        steps.create_pdm_trigger, "check_should_skip_step", False
+        steps.create_pdm_trigger, "check_should_skip_step", return_false
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
@@ -99,7 +99,7 @@ def test_should_skip_returns_true_when_after_cut_off_but_resume_step_returns_tru
     do_not_trigger_after = datetime.strptime("18/09/19 23:59:19", '%d/%m/%y %H:%M:%S')
 
     monkeypatch.setattr(
-        steps.create_pdm_trigger, "check_should_skip_step", True
+        steps.create_pdm_trigger, "check_should_skip_step", return_true
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
@@ -115,7 +115,7 @@ def test_should_skip_returns_false_when_before_cut_off_and_resume_step_returns_f
     do_not_trigger_after = datetime.strptime("18/09/19 23:59:19", '%d/%m/%y %H:%M:%S')
 
     monkeypatch.setattr(
-        steps.create_pdm_trigger, "check_should_skip_step", False
+        steps.create_pdm_trigger, "check_should_skip_step", return_false
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
@@ -176,3 +176,11 @@ def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off_over_date_boundary
     )
 
     assert expected == actual
+
+
+def return_true:
+    return True
+
+
+def return_false:
+    return False
