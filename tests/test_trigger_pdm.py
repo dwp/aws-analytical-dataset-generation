@@ -230,6 +230,9 @@ class TestReplayer(unittest.TestCase):
                 {
                     'Id': id_string,
                     'Arn': "${pdm_lambda_trigger_arn}",
+                    'Input': {
+                        'export_date': EXPORT_DATE,
+                    }
                 },
             ]
         )
