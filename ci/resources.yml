@@ -16,6 +16,15 @@ resources:
     check_every: 720h
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
+  - name: aws-analytical-dataset-generation-steven
+    type: git
+    source:
+      branch: trigger-pdm
+      repository: dwp/aws-analytical-dataset-generation
+      uri: https://github.com/dwp/aws-analytical-dataset-generation.git
+    check_every: 720h
+    webhook_token: ((dataworks.concourse_github_webhook_token))
+
   - name: aws-analytical-dataset-generation-update-pipeline
     type: git
     source:
@@ -50,6 +59,15 @@ resources:
     type: git
     source:
       branch: master
+      uri: https://github.com/dwp/dataworks-behavioural-framework.git
+      access_token: ((dataworks-secrets.concourse_github_pat))
+    webhook_token: ((dataworks.concourse_github_webhook_token))
+    check_every: 5m
+
+  - name: dataworks-behavioural-framework-steven
+    type: git
+    source:
+      branch: check-meta
       uri: https://github.com/dwp/dataworks-behavioural-framework.git
       access_token: ((dataworks-secrets.concourse_github_pat))
     webhook_token: ((dataworks.concourse_github_webhook_token))
