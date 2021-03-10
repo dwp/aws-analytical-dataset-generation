@@ -218,7 +218,7 @@ locals {
   }
 
   skip_pdm_trigger_on_adg_completion = {
-    development = "true"
+    development = "false"
     qa          = "true"
     integration = "true"
     preprod     = "true"
