@@ -44,7 +44,7 @@ def generate_cut_off_date(export_date_file):
         return None
 
     with open(export_date_file, "r") as f:
-        export_date = f.readlines().strip()
+        export_date = f.read().strip()
 
     if not export_date:
         return None
@@ -60,7 +60,7 @@ def generate_do_not_run_before_date(export_date_file):
         return None
 
     with open(export_date_file, "r") as f:
-        export_date = f.readlines().strip()
+        export_date = f.read().strip()
 
     if not export_date:
         return None
