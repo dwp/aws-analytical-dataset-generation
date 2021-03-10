@@ -50,8 +50,7 @@ def generate_cut_off_date(export_date_file):
         return None
 
     export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
-    day_after_export_date = now + timedelta(days = 1)
-
+    day_after_export_date = export_date_parsed + timedelta(days = 1)
     return day_after_export_date.replace(hour=3, minute=00, second=00)
 
 
