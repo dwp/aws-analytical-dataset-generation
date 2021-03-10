@@ -1,5 +1,7 @@
 import boto3
+import argparse
 import os
+import json
 
 from datetime import datetime, timedelta
 from steps.logger import setup_logging
@@ -12,16 +14,14 @@ the_logger = setup_logging(
     log_path="${log_path}",
 )
 
-EXPORT_DATE_FILE_NAME = "/opt/emr/export_date.txt"
-
 
 def create_pdm_trigger(
+    args,
     skip_pdm_trigger,
     events_client=None
 ):
     now = get_now()
-    export_date = get_export_date(EXPORT_DATE_FILE_NAME)
-    do_not_run_after = generate_cut_off_date(export_date)
+    do_not_run_after = generate_cut_off_date(args.export_date)
 
     if should_step_be_skipped(skip_pdm_trigger, now, do_not_run_after):
         return None
@@ -29,26 +29,44 @@ def create_pdm_trigger(
     if events_client is None:
         events_client = get_events_client()
 
-    do_not_run_before = generate_do_not_run_before_date(export_date)
+    do_not_run_before = generate_do_not_run_before_date(args.export_date)
     cron = get_cron(now, do_not_run_before)
 
     rule_name = put_cloudwatch_event_rule(events_client, now, cron)
-    put_cloudwatch_event_target(events_client, now, rule_name, export_date)
+    put_cloudwatch_event_target(
+        events_client, 
+        now, 
+        rule_name, 
+        args.export_date, 
+        args.correlation_id,
+        args.snapshot_type,
+        args.s3_prefix,
+    )
+
+
+def get_parameters():
+    parser = argparse.ArgumentParser(
+        description="Receive args provided to spark submit job"
+    )
+
+    parser.add_argument("--correlation_id", default="0")
+    parser.add_argument("--s3_prefix", default="${s3_prefix}")
+    parser.add_argument("--snapshot_type", default="full")
+    parser.add_argument("--export_date", default=datetime.now().strftime("%Y-%m-%d"))
+    args, unrecognized_args = parser.parse_known_args()
+    args.snapshot_type = SNAPSHOT_TYPE_INCREMENTAL if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL else SNAPSHOT_TYPE_FULL
+    the_logger.warning(
+        "Unrecognized args %s found for the correlation id %s",
+        unrecognized_args,
+        args.correlation_id,
+    )
+    validate_required_args(args)
+
+    return args
 
 
 def get_now():
     return datetime.now()
-
-
-
-def get_export_date(export_date_file):
-    if not os.path.isfile(export_date_file):
-        return None
-
-    with open(export_date_file, "r") as f:
-        export_date = f.read().strip()
-
-    return export_date if export_date else None
 
 
 def generate_cut_off_date(export_date):
@@ -88,7 +106,15 @@ def put_cloudwatch_event_rule(client, now, cron):
     return name
 
 
-def put_cloudwatch_event_target(client, now, rule_name, export_date):
+def put_cloudwatch_event_target(
+        client, 
+        now, 
+        rule_name, 
+        export_date,
+        correlation_id,
+        snapshot_type,
+        s3_prefix,
+    ):
     now_string = now.strftime("%d_%m_%Y_%H_%M_%S")
     id_string = f"pdm_cw_emr_launcher_target_{now_string}"
 
@@ -96,15 +122,20 @@ def put_cloudwatch_event_target(client, now, rule_name, export_date):
         f"Putting new cloudwatch event target with id of '{id_string}'",
     )
 
+    input_dumped = json.dumps({
+        'export_date': export_date,
+        'correlation_id': correlation_id,
+        'snapshot_type': snapshot_type,
+        's3_prefix': s3_prefix
+    })
+
     client.put_targets(
         Rule=rule_name,
         Targets=[
             {
                 'Id': id_string,
                 'Arn': "${pdm_lambda_trigger_arn}",
-                'Input': {
-                    'export_date': export_date,
-                }
+                'Input': f"{input_dumped}"
             },
         ]
     )
@@ -158,5 +189,6 @@ def get_cron(now, do_not_run_before):
 
 
 if __name__ == "__main__":
+    args = get_parameters()
     skip_pdm_trigger = "${skip_pdm_trigger}"
-    create_pdm_trigger(skip_pdm_trigger)
+    create_pdm_trigger(args, skip_pdm_trigger)

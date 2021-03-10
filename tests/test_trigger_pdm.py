@@ -2,14 +2,22 @@ import boto3
 import unittest
 import os
 import pytest
+import json
 
 from steps import create_pdm_trigger
 from datetime import datetime
 from unittest import mock
 
-TMP_TEST_FILE = "/tmp/test.txt"
 EXPORT_DATE = "2019-09-18"
-EXPORT_DATE_FILE_NAME = "/opt/emr/export_date.txt"
+CORRELATION_ID = "test_id"
+S3_PREFIX = "test_prefix"
+SNAPSHOT_TYPE_FULL = "full"
+
+args = argparse.Namespace()
+args.correlation_id = CORRELATION_ID
+args.s3_prefix = S3_PREFIX
+args.snapshot_type = SNAPSHOT_TYPE_FULL
+args.export_date = EXPORT_DATE
 
 
 class TestReplayer(unittest.TestCase):
@@ -20,12 +28,10 @@ class TestReplayer(unittest.TestCase):
     @mock.patch("steps.create_pdm_trigger.get_events_client")
     @mock.patch("steps.create_pdm_trigger.should_step_be_skipped")
     @mock.patch("steps.create_pdm_trigger.generate_cut_off_date")
-    @mock.patch("steps.create_pdm_trigger.get_export_date")
     @mock.patch("steps.create_pdm_trigger.get_now")
     def test_create_pdm_trigger(
         self,
         get_now_mock,
-        get_export_date_mock,
         generate_cut_off_date_mock,
         should_step_be_skipped_mock,
         get_events_client_mock,
@@ -44,7 +50,6 @@ class TestReplayer(unittest.TestCase):
         events_client.put_rule = mock.MagicMock()
 
         get_now_mock.return_value = now
-        get_export_date_mock.return_value = EXPORT_DATE
         generate_cut_off_date_mock.return_value = do_not_run_after
         should_step_be_skipped_mock.return_value = False
         get_events_client_mock.return_value = events_client
@@ -53,13 +58,11 @@ class TestReplayer(unittest.TestCase):
         put_cloudwatch_event_rule_mock.return_value = rule_name
         
         create_pdm_trigger.create_pdm_trigger(
+            args,
             "false", 
         )
         
         get_now_mock.assert_called_once()
-        get_export_date_mock.assert_called_once_with(
-            EXPORT_DATE_FILE_NAME,
-        )
         generate_cut_off_date_mock.assert_called_once_with(
             EXPORT_DATE,
         )
@@ -86,6 +89,9 @@ class TestReplayer(unittest.TestCase):
             now,
             rule_name,
             EXPORT_DATE,
+            CORRELATION_ID,
+            SNAPSHOT_TYPE_FULL,
+            S3_PREFIX,
         )
 
 
@@ -96,12 +102,10 @@ class TestReplayer(unittest.TestCase):
     @mock.patch("steps.create_pdm_trigger.get_events_client")
     @mock.patch("steps.create_pdm_trigger.should_step_be_skipped")
     @mock.patch("steps.create_pdm_trigger.generate_cut_off_date")
-    @mock.patch("steps.create_pdm_trigger.get_export_date")
     @mock.patch("steps.create_pdm_trigger.get_now")
     def test_create_pdm_trigger_skip_step(
         self,
         get_now_mock,
-        get_export_date_mock,
         generate_cut_off_date_mock,
         should_step_be_skipped_mock,
         get_events_client_mock,
@@ -114,18 +118,15 @@ class TestReplayer(unittest.TestCase):
         do_not_run_after = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
 
         get_now_mock.return_value = now
-        get_export_date_mock.return_value = EXPORT_DATE
         generate_cut_off_date_mock.return_value = do_not_run_after
         should_step_be_skipped_mock.return_value = True
         
         create_pdm_trigger.create_pdm_trigger(
+            args,
             "true", 
         )
 
         get_now_mock.assert_called_once()
-        get_export_date_mock.assert_called_once_with(
-            EXPORT_DATE_FILE_NAME,
-        )
         generate_cut_off_date_mock.assert_called_once_with(
             EXPORT_DATE,
         )
@@ -144,45 +145,6 @@ class TestReplayer(unittest.TestCase):
     def test_generate_do_not_run_before_date(self):
         expected = datetime.strptime("2019-09-18 15:00:00", '%Y-%m-%d %H:%M:%S')
         actual = create_pdm_trigger.generate_do_not_run_before_date(EXPORT_DATE)
-
-        assert actual == expected
-
-
-    def test_get_export_date(self):
-        export_date_file =TMP_TEST_FILE
-        if os.path.isfile(export_date_file):
-            os.remove(export_date_file)
-
-        with open(export_date_file, "wt") as f:
-            export_date = f.write(EXPORT_DATE)
-
-        expected = EXPORT_DATE
-        actual = create_pdm_trigger.get_export_date(export_date_file)
-
-        assert actual == expected
-
-
-    def test_get_export_date_date_when_no_file(self):
-        export_date_file = TMP_TEST_FILE
-        if os.path.isfile(export_date_file):
-            os.remove(export_date_file)
-
-        expected = None
-        actual = create_pdm_trigger.get_export_date(export_date_file)
-
-        assert actual == expected
-
-
-    def test_get_export_date_date_when_empty_file(self):
-        export_date_file = TMP_TEST_FILE
-        if os.path.isfile(export_date_file):
-            os.remove(export_date_file)
-
-        with open(export_date_file, "wt") as f:
-            f.write("")
-
-        expected = None
-        actual = create_pdm_trigger.get_export_date(export_date_file)
 
         assert actual == expected
 
@@ -229,7 +191,17 @@ class TestReplayer(unittest.TestCase):
             now, 
             rule_name,
             EXPORT_DATE,
+            CORRELATION_ID,
+            SNAPSHOT_TYPE_FULL,
+            S3_PREFIX,
         )
+
+        input_dumped = json.dumps({
+            'export_date': EXPORT_DATE,
+            'correlation_id': CORRELATION_ID,
+            'snapshot_type': SNAPSHOT_TYPE_FULL,
+            's3_prefix': S3_PREFIX,
+        })
 
         events_client.put_targets.assert_called_once_with(
             Rule=rule_name,
@@ -237,9 +209,7 @@ class TestReplayer(unittest.TestCase):
                 {
                     'Id': id_string,
                     'Arn': "${pdm_lambda_trigger_arn}",
-                    'Input': {
-                        'export_date': EXPORT_DATE,
-                    }
+                    'Input': f"{input_dumped}"
                 },
             ]
         )
