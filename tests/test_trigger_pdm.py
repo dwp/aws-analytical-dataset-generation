@@ -7,6 +7,8 @@ from steps import create_pdm_trigger
 from datetime import datetime
 from unittest import mock
 
+TMP_TEST_FILE = "/tmp/test.txt"
+
 
 class TestReplayer(unittest.TestCase):
     @mock.patch("steps.create_pdm_trigger.put_cloudwatch_event_target")
@@ -45,7 +47,7 @@ class TestReplayer(unittest.TestCase):
         get_cron_mock.return_value = cron
         put_cloudwatch_event_rule_mock.return_value = rule_name
         
-        response = create_pdm_trigger.create_pdm_trigger(
+        create_pdm_trigger.create_pdm_trigger(
             "false", 
         )
         
@@ -100,7 +102,7 @@ class TestReplayer(unittest.TestCase):
         generate_cut_off_date_mock.return_value = do_not_run_after
         should_step_be_skipped_mock.return_value = True
         
-        response = create_pdm_trigger.create_pdm_trigger(
+        create_pdm_trigger.create_pdm_trigger(
             "true", 
         )
 
@@ -120,7 +122,7 @@ class TestReplayer(unittest.TestCase):
 
     def test_generate_do_not_run_before_date(self):
         export_date = "2020-10-20"
-        export_date_file = "/tmp/test.txt"
+        export_date_file =TMP_TEST_FILE
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
 
@@ -134,7 +136,7 @@ class TestReplayer(unittest.TestCase):
 
 
     def test_generate_do_not_run_before_date_when_no_file(self):
-        export_date_file = "/tmp/test.txt"
+        export_date_file = TMP_TEST_FILE
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
 
@@ -145,12 +147,12 @@ class TestReplayer(unittest.TestCase):
 
 
     def test_generate_do_not_run_before_date_when_empty_file(self):
-        export_date_file = "/tmp/test.txt"
+        export_date_file = TMP_TEST_FILE
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
 
         with open(export_date_file, "wt") as f:
-            export_date = f.write("")
+            f.write("")
 
         expected = None
         actual = create_pdm_trigger.generate_do_not_run_before_date(export_date_file)
@@ -160,12 +162,12 @@ class TestReplayer(unittest.TestCase):
 
     def test_generate_cut_off_date(self):
         export_date = "2020-10-20"
-        export_date_file = "/tmp/test.txt"
+        export_date_file = TMP_TEST_FILE
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
 
         with open(export_date_file, "wt") as f:
-            export_date = f.write(export_date)
+            f.write(export_date)
 
         expected = datetime.strptime("21/10/2020 03:00:00", '%d/%m/%Y %H:%M:%S')
         actual = create_pdm_trigger.generate_cut_off_date(export_date_file)
@@ -174,7 +176,7 @@ class TestReplayer(unittest.TestCase):
 
 
     def test_generate_cut_off_date_when_no_file(self):
-        export_date_file = "/tmp/test.txt"
+        export_date_file = TMP_TEST_FILE
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
 
@@ -185,12 +187,12 @@ class TestReplayer(unittest.TestCase):
 
 
     def test_generate_cut_off_date_when_empty_file(self):
-        export_date_file = "/tmp/test.txt"
+        export_date_file = TMP_TEST_FILE
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
 
         with open(export_date_file, "wt") as f:
-            export_date = f.write("")
+            f.write("")
 
         expected = None
         actual = create_pdm_trigger.generate_cut_off_date(export_date_file)
@@ -228,7 +230,7 @@ class TestReplayer(unittest.TestCase):
         events_client = mock.MagicMock()
         events_client.put_targets = mock.MagicMock()
 
-        actual = create_pdm_trigger.put_cloudwatch_event_target(
+        create_pdm_trigger.put_cloudwatch_event_target(
             events_client, now, rule_name
         )
 

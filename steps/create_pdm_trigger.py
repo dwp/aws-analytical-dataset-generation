@@ -80,7 +80,7 @@ def put_cloudwatch_event_rule(client, now, cron):
         f"Putting new cloudwatch event rule with name of '{name}' and cron of '{cron}'",
     )
 
-    response = client.put_rule(
+    client.put_rule(
         Name=name,
         ScheduleExpression=cron,
         State="ENABLED",
@@ -102,7 +102,7 @@ def put_cloudwatch_event_target(client, now, rule_name):
         f"Putting new cloudwatch event target with id of '{id_string}'",
     )
 
-    response = client.put_targets(
+    client.put_targets(
         Rule=rule_name,
         Targets=[
             {

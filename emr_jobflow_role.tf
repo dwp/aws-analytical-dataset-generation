@@ -357,6 +357,6 @@ data "aws_iam_policy_document" "adg_cloudwatch_topic_policy_for_pdm_trigger" {
 
     effect = "Allow"
 
-    resources = [*]
+    resources = ["*"]
   }
 }
