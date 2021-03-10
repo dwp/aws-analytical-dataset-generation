@@ -8,7 +8,7 @@ from datetime import datetime
 from unittest import mock
 
 TMP_TEST_FILE = "/tmp/test.txt"
-EXPORT_DATE = "18/09/19"
+EXPORT_DATE = "18-09-19"
 
 
 class TestReplayer(unittest.TestCase):

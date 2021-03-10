@@ -48,7 +48,7 @@ def get_export_date(export_date_file):
     with open(export_date_file, "r") as f:
         export_date = f.read().strip()
 
-    return export_date
+    return export_date if export_date else None
 
 
 def generate_cut_off_date(export_date):
