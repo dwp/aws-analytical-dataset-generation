@@ -31,8 +31,8 @@ def create_pdm_trigger(
     do_not_run_before = generate_do_not_run_before_date(EXPORT_DATE_FILE_NAME)
     cron = get_cron(now, do_not_run_before)
 
-    rule_name = put_cloudwatch_event_rule(client, now, cron)
-    put_cloudwatch_event_target(client, now, rule_name)
+    rule_name = put_cloudwatch_event_rule(events_client, now, cron)
+    put_cloudwatch_event_target(events_client, now, rule_name)
 
 
 def get_now():
