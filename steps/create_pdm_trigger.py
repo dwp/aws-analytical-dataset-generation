@@ -162,4 +162,4 @@ def get_cron(now, do_not_run_before):
 
 if __name__ == "__main__":
     skip_pdm_trigger = "${skip_pdm_trigger}"
-    send_sns_message(skip_pdm_trigger)
+    create_pdm_trigger(skip_pdm_trigger)
