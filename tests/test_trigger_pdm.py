@@ -8,7 +8,8 @@ from datetime import datetime
 from unittest import mock
 
 TMP_TEST_FILE = "/tmp/test.txt"
-EXPORT_DATE = "18-09-19"
+EXPORT_DATE = "2019-09-18"
+EXPORT_DATE_FILE_NAME = "/opt/emr/export_date.txt"
 
 
 class TestReplayer(unittest.TestCase):
@@ -56,6 +57,9 @@ class TestReplayer(unittest.TestCase):
         )
         
         get_now_mock.assert_called_once()
+        get_export_date_mock.assert_called_once_with(
+            EXPORT_DATE_FILE_NAME,
+        )
         generate_cut_off_date_mock.assert_called_once_with(
             EXPORT_DATE,
         )
@@ -92,7 +96,7 @@ class TestReplayer(unittest.TestCase):
     @mock.patch("steps.create_pdm_trigger.get_events_client")
     @mock.patch("steps.create_pdm_trigger.should_step_be_skipped")
     @mock.patch("steps.create_pdm_trigger.generate_cut_off_date")
-    @mock.patch("steps.create_pdm_trigger.generate_cut_off_date")
+    @mock.patch("steps.create_pdm_trigger.get_export_date")
     @mock.patch("steps.create_pdm_trigger.get_now")
     def test_create_pdm_trigger_skip_step(
         self,
@@ -119,6 +123,9 @@ class TestReplayer(unittest.TestCase):
         )
 
         get_now_mock.assert_called_once()
+        get_export_date_mock.assert_called_once_with(
+            EXPORT_DATE_FILE_NAME,
+        )
         generate_cut_off_date_mock.assert_called_once_with(
             EXPORT_DATE,
         )
@@ -135,7 +142,7 @@ class TestReplayer(unittest.TestCase):
 
 
     def test_generate_do_not_run_before_date(self):
-        expected = "18/09/2019 15:00:00"
+        expected = datetime.strptime("2019-09-18 15:00:00", '%Y-%m-%d %H:%M:%S')
         actual = create_pdm_trigger.generate_do_not_run_before_date(EXPORT_DATE)
 
         assert actual == expected
@@ -181,8 +188,8 @@ class TestReplayer(unittest.TestCase):
 
 
     def test_generate_cut_off_date(self):
-        expected = "19/09/2019 03:00:00"
-        actual = create_pdm_trigger.generate_cut_off_date(export_date_file)
+        expected = datetime.strptime("2019-09-19 03:00:00", '%Y-%m-%d %H:%M:%S')
+        actual = create_pdm_trigger.generate_cut_off_date(EXPORT_DATE)
 
         assert actual == expected
 
