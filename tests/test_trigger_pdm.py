@@ -82,7 +82,7 @@ class TestReplayer(unittest.TestCase):
         )
 
 
-    def test_generate_do_not_run_before_date():
+    def test_generate_do_not_run_before_date(self):
         export_date = "2020-10-20"
         export_date_file = "/tmp/test.txt"
         if os.path.isfile(export_date_file):
