@@ -1,4 +1,5 @@
 import boto3
+import os
 
 from datetime import datetime
 from steps.logger import setup_logging
