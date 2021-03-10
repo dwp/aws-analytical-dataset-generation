@@ -1,5 +1,6 @@
 import boto3
 import unittest
+import os
 
 from steps import create_pdm_trigger
 from datetime import datetime
