@@ -82,7 +82,7 @@ def put_cloudwatch_event_rule(client, now, cron):
 
     client.put_rule(
         Name=name,
-        ScheduleExpression=cron,
+        ScheduleExpression=f"cron({cron})",
         State="ENABLED",
         Description='Triggers PDM EMR Launcher',
     )

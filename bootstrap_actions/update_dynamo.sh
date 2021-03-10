@@ -43,7 +43,7 @@
   EXPORT_DATE=`cat $EXPORT_DATE_FILE`
   DATA_PRODUCT="ADG-$SNAPSHOT_TYPE"
 
-  if [[ -z "$EXPORT_DATE" ]]l; then
+  if [[ -z "$EXPORT_DATE" ]]; then
     log_wrapper_message "Export date from file was empty, so defaulting to today's date"
     EXPORT_DATE="$DATE"
   fi

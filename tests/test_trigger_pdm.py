@@ -202,7 +202,7 @@ class TestReplayer(unittest.TestCase):
 
     def test_put_cloudwatch_event_rule(self):
         now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
-        cron = "1 1 1 1 1 1 1"
+        cron = "1 1 1 1 1 1"
         
         events_client = mock.MagicMock()
         events_client.put_rule = mock.MagicMock()
@@ -214,7 +214,7 @@ class TestReplayer(unittest.TestCase):
 
         events_client.put_rule.assert_called_once_with(
             Name=expected,
-            ScheduleExpression=cron,
+            ScheduleExpression="cron(1 1 1 1 1 1)",
             State="ENABLED",
             Description='Triggers PDM EMR Launcher',
         )
