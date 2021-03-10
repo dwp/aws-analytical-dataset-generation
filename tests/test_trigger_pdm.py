@@ -64,7 +64,7 @@ def test_put_cloudwatch_event_target():
     events_client.put_targets = mock.MagicMock()
 
     actual = create_pdm_trigger.put_cloudwatch_event_target(
-        events_client, now, cron
+        events_client, now, rule_name
     )
 
     events_client.put_targets.assert_called_once_with(
