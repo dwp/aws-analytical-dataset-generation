@@ -178,9 +178,9 @@ def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off_over_date_boundary
     assert expected == actual
 
 
-def return_true:
+def return_true():
     return True
 
 
-def return_false:
+def return_false():
     return False
