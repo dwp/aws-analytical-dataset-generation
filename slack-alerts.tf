@@ -73,7 +73,31 @@ resource "aws_cloudwatch_event_rule" "adg_full_success" {
 EOF
 }
 
+resource "aws_cloudwatch_event_rule" "adg_full_running" {
+  name          = "adg_full_running"
+  description   = "checks that ADG is running"
+  event_pattern = <<EOF
+{
+  "source": [
+    "aws.emr"
+  ],
+  "detail-type": [
+    "EMR Cluster State Change"
+  ],
+  "detail": {
+    "state": [
+      "RUNNING"
+    ],
+    "name": [
+      "analytical-dataset-generator-full"
+    ]
+  }
+}
+EOF
+}
+
 resource "aws_cloudwatch_metric_alarm" "adg_full_failed" {
+  count                     = local.adg_alerts[local.environment] == true ? 1 : 0
   alarm_name                = "adg_full_failed"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
@@ -99,6 +123,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_failed" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "adg_full_terminated" {
+  count                     = local.adg_alerts[local.environment] == true ? 1 : 0
   alarm_name                = "adg_full_terminated"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
@@ -124,6 +149,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_terminated" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "adg_full_success" {
+  count                     = local.adg_alerts[local.environment] == true ? 1 : 0
   alarm_name                = "adg_full_success"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
@@ -142,6 +168,32 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_success" {
     local.common_tags,
     {
       Name              = "adg_full_success",
+      notification_type = "Information",
+      severity          = "Critical"
+    },
+  )
+}
+
+resource "aws_cloudwatch_metric_alarm" "adg_full_running" {
+  count                     = local.adg_alerts[local.environment] == true ? 1 : 0
+  alarm_name                = "adg_full_running"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "TriggeredRules"
+  namespace                 = "AWS/Events"
+  period                    = "60"
+  statistic                 = "Sum"
+  threshold                 = "1"
+  alarm_description         = "Monitoring adg full running"
+  insufficient_data_actions = []
+  alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
+  dimensions = {
+    RuleName = aws_cloudwatch_event_rule.adg_full_running.name
+  }
+  tags = merge(
+    local.common_tags,
+    {
+      Name              = "adg_full_running",
       notification_type = "Information",
       severity          = "Critical"
     },
@@ -223,7 +275,31 @@ resource "aws_cloudwatch_event_rule" "adg_incremental_success" {
 EOF
 }
 
+resource "aws_cloudwatch_event_rule" "adg_incremental_running" {
+  name          = "adg_incremental_running"
+  description   = "checks that ADG is running steps"
+  event_pattern = <<EOF
+{
+  "source": [
+    "aws.emr"
+  ],
+  "detail-type": [
+    "EMR Cluster State Change"
+  ],
+  "detail": {
+    "state": [
+      "RUNNING"
+    ],
+    "name": [
+      "analytical-dataset-generator-incremental"
+    ]
+  }
+}
+EOF
+}
+
 resource "aws_cloudwatch_metric_alarm" "adg_incremental_failed" {
+  count                     = local.adg_alerts[local.environment] == true ? 1 : 0
   alarm_name                = "adg_incremental_failed"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
@@ -249,6 +325,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_failed" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "adg_incremental_terminated" {
+  count                     = local.adg_alerts[local.environment] == true ? 1 : 0
   alarm_name                = "adg_incremental_terminated"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
@@ -274,6 +351,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_terminated" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "adg_incremental_success" {
+  count                     = local.adg_alerts[local.environment] == true ? 1 : 0
   alarm_name                = "adg_incremental_success"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
@@ -291,7 +369,33 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_success" {
   tags = merge(
     local.common_tags,
     {
-      Name              = "adg_full_success",
+      Name              = "adg_incremental_success",
+      notification_type = "Information",
+      severity          = "Critical"
+    },
+  )
+}
+
+resource "aws_cloudwatch_metric_alarm" "adg_incremental_running" {
+  count                     = local.adg_alerts[local.environment] == true ? 1 : 0
+  alarm_name                = "adg_incremental_running"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "TriggeredRules"
+  namespace                 = "AWS/Events"
+  period                    = "60"
+  statistic                 = "Sum"
+  threshold                 = "1"
+  alarm_description         = "Monitoring adg incremental running"
+  insufficient_data_actions = []
+  alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
+  dimensions = {
+    RuleName = aws_cloudwatch_event_rule.adg_incremental_running.name
+  }
+  tags = merge(
+    local.common_tags,
+    {
+      Name              = "adg_incremental_running",
       notification_type = "Information",
       severity          = "Critical"
     },

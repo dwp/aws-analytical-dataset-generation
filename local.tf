@@ -240,4 +240,12 @@ locals {
     preprod     = "0"
     production  = "2"
   }
+
+  adg_alerts = {
+    development = true
+    qa          = false
+    integration = false
+    preprod     = false
+    production  = true
+  }
 }
