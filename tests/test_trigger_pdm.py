@@ -89,7 +89,7 @@ def test_generate_do_not_run_before_date():
     with open(export_date_file, "wt") as f:
         export_date = f.write(export_date)
 
-    expected = datetime.strptime("20/10/2020 15:00:00", '%d/%m/%y %H:%M:%S')"
+    expected = datetime.strptime("20/10/2020 15:00:00", '%d/%m/%y %H:%M:%S')
     actual = create_pdm_trigger.generate_do_not_run_before_date(export_date_file)
 
     assert actual == expected
