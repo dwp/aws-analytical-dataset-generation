@@ -7,6 +7,14 @@ from datetime import datetime, timedelta
 from steps.logger import setup_logging
 from steps.resume_step import should_skip_step
 
+ARG_SNAPSHOT_TYPE = "snapshot_type"
+ARG_S3_PREFIX = "s3_prefix"
+ARG_CORRELATION_ID = "correlation_id"
+ARG_EXPORT_DATE = "export_date"
+SNAPSHOT_TYPE_INCREMENTAL = "incremental"
+SNAPSHOT_TYPE_FULL = "full"
+ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
+
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
     if "ADG_LOG_LEVEL" in os.environ
@@ -54,7 +62,6 @@ def get_parameters():
     parser.add_argument("--snapshot_type", default="full")
     parser.add_argument("--export_date", default=datetime.now().strftime("%Y-%m-%d"))
     args, unrecognized_args = parser.parse_known_args()
-    args.snapshot_type = SNAPSHOT_TYPE_INCREMENTAL if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL else SNAPSHOT_TYPE_FULL
     the_logger.warning(
         "Unrecognized args %s found for the correlation id %s",
         unrecognized_args,
@@ -63,6 +70,28 @@ def get_parameters():
     validate_required_args(args)
 
     return args
+
+
+def validate_required_args(args):
+    required_args = [ARG_CORRELATION_ID, ARG_S3_PREFIX, ARG_SNAPSHOT_TYPE, ARG_EXPORT_DATE]
+    missing_args = []
+    for required_message_key in required_args:
+        if required_message_key not in args:
+            missing_args.append(required_message_key)
+    if missing_args:
+        raise argparse.ArgumentError(
+            None,
+            "ArgumentError: The following required arguments are missing: {}".format(
+                ", ".join(missing_args)
+            ),
+        )
+    if args.snapshot_type.lower() not in ARG_SNAPSHOT_TYPE_VALID_VALUES:
+        raise argparse.ArgumentError(
+            None,
+            "ArgumentError: Valid values for snapshot_type are: {}".format(
+                ", ".join(ARG_SNAPSHOT_TYPE_VALID_VALUES)
+            ),
+        )
 
 
 def get_now():
