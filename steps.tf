@@ -21,7 +21,7 @@ resource "aws_s3_bucket_object" "create_pdm_trigger_script" {
   key    = "component/analytical-dataset-generation/create_pdm_trigger.py"
   content = templatefile("${path.module}/steps/create_pdm_trigger.py",
     {
-      pdm_lambda_trigger_arn  = aws_lambda_function.pdm_cw_emr_launcher.
+      pdm_lambda_trigger_arn  = aws_lambda_function.pdm_cw_emr_launcher.arn
       aws_default_region      = "eu-west-2"
       log_path                = "/var/log/adg/create_pdm_trigger.log"
       skip_pdm_trigger        = local.skip_pdm_trigger_on_adg_completion[local.environment]
