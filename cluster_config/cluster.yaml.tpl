@@ -30,5 +30,3 @@ Tags:
   Value: "aws-analytical-dataset-generator"
 - Key: "Name"
   Value: "aws-analytical-dataset-generator"
-- Key: "snapshot_type"
-  Value: "NOT_SET"

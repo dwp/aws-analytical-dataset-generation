@@ -394,7 +394,8 @@ meta:
               {
                 "correlation_id": "$CORRELATION_ID",
                 "s3_prefix": "$S3_PREFIX",
-                "snapshot_type": "$SNAPSHOT_TYPE"
+                "snapshot_type": "$SNAPSHOT_TYPE",
+                "export_date": "$EXPORT_DATE"
               }
               EOF
               )
