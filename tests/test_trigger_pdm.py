@@ -53,7 +53,7 @@ class TestReplayer(unittest.TestCase):
         get_cron_mock.return_value = cron
         put_cloudwatch_event_rule_mock.return_value = rule_name
         
-        response = send_notification.create_pdm_trigger(
+        response = create_pdm_trigger.create_pdm_trigger(
             False, 
         )
         
@@ -97,7 +97,7 @@ class TestReplayer(unittest.TestCase):
         assert actual == expected
 
 
-    def test_generate_do_not_run_before_date_when_no_file():
+    def test_generate_do_not_run_before_date_when_no_file(self):
         export_date_file = "/tmp/test.txt"
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
@@ -108,7 +108,7 @@ class TestReplayer(unittest.TestCase):
         assert actual == expected
 
 
-    def test_generate_do_not_run_before_date_when_empty_file():
+    def test_generate_do_not_run_before_date_when_empty_file(self):
         export_date_file = "/tmp/test.txt"
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
@@ -122,7 +122,7 @@ class TestReplayer(unittest.TestCase):
         assert actual == expected
 
 
-    def test_generate_cut_off_date():
+    def test_generate_cut_off_date(self):
         export_date = "2020-10-20"
         export_date_file = "/tmp/test.txt"
         if os.path.isfile(export_date_file):
@@ -137,7 +137,7 @@ class TestReplayer(unittest.TestCase):
         assert actual == expected
 
 
-    def test_generate_cut_off_date_when_no_file():
+    def test_generate_cut_off_date_when_no_file(self):
         export_date_file = "/tmp/test.txt"
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
@@ -148,7 +148,7 @@ class TestReplayer(unittest.TestCase):
         assert actual == expected
 
 
-    def test_generate_cut_off_date_when_empty_file():
+    def test_generate_cut_off_date_when_empty_file(self):
         export_date_file = "/tmp/test.txt"
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
@@ -162,7 +162,7 @@ class TestReplayer(unittest.TestCase):
         assert actual == expected
 
 
-    def test_put_cloudwatch_event_rule():
+    def test_put_cloudwatch_event_rule(self):
         now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
         cron = "1 1 1 1 1 1 1"
         
@@ -184,7 +184,7 @@ class TestReplayer(unittest.TestCase):
         assert actual == expected
 
 
-    def test_put_cloudwatch_event_target():
+    def test_put_cloudwatch_event_target(self):
         now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
         id_string = "pdm_cw_emr_launcher_target_18_09_2019_23_57_19"
         rule_name = "pdm_cw_emr_launcher_schedule_18_09_2019_23_57_19"
@@ -307,7 +307,7 @@ class TestReplayer(unittest.TestCase):
         assert True == actual
 
 
-    def test_get_cron_gives_cut_out_time_when_before_cut_off():
+    def test_get_cron_gives_cut_out_time_when_before_cut_off(self):
         now = datetime.strptime("18/09/19 01:55:19", '%d/%m/%y %H:%M:%S')
         do_not_run_before = datetime.strptime("18/09/19 02:55:19", '%d/%m/%y %H:%M:%S')
 
@@ -320,7 +320,7 @@ class TestReplayer(unittest.TestCase):
         assert expected == actual
 
 
-    def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off():
+    def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off(self):
         now = datetime.strptime("18/09/19 01:57:19", '%d/%m/%y %H:%M:%S')
         do_not_run_before = datetime.strptime("18/09/19 00:55:19", '%d/%m/%y %H:%M:%S')
 
@@ -333,7 +333,7 @@ class TestReplayer(unittest.TestCase):
         assert expected == actual
 
 
-    def test_get_cron_gives_cut_out_time_when_before_cut_off_over_date_boundary():
+    def test_get_cron_gives_cut_out_time_when_before_cut_off_over_date_boundary(self):
         now = datetime.strptime("18/09/19 23:55:19", '%d/%m/%y %H:%M:%S')
         do_not_run_before = datetime.strptime("19/09/19 01:55:19", '%d/%m/%y %H:%M:%S')
 
@@ -346,7 +346,7 @@ class TestReplayer(unittest.TestCase):
         assert expected == actual
 
 
-    def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off_over_date_boundary():
+    def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off_over_date_boundary(self):
         now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
         do_not_run_before = datetime.strptime("18/09/19 22:55:19", '%d/%m/%y %H:%M:%S')
 
