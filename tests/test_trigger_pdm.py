@@ -8,6 +8,7 @@ from datetime import datetime
 from unittest import mock
 
 TMP_TEST_FILE = "/tmp/test.txt"
+EXPORT_DATE = "18/09/19"
 
 
 class TestReplayer(unittest.TestCase):
@@ -17,11 +18,13 @@ class TestReplayer(unittest.TestCase):
     @mock.patch("steps.create_pdm_trigger.generate_do_not_run_before_date")
     @mock.patch("steps.create_pdm_trigger.get_events_client")
     @mock.patch("steps.create_pdm_trigger.should_step_be_skipped")
+    @mock.patch("steps.create_pdm_trigger.get_export_date")
     @mock.patch("steps.create_pdm_trigger.generate_cut_off_date")
     @mock.patch("steps.create_pdm_trigger.get_now")
     def test_create_pdm_trigger(
         self,
         get_now_mock,
+        get_export_date_mock,
         generate_cut_off_date_mock,
         should_step_be_skipped_mock,
         get_events_client_mock,
@@ -40,6 +43,7 @@ class TestReplayer(unittest.TestCase):
         events_client.put_rule = mock.MagicMock()
 
         get_now_mock.return_value = now
+        get_export_date_mock.return_value = EXPORT_DATE
         generate_cut_off_date_mock.return_value = do_not_run_after
         should_step_be_skipped_mock.return_value = False
         get_events_client_mock.return_value = events_client
@@ -52,14 +56,18 @@ class TestReplayer(unittest.TestCase):
         )
         
         get_now_mock.assert_called_once()
-        generate_cut_off_date_mock.assert_called_once()
+        generate_cut_off_date_mock.assert_called_once_with(
+            EXPORT_DATE,
+        )
         should_step_be_skipped_mock.assert_called_once_with(
             "false",
             now,
             do_not_run_after,
         )
         get_events_client_mock.assert_called_once()
-        generate_do_not_run_before_date_mock.assert_called_once()
+        generate_do_not_run_before_date_mock.assert_called_once_with(
+            EXPORT_DATE,
+        )
         get_cron_mock.assert_called_once_with(
             now,
             do_not_run_before,
@@ -73,6 +81,7 @@ class TestReplayer(unittest.TestCase):
             events_client,
             now,
             rule_name,
+            EXPORT_DATE,
         )
 
 
@@ -83,10 +92,12 @@ class TestReplayer(unittest.TestCase):
     @mock.patch("steps.create_pdm_trigger.get_events_client")
     @mock.patch("steps.create_pdm_trigger.should_step_be_skipped")
     @mock.patch("steps.create_pdm_trigger.generate_cut_off_date")
+    @mock.patch("steps.create_pdm_trigger.generate_cut_off_date")
     @mock.patch("steps.create_pdm_trigger.get_now")
     def test_create_pdm_trigger_skip_step(
         self,
         get_now_mock,
+        get_export_date_mock,
         generate_cut_off_date_mock,
         should_step_be_skipped_mock,
         get_events_client_mock,
@@ -99,6 +110,7 @@ class TestReplayer(unittest.TestCase):
         do_not_run_after = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
 
         get_now_mock.return_value = now
+        get_export_date_mock.return_value = EXPORT_DATE
         generate_cut_off_date_mock.return_value = do_not_run_after
         should_step_be_skipped_mock.return_value = True
         
@@ -107,7 +119,9 @@ class TestReplayer(unittest.TestCase):
         )
 
         get_now_mock.assert_called_once()
-        generate_cut_off_date_mock.assert_called_once()
+        generate_cut_off_date_mock.assert_called_once_with(
+            EXPORT_DATE,
+        )
         should_step_be_skipped_mock.assert_called_once_with(
             "true",
             now,
@@ -121,32 +135,38 @@ class TestReplayer(unittest.TestCase):
 
 
     def test_generate_do_not_run_before_date(self):
-        export_date = "2020-10-20"
+        expected = "18/09/2019 15:00:00"
+        actual = create_pdm_trigger.generate_do_not_run_before_date(EXPORT_DATE)
+
+        assert actual == expected
+
+
+    def test_get_export_date(self):
         export_date_file =TMP_TEST_FILE
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
 
         with open(export_date_file, "wt") as f:
-            export_date = f.write(export_date)
+            export_date = f.write(EXPORT_DATE)
 
-        expected = datetime.strptime("20/10/2020 15:00:00", '%d/%m/%Y %H:%M:%S')
-        actual = create_pdm_trigger.generate_do_not_run_before_date(export_date_file)
+        expected = EXPORT_DATE
+        actual = create_pdm_trigger.get_export_date(export_date_file)
 
         assert actual == expected
 
 
-    def test_generate_do_not_run_before_date_when_no_file(self):
+    def test_get_export_date_date_when_no_file(self):
         export_date_file = TMP_TEST_FILE
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
 
         expected = None
-        actual = create_pdm_trigger.generate_do_not_run_before_date(export_date_file)
+        actual = create_pdm_trigger.get_export_date(export_date_file)
 
         assert actual == expected
 
 
-    def test_generate_do_not_run_before_date_when_empty_file(self):
+    def test_get_export_date_date_when_empty_file(self):
         export_date_file = TMP_TEST_FILE
         if os.path.isfile(export_date_file):
             os.remove(export_date_file)
@@ -155,46 +175,13 @@ class TestReplayer(unittest.TestCase):
             f.write("")
 
         expected = None
-        actual = create_pdm_trigger.generate_do_not_run_before_date(export_date_file)
+        actual = create_pdm_trigger.get_export_date(export_date_file)
 
         assert actual == expected
 
 
     def test_generate_cut_off_date(self):
-        export_date = "2020-10-20"
-        export_date_file = TMP_TEST_FILE
-        if os.path.isfile(export_date_file):
-            os.remove(export_date_file)
-
-        with open(export_date_file, "wt") as f:
-            f.write(export_date)
-
-        expected = datetime.strptime("21/10/2020 03:00:00", '%d/%m/%Y %H:%M:%S')
-        actual = create_pdm_trigger.generate_cut_off_date(export_date_file)
-
-        assert actual == expected
-
-
-    def test_generate_cut_off_date_when_no_file(self):
-        export_date_file = TMP_TEST_FILE
-        if os.path.isfile(export_date_file):
-            os.remove(export_date_file)
-
-        expected = None
-        actual = create_pdm_trigger.generate_cut_off_date(export_date_file)
-
-        assert actual == expected
-
-
-    def test_generate_cut_off_date_when_empty_file(self):
-        export_date_file = TMP_TEST_FILE
-        if os.path.isfile(export_date_file):
-            os.remove(export_date_file)
-
-        with open(export_date_file, "wt") as f:
-            f.write("")
-
-        expected = None
+        expected = "19/09/2019 03:00:00"
         actual = create_pdm_trigger.generate_cut_off_date(export_date_file)
 
         assert actual == expected
@@ -231,7 +218,10 @@ class TestReplayer(unittest.TestCase):
         events_client.put_targets = mock.MagicMock()
 
         create_pdm_trigger.put_cloudwatch_event_target(
-            events_client, now, rule_name
+            events_client, 
+            now, 
+            rule_name,
+            EXPORT_DATE,
         )
 
         events_client.put_targets.assert_called_once_with(

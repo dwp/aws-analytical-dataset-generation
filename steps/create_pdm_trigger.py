@@ -20,7 +20,8 @@ def create_pdm_trigger(
     events_client=None
 ):
     now = get_now()
-    do_not_run_after = generate_cut_off_date(EXPORT_DATE_FILE_NAME)
+    export_date = get_export_date(EXPORT_DATE_FILE_NAME)
+    do_not_run_after = generate_cut_off_date(export_date)
 
     if should_step_be_skipped(skip_pdm_trigger, now, do_not_run_after):
         return None
@@ -28,42 +29,35 @@ def create_pdm_trigger(
     if events_client is None:
         events_client = get_events_client()
 
-    do_not_run_before = generate_do_not_run_before_date(EXPORT_DATE_FILE_NAME)
+    do_not_run_before = generate_do_not_run_before_date(export_date)
     cron = get_cron(now, do_not_run_before)
 
     rule_name = put_cloudwatch_event_rule(events_client, now, cron)
-    put_cloudwatch_event_target(events_client, now, rule_name)
+    put_cloudwatch_event_target(events_client, now, rule_name, export_date)
 
 
 def get_now():
     return datetime.now()
 
 
-def generate_cut_off_date(export_date_file):
+
+def get_export_date(export_date_file):
     if not os.path.isfile(export_date_file):
         return None
 
     with open(export_date_file, "r") as f:
         export_date = f.read().strip()
 
-    if not export_date:
-        return None
+    return export_date
 
+
+def generate_cut_off_date(export_date):
     export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
     day_after_export_date = export_date_parsed + timedelta(days = 1)
     return day_after_export_date.replace(hour=3, minute=00, second=00)
 
 
-def generate_do_not_run_before_date(export_date_file):
-    if not os.path.isfile(export_date_file):
-        return None
-
-    with open(export_date_file, "r") as f:
-        export_date = f.read().strip()
-
-    if not export_date:
-        return None
-
+def generate_do_not_run_before_date(export_date):
     export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
     return export_date_parsed.replace(hour=15, minute=00, second=00)
 
@@ -94,7 +88,7 @@ def put_cloudwatch_event_rule(client, now, cron):
     return name
 
 
-def put_cloudwatch_event_target(client, now, rule_name):
+def put_cloudwatch_event_target(client, now, rule_name, export_date):
     now_string = now.strftime("%d_%m_%Y_%H_%M_%S")
     id_string = f"pdm_cw_emr_launcher_target_{now_string}"
 
@@ -108,6 +102,9 @@ def put_cloudwatch_event_target(client, now, rule_name):
             {
                 'Id': id_string,
                 'Arn': "${pdm_lambda_trigger_arn}",
+                'Input': {
+                    'export_date': export_date,
+                }
             },
         ]
     )
