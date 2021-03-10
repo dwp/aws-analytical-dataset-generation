@@ -58,7 +58,7 @@ def test_create_pdm_trigger(
     get_now_mock.assert_called_once()
     generate_cut_off_date_mock.assert_called_once()
     should_step_be_skipped_mock.assert_called_once_with(
-        False,
+        "false",
         now,
         do_not_run_after,
     )
@@ -83,7 +83,7 @@ def test_create_pdm_trigger(
 def test_generate_do_not_run_before_date():
     export_date = "2020-10-20"
     export_date_file = "/tmp/test.txt"
-    if not os.path.isfile(export_date_file):
+    if os.path.isfile(export_date_file):
         os.remove(export_date_file)
 
     with open(export_date_file, "wt") as f:
@@ -97,7 +97,7 @@ def test_generate_do_not_run_before_date():
 
 def test_generate_do_not_run_before_date_when_no_file():
     export_date_file = "/tmp/test.txt"
-    if not os.path.isfile(export_date_file):
+    if os.path.isfile(export_date_file):
         os.remove(export_date_file)
 
     expected = None
@@ -108,7 +108,7 @@ def test_generate_do_not_run_before_date_when_no_file():
 
 def test_generate_do_not_run_before_date_when_empty_file():
     export_date_file = "/tmp/test.txt"
-    if not os.path.isfile(export_date_file):
+    if os.path.isfile(export_date_file):
         os.remove(export_date_file)
 
     with open(export_date_file, "wt") as f:
@@ -123,7 +123,7 @@ def test_generate_do_not_run_before_date_when_empty_file():
 def test_generate_cut_off_date():
     export_date = "2020-10-20"
     export_date_file = "/tmp/test.txt"
-    if not os.path.isfile(export_date_file):
+    if os.path.isfile(export_date_file):
         os.remove(export_date_file)
 
     with open(export_date_file, "wt") as f:
@@ -137,7 +137,7 @@ def test_generate_cut_off_date():
 
 def test_generate_cut_off_date_when_no_file():
     export_date_file = "/tmp/test.txt"
-    if not os.path.isfile(export_date_file):
+    if os.path.isfile(export_date_file):
         os.remove(export_date_file)
 
     expected = None
@@ -148,7 +148,7 @@ def test_generate_cut_off_date_when_no_file():
 
 def test_generate_cut_off_date_when_empty_file():
     export_date_file = "/tmp/test.txt"
-    if not os.path.isfile(export_date_file):
+    if os.path.isfile(export_date_file):
         os.remove(export_date_file)
 
     with open(export_date_file, "wt") as f:
@@ -214,7 +214,7 @@ def test_should_skip_returns_true_when_after_cut_off(monkeypatch):
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
-        False,
+        "false",
         now, 
         do_not_trigger_after
     )
@@ -231,7 +231,7 @@ def test_should_skip_returns_true_when_after_cut_off_but_resume_step_returns_tru
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
-        False,
+        "false",
         now, 
         do_not_trigger_after
     )
@@ -248,7 +248,7 @@ def test_should_skip_returns_false_when_before_cut_off_and_resume_step_returns_f
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
-        False,
+        "false",
         now, 
         do_not_trigger_after
     )
@@ -265,7 +265,24 @@ def test_should_skip_returns_true_when_skip_setting_set_to_true(monkeypatch):
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
-        True,
+        "true",
+        now, 
+        do_not_trigger_after
+    )
+
+    assert True == actual
+
+
+def test_should_skip_returns_true_when_skip_setting_set_to_true_upper_case(monkeypatch):
+    now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
+    do_not_trigger_after = datetime.strptime("18/09/19 23:59:19", '%d/%m/%y %H:%M:%S')
+
+    monkeypatch.setattr(
+        steps.create_pdm_trigger, "check_should_skip_step", return_false
+    )
+
+    actual = create_pdm_trigger.should_step_be_skipped(
+        "TRUE",
         now, 
         do_not_trigger_after
     )
