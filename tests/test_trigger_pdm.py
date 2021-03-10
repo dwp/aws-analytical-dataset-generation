@@ -247,26 +247,6 @@ class TestReplayer(unittest.TestCase):
 
 
     @mock.patch("steps.create_pdm_trigger.check_should_skip_step")
-    def test_should_skip_returns_false_when_before_cut_off_and_resume_step_returns_false(
-        self,
-        check_should_skip_step_mock,
-    ):
-        now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
-        do_not_trigger_after = datetime.strptime("18/09/19 23:59:19", '%d/%m/%y %H:%M:%S')
-
-        check_should_skip_step_mock = mock.MagicMock()
-        check_should_skip_step_mock.return_value = False
-
-        actual = create_pdm_trigger.should_step_be_skipped(
-            "false",
-            now, 
-            do_not_trigger_after
-        )
-
-        assert False == actual
-
-
-    @mock.patch("steps.create_pdm_trigger.check_should_skip_step")
     def test_should_skip_returns_true_when_skip_setting_set_to_true(
         self,
         check_should_skip_step_mock,
@@ -304,6 +284,26 @@ class TestReplayer(unittest.TestCase):
         )
 
         assert True == actual
+
+
+    @mock.patch("steps.create_pdm_trigger.check_should_skip_step")
+    def test_should_skip_returns_false_when_before_cut_off_and_resume_step_returns_false(
+        self,
+        check_should_skip_step_mock,
+    ):
+        now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
+        do_not_trigger_after = datetime.strptime("18/09/19 23:59:19", '%d/%m/%y %H:%M:%S')
+
+        check_should_skip_step_mock = mock.MagicMock()
+        check_should_skip_step_mock.return_value = False
+
+        actual = create_pdm_trigger.should_step_be_skipped(
+            "false",
+            now, 
+            do_not_trigger_after
+        )
+
+        assert False == actual
 
 
     def test_get_cron_gives_cut_out_time_when_before_cut_off(self):
@@ -356,3 +356,7 @@ class TestReplayer(unittest.TestCase):
         )
 
         assert expected == actual
+
+
+if __name__ == "__main__":
+    unittest.main()
