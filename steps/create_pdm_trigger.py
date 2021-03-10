@@ -77,6 +77,10 @@ def put_cloudwatch_event_target(client, now, rule_name):
     )
 
 
+def check_should_skip_step():
+    return should_skip_step(the_logger, "trigger-pdm")
+
+
 def should_step_be_skipped(now, do_not_trigger_after):
     if now > do_not_trigger_after:
         the_logger.info(
@@ -84,7 +88,7 @@ def should_step_be_skipped(now, do_not_trigger_after):
         )
         return True
 
-    if should_skip_step(the_logger, "trigger-pdm"):
+    if check_should_skip_step():
         the_logger.info(
             "Step needs to be skipped so will exit without error"
         )

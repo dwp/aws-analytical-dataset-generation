@@ -83,7 +83,7 @@ def test_should_skip_returns_true_when_after_cut_off(monkeypatch):
     do_not_trigger_after = datetime.strptime("18/09/19 22:55:19", '%d/%m/%y %H:%M:%S')
 
     monkeypatch.setattr(
-        steps.resume_step, "should_skip_step", False
+        steps.create_pdm_trigger, "check_should_skip_step", False
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
@@ -99,7 +99,7 @@ def test_should_skip_returns_true_when_after_cut_off_but_resume_step_returns_tru
     do_not_trigger_after = datetime.strptime("18/09/19 23:59:19", '%d/%m/%y %H:%M:%S')
 
     monkeypatch.setattr(
-        steps.resume_step, "should_skip_step", True
+        steps.create_pdm_trigger, "check_should_skip_step", True
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
@@ -115,7 +115,7 @@ def test_should_skip_returns_false_when_before_cut_off_and_resume_step_returns_f
     do_not_trigger_after = datetime.strptime("18/09/19 23:59:19", '%d/%m/%y %H:%M:%S')
 
     monkeypatch.setattr(
-        steps.resume_step, "should_skip_step", False
+        steps.create_pdm_trigger, "check_should_skip_step", False
     )
 
     actual = create_pdm_trigger.should_step_be_skipped(
@@ -130,7 +130,7 @@ def test_get_cron_gives_cut_out_time_when_before_cut_off():
     now = datetime.strptime("18/09/19 01:55:19", '%d/%m/%y %H:%M:%S')
     do_not_run_before = datetime.strptime("18/09/19 02:55:19", '%d/%m/%y %H:%M:%S')
 
-    expected = "19 55 02 18 09 ? 2019"
+    expected = "55 02 18 09 ? 2019"
     actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before
@@ -143,7 +143,7 @@ def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off():
     now = datetime.strptime("18/09/19 01:57:19", '%d/%m/%y %H:%M:%S')
     do_not_run_before = datetime.strptime("18/09/19 00:55:19", '%d/%m/%y %H:%M:%S')
 
-    expected = "19 02 02 18 09 ? 2019"
+    expected = "02 02 18 09 ? 2019"
     actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before
@@ -156,7 +156,7 @@ def test_get_cron_gives_cut_out_time_when_before_cut_off_over_date_boundary():
     now = datetime.strptime("18/09/19 23:55:19", '%d/%m/%y %H:%M:%S')
     do_not_run_before = datetime.strptime("19/09/19 01:55:19", '%d/%m/%y %H:%M:%S')
 
-    expected = "19 55 01 19 09 ? 2019"
+    expected = "55 01 19 09 ? 2019"
     actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before
@@ -169,7 +169,7 @@ def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off_over_date_boundary
     now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
     do_not_run_before = datetime.strptime("18/09/19 22:55:19", '%d/%m/%y %H:%M:%S')
 
-    expected = "19 02 00 19 09 ? 2019"
+    expected = "02 00 19 09 ? 2019"
     actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before
