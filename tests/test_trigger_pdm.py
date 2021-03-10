@@ -1,9 +1,11 @@
 import boto3
 import unittest
 import os
+import steps
 
 from steps import create_pdm_trigger
 from datetime import datetime
+from unittest import mock
 
 
 # @mock_events
@@ -38,7 +40,7 @@ def test_put_cloudwatch_event_rule():
     events_client = mock.MagicMock()
     events_client.put_rule = mock.MagicMock()
 
-    expected = "pdm_cw_emr_launcher_schedule_18_09_19_23_57_19"
+    expected = "pdm_cw_emr_launcher_schedule_18_09_2019_23_57_19"
     actual = create_pdm_trigger.put_cloudwatch_event_rule(
         events_client, now, cron
     )
@@ -55,8 +57,8 @@ def test_put_cloudwatch_event_rule():
 
 def test_put_cloudwatch_event_target():
     now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
-    id_string = "pdm_cw_emr_launcher_target_18_09_19_23_57_19"
-    rule_name = "pdm_cw_emr_launcher_schedule_18_09_19_23_57_19"
+    id_string = "pdm_cw_emr_launcher_target_18_09_2019_23_57_19"
+    rule_name = "pdm_cw_emr_launcher_schedule_18_09_2019_23_57_19"
 
     events_client = mock.MagicMock()
     events_client.put_targets = mock.MagicMock()
@@ -128,7 +130,7 @@ def test_get_cron_gives_cut_out_time_when_before_cut_off():
     now = datetime.strptime("18/09/19 01:55:19", '%d/%m/%y %H:%M:%S')
     do_not_run_before = datetime.strptime("18/09/19 02:55:19", '%d/%m/%y %H:%M:%S')
 
-    expected = "19 55 02 18 09 ? 19"
+    expected = "19 55 02 18 09 ? 2019"
     actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before
@@ -141,7 +143,7 @@ def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off():
     now = datetime.strptime("18/09/19 01:57:19", '%d/%m/%y %H:%M:%S')
     do_not_run_before = datetime.strptime("18/09/19 00:55:19", '%d/%m/%y %H:%M:%S')
 
-    expected = "19 02 02 18 09 ? 19"
+    expected = "19 02 02 18 09 ? 2019"
     actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before
@@ -154,7 +156,7 @@ def test_get_cron_gives_cut_out_time_when_before_cut_off_over_date_boundary():
     now = datetime.strptime("18/09/19 23:55:19", '%d/%m/%y %H:%M:%S')
     do_not_run_before = datetime.strptime("19/09/19 01:55:19", '%d/%m/%y %H:%M:%S')
 
-    expected = "19 55 01 19 09 ? 19"
+    expected = "19 55 01 19 09 ? 2019"
     actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before
@@ -167,7 +169,7 @@ def test_get_cron_gives_now_plus_5_minutes_when_after_cut_off_over_date_boundary
     now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
     do_not_run_before = datetime.strptime("18/09/19 22:55:19", '%d/%m/%y %H:%M:%S')
 
-    expected = "19 02 00 19 09 ? 19"
+    expected = "19 02 00 19 09 ? 2019"
     actual = create_pdm_trigger.get_cron(
         now, 
         do_not_run_before

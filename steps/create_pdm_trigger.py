@@ -1,7 +1,7 @@
 import boto3
 import os
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from steps.logger import setup_logging
 from steps.resume_step import should_skip_step
 
@@ -96,14 +96,14 @@ def should_step_be_skipped(now, do_not_trigger_after):
 
 def get_cron(now, do_not_run_before):
     if now < do_not_run_before:
-        cron = f"{do_not_run_before.minute} {do_not_run_before.hour} {do_not_run_before.day} {do_not_run_before.month} ? {do_not_run_before.year}"
+        cron = f"{do_not_run_before.strftime("%M")} {do_not_run_before.strftime("%H")} {do_not_run_before.strftime("%d")} {do_not_run_before.strftime("%m")} ? {do_not_run_before.strftime("%y")}"
         the_logger.info(
             "Time now is before cut off time so returning cut off time cron", cron,
         )
         return cron
     
-    ten_minutes_from_now = now + datetime.timedelta(minutes = 5)
-    cron = f"{ten_minutes_from_now.minute} {ten_minutes_from_now.hour} {ten_minutes_from_now.day} {ten_minutes_from_now.month} ? {ten_minutes_from_now.year}"
+    ten_minutes_from_now = now + timedelta(minutes = 5)
+    cron = f"{ten_minutes_from_now.strftime("%M")} {ten_minutes_from_now.strftime("%H")} {ten_minutes_from_now.strftime("%d")} {ten_minutes_from_now.strftime("%m")} ? {ten_minutes_from_now.strftime("%y")}"
     the_logger.info(
         "Time now is after cut off time so returning cron for 5 minutes time", cron,
     )
