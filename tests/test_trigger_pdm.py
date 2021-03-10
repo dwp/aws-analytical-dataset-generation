@@ -33,6 +33,9 @@ class TestReplayer(unittest.TestCase):
         do_not_run_before = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
         cron = "test cron"
         rule_name = "test rule"
+        
+        events_client = mock.MagicMock()
+        events_client.put_rule = mock.MagicMock()
 
         get_now_mock.return_value = now
         generate_cut_off_date_mock.return_value = do_not_run_after
@@ -100,7 +103,7 @@ class TestReplayer(unittest.TestCase):
         response = create_pdm_trigger.create_pdm_trigger(
             "true", 
         )
-        
+
         get_now_mock.assert_called_once()
         generate_cut_off_date_mock.assert_called_once()
         should_step_be_skipped_mock.assert_called_once_with(
