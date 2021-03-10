@@ -218,7 +218,7 @@ locals {
   }
 
   skip_pdm_trigger_on_adg_completion = {
-    development = "false"
+    development = "true"
     qa          = "true"
     integration = "true"
     preprod     = "true"
@@ -242,7 +242,7 @@ locals {
   }
 
   adg_alerts = {
-    development = true
+    development = false
     qa          = false
     integration = false
     preprod     = false

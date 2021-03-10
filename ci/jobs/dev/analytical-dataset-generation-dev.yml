@@ -6,7 +6,6 @@ jobs:
           - put: meta
             resource: meta-development
           - get: aws-analytical-dataset-generation
-            resource: aws-analytical-dataset-generation-steven
             trigger: true
           - get: emr-launcher-release
             trigger: true
@@ -17,7 +16,6 @@ jobs:
           - get: analytical-dataset-generation-exporter-release
             trigger: true
           - get: dataworks-behavioural-framework
-            resource: dataworks-behavioural-framework-steven
             trigger: false
           - get: secrets-management
             trigger: false
