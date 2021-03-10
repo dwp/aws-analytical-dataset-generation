@@ -49,7 +49,7 @@ def generate_cut_off_date(export_date_file):
     if not export_date:
         return None
 
-    export_date_parsed = datetime.strptime(date_time_str, '%Y-%m-%d')
+    export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
     day_after_export_date = now + timedelta(days = 1)
 
     return day_after_export_date.replace(hour=3, minute=00, second=00)
@@ -65,7 +65,7 @@ def generate_do_not_run_before_date(export_date_file):
     if not export_date:
         return None
 
-    export_date_parsed = datetime.strptime(date_time_str, '%Y-%m-%d')
+    export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
     return export_date_parsed.replace(hour=15, minute=00, second=00)
 
 
