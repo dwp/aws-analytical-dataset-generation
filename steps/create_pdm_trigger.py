@@ -44,7 +44,7 @@ def generate_cut_off_date(export_date_file):
         return None
 
     with open(export_date_file, "r") as f:
-        export_date = f.readlines().split()
+        export_date = f.readlines().strip()
 
     if not export_date:
         return None
@@ -60,7 +60,7 @@ def generate_do_not_run_before_date(export_date_file):
         return None
 
     with open(export_date_file, "r") as f:
-        export_date = f.readlines().split()
+        export_date = f.readlines().strip()
 
     if not export_date:
         return None
@@ -149,14 +149,14 @@ def get_cron(now, do_not_run_before):
     if now < do_not_run_before:
         cron = f'{do_not_run_before.strftime("%M")} {do_not_run_before.strftime("%H")} {do_not_run_before.strftime("%d")} {do_not_run_before.strftime("%m")} ? {do_not_run_before.year}'
         the_logger.info(
-            "Time now is before cut off time so returning cut off time cron", cron,
+            f"Time now is before cut off time so returning cut off time cron of '{cron}' ",
         )
         return cron
     
     ten_minutes_from_now = now + timedelta(minutes = 5)
     cron = f'{ten_minutes_from_now.strftime("%M")} {ten_minutes_from_now.strftime("%H")} {ten_minutes_from_now.strftime("%d")} {ten_minutes_from_now.strftime("%m")} ? {ten_minutes_from_now.year}'
     the_logger.info(
-        "Time now is after cut off time so returning cron for 5 minutes time", cron,
+        f"Time now is after cut off time so returning cron of '{cron}' for 5 minutes time",
     )
     return cron
 
