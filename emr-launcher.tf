@@ -88,6 +88,7 @@ data "aws_iam_policy_document" "adg_emr_launcher_runjobflow_policy" {
     effect = "Allow"
     actions = [
       "elasticmapreduce:RunJobFlow",
+      "elasticmapreduce:AddTags",
     ]
     resources = [
       "*"
@@ -189,6 +190,7 @@ data "aws_iam_policy_document" "adg_emr_launcher_getsecrets" {
 
     resources = [
       aws_secretsmanager_secret.metadata_store_adg_writer.arn,
+      data.terraform_remote_state.internal_compute.outputs.metadata_store_users.adg_writer.secret_arn,
     ]
   }
 }

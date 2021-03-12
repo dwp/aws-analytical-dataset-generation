@@ -10,25 +10,24 @@ def should_skip_step(logger, current_step_name):
         )
 
         with open(STEP_TO_START_FROM_FILE, "r") as file_to_open:
-            STEP = file_to_open.read()
+            STEP = file_to_open.read().strip()
         
-        CURRENT_FILE_NAME = current_step_name
         logger.info(
-            "Current file name is '%s'",
-            CURRENT_FILE_NAME,
+            "Current step name is '%s'",
+            current_step_name,
         )
 
-        if STEP != CURRENT_FILE_NAME:
+        if STEP != current_step_name:
             logger.info(
                 "Current step name is '%s', which doesn't match previously failed step '%s', so will exit",
-                CURRENT_FILE_NAME,
+                current_step_name,
                 STEP,
             )
             return True
         else:
             logger.info(
                 "Current step name is '%s', which matches previously failed step '%s', so deleting local file",
-                CURRENT_FILE_NAME,
+                current_step_name,
                 STEP,
             )
             os.remove(STEP_TO_START_FROM_FILE)

@@ -20,7 +20,13 @@
   "Cluster_Id": {
     "S": ""
   },
-  "S3_Prefix": {
+  "S3_Prefix_Snapshots": {
+    "S": ""
+  },
+  "S3_Prefix_Analytical_DataSet": {
+    "S": ""
+  },
+  "Snapshot_Type": {
     "S": ""
   }
 }

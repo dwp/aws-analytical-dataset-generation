@@ -25,11 +25,10 @@ resource "aws_lambda_function" "adg_emr_relauncher" {
 
   environment {
     variables = {
-      SNS_TOPIC             = data.terraform_remote_state.internal_compute.outputs.export_status_sns_fulls.arn
-      TABLE_NAME            = local.data_pipeline_metadata
-      STEPS_TO_NOT_RETRY    = "flush-pushgateway"
-      MAX_RETRY_COUNT       = local.adg_max_retry_count[local.environment]
-      LOG_LEVEL             = "info"
+      SNS_TOPIC       = data.terraform_remote_state.internal_compute.outputs.export_status_sns_fulls.arn
+      TABLE_NAME      = local.data_pipeline_metadata
+      MAX_RETRY_COUNT = local.adg_max_retry_count[local.environment]
+      LOG_LEVEL       = "info"
     }
   }
 }

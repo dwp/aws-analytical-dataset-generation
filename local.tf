@@ -1,8 +1,10 @@
 locals {
-  emr_cluster_name        = "aws-analytical-dataset-generator"
-  hbase_root_path         = format("s3://%s", data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir)
-  secret_name_full        = "/concourse/dataworks/adg/fulls"
-  secret_name_incremental = "/concourse/dataworks/adg/incrementals"
+  emr_cluster_name         = "aws-analytical-dataset-generator"
+  hbase_root_path          = format("s3://%s", data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir)
+  secret_name_full         = "/concourse/dataworks/adg/fulls"
+  secret_name_incremental  = "/concourse/dataworks/adg/incrementals"
+  pdm_lambda_launcher_name = "pdm_cw_emr_launcher"
+  pdm_lambda_cw_trigger    = "${local.pdm_lambda_launcher_name}-scheduled-rule"
   common_tags = {
     Environment  = local.environment
     Application  = local.emr_cluster_name
@@ -46,6 +48,14 @@ locals {
     integration = "00 14 6 Jul ? 2020" # trigger one off temp increase for DW-4437 testing
     preprod     = "1 0 * * ? *"
     production  = "1 0 * * ? 2025"
+  }
+
+  pdm_cw_emr_lambda_schedule = {
+    development = "01 12 * * ? 2099"
+    qa          = "00 15 * * ? 2099"
+    integration = "00 15 * * ? 2099"
+    preprod     = "00 15 * * ? 2099"
+    production  = "00 15 * * ? *"
   }
 
   adg_log_level = {
@@ -200,11 +210,19 @@ locals {
   }
 
   mongo_latest_version = {
-    development = "0.0.26"
-    qa          = "0.0.26"
-    integration = "0.0.26"
-    preprod     = "0.0.26"
-    production  = "0.0.26"
+    development = "0.0.28"
+    qa          = "0.0.28"
+    integration = "0.0.28"
+    preprod     = "0.0.28"
+    production  = "0.0.28"
+  }
+
+  skip_pdm_trigger_on_adg_completion = {
+    development = "true"
+    qa          = "true"
+    integration = "true"
+    preprod     = "true"
+    production  = "false"
   }
 
   skip_sns_notification_on_adg_completion = {
@@ -214,12 +232,20 @@ locals {
     preprod     = "true"
     production  = "false"
   }
-  
+
   adg_max_retry_count = {
     development = "0"
     qa          = "0"
     integration = "0"
     preprod     = "0"
     production  = "2"
+  }
+
+  adg_alerts = {
+    development = false
+    qa          = false
+    integration = false
+    preprod     = false
+    production  = true
   }
 }
