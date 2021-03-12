@@ -579,6 +579,7 @@ def get_spark_session(args):
         .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
         .config("spark.metrics.namespace", f"adg_{args.snapshot_type.lower()}")
         .config("spark.executor.heartbeatInterval", "300000")
+        .config("spark.storage.blockManagerSlaveTimeoutMs", "500000")
         .config("spark.network.timeout", "500000")
         .config("spark.hadoop.fs.s3.maxRetries", "20")
         .config("spark.rpc.numRetries", "10")
@@ -589,7 +590,6 @@ def get_spark_session(args):
         .enableHiveSupport()
         .getOrCreate()
     )
-    spark.conf.set("spark.scheduler.mode", "FAIR")
     return spark
 
 

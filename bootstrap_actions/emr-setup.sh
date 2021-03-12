@@ -41,7 +41,7 @@ chmod u+x /opt/emr/update_dynamo.sh
     
     PUB_BUCKET_ID="${publish_bucket_id}"
     echo "export PUBLISH_BUCKET_ID=$${PUB_BUCKET_ID}" | sudo tee /etc/profile.d/buckets.sh
-    source /etc/profile.d/buckets.sh
+    sudo -s source /etc/profile.d/buckets.sh
     
     echo "Setup cloudwatch logs"
     sudo /opt/emr/cloudwatch.sh \
