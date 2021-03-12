@@ -45,9 +45,9 @@ variable "emr_release" {
   default = {
     development = "6.2.0"
     qa          = "6.2.0"
-    integration = "5.31.0"
-    preprod     = "5.31.0"
-    production  = "5.31.0"
+    integration = "6.2.0"
+    preprod     = "6.2.0"
+    production  = "6.2.0"
   }
 }
 
