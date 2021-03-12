@@ -11,7 +11,6 @@ jobs:
               globs:
                 - "*.zip"
           - get: aws-analytical-dataset-generation
-            resource: aws-analytical-dataset-generation-branch
             trigger: true
           - get: secrets-management
             trigger: false
