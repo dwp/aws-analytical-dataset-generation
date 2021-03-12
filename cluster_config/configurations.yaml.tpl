@@ -78,6 +78,10 @@ Configurations:
     "hive.auto.convert.join.noconditionaltask.size": "10922"
     %{~ endif ~}
 
+- Classification: "tez-site"
+  Properties:
+    "tez.am.resource.memory.mb": "1024"
+
 - Classification: "emrfs-site"
   Properties:
     "fs.s3.maxConnections": "10000"
