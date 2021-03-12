@@ -72,6 +72,10 @@ Configurations:
     "hive.mapred.mode": "nonstrict"
     "hive.strict.checks.cartesian.product": "false"
     "hive.exec.parallel": "true"
+    "hive.exec.failure.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
+    "hive.exec.post.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
+    "hive.exec.pre.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
+    "hive_timeline_logging_enabled": "true"
     %{~ if environment == "production" ~}
     "hive.tez.container.size": "32768"
     "hive.tez.java.opts": "-Xmx26214m"
