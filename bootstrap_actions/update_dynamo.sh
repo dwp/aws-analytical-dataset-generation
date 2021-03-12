@@ -19,13 +19,20 @@
   S3_PREFIX_FILE=/opt/emr/s3_prefix.txt
   SNAPSHOT_TYPE_FILE=/opt/emr/snapshot_type.txt
   OUTPUT_LOCATION_FILE=/opt/emr/output_location.txt
+  EXPORT_DATE_FILE=/opt/emr/export_date.txt
+  
   DATE=$(date '+%Y-%m-%d')
   CLUSTER_ID=`cat /mnt/var/lib/info/job-flow.json | jq '.jobFlowId'`
   CLUSTER_ID=$${CLUSTER_ID//\"}
 
+  FAILED_STATUS="FAILED"
+  COMPLETED_STATUS="COMPLETED"
+  IN_PROGRESS_STATUS="IN_PROGRESS"
+  CANCELLED_STATUS="CANCELLED"
+
   FINAL_STEP_NAME="flush-pushgateway"
 
-  while [[ ! -f $CORRELATION_ID_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]] && [[ ! -f $SNAPSHOT_TYPE_FILE ]]
+  while [[ ! -f $CORRELATION_ID_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]] && [[ ! -f $SNAPSHOT_TYPE_FILE ]] && [[ ! -f $EXPORT_DATE_FILE ]]
   do
     sleep 5
   done
@@ -33,12 +40,22 @@
   CORRELATION_ID=`cat $CORRELATION_ID_FILE`
   S3_PREFIX=`cat $S3_PREFIX_FILE`
   SNAPSHOT_TYPE=`cat $SNAPSHOT_TYPE_FILE`
+  EXPORT_DATE=`cat $EXPORT_DATE_FILE`
   DATA_PRODUCT="ADG-$SNAPSHOT_TYPE"
+
+  if [[ -z "$EXPORT_DATE" ]]; then
+    log_wrapper_message "Export date from file was empty, so defaulting to today's date"
+    EXPORT_DATE="$DATE"
+  fi
 
   while [ ! -f $STEP_DEATILS_DIR/*.json ]
   do
     sleep 5
   done
+
+  if [[ "$SNAPSHOT_TYPE" == "incremental" ]]; then
+    FINAL_STEP_NAME="executeUpdateAll"
+  fi
 
   get_ttl() {
       TIME_NOW=$(($(date +'%s * 1000 + %-N / 1000000')))
@@ -64,10 +81,10 @@
     ttl_value=$(get_ttl)
     output_location_value=$(get_output_location)
 
-    log_wrapper_message "Updating DynamoDB with Correlation_Id: $CORRELATION_ID, DataProduct: $DATA_PRODUCT, Date: $DATE, Cluster_Id: $CLUSTER_ID, S3_Prefix_Snapshots: $S3_PREFIX, S3_Prefix_Analytical_DataSet: $output_location_value, Snapshot_Type: $SNAPSHOT_TYPE, TimeToExist: $ttl_value, CurrentStep: $current_step, Status: $status, Run_Id: $run_id"
+    log_wrapper_message "Updating DynamoDB with Correlation_Id: $CORRELATION_ID, DataProduct: $DATA_PRODUCT, Date: $EXPORT_DATE, Cluster_Id: $CLUSTER_ID, S3_Prefix_Snapshots: $S3_PREFIX, S3_Prefix_Analytical_DataSet: $output_location_value, Snapshot_Type: $SNAPSHOT_TYPE, TimeToExist: $ttl_value, CurrentStep: $current_step, Status: $status, Run_Id: $run_id"
 
     update_expression="SET #d = :s, Cluster_Id = :v, S3_Prefix_Snapshots = :w, Snapshot_Type = :x, TimeToExist = :z"
-    expression_values="\":s\": {\"S\":\"$DATE\"}, \":v\": {\"S\":\"$CLUSTER_ID\"}, \":w\": {\"S\":\"$S3_PREFIX\"}, \":x\": {\"S\":\"$SNAPSHOT_TYPE\"}, \":z\": {\"N\":\"$ttl_value\"}"
+    expression_values="\":s\": {\"S\":\"$EXPORT_DATE\"}, \":v\": {\"S\":\"$CLUSTER_ID\"}, \":w\": {\"S\":\"$S3_PREFIX\"}, \":x\": {\"S\":\"$SNAPSHOT_TYPE\"}, \":z\": {\"N\":\"$ttl_value\"}"
     expression_names="\"#d\":\"Date\""
 
     if [[ ! -z "$current_step" ]] && [[ "$current_step" != "NOT_SET" ]]; then
@@ -105,17 +122,20 @@
         continue
       fi
       state=$(jq -r '.state' $i)
-      while [[ "$state" != "COMPLETED" ]]; do
+      while [[ "$state" != "$COMPLETED_STATUS" ]]; do
         step_script_name=$(jq -r '.args[0]' $i)
+        if [[ "$step_script_name" == "python3" ]]; then
+            step_script_name=$(jq -r '.args[1]' $i)
+        fi
         CURRENT_STEP=$(echo "$step_script_name" | sed 's:.*/::' | cut -f 1 -d '.')
         state=$(jq -r '.state' $i)
-        if [[ "$state" == "FAILED" ]] || [[ "$state" == "CANCELLED" ]]; then
+        if [[ "$state" == "$FAILED_STATUS" ]] || [[ "$state" == "$CANCELLED_STATUS" ]]; then
           log_wrapper_message "Failed step. Step Name: $CURRENT_STEP, Step status: $state"
-          dynamo_update_item "$CURRENT_STEP" "FAILED" "NOT_SET"
+          dynamo_update_item "$CURRENT_STEP" "$FAILED_STATUS" "NOT_SET"
           exit 0
         fi
-        if [[ "$CURRENT_STEP" == "$FINAL_STEP_NAME" ]] && [[ "$state" == "COMPLETED" ]]; then
-          dynamo_update_item "$CURRENT_STEP" "COMPLETED" "NOT_SET"
+        if [[ "$CURRENT_STEP" == "$FINAL_STEP_NAME" ]] && [[ "$state" == "$COMPLETED_STATUS" ]]; then
+          dynamo_update_item "$CURRENT_STEP" "$COMPLETED_STATUS" "NOT_SET"
           log_wrapper_message "All steps completed. Final step Name: $CURRENT_STEP, Step status: $state"
           exit 0
         fi
@@ -136,11 +156,11 @@
   #Check if row for this correlation ID already exists - in which case we need to increment the Run_Id
   response=`aws dynamodb get-item --table-name ${dynamodb_table_name} --key '{"Correlation_Id": {"S": "'$CORRELATION_ID'"}, "DataProduct": {"S": "'$DATA_PRODUCT'"}}'`
   if [[ -z $response ]]; then
-    dynamo_update_item "NOT_SET" "In-Progress" "1"
+    dynamo_update_item "NOT_SET" "$IN_PROGRESS_STATUS" "1"
   else
     LAST_STATUS=`echo $response | jq -r .'Item.Status.S'`
     log_wrapper_message "Status from previous run $LAST_STATUS"
-    if [[ "$LAST_STATUS" == "FAILED" ]]; then
+    if [[ "$LAST_STATUS" == "$FAILED_STATUS" ]]; then
       log_wrapper_message "Previous failed status found, creating step_to_start_from.txt"
       CURRENT_STEP=`echo $response | jq -r .'Item.CurrentStep.S'`
       echo $CURRENT_STEP >> /opt/emr/step_to_start_from.txt
@@ -148,7 +168,7 @@
 
     CURRENT_RUN_ID=`echo $response | jq -r .'Item.Run_Id.N'`
     NEW_RUN_ID=$((CURRENT_RUN_ID+1))
-    dynamo_update_item "NOT_SET" "In-Progress" "$NEW_RUN_ID"
+    dynamo_update_item "NOT_SET" "$IN_PROGRESS_STATUS" "$NEW_RUN_ID"
   fi
 
   #kick off loop to process all step files

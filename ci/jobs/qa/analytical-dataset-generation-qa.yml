@@ -19,6 +19,8 @@ jobs:
             trigger: false
           - get: emr-launcher-release
             trigger: true
+          - get: pdm-emr-launcher-release
+            trigger: true
           - get: emr-relauncher-release
             trigger: true
           - get: analytical-dataset-generation-exporter-release

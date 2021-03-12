@@ -48,6 +48,13 @@ Steps:
     - "/opt/emr/generate_dataset_from_htme.py"
     Jar: "command-runner.jar"
   ActionOnFailure: "${action_on_failure}"
+- Name: "create_pdm_trigger"
+  HadoopJarStep:
+    Args:
+    - "python3"
+    - "/opt/emr/create_pdm_trigger.py"
+    Jar: "command-runner.jar"
+  ActionOnFailure: "${action_on_failure}"
 - Name: "sns-notification"
   HadoopJarStep:
     Args:

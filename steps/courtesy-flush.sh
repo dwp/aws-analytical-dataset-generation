@@ -3,6 +3,7 @@
 CORRELATION_ID=$2
 S3_PREFIX=$4
 SNAPSHOT_TYPE=$6
+EXPORT_DATE=$8
 
 set -euo pipefail
 (
@@ -10,6 +11,7 @@ set -euo pipefail
     echo $CORRELATION_ID >>     /opt/emr/correlation_id.txt
     echo $S3_PREFIX >>          /opt/emr/s3_prefix.txt
     echo $SNAPSHOT_TYPE >>      /opt/emr/snapshot_type.txt
+    echo $EXPORT_DATE >>        /opt/emr/export_date.txt
 
     # Import the logging functions
     source /opt/emr/logging.sh

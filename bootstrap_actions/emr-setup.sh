@@ -2,6 +2,7 @@
 echo "Installing scripts"
 $(which aws) s3 cp "${S3_CLOUDWATCH_SHELL}"            /opt/emr/cloudwatch.sh
 $(which aws) s3 cp "${S3_SEND_SNS_NOTIFICATION}"       /opt/emr/send_notification.py
+$(which aws) s3 cp "${CREATE_PDM_TRIGGER}"             /opt/emr/create_pdm_trigger.py
 $(which aws) s3 cp "${RESUME_STEP_SHELL}"              /opt/emr/resume_step.sh
 $(which aws) s3 cp "${update_dynamo_sh}"               /opt/emr/update_dynamo.sh
 $(which aws) s3 cp "${dynamo_schema_json}"             /opt/emr/dynamo_schema.json
@@ -9,10 +10,9 @@ $(which aws) s3 cp "${dynamo_schema_json}"             /opt/emr/dynamo_schema.js
 echo "Changing the Permissions"
 chmod u+x /opt/emr/cloudwatch.sh
 chmod u+x /opt/emr/send_notification.py
+chmod u+x /opt/emr/create_pdm_trigger.py
 chmod u+x /opt/emr/resume_step.sh
 chmod u+x /opt/emr/update_dynamo.sh
-
-/opt/emr/update_dynamo.sh &
 
 (
     # Import the logging functions
@@ -114,5 +114,7 @@ EOF
     aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value=$HOSTNAME
     
     log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
-    
+
+    /opt/emr/update_dynamo.sh &
+
 ) >> /var/log/adg/emr-setup.log 2>&1
