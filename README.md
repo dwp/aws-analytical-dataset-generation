@@ -161,3 +161,78 @@ If a cluster fails, then the status is updated in the dynamo db table to failed.
 Whenever a step starts on a cluster, it calls a common method which checks if this local file exists. If it does not (i.e. this is not a retry scenario) then the step continues a normal. However if the file does exist, then the step checks if the failed cluster was running the same step when it failed. If it was, then it runs the step as normal and the local files is deleted so as not to affect subsequent steps. However if the step name does not match, this step is assumed to have completed before and therefore is skipped this time.
 
 In this way, we are able to retry the entire cluster but not repeat steps that have already succeeded, therefore saving us potentially hours or time for retry scenarios.
+# Upgrading to EMR 6.2.0
+
+There is a requirement for our data products to start using Hive 3 instead of Hive 2. Hive 3 comes bundled with EMR 6.2.0 
+along with other upgrades including Spark. Below is a list of steps taken to upgrade ADG to EMR 6.2.0  
+
+1. Make sure you are using an AL2 ami 
+
+2. Point ADG at the new metastore: `hive_metastore_v2` in `internal-compute` instead of the old one in the configurations.yml   
+
+    The values below should resolve to the new metastore, the details of which are an output of `internal-compute`
+    ```    
+   "javax.jdo.option.ConnectionURL": "jdbc:mysql://${hive_metastore_endpoint}:3306/${hive_metastore_database_name}?createDatabaseIfNotExist=true"
+   "javax.jdo.option.ConnectionUserName": "${hive_metsatore_username}"
+   "javax.jdo.option.ConnectionPassword": "${hive_metastore_pwd}"
+   ```
+
+3. Create ingress/egress security group rules to the metastore in the `internal-compute` repo. Example below   
+
+    ```
+    resource "aws_security_group_rule" "ingress_adg" {
+      description              = "Allow mysql traffic to Aurora RDS from ADG"
+      from_port                = 3306
+      protocol                 = "tcp"
+      security_group_id        = aws_security_group.hive_metastore_v2.id
+      to_port                  = 3306
+      type                     = "ingress"
+      source_security_group_id = data.terraform_remote_state.adg.outputs.adg_common_sg.id
+    }
+    
+    resource "aws_security_group_rule" "egress_adg" {
+      description              = "Allow mysql traffic to Aurora RDS from ADG"
+      from_port                = 3306
+      protocol                 = "tcp"
+      security_group_id        = data.terraform_remote_state.adg.outputs.adg_common_sg.id
+      to_port                  = 3306
+      type                     = "egress"
+      source_security_group_id = aws_security_group.hive_metastore_v2.id
+    }
+    ```
+
+3. Rotate the `adg-writer` user from the `internal-compute` pipeline so that when ADG starts up it can login to the metastore.
+
+4. Give IAM permissions to the ADG EMR launcher to read the new Secret  
+
+    ```
+    data "aws_iam_policy_document" "adg_emr_launcher_getsecrets" {
+     statement {
+       effect = "Allow"
+    
+       actions = [
+         "secretsmanager:GetSecretValue",
+       ]
+    
+       resources = [
+         data.terraform_remote_state.internal_compute.outputs.metadata_store_users.adg_writer.secret_arn,
+       ]
+     }
+    }
+    ``` 
+5. Chang the configurtations.yml change `spark.executor.extraJavaOptions` to `spark.executor.defaultJavaOptions`
+
+6. Upgrade any dependencies that reference scala 2.11 or Spark 2.4. For ADG the metrics dependency had to be bumped to the new version of scala  
+
+    ``` 
+   <dependency>
+       <groupId>com.banzaicloud</groupId>
+       <artifactId>spark-metrics_2.12</artifactId>
+       <version>2.4-1.0.6</version>
+   </dependency>
+   ```
+   
+7. Bump the EMR version to 6.2.0 and launch the cluster.   
+
+Make sure that the first time anything uses the metastore it initialises with Hive 3, otherwise it will have to be rebuilt. 
+

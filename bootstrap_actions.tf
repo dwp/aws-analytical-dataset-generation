@@ -31,6 +31,7 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
   content = templatefile("${path.module}/bootstrap_actions/emr-setup.sh",
     {
       ADG_LOG_LEVEL                   = local.adg_log_level[local.environment]
+      CREATE_PDM_TRIGGER              = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.create_pdm_trigger_script.key)
       S3_SEND_SNS_NOTIFICATION        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.send_notification_script.key)
       RESUME_STEP_SHELL               = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.resume_step_script.key)
       aws_default_region              = "eu-west-2"

@@ -9,5 +9,6 @@ jobs:
             AWS_ROLE_ARN: arn:aws:iam::((aws_account.integration)):role/ci
             AWS_ACC: ((aws_account.integration))
             S3_PREFIX: businessdata/mongo/ucdata/2020-08-07/full/
+            EXPORT_DATE: "2020-08-07"
             CORRELATION_ID: test
             SNAPSHOT_TYPE: full

@@ -307,7 +307,6 @@ resource "aws_iam_role_policy_attachment" "analytical_dataset_generator_read_htm
   policy_arn = aws_iam_policy.analytical_dataset_generator_read_htme.arn
 }
 
-
 resource "aws_iam_policy" "analytical_dataset_generator_publish_sns" {
   name        = "AnalyticalDatasetGeneratorPublishSns"
   description = "Allow ADG to publish SNS messages"
@@ -332,5 +331,32 @@ data "aws_iam_policy_document" "adg_sns_topic_policy_for_completion_status" {
     resources = [
       aws_sns_topic.adg_completion_status_sns.arn,
     ]
+  }
+}
+
+resource "aws_iam_policy" "adg_cloudwatch_topic_policy_for_pdm_trigger" {
+  name        = "AdgPDMTrigger"
+  description = "Allow ADG to publish Cloudwatch rules and targets"
+  policy      = data.aws_iam_policy_document.adg_cloudwatch_topic_policy_for_pdm_trigger.json
+}
+
+resource "aws_iam_role_policy_attachment" "adg_cloudwatch_topic_policy_for_pdm_trigger" {
+  role       = aws_iam_role.analytical_dataset_generator.name
+  policy_arn = aws_iam_policy.adg_cloudwatch_topic_policy_for_pdm_trigger.arn
+}
+
+data "aws_iam_policy_document" "adg_cloudwatch_topic_policy_for_pdm_trigger" {
+  statement {
+    sid = "AdgPDMTriggerPolicy"
+
+    actions = [
+      "events:EnableRule",
+      "events:PutRule",
+      "events:PutTargets",
+    ]
+
+    effect = "Allow"
+
+    resources = ["*"]
   }
 }

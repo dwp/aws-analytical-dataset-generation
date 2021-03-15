@@ -53,6 +53,7 @@ def get_parameters():
     parser.add_argument("--correlation_id", default="0")
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
     parser.add_argument("--snapshot_type", default="full")
+    parser.add_argument("--export_date", default=datetime.now().strftime("%Y-%m-%d"))
     args, unrecognized_args = parser.parse_known_args()
     args.snapshot_type = SNAPSHOT_TYPE_INCREMENTAL if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL else SNAPSHOT_TYPE_FULL
     the_logger.warning(
@@ -141,7 +142,7 @@ def main(
             spark, list_of_processed_collections, published_database_name, args, run_time_stamp
         )
         create_adg_status_csv(
-            args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp, args.snapshot_type
+            args.correlation_id, s3_publish_bucket, s3_client, run_time_stamp, args.snapshot_type, args.export_date
         )
 
 
@@ -578,6 +579,7 @@ def get_spark_session(args):
         .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
         .config("spark.metrics.namespace", f"adg_{args.snapshot_type.lower()}")
         .config("spark.executor.heartbeatInterval", "300000")
+        .config("spark.storage.blockManagerSlaveTimeoutMs", "500000")
         .config("spark.network.timeout", "500000")
         .config("spark.hadoop.fs.s3.maxRetries", "20")
         .config("spark.rpc.numRetries", "10")
@@ -588,7 +590,6 @@ def get_spark_session(args):
         .enableHiveSupport()
         .getOrCreate()
     )
-    spark.conf.set("spark.scheduler.mode", "FAIR")
     return spark
 
 
@@ -604,13 +605,13 @@ def get_cluster_id():
     return cluster_id
 
 
-def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_stamp, snapshot_type):
+def create_adg_status_csv(correlation_id, publish_bucket, s3_client, run_time_stamp, snapshot_type, export_date):
     file_location = "${file_location}"
 
     with open("adg_params.csv", "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["correlation_id", "s3_prefix"])
-        writer.writerow([correlation_id, f"{file_location}/{snapshot_type}/{run_time_stamp}"])
+        writer.writerow(["correlation_id", "s3_prefix", "snapshot_type", "export_date"])
+        writer.writerow([correlation_id, f"{file_location}/{snapshot_type}/{run_time_stamp}", snapshot_type, export_date])
 
     with open("adg_params.csv", "rb") as data:
         s3_client.upload_fileobj(
@@ -637,7 +638,7 @@ def save_output_location(args, run_time_stamp):
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
-        "Processing spark job for correlation id : %s and snapshot_type : %s", args.correlation_id, args.snapshot_type.lower()
+        "Processing spark job for correlation id : %s, export date : %s and snapshot_type : %s", args.correlation_id, args.export_date, args.snapshot_type.lower()
     )
 
     the_logger.info(
