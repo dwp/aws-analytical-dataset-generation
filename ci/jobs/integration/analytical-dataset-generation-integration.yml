@@ -10,36 +10,36 @@ jobs:
             params:
               globs:
                 - "*.zip"
-            passed:
-              - analytical-dataset-generation-qa
+#            passed:
+#              - analytical-dataset-generation-qa
           - get: secrets-management
             trigger: false
-            passed:
-              - analytical-dataset-generation-qa
+#            passed:
+#              - analytical-dataset-generation-qa
           - get: aws-analytical-dataset-generation
             trigger: true
-            passed:
-              - analytical-dataset-generation-qa
+#            passed:
+#              - analytical-dataset-generation-qa
           - get: emr-launcher-release
             trigger: true
             passed:
               - analytical-dataset-generation-qa
           - get: pdm-emr-launcher-release
             trigger: true
-            passed:
-              - analytical-dataset-generation-qa
+#            passed:
+#              - analytical-dataset-generation-qa
           - get: emr-relauncher-release
             trigger: true
-            passed:
-              - analytical-dataset-generation-qa
+#            passed:
+#              - analytical-dataset-generation-qa
           - get: analytical-dataset-generation-exporter-release
             trigger: true
-            passed:
-              - analytical-dataset-generation-qa
+#            passed:
+#              - analytical-dataset-generation-qa
           - get: al2-emr-ami
             trigger: true
-            passed:
-              - analytical-dataset-generation-qa
+#            passed:
+#              - analytical-dataset-generation-qa
       - .: (( inject meta.plan.terraform-bootstrap ))
         config:
           params:

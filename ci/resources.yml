@@ -19,7 +19,7 @@ resources:
   - name: aws-analytical-dataset-generation-test
     type: git
     source:
-      branch: master
+      branch: DW-5734
       repository: dwp/aws-analytical-dataset-generation
       uri: https://github.com/dwp/aws-analytical-dataset-generation.git
     check_every: 720h
