@@ -15,6 +15,7 @@ jobs:
           - get: secrets-management
             trigger: false
           - get: dataworks-behavioural-framework
+            resource: dataworks-behavioural-framework-test
             trigger: false
           - get: emr-launcher-release
             trigger: true
