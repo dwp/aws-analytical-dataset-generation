@@ -39,6 +39,7 @@ SECRETS = "{'collections_all': {'db.core.contract': {'pii' : 'true', 'db' : 'cor
 SECRETS_COLLECTIONS = {DB_CORE_CONTRACT: {'pii' : 'true', 'db' : 'core', 'table' : 'contract'}}
 KEYS_MAP = {"test_ciphertext": "test_key"}
 RUN_TIME_STAMP = "2020-10-10_10-10-10"
+EXPORT_DATE = "2020-10-10"
 PUBLISHED_DATABASE_NAME = "test_db"
 CORRELATION_ID = "12345"
 AWS_REGION = "eu-west-2"
@@ -354,6 +355,7 @@ def mock_args():
     args.correlation_id = CORRELATION_ID
     args.s3_prefix = S3_PREFIX
     args.snapshot_type = SNAPSHOT_TYPE_FULL
+    args.export_date = EXPORT_DATE
     return args
 
 
@@ -410,6 +412,7 @@ def test_validate_required_args_with_invalid_values_for_snapshot_type():
     args = argparse.Namespace()
     args.correlation_id = CORRELATION_ID
     args.s3_prefix = S3_PREFIX
+    args.export_date = EXPORT_DATE
     args.snapshot_type = INVALID_SNAPSHOT_TYPE
     with pytest.raises(argparse.ArgumentError) as argument_error:
         generate_dataset_from_htme.validate_required_args(args)

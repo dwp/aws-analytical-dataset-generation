@@ -42,18 +42,8 @@
         <!-- https://mvnrepository.com/artifact/com.banzaicloud/spark-metrics -->
         <dependency>
             <groupId>com.banzaicloud</groupId>
-            <artifactId>spark-metrics_2.11</artifactId>
+            <artifactId>spark-metrics_2.12</artifactId>
             <version>2.4-1.0.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-secretsmanager</artifactId>
-            <version>1.11.933</version>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-core</artifactId>
-            <version>1.11.933</version>
         </dependency>
         <dependency>
             <groupId>io.prometheus.jmx</groupId>
