@@ -166,7 +166,26 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "log_group_name": "$${cwa_steps_loggrp_name}",
             "log_stream_name": "{instance_id}-create-mongo-latest-dbs.log",
             "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/executeUpdateContractClaimant.log",
+            "log_group_name": "$${cwa_steps_loggrp_name}",
+            "log_stream_name": "{instance_id}-executeUpdateContractClaimant.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/executeUpdateStatement.log",
+            "log_group_name": "$${cwa_steps_loggrp_name}",
+            "log_stream_name": "{instance_id}-executeUpdateStatement.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/excuteUpdateToDo.log",
+            "log_group_name": "$${cwa_steps_loggrp_name}",
+            "log_stream_name": "{instance_id}-excuteUpdateToDo.log",
+            "timezone": "UTC"
           }
+
         ]
       }
     },
