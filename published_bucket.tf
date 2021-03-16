@@ -44,6 +44,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_write_parquet" {
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/analytical-dataset/*",
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/data/ucs_latest_unredacted/*",
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/data/ucs_latest_redacted/*",
+      "${data.terraform_remote_state.common.outputs.published_bucket.arn}/*",
     ]
   }
 
