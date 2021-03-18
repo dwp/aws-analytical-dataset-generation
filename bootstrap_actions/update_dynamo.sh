@@ -49,11 +49,6 @@
     EXPORT_DATE="$DATE"
   fi
 
-  while [ ! -f "$STEP_DETAILS_DIR/*.json" ]
-  do
-    sleep 5
-  done
-
   if [[ "$SNAPSHOT_TYPE" == "incremental" ]]; then
     FINAL_STEP_NAME="executeUpdateAll"
   fi
