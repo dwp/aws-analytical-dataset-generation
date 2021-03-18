@@ -97,7 +97,7 @@ EOF
     --acm-key-passphrase "$ACM_KEY_PASSWORD" \
     --private-key-alias "${private_key_alias}" \
     --truststore-aliases "${truststore_aliases}" \
-    --truststore-certs "${truststore_certs}" | sudo tee -a /var/log/adg/acm-cert-retriever.log > 2>&1
+    --truststore-certs "${truststore_certs}" | sudo tee -a /var/log/adg/acm-cert-retriever.log > /dev/null
     
     cd /etc/pki/ca-trust/source/anchors/ || exit
 
