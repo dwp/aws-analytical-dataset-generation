@@ -118,8 +118,8 @@
 
   check_step_dir() {
     cd "$STEP_DETAILS_DIR" || exit
-
-    for i in $STEP_DETAILS_DIR/*.json; do
+    #shellcheck disable=SC2231
+    for i in $STEP_DETAILS_DIR/*.json; do # We want wordsplitting here
       #shellcheck disable=SC2076
       if [[ "$${processed_files[@]}" =~ "$${i}" ]]; then # We do not want a REGEX check here so it is ok
         continue
