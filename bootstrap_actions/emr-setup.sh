@@ -27,7 +27,7 @@ chmod u+x /opt/emr/update_dynamo.sh
     echo -n "Running as: "
     whoami
     
-    export AWS_DEFAULT_REGION=${aws_default_region}
+    export AWS_DEFAULT_REGION="${aws_default_region}"
     
     FULL_PROXY="${full_proxy}"
     FULL_NO_PROXY="${full_no_proxy}"
@@ -108,10 +108,10 @@ EOF
     TOKEN=$(curl -X PUT -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" "http://169.254.169.254/latest/api/token")
     export INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token:$TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id)
     export INSTANCE_ROLE=$(jq .instanceRole /mnt/var/lib/info/extraInstanceData.json)
-    export HOSTNAME=${name}-$${INSTANCE_ROLE//\"}-$UUID
+    export HOSTNAME="${name}-$${INSTANCE_ROLE//\"}-$UUID"
     
-    hostnamectl set-hostname $HOSTNAME
-    aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value=$HOSTNAME
+    hostnamectl set-hostname "$HOSTNAME"
+    aws ec2 create-tags --resources "$INSTANCE_ID" --tags Key=Name,Value="$HOSTNAME"
     
     log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 

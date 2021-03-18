@@ -32,7 +32,7 @@
 
   FINAL_STEP_NAME="flush-pushgateway"
 
-  while [[ ! -f $CORRELATION_ID_FILE ]] && [[ ! -f $S3_PREFIX_FILE ]] && [[ ! -f $SNAPSHOT_TYPE_FILE ]] && [[ ! -f $EXPORT_DATE_FILE ]]
+  while [[ ! -f "$CORRELATION_ID_FILE" ]] && [[ ! -f "$S3_PREFIX_FILE" ]] && [[ ! -f "$SNAPSHOT_TYPE_FILE" ]] && [[ ! -f "$EXPORT_DATE_FILE" ]]
   do
     sleep 5
   done
@@ -48,7 +48,7 @@
     EXPORT_DATE="$DATE"
   fi
 
-  while [ ! -f $STEP_DEATILS_DIR/*.json ]
+  while [ ! -f "$STEP_DEATILS_DIR/*.json" ]
   do
     sleep 5
   done
@@ -65,7 +65,7 @@
   get_output_location() {
     OUTPUT_LOCATION="NOT_SET"
 
-    if [[ -f $OUTPUT_LOCATION_FILE ]]; then
+    if [[ -f "$OUTPUT_LOCATION_FILE" ]]; then
       OUTPUT_LOCATION=`cat $OUTPUT_LOCATION_FILE`
     fi
 
@@ -116,8 +116,8 @@
   }
 
   check_step_dir() {
-    cd $STEP_DETAILS_DIR
-    for i in $STEP_DETAILS_DIR/*.json; do
+    cd "$STEP_DETAILS_DIR"
+    for i in "$STEP_DETAILS_DIR/*.json"; do
       if [[ "$${processed_files[@]}" =~ "$${i}" ]]; then
         continue
       fi
@@ -139,15 +139,15 @@
           log_wrapper_message "All steps completed. Final step Name: $CURRENT_STEP, Step status: $state"
           exit 0
         fi
-        if [[ $PREVIOUS_STATE != $state ]] && [[ $PREVIOUS_STEP != $CURRENT_STEP ]]; then
+        if [[ "$PREVIOUS_STATE" != "$state" ]] && [[ "$PREVIOUS_STEP" != "$CURRENT_STEP" ]]; then
           dynamo_update_item "$CURRENT_STEP" "NOT_SET" "NOT_SET"
           log_wrapper_message "Successful step. Last step name: $PREVIOUS_STEP, Last step status: $PREVIOUS_STATE, Current step name: $CURRENT_STEP, Current step status: $state"
           processed_files+=( $i )
         else
           sleep 5
         fi
-        PREVIOUS_STATE=$state
-        PREVIOUS_STEP=$CURRENT_STEP
+        PREVIOUS_STATE="$state"
+        PREVIOUS_STEP="$CURRENT_STEP"
       done
     done
     check_step_dir
@@ -155,7 +155,7 @@
 
   #Check if row for this correlation ID already exists - in which case we need to increment the Run_Id
   response=`aws dynamodb get-item --table-name ${dynamodb_table_name} --key '{"Correlation_Id": {"S": "'$CORRELATION_ID'"}, "DataProduct": {"S": "'$DATA_PRODUCT'"}}'`
-  if [[ -z $response ]]; then
+  if [[ -z "$response" ]]; then
     dynamo_update_item "NOT_SET" "$IN_PROGRESS_STATUS" "1"
   else
     LAST_STATUS=`echo $response | jq -r .'Item.Status.S'`
@@ -163,7 +163,7 @@
     if [[ "$LAST_STATUS" == "$FAILED_STATUS" ]]; then
       log_wrapper_message "Previous failed status found, creating step_to_start_from.txt"
       CURRENT_STEP=`echo $response | jq -r .'Item.CurrentStep.S'`
-      echo $CURRENT_STEP >> /opt/emr/step_to_start_from.txt
+      echo "$CURRENT_STEP" >> /opt/emr/step_to_start_from.txt
     fi   
 
     CURRENT_RUN_ID=`echo $response | jq -r .'Item.Run_Id.N'`

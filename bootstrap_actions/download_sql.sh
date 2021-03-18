@@ -31,7 +31,7 @@
     echo "START_UNZIPPING ......................"
     log_wrapper_message "start unzipping ......................."
 
-    unzip /opt/emr/aws-mongo-latest-$VERSION.zip -d $SCRIPT_DIR  >> /var/log/adg/download_unzip_sql.log 2>&1
+    unzip "/opt/emr/aws-mongo-latest-$VERSION.zip" -d "$SCRIPT_DIR"  >> /var/log/adg/download_unzip_sql.log 2>&1
 
     echo "FINISHED UNZIPPING ......................"
     log_wrapper_message "finished unzipping ......................."
