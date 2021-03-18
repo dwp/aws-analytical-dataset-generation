@@ -39,6 +39,7 @@ set -euo pipefail
 
     #shellcheck disable=SC2001
     PROXY_HOST=$(echo "${proxy_url}" | sed 's|.*://\(.*\):.*|\1|') # SED is fine to use here
+    #shellcheck disable=SC2001
     PROXY_PORT=$(echo "${proxy_url}" | sed 's|.*:||') # SED is fine to use here
 
     export MAVEN_OPTS="-DproxyHost=$PROXY_HOST -DproxyPort=$PROXY_PORT"
