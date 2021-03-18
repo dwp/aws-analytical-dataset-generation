@@ -24,8 +24,6 @@ chmod u+x /opt/emr/logging.sh
 
 (
     # Import the logging functions
-
-    # shellcheck source=/opt/emr/logging.sh
     source /opt/emr/logging.sh
 
     function log_wrapper_message() {
