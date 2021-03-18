@@ -40,7 +40,9 @@ jobs:
               - -exc
               - |
                 find . -name "*.sh" ! -name "get_lambda_release.sh" ! -name "cloudwatch.sh" | cat >> shell-list
-                for i in $(cat shell-list); do shellcheck $i; done
+
+                #For shellcheck ignore SC2154 as it will fail all terraform vars that are passed to scripts
+                for i in $(cat shell-list); do shellcheck -e SC2154 $i; done
             dir: aws-analytical-dataset-generation
           inputs:
             - name: aws-analytical-dataset-generation

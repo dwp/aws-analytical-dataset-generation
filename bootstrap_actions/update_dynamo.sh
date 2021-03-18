@@ -6,6 +6,8 @@
     if [[ "$INSTANCE_ROLE" != '"MASTER"' ]]; then
         exit 0
     fi
+
+    # shellcheck source=/opt/emr/logging.sh
     source /opt/emr/logging.sh
 
     function log_wrapper_message() {

@@ -7,6 +7,8 @@
 set -euo pipefail
 (
     # Import the logging functions
+
+    # shellcheck source=/opt/emr/logging.sh
     source /opt/emr/logging.sh
     
     # Import and execute resume step function

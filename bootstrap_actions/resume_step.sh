@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# shellcheck source=/opt/emr/logging.sh
 source /opt/emr/logging.sh
 
 STEP_TO_START_FROM_FILE=/opt/emr/step_to_start_from.txt
