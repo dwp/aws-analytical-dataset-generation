@@ -53,8 +53,6 @@
     sleep 5
   done
 
-  RESPONSE=`echo $(curl --silent "https://api.github.com/repos/dwp/${REPO}/releases/latest")`
-
   if [[ "$SNAPSHOT_TYPE" == "incremental" ]]; then
     FINAL_STEP_NAME="executeUpdateAll"
   fi

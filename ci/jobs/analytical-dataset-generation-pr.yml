@@ -39,7 +39,7 @@ jobs:
             args:
               - -exc
               - |
-                find . -name *.sh ! -name "get_lambda_release.sh" | cat >> shell-list
+                find . -name "*.sh" ! -name "get_lambda_release.sh" | cat >> shell-list
                 for i in $(cat shell-list); do shellcheck $i; done
             dir: aws-analytical-dataset-generation
           inputs:
