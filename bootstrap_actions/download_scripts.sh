@@ -1,4 +1,5 @@
-# Necessary minimal setup for this script to run
+#!/bin/bash
+
 sudo mkdir -p /var/log/adg
 sudo mkdir -p /opt/emr
 sudo mkdir -p /opt/shared
@@ -23,6 +24,8 @@ chmod u+x /opt/emr/logging.sh
 
 (
     # Import the logging functions
+
+    # shellcheck source=/opt/emr/logging.sh
     source /opt/emr/logging.sh
 
     function log_wrapper_message() {
@@ -30,7 +33,8 @@ chmod u+x /opt/emr/logging.sh
     }
 
     log_wrapper_message "Downloading & install latest bootstrap and steps scripts"
-    $(which aws) s3 cp --recursive ${scripts_location}/ /var/ci/ --include "*.sh"
+    # shellcheck disable=SC2154
+    $(which aws) s3 cp --recursive "${scripts_location}/" /var/ci/ --include "*.sh" #shellcheck says scripts_location is not assigned -> this is because it is passed from terraform
 
     log_wrapper_message "Apply recursive execute permissions to the folder"
     sudo chmod --recursive a+rx /var/ci
