@@ -6,7 +6,7 @@
         log_adg_message "$${1}" "download_sql.sh" "$${PID}" "$${@:2}" "Running as: ,$USER"
     }
 
-    SCRIPT_DIR=/opt/emr/aws-mongo-laten
+    SCRIPT_DIR=/opt/emr/aws-mongo-latest
 
     echo "Download & install latest mongo latest scripts"
     log_wrapper_message "Downloading & install aws-mongo-latest scripts"
