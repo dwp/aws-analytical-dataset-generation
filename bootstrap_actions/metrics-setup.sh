@@ -32,18 +32,19 @@ set -euo pipefail
 
     log_wrapper_message "Moving maven and cleaning up"
 
-    mv "/tmp/$MAVEN-$VERSION $METRICS_FILEPATH/$MAVEN"
+    mv "/tmp/$MAVEN-$VERSION" "$METRICS_FILEPATH/$MAVEN"
     rm "/tmp/$MAVEN-$VERSION.tar.gz"
 
     log_wrapper_message "Resolving dependencies for metrics"
 
-    PROXY_HOST=$(echo "${proxy_url}" | sed 's|.*://\(.*\):.*|\1|')
-    PROXY_PORT=$(echo "${proxy_url}" | sed 's|.*:||')
+    #shellcheck disable=SC2001
+    PROXY_HOST=$(echo "${proxy_url}" | sed 's|.*://\(.*\):.*|\1|') # SED is fine to use here
+    PROXY_PORT=$(echo "${proxy_url}" | sed 's|.*:||') # SED is fine to use here
 
     export MAVEN_OPTS="-DproxyHost=$PROXY_HOST -DproxyPort=$PROXY_PORT"
     $METRICS_FILEPATH/$MAVEN/bin/mvn -f $METRICS_FILEPATH/pom.xml dependency:copy-dependencies -DoutputDirectory="$METRICS_FILEPATH/dependencies"
 
-    cat /tmp/adg-exporter.b64 | base64 -d > "$METRICS_FILEPATH/dependencies/adg-exporter.jar"
+    base64 -d > "$METRICS_FILEPATH/dependencies/adg-exporter.jar" < /tmp/adg-exporter.b64
     rm /tmp/adg-exporter.b64
 
 ) >> /var/log/adg/metrics-setup.log 2>&1
