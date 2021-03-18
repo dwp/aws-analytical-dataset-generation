@@ -66,9 +66,9 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/metrics_setup.log",
+            "file_path": "/var/log/adg/metrics-setup.log",
             "log_group_name": "$${cwa_bootstrap_loggrp_name}",
-            "log_stream_name": "{instance_id}-metrics_setup.log",
+            "log_stream_name": "{instance_id}-metrics-setup.log",
             "timezone": "UTC"
           },
           {
