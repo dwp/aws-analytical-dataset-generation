@@ -108,7 +108,7 @@ locals {
 
   keep_cluster_alive = {
     development = true
-    qa          = true
+    qa          = false
     integration = false
     preprod     = false
     production  = false
@@ -116,7 +116,7 @@ locals {
 
   step_fail_action = {
     development = "CONTINUE"
-    qa          = "CONTINUE"
+    qa          = "TERMINATE_CLUSTER"
     integration = "TERMINATE_CLUSTER"
     preprod     = "TERMINATE_CLUSTER"
     production  = "TERMINATE_CLUSTER"
@@ -210,11 +210,11 @@ locals {
   }
 
   mongo_latest_version = {
-    development = "0.0.30"
-    qa          = "0.0.30"
-    integration = "0.0.28"
-    preprod     = "0.0.28"
-    production  = "0.0.28"
+    development = "0.0.33"
+    qa          = "0.0.33"
+    integration = "0.0.33"
+    preprod     = "0.0.33"
+    production  = "0.0.33"
   }
 
   skip_pdm_trigger_on_adg_completion = {
