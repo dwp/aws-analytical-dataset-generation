@@ -1,3 +1,5 @@
+#!/bin/bash
+
 (
     # Import the logging functions
     source /opt/emr/logging.sh
