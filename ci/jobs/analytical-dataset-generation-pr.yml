@@ -24,6 +24,26 @@ jobs:
         params:
           path: aws-analytical-dataset-generation-pr
           status: pending
+      - task: linting-shell
+        input_mapping:
+          aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: koalaman/shellcheck-alpine
+              tag: latest
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                find . -name *.sh | cat >> shell-list
+                for i in $(cat shell-list); do shellcheck $i; done
+            dir: aws-analytical-dataset-generation
+          inputs:
+            - name: aws-analytical-dataset-generation
       - .: (( inject meta.plan.unit-tests))
         input_mapping:
           aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
