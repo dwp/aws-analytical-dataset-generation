@@ -130,13 +130,6 @@ resource "aws_s3_bucket_object" "configurations" {
       spark_executor_instances            = local.spark_executor_instances
       spark_default_parallelism           = local.spark_default_parallelism
       environment                         = local.environment
-      yarn_reduce_memory                  = var.yarn_reduce_memory_mb[local.environment]
-      yarn_map_memory                     = var.yarn_map_memory_mb[local.environment]
-      yarn_reduce_java_opts               = var.yarn_reduce_java_opts[local.environment]
-      yarn_map_java_opts                  = var.yarn_map_java_opts[local.environment]
-      yarn_min_allocation_mb              = var.yarn_min_allocation_mb[local.environment]
-      yarn_max_allocation_mb              = var.yarn_max_allocation_mb[local.environment]
-      yarn_app_mapreduce_am_resource_mb   = var.yarn_app_mapreduce_am_resource_mb[local.environment]
     }
   )
 }
