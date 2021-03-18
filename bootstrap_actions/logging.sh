@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# shellcheck source=/opt/shared/common_logging.sh
 source /opt/shared/common_logging.sh
 
 log_adg_message() {
