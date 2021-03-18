@@ -27,13 +27,13 @@ set -euo pipefail
     export http_proxy="${proxy_url}"
     export https_proxy="${proxy_url}"
 
-    curl -o /tmp/$MAVEN-$VERSION.tar.gz https://archive.apache.org/dist/maven/maven-3/$VERSION/binaries/$MAVEN-$VERSION-bin.tar.gz
+    curl -o "/tmp/$MAVEN-$VERSION.tar.gz" "https://archive.apache.org/dist/maven/maven-3/$VERSION/binaries/$MAVEN-$VERSION-bin.tar.gz"
     tar -C /tmp -xvf "/tmp/$MAVEN-$VERSION.tar.gz"
 
     log_wrapper_message "Moving maven and cleaning up"
 
-    mv /tmp/$MAVEN-$VERSION $METRICS_FILEPATH/$MAVEN
-    rm /tmp/$MAVEN-$VERSION.tar.gz
+    mv "/tmp/$MAVEN-$VERSION" "$METRICS_FILEPATH/$MAVEN"
+    rm "/tmp/$MAVEN-$VERSION.tar.gz"
 
     log_wrapper_message "Resolving dependencies for metrics"
 
