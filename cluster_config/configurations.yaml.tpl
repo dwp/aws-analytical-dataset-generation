@@ -6,11 +6,9 @@ Configurations:
     "yarn.nodemanager.remote-app-log-dir": "s3://${s3_log_bucket}/${s3_log_prefix}/yarn"
     "yarn.nodemanager.vmem-check-enabled": "false"
     "yarn.nodemanager.pmem-check-enabled": "false"
-
 - Classification: "spark"
   Properties:
     "maximizeResourceAllocation": "false"
-
 - Classification: "spark-defaults"
   Properties:
     "spark.yarn.jars": "/usr/lib/spark/jars/*,/opt/emr/metrics/dependencies/*"
@@ -94,7 +92,7 @@ Configurations:
 
 - Classification: "tez-site"
   Properties:
-    "tez.task.resource.memory.mb": "1024"
+    "tez.am.resource.memory.mb": "1024"
     "tez.am.container.reuse.enabled": "true"
 
 - Classification: "emrfs-site"
