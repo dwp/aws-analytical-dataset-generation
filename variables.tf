@@ -107,7 +107,7 @@ variable "emr_core_instance_count" {
     qa          = "5"
     integration = "5"
     preprod     = "5"
-    production  = "25"
+    production  = "20"
   }
 }
 
@@ -188,5 +188,77 @@ variable "htme_data_location" {
     integration = "businessdata/mongo/ucdata/2020-08-07/full/"
     preprod     = "businessdata/mongo/ucdata/2020-07-06/full/"
     production  = "businessdata/mongo/ucdata/2020-07-26/full/"
+  }
+}
+
+# See https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-hadoop-task-config.html#emr-hadoop-task-config-m5 for yarn configuration justifications
+
+variable "yarn_map_memory_mb" {
+  default = {
+    development = "3072"
+    qa          = "3072"
+    integration = "3072"
+    preprod     = "3072"
+    production  = "4011"
+  }
+}
+
+variable "yarn_reduce_memory_mb" {
+  default = {
+    development = "6144"
+    qa          = "6144"
+    integration = "6144"
+    preprod     = "6144"
+    production  = "8022"
+  }
+}
+
+variable "yarn_app_mapreduce_am_resource_mb" {
+  default = {
+    development = "6144"
+    qa          = "6144"
+    integration = "6144"
+    preprod     = "6144"
+    production  = "8022"
+  }
+}
+
+variable "yarn_map_java_opts" {
+  default = {
+    development = "-Xmx2458m"
+    qa          = "-Xmx2458m"
+    integration = "-Xmx2458m"
+    preprod     = "-Xmx2458m"
+    production  = "-Xmx3209m"
+  }
+}
+
+variable "yarn_reduce_java_opts" {
+  default = {
+    development = "-Xmx4916m"
+    qa          = "-Xmx4916m"
+    integration = "-Xmx4916m"
+    preprod     = "-Xmx4916m"
+    production  = "-Xmx6418m"
+  }
+}
+
+variable "yarn_min_allocation_mb" {
+  default = {
+    development = "32"
+    qa          = "32"
+    integration = "32"
+    preprod     = "32"
+    production  = "32"
+  }
+}
+
+variable "yarn_max_allocation_mb" {
+  default = {
+    development = "24576"
+    qa          = "24576"
+    integration = "24576"
+    preprod     = "24576"
+    production  = "385024"
   }
 }

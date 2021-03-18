@@ -6,9 +6,11 @@ Configurations:
     "yarn.nodemanager.remote-app-log-dir": "s3://${s3_log_bucket}/${s3_log_prefix}/yarn"
     "yarn.nodemanager.vmem-check-enabled": "false"
     "yarn.nodemanager.pmem-check-enabled": "false"
+
 - Classification: "spark"
   Properties:
     "maximizeResourceAllocation": "false"
+
 - Classification: "spark-defaults"
   Properties:
     "spark.yarn.jars": "/usr/lib/spark/jars/*,/opt/emr/metrics/dependencies/*"
@@ -84,16 +86,35 @@ Configurations:
     "hive_timeline_logging_enabled": "true"
     "hive.server2.tez.sessions.per.default.queue": "5"
     "hive.server2.tez.initialize.default.sessions": "true"
+    "hive.tez.auto.reducer.parallelism": "true"
+    "hive.exec.reducers.bytes.per.reducer": "15872"
+    "hive.optimize.reducededuplication.min.reducer": "1"
     %{~ if environment == "production" ~}
     "hive.tez.container.size": "32768"
     "hive.tez.java.opts": "-Xmx26214m"
     "hive.auto.convert.join.noconditionaltask.size": "10922"
     %{~ endif ~}
 
+- Classification: "mapred-site"
+  Properties:
+    "mapreduce.map.memory.mb": "${yarn_map_memory}"
+    "mapreduce.reduce.memory.mb": "${yarn_reduce_memory}"
+    "mapreduce.map.java.opts": "${yarn_map_java_opts}"
+    "mapreduce.reduce.java.opts": "${yarn_reduce_java_opts}"
+    "yarn.scheduler.minimum-allocation-mb": "${yarn_min_allocation_mb}"
+    "yarn.scheduler.maximum-allocation-mb": "${yarn_max_allocation_mb}"
+    "yarn.app.mapreduce.am.resource.mb": "${yarn_app_mapreduce_am_resource_mb}"
+
 - Classification: "tez-site"
   Properties:
-    "tez.am.resource.memory.mb": "1024"
+    "tez.task.resource.memory.mb": "4098"
+    "tez.am.resource.memory.mb": "32768"
+    "tez.am.launch.cmd-opts": "-Xmx26214m"
     "tez.am.container.reuse.enabled": "true"
+    "tez.runtime.pipelined.sorter.lazy-allocate.memory": "true"
+    "tez.session.am.dag.submit.timeout.secs": "1800"
+    "tez.am.container.reuse.non-local-fallback.enabled": "true"
+    "tez.am.container.reuse.locality.delay-allocation-millis": "120000"
 
 - Classification: "emrfs-site"
   Properties:
