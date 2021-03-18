@@ -24,26 +24,28 @@ set -euo pipefail
     MAVEN="apache-maven"
     VERSION="3.6.3"
 
-    export http_proxy=${proxy_url}
-    export https_proxy=${proxy_url}
+    export http_proxy="${proxy_url}"
+    export https_proxy="${proxy_url}"
 
-    curl -o /tmp/$MAVEN-$VERSION.tar.gz https://archive.apache.org/dist/maven/maven-3/$VERSION/binaries/$MAVEN-$VERSION-bin.tar.gz
-    tar -C /tmp -xvf /tmp/$MAVEN-$VERSION.tar.gz
+    curl -o "/tmp/$MAVEN-$VERSION.tar.gz" "https://archive.apache.org/dist/maven/maven-3/$VERSION/binaries/$MAVEN-$VERSION-bin.tar.gz"
+    tar -C /tmp -xvf "/tmp/$MAVEN-$VERSION.tar.gz"
 
     log_wrapper_message "Moving maven and cleaning up"
 
-    mv /tmp/$MAVEN-$VERSION $METRICS_FILEPATH/$MAVEN
-    rm /tmp/$MAVEN-$VERSION.tar.gz
+    mv "/tmp/$MAVEN-$VERSION" "$METRICS_FILEPATH/$MAVEN"
+    rm "/tmp/$MAVEN-$VERSION.tar.gz"
 
     log_wrapper_message "Resolving dependencies for metrics"
 
-    PROXY_HOST=$(echo "${proxy_url}" | sed 's|.*://\(.*\):.*|\1|')
-    PROXY_PORT=$(echo "${proxy_url}" | sed 's|.*:||')
+    #shellcheck disable=SC2001
+    PROXY_HOST=$(echo "${proxy_url}" | sed 's|.*://\(.*\):.*|\1|') # SED is fine to use here
+    #shellcheck disable=SC2001
+    PROXY_PORT=$(echo "${proxy_url}" | sed 's|.*:||') # SED is fine to use here
 
     export MAVEN_OPTS="-DproxyHost=$PROXY_HOST -DproxyPort=$PROXY_PORT"
     $METRICS_FILEPATH/$MAVEN/bin/mvn -f $METRICS_FILEPATH/pom.xml dependency:copy-dependencies -DoutputDirectory="$METRICS_FILEPATH/dependencies"
 
-    cat /tmp/adg-exporter.b64 | base64 -d > $METRICS_FILEPATH/dependencies/adg-exporter.jar
+    base64 -d > "$METRICS_FILEPATH/dependencies/adg-exporter.jar" < /tmp/adg-exporter.b64
     rm /tmp/adg-exporter.b64
 
 ) >> /var/log/adg/metrics-setup.log 2>&1

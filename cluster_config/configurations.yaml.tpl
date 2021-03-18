@@ -89,6 +89,7 @@ Configurations:
     "hive.tez.auto.reducer.parallelism": "true"
     "hive.exec.reducers.bytes.per.reducer": "15872"
     "hive.optimize.reducededuplication.min.reducer": "1"
+    "hive.blobstore.optimizations.enabled": "false"
     %{~ if environment == "production" ~}
     "hive.tez.container.size": "32768"
     "hive.tez.java.opts": "-Xmx26214m"

@@ -21,7 +21,7 @@ set -euo pipefail
     sleep 180 # scrape interval is 60, scrape timeout is 10, 5 for the pot
     
     log_wrapper_message "Flushing the ADG pushgateway"
-    curl -X PUT http://${adg_pushgateway_hostname}:9091/api/v1/admin/wipe
+    curl -X PUT "http://${adg_pushgateway_hostname}:9091/api/v1/admin/wipe"
     log_wrapper_message "Done flushing the ADG pushgateway"
     
 ) >> /var/log/adg/flush-pushgateway.log 2>&1
