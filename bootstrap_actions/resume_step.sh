@@ -7,8 +7,8 @@ STEP_TO_START_FROM_FILE=/opt/emr/step_to_start_from.txt
 function resume_from_step() {
     if [[ -f "$STEP_TO_START_FROM_FILE" ]]; then
         log_adg_message "Previous step file found"
-        FAILED_STEP_NAME=`cat $STEP_TO_START_FROM_FILE`
-        CURRENT_SCRIPT_NAME=`basename "$0"`
+        FAILED_STEP_NAME=$(cat $STEP_TO_START_FROM_FILE)
+        CURRENT_SCRIPT_NAME=$(basename "$0")
         CURRENT_STEP_NAME="${CURRENT_SCRIPT_NAME%.*}"
         log_adg_message "Current step name '$CURRENT_STEP_NAME'"
 
