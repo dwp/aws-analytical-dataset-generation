@@ -23,8 +23,8 @@
   EXPORT_DATE_FILE=/opt/emr/export_date.txt
   
   DATE=$(date '+%Y-%m-%d')
-  CLUSTER_ID=`cat /mnt/var/lib/info/job-flow.json | jq '.jobFlowId'`
-  CLUSTER_ID=$${CLUSTER_ID//\"}
+  CLUSTER_ID=$(cat /mnt/var/lib/info/job-flow.json | jq '.jobFlowId')
+  CLUSTER_ID="${CLUSTER_ID//\"}"
 
   FAILED_STATUS="FAILED"
   COMPLETED_STATUS="COMPLETED"
@@ -38,10 +38,10 @@
     sleep 5
   done
 
-  CORRELATION_ID=`cat $CORRELATION_ID_FILE`
-  S3_PREFIX=`cat $S3_PREFIX_FILE`
-  SNAPSHOT_TYPE=`cat $SNAPSHOT_TYPE_FILE`
-  EXPORT_DATE=`cat $EXPORT_DATE_FILE`
+  CORRELATION_ID=$(cat $CORRELATION_ID_FILE)
+  S3_PREFIX=$(cat $S3_PREFIX_FILE)
+  SNAPSHOT_TYPE=$(cat $SNAPSHOT_TYPE_FILE)
+  EXPORT_DATE=$(cat $EXPORT_DATE_FILE)
   DATA_PRODUCT="ADG-$SNAPSHOT_TYPE"
 
   if [[ -z "$EXPORT_DATE" ]]; then
@@ -67,7 +67,7 @@
     OUTPUT_LOCATION="NOT_SET"
 
     if [[ -f "$OUTPUT_LOCATION_FILE" ]]; then
-      OUTPUT_LOCATION=`cat $OUTPUT_LOCATION_FILE`
+      OUTPUT_LOCATION=$(cat $OUTPUT_LOCATION_FILE)
     fi
 
     echo "$OUTPUT_LOCATION"
@@ -155,19 +155,19 @@
   }
 
   #Check if row for this correlation ID already exists - in which case we need to increment the Run_Id
-  response=`aws dynamodb get-item --table-name ${dynamodb_table_name} --key '{"Correlation_Id": {"S": "'$CORRELATION_ID'"}, "DataProduct": {"S": "'$DATA_PRODUCT'"}}'`
+  response=$(aws dynamodb get-item --table-name ${dynamodb_table_name} --key '{"Correlation_Id": {"S": "'$CORRELATION_ID'"}, "DataProduct": {"S": "'$DATA_PRODUCT'"}}')
   if [[ -z "$response" ]]; then
     dynamo_update_item "NOT_SET" "$IN_PROGRESS_STATUS" "1"
   else
-    LAST_STATUS=`echo $response | jq -r .'Item.Status.S'`
+    LAST_STATUS=$(echo $response | jq -r .'Item.Status.S')
     log_wrapper_message "Status from previous run $LAST_STATUS"
     if [[ "$LAST_STATUS" == "$FAILED_STATUS" ]]; then
       log_wrapper_message "Previous failed status found, creating step_to_start_from.txt"
-      CURRENT_STEP=`echo $response | jq -r .'Item.CurrentStep.S'`
+      CURRENT_STEP=$(echo $response | jq -r .'Item.CurrentStep.S')
       echo "$CURRENT_STEP" >> /opt/emr/step_to_start_from.txt
     fi   
 
-    CURRENT_RUN_ID=`echo $response | jq -r .'Item.Run_Id.N'`
+    CURRENT_RUN_ID=$(echo $response | jq -r .'Item.Run_Id.N')
     NEW_RUN_ID=$((CURRENT_RUN_ID+1))
     dynamo_update_item "NOT_SET" "$IN_PROGRESS_STATUS" "$NEW_RUN_ID"
   fi
