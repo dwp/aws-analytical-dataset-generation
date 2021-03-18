@@ -24,7 +24,7 @@
   
   DATE=$(date '+%Y-%m-%d')
   CLUSTER_ID=$(jq '.jobFlowId' < /mnt/var/lib/info/job-flow.json)
-  CLUSTER_ID="${CLUSTER_ID//\"}"
+  CLUSTER_ID="$${CLUSTER_ID//\"}"
 
   FAILED_STATUS="FAILED"
   COMPLETED_STATUS="COMPLETED"
