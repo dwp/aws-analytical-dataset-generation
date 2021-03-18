@@ -92,12 +92,13 @@ EOF
     --truststore-certs "${truststore_certs}" \
     --jks-only true >> /var/log/adg/acm-cert-retriever.log 2>&1
     
+    #shellcheck disable=SC2024
     sudo -E acm-cert-retriever \
     --acm-cert-arn "${acm_cert_arn}" \
     --acm-key-passphrase "$ACM_KEY_PASSWORD" \
     --private-key-alias "${private_key_alias}" \
     --truststore-aliases "${truststore_aliases}" \
-    --truststore-certs "${truststore_certs}" | sudo tee -a /var/log/adg/acm-cert-retriever.log > /dev/null
+    --truststore-certs "${truststore_certs}"  >> /var/log/adg/acm-cert-retriever.log 2>&1 # No sudo needed to write to file, so redirect is fine
     
     cd /etc/pki/ca-trust/source/anchors/ || exit
 
