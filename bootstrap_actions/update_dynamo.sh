@@ -53,7 +53,7 @@
     sleep 5
   done
 
-  if [[ "$SNAPSHOT_TYPE" == "incremental" ]]; then
+  if [[ $SNAPSHOT_TYPE == "incremental" ]]; then
     FINAL_STEP_NAME="executeUpdateAll"
   fi
 

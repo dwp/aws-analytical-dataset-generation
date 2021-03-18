@@ -24,7 +24,7 @@ set -euo pipefail
     MAVEN="apache-maven"
     VERSION="3.6.3"
 
-    export http_proxy=${proxy_url}
+    export http_proxy="${proxy_url}"
     export https_proxy="${proxy_url}"
 
     curl -o "/tmp/$MAVEN-$VERSION.tar.gz" "https://archive.apache.org/dist/maven/maven-3/$VERSION/binaries/$MAVEN-$VERSION-bin.tar.gz"
