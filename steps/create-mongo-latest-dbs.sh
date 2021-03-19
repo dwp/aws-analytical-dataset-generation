@@ -16,10 +16,6 @@
 
     log_wrapper_message "Starts 'create-mongo-latest-dbs' step"
 
-#    hive -e "DROP DATABASE uc_mongo_latest cascade;"
-#    hive -e "DROP DATABASE ucs_latest_unredacted cascade;"
-#    hive -e "DROP DATABASE ucs_latest_redacted cascade;"
-
     #create mongo latest databasess
     hive -e "CREATE DATABASE IF NOT EXISTS uc_mongo_latest LOCATION '$PROCESSED_BUCKET/data/uc_mongo_latest';"
     hive -e "CREATE DATABASE IF NOT EXISTS ucs_latest_unredacted LOCATION '$PUBLISHED_BUCKET/data/ucs_latest_unredacted';"
