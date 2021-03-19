@@ -1,3 +1,5 @@
+#!/bin/bash
+
 (
     # Import the logging functions
     source /opt/emr/logging.sh
@@ -13,7 +15,7 @@
 
     VERSION="${version}"
     URL="s3://${s3_artefact_bucket_id}/aws-mongo-latest/aws-mongo-latest-$VERSION.zip"
-    $(which aws) s3 cp $URL /opt/emr/
+    $(which aws) s3 cp "$URL" "/opt/emr/"
 
     echo "MONGO_LATEST_VERSION: $VERSION"
     log_wrapper_message "aws mongo latest version: $VERSION"
@@ -31,7 +33,7 @@
     echo "START_UNZIPPING ......................"
     log_wrapper_message "start unzipping ......................."
 
-    unzip /opt/emr/aws-mongo-latest-$VERSION.zip -d $SCRIPT_DIR  >> /var/log/adg/download_unzip_sql.log 2>&1
+    unzip "/opt/emr/aws-mongo-latest-$VERSION.zip" -d "$SCRIPT_DIR"  >> /var/log/adg/download_unzip_sql.log 2>&1
 
     echo "FINISHED UNZIPPING ......................"
     log_wrapper_message "finished unzipping ......................."

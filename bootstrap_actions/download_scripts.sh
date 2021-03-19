@@ -1,4 +1,5 @@
-# Necessary minimal setup for this script to run
+#!/bin/bash
+
 sudo mkdir -p /var/log/adg
 sudo mkdir -p /opt/emr
 sudo mkdir -p /opt/shared
@@ -30,7 +31,7 @@ chmod u+x /opt/emr/logging.sh
     }
 
     log_wrapper_message "Downloading & install latest bootstrap and steps scripts"
-    $(which aws) s3 cp --recursive ${scripts_location}/ /var/ci/ --include "*.sh"
+    $(which aws) s3 cp --recursive "${scripts_location}/" /var/ci/ --include "*.sh"
 
     log_wrapper_message "Apply recursive execute permissions to the folder"
     sudo chmod --recursive a+rx /var/ci
