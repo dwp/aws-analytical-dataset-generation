@@ -98,8 +98,9 @@ Configurations:
     "tez.runtime.io.sort.mb": "6554"
     "tez.task.resource.cpu.vcores": "2"
     %{~ endif ~}
-    "tez.am.resource.memory.mb": "1024"
+    "tez.am.resource.memory.mb": "4098"
     "tez.am.container.reuse.enabled": "true"
+    "tez.session.am.dag.submit.timeout.secs": "1800"
 
 - Classification: "emrfs-site"
   Properties:
