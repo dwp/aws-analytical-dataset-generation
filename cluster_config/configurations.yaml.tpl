@@ -97,9 +97,9 @@ Configurations:
     %{~ if environment == "production" ~}
     "tez.runtime.io.sort.mb": "6554"
     "tez.task.resource.cpu.vcores": "2"
-    %{~ endif ~}
     "tez.am.resource.memory.mb": "4098"
     "tez.am.launch.cmd-opts": "-Xmx3278m"
+    %{~ endif ~}
     "tez.am.container.reuse.enabled": "true"
     "tez.session.am.dag.submit.timeout.secs": "1800"
 
