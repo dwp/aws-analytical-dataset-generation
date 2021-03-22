@@ -220,8 +220,8 @@ locals {
   mongo_scripts_to_execute = {
     development = "executeUpdateStatement.sh"
     qa          = "executeUpdateStatement.sh"
-    integration = "executeUpdateAll.sh"
-    preprod     = "executeUpdateAll.sh"
+    integration = "executeUpdateStatement.sh"
+    preprod     = "executeUpdateStatement.sh"
     production  = "executeUpdateAll.sh"
   }
 
