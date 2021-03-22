@@ -90,6 +90,7 @@ Configurations:
     "hive.tez.container.size": "16384"
     "hive.tez.java.opts": "-Xmx13107m"
     "hive.auto.convert.join.noconditionaltask.size": "4915"
+    %{~ endif ~}
 
 - Classification: "tez-site"
   Properties:
