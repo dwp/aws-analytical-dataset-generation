@@ -65,7 +65,7 @@ Steps:
 - Name: "build-day-1-all"
   HadoopJarStep:
     Args:
-    - "/opt/emr/aws-mongo-latest/update/executeUpdateAll.sh"
+    - "/opt/emr/aws-mongo-latest/update/${mongo_scripts_to_execute}"
     - "${s3_published_bucket}"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"

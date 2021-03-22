@@ -217,6 +217,14 @@ locals {
     production  = "0.0.43"
   }
 
+  mongo_scripts_to_execute = {
+    development = "executeUpdateStatement.sh"
+    qa          = "executeUpdateStatement.sh"
+    integration = "executeUpdateStatement.sh"
+    preprod     = "executeUpdateAll.sh"
+    production  = "executeUpdateAll.sh"
+  }
+
   skip_pdm_trigger_on_adg_completion = {
     development = "true"
     qa          = "true"
