@@ -99,6 +99,7 @@ Configurations:
     "tez.task.resource.cpu.vcores": "2"
     %{~ endif ~}
     "tez.am.resource.memory.mb": "4098"
+    "tez.am.launch.cmd-opts": "-Xmx3278m"
     "tez.am.container.reuse.enabled": "true"
     "tez.session.am.dag.submit.timeout.secs": "1800"
 
