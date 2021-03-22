@@ -217,6 +217,7 @@ locals {
     production  = "0.0.43"
   }
 
+  #We do not have the required tables to run UpdateAll scripts in lower envs, therefore only UpdateStatement runs in lower envs
   mongo_scripts_to_execute = {
     development = "executeUpdateStatement.sh"
     qa          = "executeUpdateStatement.sh"
