@@ -210,11 +210,20 @@ locals {
   }
 
   mongo_latest_version = {
-    development = "0.0.42"
-    qa          = "0.0.42"
-    integration = "0.0.42"
-    preprod     = "0.0.42"
-    production  = "0.0.42"
+    development = "0.0.43"
+    qa          = "0.0.43"
+    integration = "0.0.43"
+    preprod     = "0.0.43"
+    production  = "0.0.43"
+  }
+
+  #We do not have the required tables to run UpdateAll scripts in lower envs, therefore only UpdateStatement runs in lower envs
+  mongo_scripts_to_execute = {
+    development = "executeUpdateStatement.sh"
+    qa          = "executeUpdateStatement.sh"
+    integration = "executeUpdateStatement.sh"
+    preprod     = "executeUpdateStatement.sh"
+    production  = "executeUpdateAll.sh"
   }
 
   skip_pdm_trigger_on_adg_completion = {
