@@ -87,13 +87,14 @@ Configurations:
     "hive.server2.tez.initialize.default.sessions": "true"
     "hive.blobstore.optimizations.enabled": "false"
     %{~ if environment == "production" ~}
-    "hive.tez.container.size": "32768"
-    "hive.tez.java.opts": "-Xmx26214m"
-    "hive.auto.convert.join.noconditionaltask.size": "10922"
+    "hive.tez.container.size": "16384"
+    "hive.tez.java.opts": "-Xmx13107m"
+    "hive.auto.convert.join.noconditionaltask.size": "4915"
     %{~ endif ~}
 
 - Classification: "tez-site"
   Properties:
+    "tez.runtime.io.sort.mb": "6554"
     "tez.am.resource.memory.mb": "1024"
     "tez.am.container.reuse.enabled": "true"
 
