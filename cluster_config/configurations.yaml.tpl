@@ -96,6 +96,7 @@ Configurations:
   Properties:
     %{~ if environment == "production" ~}
     "tez.runtime.io.sort.mb": "6554"
+    "tez.task.resource.cpu.vcores": "2"
     %{~ endif ~}
     "tez.am.resource.memory.mb": "1024"
     "tez.am.container.reuse.enabled": "true"
