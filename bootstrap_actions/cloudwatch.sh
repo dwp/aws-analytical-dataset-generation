@@ -8,6 +8,7 @@ cwa_log_group_name="$3"
 cwa_bootstrap_loggrp_name="$5"
 cwa_steps_loggrp_name="$6"
 cwa_yarnspark_loggrp_name="$7"
+cwa_tests_loggrp_name="$8"
 
 export AWS_DEFAULT_REGION="$${4}"
 
