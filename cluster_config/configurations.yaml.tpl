@@ -94,7 +94,7 @@ Configurations:
 
 - Classification: "tez-site"
   Properties:
-    "tez.runtime.io.sort.mb": "6554"
+    "tez.runtime.io.sort.mb": "1024"
     "tez.am.resource.memory.mb": "1024"
     "tez.am.container.reuse.enabled": "true"
 
