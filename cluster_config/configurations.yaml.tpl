@@ -90,11 +90,12 @@ Configurations:
     "hive.tez.container.size": "16384"
     "hive.tez.java.opts": "-Xmx13107m"
     "hive.auto.convert.join.noconditionaltask.size": "4915"
-    %{~ endif ~}
 
 - Classification: "tez-site"
   Properties:
+    %{~ if environment == "production" ~}
     "tez.runtime.io.sort.mb": "6554"
+    %{~ endif ~}
     "tez.am.resource.memory.mb": "1024"
     "tez.am.container.reuse.enabled": "true"
 
