@@ -17,12 +17,12 @@ resource "aws_iam_role" "adg_emr_service" {
   tags               = local.tags
 }
 
-resource "aws_iam_role_policy_attachment" "emr_attachment" {
+resource "aws_iam_role_policy_attachment" "emr_attachment_full" {
   role       = aws_iam_role.adg_emr_service.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEMRFullAccessPolicy_v2"
 }
 
-resource "aws_iam_role_policy_attachment" "emr_attachment" {
+resource "aws_iam_role_policy_attachment" "emr_attachment_service" {
   role       = aws_iam_role.adg_emr_service.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEMRServicePolicy_v2"
 }
