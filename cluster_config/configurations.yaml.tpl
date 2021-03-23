@@ -86,21 +86,17 @@ Configurations:
     "hive.server2.tez.sessions.per.default.queue": "15"
     "hive.server2.tez.initialize.default.sessions": "true"
     "hive.blobstore.optimizations.enabled": "false"
-    %{~ if environment == "production" ~}
-    "hive.tez.container.size": "10752"
-    "hive.tez.java.opts": "-Xmx8600m"
+    "hive.tez.container.size": "${hive_tez_container_size}"
+    "hive.tez.java.opts": "${hive_tez_java_opts}"
     "hive.auto.convert.join": "true"
     "hive.auto.convert.join.noconditionaltask.size": "4915"
-    %{~ endif ~}
 
 - Classification: "tez-site"
   Properties:
-    %{~ if environment == "production" ~}
-    "tez.grouping.min-size": "536870912"
-    "tez.grouping.max-size": "1073741824"
-    "tez.am.resource.memory.mb": "15360"
-    "tez.am.launch.cmd-opts": "-Xmx12288m"
-    %{~ endif ~}
+    "tez.grouping.min-size": "${tez_grouping_min_size}"
+    "tez.grouping.max-size": "${tez_grouping_max_size}"
+    "tez.am.resource.memory.mb": "${tez_am_resource_memory_mb}"
+    "tez.am.launch.cmd-opts": "${tez_am_launch_cmd_opts}"
     "tez.am.container.reuse.enabled": "true"
 
 - Classification: "emrfs-site"
