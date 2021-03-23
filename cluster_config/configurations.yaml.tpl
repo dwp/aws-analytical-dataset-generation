@@ -83,9 +83,11 @@ Configurations:
     "hive.vectorized.execution.ptf.enabled": "false"
     "hive.vectorized.row.serde.inputformat.excludes": ""
     "hive_timeline_logging_enabled": "true"
+    "hive.server2.tez.default.queues": "queue1, queue2, queue3, queue4, queue5"
     "hive.server2.tez.sessions.per.default.queue": "15"
     "hive.server2.tez.initialize.default.sessions": "true"
     "hive.blobstore.optimizations.enabled": "false"
+    "hive.prewarm.enabled": "true"
     %{~ if environment == "production" ~}
     "hive.tez.container.size": "10752"
     "hive.tez.java.opts": "-Xmx8600m"
