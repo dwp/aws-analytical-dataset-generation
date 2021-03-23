@@ -3,7 +3,7 @@ resource "aws_security_group" "adg_master" {
   description            = "Contains rules for ADG master nodes; most rules are injected by EMR, not managed by TF"
   revoke_rules_on_delete = true
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
-  tags = local.common_emr_tags
+  tags                   = local.common_emr_tags
 }
 
 resource "aws_security_group" "adg_slave" {
@@ -11,7 +11,7 @@ resource "aws_security_group" "adg_slave" {
   description            = "Contains rules for ADG slave nodes; most rules are injected by EMR, not managed by TF"
   revoke_rules_on_delete = true
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
-  tags = local.common_emr_tags
+  tags                   = local.common_emr_tags
 }
 
 resource "aws_security_group" "adg_common" {
@@ -19,7 +19,7 @@ resource "aws_security_group" "adg_common" {
   description            = "Contains rules for both ADG master and ADG slave nodes"
   revoke_rules_on_delete = true
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
-  tags = local.common_emr_tags
+  tags                   = local.common_emr_tags
 }
 
 resource "aws_security_group" "adg_emr_service" {
@@ -27,7 +27,7 @@ resource "aws_security_group" "adg_emr_service" {
   description            = "Contains rules for EMR service when managing the ADG cluster; rules are injected by EMR, not managed by TF"
   revoke_rules_on_delete = true
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
-  tags = local.common_emr_tags
+  tags                   = local.common_emr_tags
 }
 
 resource "aws_security_group" "metastore_rds_user_lambda" {
@@ -35,7 +35,7 @@ resource "aws_security_group" "metastore_rds_user_lambda" {
   description            = "Contains rules for the lambda used for rotating Aurora passwords"
   revoke_rules_on_delete = true
   vpc_id                 = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
-  tags = local.common_emr_tags
+  tags                   = local.common_emr_tags
 }
 
 resource "aws_security_group_rule" "egress_aurora_lambda_sql" {

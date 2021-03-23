@@ -13,7 +13,7 @@ resource "aws_security_group" "hive_metastore" {
   tags = merge(
     local.common_emr_tags,
     {
-        Name = "hive-metastore",
+      Name = "hive-metastore",
     },
   )
 }
