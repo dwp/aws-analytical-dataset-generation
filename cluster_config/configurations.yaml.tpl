@@ -101,7 +101,6 @@ Configurations:
     "tez.am.launch.cmd-opts": "-Xmx3278m"
     %{~ endif ~}
     "tez.am.container.reuse.enabled": "true"
-    "tez.session.am.dag.submit.timeout.secs": "1800"
 
 - Classification: "emrfs-site"
   Properties:
