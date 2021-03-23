@@ -42,6 +42,12 @@ data "aws_iam_policy_document" "adg_ec2_policy" {
   }
 }
 
+resource "aws_iam_policy" "adg_ec2_policy" {
+  name        = "AnalyticalDatasetGeneratorEC2"
+  description = "Allow EC@ cluster permissions for Analytical Dataset"
+  policy      = data.aws_iam_policy_document.adg_ec2_policy.json
+}
+
 resource "aws_iam_role" "adg_emr_service" {
   name               = "adg_emr_service"
   assume_role_policy = data.aws_iam_policy_document.emr_assume_role.json
