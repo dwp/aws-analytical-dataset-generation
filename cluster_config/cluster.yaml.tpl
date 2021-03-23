@@ -30,3 +30,5 @@ Tags:
   Value: "aws-analytical-dataset-generator"
 - Key: "Name"
   Value: "aws-analytical-dataset-generator"
+- Key: "for-use-with-amazon-emr-managed-policies"
+  Value: "true"
