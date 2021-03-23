@@ -81,7 +81,7 @@ Configurations:
     "hive.exec.post.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
     "hive.exec.pre.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
     "hive.vectorized.execution.enabled": "true"
-    "hive.vectorized.execution.reduce.enabled": "true"
+    "hive.vectorized.execution.reduce.enabled": "false" # Only True for Spark
     "hive.vectorized.complex.types.enabled": "true"
     "hive.vectorized.use.row.serde.deserialize": "true"
     "hive.vectorized.execution.ptf.enabled": "false"
