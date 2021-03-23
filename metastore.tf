@@ -2,7 +2,7 @@ resource "aws_db_subnet_group" "internal_compute" {
   name       = "hive-metastore"
   subnet_ids = data.terraform_remote_state.internal_compute.outputs.hive_metastore_subnet.ids
 
-  tags = merge(local.common_tags, { Name = "hive-metastore" })
+  tags = merge(local.common_emr_tags, { Name = "hive-metastore" })
 }
 
 resource "aws_security_group" "hive_metastore" {
@@ -11,10 +11,9 @@ resource "aws_security_group" "hive_metastore" {
   vpc_id      = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
 
   tags = merge(
-    local.common_tags,
+    local.common_emr_tags,
     {
         Name = "hive-metastore",
-        for-use-with-amazon-emr-managed-policies = "true"
     },
   )
 }
