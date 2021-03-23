@@ -86,6 +86,9 @@ Configurations:
     "hive.server2.tez.default.queues": "queue1, queue2, queue3, queue4, queue5"
     "hive.server2.tez.sessions.per.default.queue": "15"
     "hive.server2.tez.initialize.default.sessions": "true"
+    "hive.llap.enabled": "true",
+    "hive.llap.percent-allocation": "0.4",
+    "hive.llap.num-instances": "1"
     "hive.blobstore.optimizations.enabled": "false"
     "hive.prewarm.enabled": "true"
     %{~ if environment == "production" ~}
