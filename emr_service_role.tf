@@ -19,7 +19,7 @@ resource "aws_iam_role" "adg_emr_service" {
 
 resource "aws_iam_role_policy_attachment" "emr_attachment" {
   role       = aws_iam_role.adg_emr_service.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEMRServicePolicy_v2"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEMRFullAccessPolicy_v2"
 }
 
 resource "aws_iam_role_policy_attachment" "adg_emr_service_ebs_cmk" {
