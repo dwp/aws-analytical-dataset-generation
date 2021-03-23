@@ -5,6 +5,12 @@ locals {
   secret_name_incremental  = "/concourse/dataworks/adg/incrementals"
   pdm_lambda_launcher_name = "pdm_cw_emr_launcher"
   pdm_lambda_cw_trigger    = "${local.pdm_lambda_launcher_name}-scheduled-rule"
+  common_emr_tags = merge(
+    local.common_tags,
+    {
+      for-use-with-amazon-emr-managed-policies = "true"
+    },
+  )
   common_tags = {
     Environment  = local.environment
     Application  = local.emr_cluster_name
