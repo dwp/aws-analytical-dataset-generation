@@ -10,6 +10,14 @@ resource "aws_security_group" "hive_metastore" {
   description = "Controls access to the Hive Metastore"
   vpc_id      = data.terraform_remote_state.internal_compute.outputs.vpc.vpc.vpc.id
   tags        = merge(local.common_tags, { Name = "hive-metastore" })
+
+  tags = merge(
+    local.common_tags,
+    {
+        Name = "hive-metastore",
+        for-use-with-amazon-emr-managed-policies = "true"
+    },
+  )
 }
 
 resource "aws_security_group_rule" "ingress_adg" {
