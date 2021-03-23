@@ -11,62 +11,22 @@ data "aws_iam_policy_document" "emr_assume_role" {
   }
 }
 
-data "aws_iam_policy_document" "adg_ec2_policy" {
-  statement {
-    sid = "ADGEC2Actions"
-
-    actions = [
-        "ec2:AuthorizeSecurityGroupEgress",
-        "ec2:AuthorizeSecurityGroupIngress",
-        "ec2:CancelSpotInstanceRequests",
-        "ec2:Create*",
-        "ec2:DeleteLaunchTemplate",
-        "ec2:DeleteNetworkInterface",
-        "ec2:DeleteSecurityGroup",
-        "ec2:DeleteTags",
-        "ec2:Describe*",
-        "ec2:DetachNetworkInterface",
-        "ec2:ModifyImageAttribute",
-        "ec2:ModifyInstanceAttribute",
-        "ec2:RequestSpotInstances",
-        "ec2:RevokeSecurityGroupEgress",
-        "ec2:RunInstances",
-        "ec2:TerminateInstances",
-        "ec2:DeleteVolume",
-        "ec2:DetachVolume",
-    ]
-
-    effect = "Allow"
-
-    resources = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "adg_ec2_policy" {
-  name        = "AnalyticalDatasetGeneratorEC2"
-  description = "Allow EC@ cluster permissions for Analytical Dataset"
-  policy      = data.aws_iam_policy_document.adg_ec2_policy.json
-}
-
 resource "aws_iam_role" "adg_emr_service" {
   name               = "adg_emr_service"
   assume_role_policy = data.aws_iam_policy_document.emr_assume_role.json
   tags               = local.tags
 }
 
-resource "aws_iam_role_policy_attachment" "emr_attachment_full" {
-  role       = aws_iam_role.adg_emr_service.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEMRFullAccessPolicy_v2"
-}
+# This is new and should replace the deprecated one but doesn't work correctly
+# resource "aws_iam_role_policy_attachment" "emr_attachment_service" {
+#   role       = aws_iam_role.adg_emr_service.name
+#   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEMRServicePolicy_v2"
+# }
 
-resource "aws_iam_role_policy_attachment" "emr_attachment_service" {
+# This is deprecated and needs a ticket to remove it
+resource "aws_iam_role_policy_attachment" "emr_attachment_old" {
   role       = aws_iam_role.adg_emr_service.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEMRServicePolicy_v2"
-}
-
-resource "aws_iam_role_policy_attachment" "adg_ec2_policy" {
-  role       = aws_iam_role.adg_emr_service.name
-  policy_arn = aws_iam_policy.adg_ec2_policy.arn
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
 }
 
 resource "aws_iam_role_policy_attachment" "adg_emr_service_ebs_cmk" {
