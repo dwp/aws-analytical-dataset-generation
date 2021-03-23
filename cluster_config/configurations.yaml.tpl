@@ -94,8 +94,12 @@ Configurations:
 
 - Classification: "tez-site"
   Properties:
+    %{~ if environment == "production" ~}
     "tez.runtime.io.sort.mb": "6554"
-    "tez.am.resource.memory.mb": "1024"
+    "tez.task.resource.cpu.vcores": "2"
+    "tez.am.resource.memory.mb": "4098"
+    "tez.am.launch.cmd-opts": "-Xmx3278m"
+    %{~ endif ~}
     "tez.am.container.reuse.enabled": "true"
 
 - Classification: "emrfs-site"
