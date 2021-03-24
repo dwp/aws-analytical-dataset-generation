@@ -59,12 +59,23 @@ cat > /opt/emr/fair-scheduler.xml <<FAIR_SCHEDULER_CFG
         </queuePlacementPolicy>
     </allocations>
 FAIR_SCHEDULER_CFG
+    
+    log_wrapper_message "Checking if hadoop-yarn-resourcemanager is running"
 
-    log_wrapper_message "Stopping hadoop-yarn-resourcemanager"
-    sudo systemctl stop hadoop-yarn-resourcemanager
-    sleep 10
-    log_wrapper_message "Starting hadoop-yarn-resourcemanager"
-    sudo systemctl start hadoop-yarn-resourcemanager
+    if sudo systemctl is-active hadoop-yarn-resourcemanager; then 
+        log_wrapper_message "Stopping hadoop-yarn-resourcemanager"
+        systemctl stop hadoop-yarn-resourcemanager
+        
+        while sudo systemctl is-active hadoop-yarn-resourcemanager; do
+            log_wrapper_message "Waiting for hadoop-yarn-resourcemanager to stop"
+            sleep 1
+        done
+        
+        log_wrapper_message "Starting hadoop-yarn-resourcemanager"
+        if sudo systemctl enable hadoop-yarn-resourcemanager; then 
+            systemctl start hadoop-yarn-resourcemanager
+        fi
+    fi
 
 ) >> /var/log/adg/hive_setup.log 2>&1
 
