@@ -224,15 +224,6 @@ locals {
     production  = "0.0.43"
   }
 
-  #We do not have the required tables to run UpdateAll scripts in lower envs, therefore only UpdateStatement runs in lower envs
-  mongo_scripts_to_execute = {
-    development = "executeUpdateStatement.sh"
-    qa          = "executeUpdateStatement.sh"
-    integration = "executeUpdateStatement.sh"
-    preprod     = "executeUpdateStatement.sh"
-    production  = "executeUpdateAll.sh"
-  }
-
   skip_pdm_trigger_on_adg_completion = {
     development = "true"
     qa          = "true"
@@ -263,5 +254,53 @@ locals {
     integration = false
     preprod     = false
     production  = true
+  }
+
+  hive_tez_container_size = {
+    development = "2688"
+    qa          = "2688"
+    integration = "2688"
+    preprod     = "2688"
+    production  = "10752"
+  }
+
+  hive_tez_java_opts = {
+    development = "-Xmx2150m"
+    qa          = "-Xmx2150m"
+    integration = "-Xmx2150m"
+    preprod     = "-Xmx2150m"
+    production  = "-Xmx8600m"
+  }
+
+  tez_grouping_min_size = {
+    development = "134217728"
+    qa          = "134217728"
+    integration = "134217728"
+    preprod     = "134217728"
+    production  = "536870912"
+  }
+
+  tez_grouping_max_size = {
+    development = "268435456"
+    qa          = "268435456"
+    integration = "268435456"
+    preprod     = "268435456"
+    production  = "1073741824"
+  }
+
+  tez_am_resource_memory_mb = {
+    development = "3840"
+    qa          = "3840"
+    integration = "3840"
+    preprod     = "3840"
+    production  = "15360"
+  }
+
+  tez_am_launch_cmd_opts = {
+    development = "-Xmx3072m"
+    qa          = "-Xmx3072m"
+    integration = "-Xmx3072m"
+    preprod     = "-Xmx3072m"
+    production  = "-Xmx12288m"
   }
 }

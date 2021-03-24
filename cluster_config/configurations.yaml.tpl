@@ -88,27 +88,28 @@ Configurations:
     "hive.vectorized.row.serde.inputformat.excludes": ""
     "hive_timeline_logging_enabled": "true"
     "hive.server2.tez.sessions.per.default.queue": "30"
+    "hive.server2.tez.default.queues": "queue1, queue2, queue3, queue4, queue5"
     "hive.server2.tez.initialize.default.sessions": "true"
+    "hive.llap.enabled": "true"
+    "hive.llap.percent-allocation": "0.3"
+    "hive.llap.num-instances": "1"
     "hive.blobstore.optimizations.enabled": "false"
     "hive.tez.auto.reducer.parallelism": "true"
     "hive.exec.reducers.bytes.per.reducer": "134217728" # 128 mb
     "hive.exec.dynamic.partition": "true"
     "hive.exec.dynamic.partition.mode": "nostrict"
-    %{~ if environment == "production" ~}
-    "hive.tez.container.size": "10752"
-    "hive.tez.java.opts": "-Xmx8600m"
+    "hive.tez.container.size": "${hive_tez_container_size}"
+    "hive.tez.java.opts": "${hive_tez_java_opts}"
     "hive.auto.convert.join": "true"
     "hive.auto.convert.join.noconditionaltask.size": "2838"
-    %{~ endif ~}
+    "hive.prewarm.enabled": "true"
 
 - Classification: "tez-site"
   Properties:
-    %{~ if environment == "production" ~}
-    "tez.grouping.min-size": "536870912"
-    "tez.grouping.max-size": "1073741824"
-    "tez.am.resource.memory.mb": "15360"
-    "tez.am.launch.cmd-opts": "-Xmx12288m"
-    %{~ endif ~}
+    "tez.grouping.min-size": "${tez_grouping_min_size}"
+    "tez.grouping.max-size": "${tez_grouping_max_size}"
+    "tez.am.resource.memory.mb": "${tez_am_resource_memory_mb}"
+    "tez.am.launch.cmd-opts": "${tez_am_launch_cmd_opts}"
     "tez.am.container.reuse.enabled": "true"
 
 - Classification: "emrfs-site"
