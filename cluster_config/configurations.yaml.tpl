@@ -97,7 +97,7 @@ Configurations:
     "hive.auto.convert.join": "true"
     "hive.auto.convert.join.noconditionaltask.size": "4915"
 
-- Classification: "capacity-scheduler" # yarn capacity scheduler
+- Classification: "capacity-scheduler"
   Properties:
     "yarn.scheduler.capacity.maximum-am-resource-percent": "0.5"
     "yarn.scheduler.capacity.maximum-applications": "10000"
