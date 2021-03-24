@@ -161,6 +161,38 @@ If a cluster fails, then the status is updated in the dynamo db table to failed.
 Whenever a step starts on a cluster, it calls a common method which checks if this local file exists. If it does not (i.e. this is not a retry scenario) then the step continues a normal. However if the file does exist, then the step checks if the failed cluster was running the same step when it failed. If it was, then it runs the step as normal and the local files is deleted so as not to affect subsequent steps. However if the step name does not match, this step is assumed to have completed before and therefore is skipped this time.
 
 In this way, we are able to retry the entire cluster but not repeat steps that have already succeeded, therefore saving us potentially hours or time for retry scenarios.
+
+
+### Full cluster restart
+
+Sometimes the ADG cluster is required to restart from the beginning instead of restarting from the failure point.
+To be able to do a full cluster restart, delete if it exists the row having as a key the concerned ```Correlation_Id``` and ```DataProduct``` in the DynamoDB table storing cluster state information (see [Retries](#retries)). 
+The ```clear-dynamodb-row``` job is responsible for carrying out the row deletion.
+
+To do a full cluster restart
+
+* Manually enter CORRELATION_ID and DATA_PRODUCT of the row to delete to the ```clear-dynamodb-row``` job and run aviator.
+
+
+```
+jobs:
+  - name: dev-clear-dynamodb-row
+    plan:
+      - .: (( inject meta.plan.clear-dynamodb-row ))
+        config:
+          params:
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+            AWS_ACC: ((aws_account.development))
+            CORRELATION_ID: <Correlation_Id of the row to delete>
+            DATA_PRODUCT: <DataProduct of the row to delete>
+
+```
+
+* Run the ```start-cluster``` job.
+
+
+
+
 # Upgrading to EMR 6.2.0
 
 There is a requirement for our data products to start using Hive 3 instead of Hive 2. Hive 3 comes bundled with EMR 6.2.0 
