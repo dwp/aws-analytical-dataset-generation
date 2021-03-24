@@ -61,10 +61,10 @@ cat > /opt/emr/fair-scheduler.xml <<FAIR_SCHEDULER_CFG
 FAIR_SCHEDULER_CFG
 
     log_wrapper_message "Stopping hadoop-yarn-resourcemanager"
-    sudo stop hadoop-yarn-resourcemanager
+    sudo systemctl stop hadoop-yarn-resourcemanager
     sleep 10
     log_wrapper_message "Starting hadoop-yarn-resourcemanager"
-    sudo start hadoop-yarn-resourcemanager
+    sudo systemctl start hadoop-yarn-resourcemanager
 
 ) >> /var/log/adg/hive_setup.log 2>&1
 
