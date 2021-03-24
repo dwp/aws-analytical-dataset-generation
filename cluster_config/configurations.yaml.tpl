@@ -125,7 +125,7 @@ Configurations:
     "yarn.scheduler.capacity.root.yarn2.user-limit-factor": "1.2"
     "yarn.scheduler.capacity.root.yarn3.acl_administer_queue": "*"
     "yarn.scheduler.capacity.root.yarn3.acl_submit_applications": "*"
-    "yarn.scheduler.capacity.root.yarn3.capacity": "33"
+    "yarn.scheduler.capacity.root.yarn3.capacity": "34"
     "yarn.scheduler.capacity.root.yarn3.maximum-capacity": "60"
     "yarn.scheduler.capacity.root.yarn3.minimum-user-limit-percent": "100"
     "yarn.scheduler.capacity.root.yarn3.ordering-policy": "fifo"
