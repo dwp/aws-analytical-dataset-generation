@@ -9,7 +9,6 @@ Configurations:
     "yarn.nodemanager.pmem-check-enabled": "false"
     "yarn.acl.enable": "true"
     "yarn.resourcemanager.scheduler.class": "org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler"
-
 - Classification: "spark"
   Properties:
     "maximizeResourceAllocation": "false"
