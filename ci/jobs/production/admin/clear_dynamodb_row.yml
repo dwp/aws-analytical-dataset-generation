@@ -6,5 +6,5 @@ jobs:
           params:
             AWS_ROLE_ARN: arn:aws:iam::((aws_account.production)):role/ci
             AWS_ACC: ((aws_account.production))
-            CORRELATION_ID: analytical_dataset_generation_analytical_dataset_generation_dev_602
+            CORRELATION_ID: test
             DATA_PRODUCT: ADG-full
