@@ -1,8 +1,6 @@
 jobs:
   - name: dev-clear-dynamodb-row
     plan:
-      - get: aws-analytical-dataset-generation
-        trigger: false
       - .: (( inject meta.plan.clear-dynamodb-row ))
         config:
           params:
