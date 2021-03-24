@@ -2,16 +2,20 @@
 Configurations:
 - Classification: "yarn-site"
   Properties:
-    "yarn.node-labels.enabled": "false"
     "yarn.log-aggregation-enable": "true"
     "yarn.nodemanager.remote-app-log-dir": "s3://${s3_log_bucket}/${s3_log_prefix}/yarn"
     "yarn.nodemanager.vmem-check-enabled": "false"
     "yarn.nodemanager.pmem-check-enabled": "false"
     "yarn.acl.enable": "true"
-    "yarn.resourcemanager.scheduler.class": "org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler"
+    "yarn.scheduler.fair.preemption": "true"
+    "yarn.scheduler.fair.preemption.cluster-utilization-threshold": "0.8"
+    "yarn.resourcemanager.scheduler.class": "org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler"
+    "yarn.scheduler.fair.allocation.file": "/opt/emr/fair-scheduler.xml"
+
 - Classification: "spark"
   Properties:
     "maximizeResourceAllocation": "false"
+
 - Classification: "spark-defaults"
   Properties:
     "spark.yarn.jars": "/usr/lib/spark/jars/*,/opt/emr/metrics/dependencies/*"
@@ -98,30 +102,7 @@ Configurations:
     "hive.tez.java.opts": "${hive_tez_java_opts}"
     "hive.auto.convert.join": "true"
     "hive.auto.convert.join.noconditionaltask.size": "4915"
-
-- Classification: "capacity-scheduler"
-  Properties:
-     "yarn.scheduler.capacity.maximum-am-resource-percent": "0.6"
-     "yarn.scheduler.capacity.resource-calculator": "org.apache.hadoop.yarn.util.resource.DominantResourceCalculator"
-     "yarn.scheduler.capacity.root.queues": "gold, silver, bronze"
-     "yarn.scheduler.capacity.root.default.capacity": "25"
-     "yarn.scheduler.capacity.root.default.user-limit-factor": "2"
-     "yarn.scheduler.capacity.root.default.maximum-capacity": "50"
-     "yarn.scheduler.capacity.root.gold.capacity": "25"
-     "yarn.scheduler.capacity.root.silver.capacity": "25"
-     "yarn.scheduler.capacity.root.bronze.capacity": "25"
-     "yarn.scheduler.capacity.root.gold.user-limit-factor": "2"
-     "yarn.scheduler.capacity.root.silver.user-limit-factor": "2"
-     "yarn.scheduler.capacity.root.bronze.user-limit-factor": "2"
-     "yarn.scheduler.capacity.root.gold.maximum-capacity": "50"
-     "yarn.scheduler.capacity.root.silver.maximum-capacity": "50"
-     "yarn.scheduler.capacity.root.bronze.maximum-capacity": "50"
-     "yarn.scheduler.capacity.root.gold.state": "RUNNING"
-     "yarn.scheduler.capacity.root.silver.state": "RUNNING"
-     "yarn.scheduler.capacity.root.bronze.state": "RUNNING"
-     "yarn.scheduler.capacity.root.gold.acl_submit_applications": "*"
-     "yarn.scheduler.capacity.root.silver.acl_submit_applications": "*"
-     "yarn.scheduler.capacity.root.bronze.acl_submit_applications": "*"
+    "hive.server2.tez.session.lifetime": "0"
 
 - Classification: "tez-site"
   Properties:
