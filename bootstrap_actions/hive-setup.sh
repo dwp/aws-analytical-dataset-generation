@@ -26,7 +26,46 @@ set -euo pipefail
     aws s3 cp "${python_logger}" /opt/emr/steps/.
     aws s3 cp "${python_resume_script}" /opt/emr/steps/.
     aws s3 cp "${generate_analytical_dataset}" /opt/emr/.
-    
+
+    log_wrapper_message "Generating fair scheduler xml"
+
+cat > /opt/emr/fair-scheduler.xml <<FAIR_SCHEDULER_CFG
+    <?xml version=”1.0"?>
+    <allocations>
+        <queue name="root">
+            <schedulingPolicy>fair</schedulingPolicy>
+            <aclSubmitApps> </aclSubmitApps>
+            <aclAdministerApps>*</aclAdministerApps>
+            <queue name="queue1">
+                <schedulingPolicy>fair</schedulingPolicy>
+                <aclSubmitApps>*</aclSubmitApps>
+                <aclAdministerApps>*</aclAdministerApps>
+            </queue>
+            <queue name="queue2">
+                <schedulingPolicy>fair</schedulingPolicy>
+                <aclSubmitApps>*</aclSubmitApps>
+                <aclAdministerApps>*</aclAdministerApps>
+            </queue>
+            <queue name="queue3">
+                <schedulingPolicy>fair</schedulingPolicy>
+                <aclSubmitApps>*</aclSubmitApps>
+                <aclAdministerApps>*</aclAdministerApps>
+            </queue>
+        </queue>
+        <defaultQueueSchedulingPolicy>fair</defaultQueueSchedulingPolicy>
+        <queuePlacementPolicy>
+            <rule name="specified" />
+            <rule name="default" queue="root"/>
+        </queuePlacementPolicy>
+    </allocations>
+FAIR_SCHEDULER_CFG
+
+    log_wrapper_message "Stopping hadoop-yarn-resourcemanager"
+    sudo stop hadoop-yarn-resourcemanager
+    sleep 10
+    log_wrapper_message "Starting hadoop-yarn-resourcemanager"
+    sudo start hadoop-yarn-resourcemanager
+
 ) >> /var/log/adg/hive_setup.log 2>&1
 
 
