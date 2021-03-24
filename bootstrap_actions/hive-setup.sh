@@ -32,11 +32,6 @@ set -euo pipefail
     touch /opt/emr/fair-scheduler.xml
 cat > /opt/emr/fair-scheduler.xml <<FAIR_SCHEDULER_CFG
 <allocations>
-    <queue name="root">
-        <schedulingPolicy>fair</schedulingPolicy>
-        <aclSubmitApps> </aclSubmitApps>
-        <aclAdministerApps>*</aclAdministerApps>
-    </queue>
     <queue name="queue1" type="parent">
         <schedulingPolicy>fair</schedulingPolicy>
         <aclSubmitApps>*</aclSubmitApps>
@@ -52,10 +47,15 @@ cat > /opt/emr/fair-scheduler.xml <<FAIR_SCHEDULER_CFG
         <aclSubmitApps>*</aclSubmitApps>
         <aclAdministerApps>*</aclAdministerApps>
     </queue>
+    <queue name="backup_queue">
+        <schedulingPolicy>fair</schedulingPolicy>
+        <aclSubmitApps> </aclSubmitApps>
+        <aclAdministerApps>*</aclAdministerApps>
+    </queue>
     <defaultQueueSchedulingPolicy>fair</defaultQueueSchedulingPolicy>
     <queuePlacementPolicy>
         <rule name="specified" />
-        <rule name="default" queue="root"/>
+        <rule name="default" queue="backup_queue"/>
     </queuePlacementPolicy>
 </allocations>
 FAIR_SCHEDULER_CFG
