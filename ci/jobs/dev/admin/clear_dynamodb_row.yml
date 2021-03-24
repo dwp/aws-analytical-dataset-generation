@@ -1,0 +1,12 @@
+jobs:
+  - name: dev-clear-dynamodb-row
+    plan:
+      - get: aws-analytical-dataset-generation
+        trigger: false
+      - .: (( inject meta.plan.clear-dynamodb-row ))
+        config:
+          params:
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+            AWS_ACC: ((aws_account.development))
+            CORRELATION_ID: analytical_dataset_generation_analytical_dataset_generation_dev_602
+            DATA_PRODUCT: ADG-full

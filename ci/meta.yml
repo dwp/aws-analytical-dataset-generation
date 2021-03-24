@@ -439,3 +439,39 @@ meta:
                   aws emr terminate-clusters --cluster-ids $CLUSTER_ID
                 done
               fi
+
+    clear-dynamodb-row:
+      task: clear-dynamodb-row
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.docker_awscli_repository))
+            version: ((dataworks.docker_awscli_version))
+            tag: ((dataworks.docker_awscli_version))
+        params:
+          AWS_ROLE_ARN: arn:aws:iam::((aws_account.management)):role/ci
+          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              export AWS_DEFAULT_REGION
+              source /assume-role
+              set +x
+
+              export message_json=$(cat <<EOF
+              {
+                "Correlation_Id": {"S": "$CORRELATION_ID"},
+                "DataProduct": {"S": "$DATA_PRODUCT"}
+              }
+              EOF
+              )
+              echo $message_json
+
+              aws dynamodb delete-item \
+              --table-name data_pipeline_metadata \
+              --key "$message_json"
+
