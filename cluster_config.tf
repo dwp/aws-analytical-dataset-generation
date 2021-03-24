@@ -51,10 +51,9 @@ resource "aws_s3_bucket_object" "steps" {
   key    = "emr/adg/steps.yaml"
   content = templatefile("${path.module}/cluster_config/steps.yaml.tpl",
     {
-      s3_config_bucket         = data.terraform_remote_state.common.outputs.config_bucket.id
-      action_on_failure        = local.step_fail_action[local.environment]
-      s3_published_bucket      = data.terraform_remote_state.common.outputs.published_bucket.id
-      mongo_scripts_to_execute = local.mongo_scripts_to_execute[local.environment]
+      s3_config_bucket    = data.terraform_remote_state.common.outputs.config_bucket.id
+      action_on_failure   = local.step_fail_action[local.environment]
+      s3_published_bucket = data.terraform_remote_state.common.outputs.published_bucket.id
     }
   )
 }
@@ -131,6 +130,13 @@ resource "aws_s3_bucket_object" "configurations" {
       spark_executor_instances            = local.spark_executor_instances
       spark_default_parallelism           = local.spark_default_parallelism
       environment                         = local.environment
+      hive_tez_container_size             = local.hive_tez_container_size[local.environment]
+      hive_tez_java_opts                  = local.hive_tez_java_opts[local.environment]
+      tez_grouping_min_size               = local.tez_grouping_min_size[local.environment]
+      tez_grouping_max_size               = local.tez_grouping_max_size[local.environment]
+      tez_am_resource_memory_mb           = local.tez_am_resource_memory_mb[local.environment]
+      tez_am_launch_cmd_opts              = local.tez_am_launch_cmd_opts[local.environment]
+
     }
   )
 }
