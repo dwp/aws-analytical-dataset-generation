@@ -4,7 +4,7 @@ jobs:
       - .: (( inject meta.plan.clear-dynamodb-row ))
         config:
           params:
-            AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.preprod)):role/ci
             AWS_ACC: ((aws_account.development))
             CORRELATION_ID: test
             DATA_PRODUCT: ADG-full
