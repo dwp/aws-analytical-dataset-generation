@@ -17,7 +17,14 @@ resource "aws_iam_role" "adg_emr_service" {
   tags               = local.tags
 }
 
-resource "aws_iam_role_policy_attachment" "emr_attachment" {
+# This is new and should replace the deprecated one but doesn't work correctly
+# resource "aws_iam_role_policy_attachment" "emr_attachment_service" {
+#   role       = aws_iam_role.adg_emr_service.name
+#   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEMRServicePolicy_v2"
+# }
+
+# This is deprecated and needs a ticket to remove it
+resource "aws_iam_role_policy_attachment" "emr_attachment_old" {
   role       = aws_iam_role.adg_emr_service.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
 }
