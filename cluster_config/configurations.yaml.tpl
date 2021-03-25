@@ -7,8 +7,6 @@ Configurations:
     "yarn.nodemanager.vmem-check-enabled": "false"
     "yarn.nodemanager.pmem-check-enabled": "false"
     "yarn.acl.enable": "true"
-    "yarn.scheduler.fair.preemption": "true"
-    "yarn.scheduler.fair.preemption.cluster-utilization-threshold": "0.8"
     "yarn.resourcemanager.scheduler.monitor.enable": "true"
     "yarn.resourcemanager.scheduler.class": "org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler"
 
@@ -23,7 +21,7 @@ Configurations:
     "yarn.scheduler.capacity.resource-calculator": "org.apache.hadoop.yarn.util.resource.DominantResourceCalculator"
     "yarn.scheduler.capacity.root.default.capacity": "10"
     "yarn.scheduler.capacity.root.default.acl_submit_applications": "*"
-    "yarn.scheduler.capacity.root.default.maximum-capacity": "20"
+    "yarn.scheduler.capacity.root.default.maximum-capacity": "80"
     "yarn.scheduler.capacity.root.default.ordering-policy": "fair"
     "yarn.scheduler.capacity.root.default.ordering-policy.fair.enable-size-based-weight": "true"
     "yarn.scheduler.capacity.root.queue1.capacity": "30"
