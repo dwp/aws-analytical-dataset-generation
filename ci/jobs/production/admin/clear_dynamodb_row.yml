@@ -1,0 +1,10 @@
+jobs:
+  - name: prod-clear-dynamodb-row
+    plan:
+      - .: (( inject meta.plan.clear-dynamodb-row ))
+        config:
+          params:
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.production)):role/ci
+            AWS_ACC: ((aws_account.production))
+            CORRELATION_ID: test
+            DATA_PRODUCT: ADG-full

@@ -22,30 +22,35 @@ groups:
       - dev-start-cluster
       - dev-stop-full-clusters
       - dev-stop-incremental-clusters
+      - dev-clear-dynamodb-row
 
   - name: admin-qa
     jobs:
       - qa-start-cluster
       - qa-stop-full-clusters
       - qa-stop-incremental-clusters
+      - qa-clear-dynamodb-row
 
   - name: admin-int
     jobs:
       - int-start-cluster
       - int-stop-full-clusters
       - int-stop-incremental-clusters
+      - int-clear-dynamodb-row
 
   - name: admin-preprod
     jobs:
       - preprod-start-cluster
       - preprod-stop-full-clusters
       - preprod-stop-incremental-clusters
+      - preprod-clear-dynamodb-row
 
   - name: admin-prod
     jobs:
       - prod-start-cluster
       - prod-stop-full-clusters
       - prod-stop-incremental-clusters
+      - prod-clear-dynamodb-row
 
   - name: rotate-passwords-adg-reader
     jobs:
