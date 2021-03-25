@@ -199,7 +199,7 @@ variable "yarn_map_memory_mb" {
     qa          = "3072"
     integration = "3072"
     preprod     = "3072"
-    production  = "4011"
+    production  = "8022"
   }
 }
 
@@ -209,7 +209,7 @@ variable "yarn_reduce_memory_mb" {
     qa          = "6144"
     integration = "6144"
     preprod     = "6144"
-    production  = "8022"
+    production  = "16044"
   }
 }
 
@@ -229,7 +229,7 @@ variable "yarn_map_java_opts" {
     qa          = "-Xmx2458m"
     integration = "-Xmx2458m"
     preprod     = "-Xmx2458m"
-    production  = "-Xmx3209m"
+    production  = "-Xmx6418m"
   }
 }
 
@@ -239,7 +239,7 @@ variable "yarn_reduce_java_opts" {
     qa          = "-Xmx4916m"
     integration = "-Xmx4916m"
     preprod     = "-Xmx4916m"
-    production  = "-Xmx6418m"
+    production  = "-Xmx12826m"
   }
 }
 
@@ -249,7 +249,7 @@ variable "yarn_min_allocation_mb" {
     qa          = "512"
     integration = "512"
     preprod     = "512"
-    production  = "1024"
+    production  = "2048"
   }
 }
 
