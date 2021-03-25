@@ -272,12 +272,36 @@ locals {
     production  = "-Xmx8600m"
   }
 
+  hive_auto_convert_join_noconditionaltask_size = {
+    development = "896"
+    qa          = "896"
+    integration = "896"
+    preprod     = "896"
+    production  = "3584"
+  }
+
+  tez_runtime_unordered_output_buffer_size_mb = {
+    development = "268"
+    qa          = "268"
+    integration = "268"
+    preprod     = "268"
+    production  = "1075"
+  }
+
+  tez_runtime_io_sort_mb = {
+    development = "1075"
+    qa          = "1075"
+    integration = "1075"
+    preprod     = "1075"
+    production  = "4300"
+  }
+
   tez_grouping_min_size = {
-    development = "134217728"
-    qa          = "134217728"
-    integration = "134217728"
-    preprod     = "134217728"
-    production  = "536870912"
+    development = "1342177"
+    qa          = "1342177"
+    integration = "1342177"
+    preprod     = "1342177"
+    production  = "52428800"
   }
 
   tez_grouping_max_size = {
@@ -294,14 +318,6 @@ locals {
     integration = "3840"
     preprod     = "3840"
     production  = "15360"
-  }
-
-  tez_am_launch_opts = {
-    development = "-Xmx1024"
-    qa          = "-Xmx1024"
-    integration = "-Xmx1024"
-    preprod     = "-Xmx1024"
-    production  = "-Xmx12000"
   }
 
   tez_task_resource_memory_mb = {

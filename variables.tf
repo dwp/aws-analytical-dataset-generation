@@ -245,15 +245,25 @@ variable "yarn_reduce_java_opts" {
 
 variable "yarn_min_allocation_mb" {
   default = {
-    development = "32"
-    qa          = "32"
-    integration = "32"
-    preprod     = "32"
-    production  = "32"
+    development = "512"
+    qa          = "512"
+    integration = "512"
+    preprod     = "512"
+    production  = "1024"
   }
 }
 
 variable "yarn_max_allocation_mb" {
+  default = {
+    development = "24576"
+    qa          = "24576"
+    integration = "24576"
+    preprod     = "24576"
+    production  = "385024"
+  }
+}
+
+variable "yarn_node_manager_resource_mb" {
   default = {
     development = "24576"
     qa          = "24576"
