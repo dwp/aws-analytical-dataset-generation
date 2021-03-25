@@ -9,12 +9,41 @@ Configurations:
     "yarn.acl.enable": "true"
     "yarn.scheduler.fair.preemption": "true"
     "yarn.scheduler.fair.preemption.cluster-utilization-threshold": "0.8"
-    "yarn.resourcemanager.scheduler.class": "org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler"
-    "yarn.scheduler.fair.allocation.file": "/opt/emr/fair-scheduler.xml"
+    "yarn.resourcemanager.scheduler.monitor.enable": "true"
+    "yarn.resourcemanager.scheduler.class": "org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler"
 
 - Classification: "spark"
   Properties:
     "maximizeResourceAllocation": "false"
+
+- Classification: "capacity-scheduler"
+  Properties:
+    "yarn.scheduler.capacity.root.queues": "default,queue1,queue2,queue3"
+    "yarn.scheduler.capacity.maximum-am-resource-percent": "0.2"
+    "yarn.scheduler.capacity.resource-calculator": "org.apache.hadoop.yarn.util.resource.DominantResourceCalculator"
+    "yarn.scheduler.capacity.root.default.capacity": "10"
+    "yarn.scheduler.capacity.root.default.acl_submit_applications": "*"
+    "yarn.scheduler.capacity.root.default.maximum-capacity": "20"
+    "yarn.scheduler.capacity.root.default.ordering-policy": "fair"
+    "yarn.scheduler.capacity.root.default.ordering-policy.fair.enable-size-based-weight": "true"
+    "yarn.scheduler.capacity.root.queue1.capacity": "30"
+    "yarn.scheduler.capacity.root.queue1.acl_submit_applications": "*"
+    "yarn.scheduler.capacity.root.queue1.maximum-capacity": "80"
+    "yarn.scheduler.capacity.root.queue1.state": "RUNNING"
+    "yarn.scheduler.capacity.root.queue1.ordering-policy": "fair"
+    "yarn.scheduler.capacity.root.queue1.ordering-policy.fair.enable-size-based-weight": "true"
+    "yarn.scheduler.capacity.root.queue2.capacity": "30",
+    "yarn.scheduler.capacity.root.queue2.acl_submit_applications": "*"
+    "yarn.scheduler.capacity.root.queue2.maximum-capacity": "80"
+    "yarn.scheduler.capacity.root.queue2.state": "RUNNING"
+    "yarn.scheduler.capacity.root.queue2.ordering-policy": "fair"
+    "yarn.scheduler.capacity.root.queue2.ordering-policy.fair.enable-size-based-weight": "true"
+    "yarn.scheduler.capacity.root.queue3.capacity": "30"
+    "yarn.scheduler.capacity.root.queue3.acl_submit_applications": "*"
+    "yarn.scheduler.capacity.root.queue3.maximum-capacity": "80"
+    "yarn.scheduler.capacity.root.queue3.state": "RUNNING
+    "yarn.scheduler.capacity.root.queue3.ordering-policy": "fair"
+    "yarn.scheduler.capacity.root.queue3.ordering-policy.fair.enable-size-based-weight": "true"
 
 - Classification: "spark-defaults"
   Properties:
@@ -79,7 +108,7 @@ Configurations:
     "hive.mapred.mode": "nonstrict"
     "hive.strict.checks.cartesian.product": "false"
     "hive.exec.parallel": "true"
-    "hive.exec.parallel.thread.number": "32"
+    "hive.exec.parallel.thread.number": "64"
     "hive.exec.failure.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
     "hive.exec.post.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
     "hive.exec.pre.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
@@ -103,6 +132,9 @@ Configurations:
     "hive.auto.convert.join": "true"
     "hive.auto.convert.join.noconditionaltask.size": "4915"
     "hive.server2.tez.session.lifetime": "0"
+    "hive.server2.async.exec.threads": "1000"
+    "hive.server2.async.exec.wait.queue.size": "1000"
+    "hive.server2.async.exec.keepalive.time": "60"
 
 - Classification: "tez-site"
   Properties:

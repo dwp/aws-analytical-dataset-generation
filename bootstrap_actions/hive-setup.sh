@@ -27,39 +27,6 @@ set -euo pipefail
     aws s3 cp "${python_resume_script}" /opt/emr/steps/.
     aws s3 cp "${generate_analytical_dataset}" /opt/emr/.
 
-    log_wrapper_message "Generating fair scheduler xml"
-
-    touch /opt/emr/fair-scheduler.xml
-cat > /opt/emr/fair-scheduler.xml <<FAIR_SCHEDULER_CFG
-<allocations>
-    <queue name="queue1" type="parent">
-        <schedulingPolicy>fair</schedulingPolicy>
-        <aclSubmitApps>*</aclSubmitApps>
-        <aclAdministerApps>*</aclAdministerApps>
-    </queue>
-    <queue name="queue2" type="parent">
-        <schedulingPolicy>fair</schedulingPolicy>
-        <aclSubmitApps>*</aclSubmitApps>
-        <aclAdministerApps>*</aclAdministerApps>
-    </queue>
-    <queue name="queue3" type="parent">
-        <schedulingPolicy>fair</schedulingPolicy>
-        <aclSubmitApps>*</aclSubmitApps>
-        <aclAdministerApps>*</aclAdministerApps>
-    </queue>
-    <queue name="backup_queue">
-        <schedulingPolicy>fair</schedulingPolicy>
-        <aclSubmitApps> </aclSubmitApps>
-        <aclAdministerApps>*</aclAdministerApps>
-    </queue>
-    <defaultQueueSchedulingPolicy>fair</defaultQueueSchedulingPolicy>
-    <queuePlacementPolicy>
-        <rule name="specified" />
-        <rule name="default" queue="backup_queue"/>
-    </queuePlacementPolicy>
-</allocations>
-FAIR_SCHEDULER_CFG
-
 ) >> /var/log/adg/hive_setup.log 2>&1
 
 
