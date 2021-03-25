@@ -165,32 +165,33 @@ In this way, we are able to retry the entire cluster but not repeat steps that h
 
 ### Full cluster restart
 
+## Full cluster restart
+
 Sometimes the ADG cluster is required to restart from the beginning instead of restarting from the failure point.
-To be able to do a full cluster restart, delete if it exists the row having as a key the concerned ```Correlation_Id``` and ```DataProduct``` in the DynamoDB table storing cluster state information (see [Retries](#retries)). 
-The ```clear-dynamodb-row``` job is responsible for carrying out the row deletion.
+To be able to do a full cluster restart, delete the associated DynamoDB row if it exists. The keys to the row are `Correlation_Id` and `DataProduct` in the DynamoDB table storing cluster state information (see [Retries](#retries)).   
+The `clear-dynamodb-row` job is responsible for carrying out the row deletion.
 
 To do a full cluster restart
 
-* Manually enter CORRELATION_ID and DATA_PRODUCT of the row to delete to the ```clear-dynamodb-row``` job and run aviator.
+* Manually enter CORRELATION_ID and DATA_PRODUCT of the row to delete to the `clear-dynamodb-row` job and run aviator.
 
 
-```
-jobs:
-  - name: dev-clear-dynamodb-row
-    plan:
-      - .: (( inject meta.plan.clear-dynamodb-row ))
-        config:
-          params:
-            AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
-            AWS_ACC: ((aws_account.development))
-            CORRELATION_ID: <Correlation_Id of the row to delete>
-            DATA_PRODUCT: <DataProduct of the row to delete>
+    ```
+    jobs:
+      - name: dev-clear-dynamodb-row
+        plan:
+          - .: (( inject meta.plan.clear-dynamodb-row ))
+            config:
+              params:
+                AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+                AWS_ACC: ((aws_account.development))
+                CORRELATION_ID: <Correlation_Id of the row to delete>
+                DATA_PRODUCT: <DataProduct of the row to delete>
 
-```
+    ```
+* Run the admin job to `<env>-clear-dynamodb-row`
 
-* Run the ```start-cluster``` job.
-
-
+* You can then run `start-cluster` job with the same `Correlation_Id` from fresh.
 
 
 # Upgrading to EMR 6.2.0
