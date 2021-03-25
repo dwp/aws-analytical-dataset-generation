@@ -130,13 +130,6 @@ resource "aws_s3_bucket_object" "configurations" {
       spark_executor_instances                      = local.spark_executor_instances
       spark_default_parallelism                     = local.spark_default_parallelism
       environment                                   = local.environment
-      yarn_reduce_memory                            = var.yarn_reduce_memory_mb[local.environment]
-      yarn_map_memory                               = var.yarn_map_memory_mb[local.environment]
-      yarn_reduce_java_opts                         = var.yarn_reduce_java_opts[local.environment]
-      yarn_map_java_opts                            = var.yarn_map_java_opts[local.environment]
-      yarn_min_allocation_mb                        = var.yarn_min_allocation_mb[local.environment]
-      yarn_max_allocation_mb                        = var.yarn_max_allocation_mb[local.environment]
-      yarn_app_mapreduce_am_resource_mb             = var.yarn_app_mapreduce_am_resource_mb[local.environment]
       hive_tez_container_size                       = local.hive_tez_container_size[local.environment]
       hive_tez_java_opts                            = local.hive_tez_java_opts[local.environment]
       tez_grouping_min_size                         = local.tez_grouping_min_size[local.environment]
@@ -144,9 +137,6 @@ resource "aws_s3_bucket_object" "configurations" {
       tez_am_resource_memory_mb                     = local.tez_am_resource_memory_mb[local.environment]
       tez_am_launch_cmd_opts                        = local.tez_am_launch_cmd_opts[local.environment]
       tez_task_resource_memory_mb                   = local.tez_task_resource_memory_mb[local.environment]
-      yarn_node_manager_resource_mb                 = var.yarn_node_manager_resource_mb[local.environment]
-      yarn_min_allocation_mb                        = var.yarn_min_allocation_mb[local.environment]
-      yarn_max_allocation_mb                        = var.yarn_max_allocation_mb[local.environment]
       hive_auto_convert_join_noconditionaltask_size = local.hive_auto_convert_join_noconditionaltask_size[local.environment]
       tez_runtime_io_sort_mb                        = local.tez_runtime_io_sort_mb[local.environment]
       tez_runtime_unordered_output_buffer_size_mb   = local.tez_runtime_unordered_output_buffer_size_mb[local.environment]

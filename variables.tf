@@ -57,7 +57,7 @@ variable "emr_instance_type_master" {
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
     preprod     = "m5.4xlarge"
-    production  = "m5.24xlarge"
+    production  = "m5.16xlarge"
   }
 }
 
@@ -67,7 +67,7 @@ variable "emr_instance_type_core_one" {
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
     preprod     = "m5.4xlarge"
-    production  = "m5.24xlarge"
+    production  = "m5.16xlarge"
   }
 }
 
@@ -77,7 +77,7 @@ variable "emr_instance_type_core_two" {
     qa          = "m5a.4xlarge"
     integration = "m5a.4xlarge"
     preprod     = "m5a.4xlarge"
-    production  = "m5a.24xlarge"
+    production  = "m5a.16xlarge"
   }
 }
 
@@ -87,7 +87,7 @@ variable "emr_instance_type_core_three" {
     qa          = "r5a.4xlarge"
     integration = "r5a.4xlarge"
     preprod     = "r5a.4xlarge"
-    production  = "r5a.24xlarge"
+    production  = "r5a.16xlarge"
   }
 }
 
@@ -97,7 +97,7 @@ variable "emr_instance_type_core_four" {
     qa          = "r5.4xlarge"
     integration = "r5.4xlarge"
     preprod     = "r5.4xlarge"
-    production  = "r5.24xlarge"
+    production  = "r5.16xlarge"
   }
 }
 
@@ -107,7 +107,7 @@ variable "emr_core_instance_count" {
     qa          = "10"
     integration = "10"
     preprod     = "10"
-    production  = "25"
+    production  = "35"
   }
 }
 
@@ -188,87 +188,5 @@ variable "htme_data_location" {
     integration = "businessdata/mongo/ucdata/2020-08-07/full/"
     preprod     = "businessdata/mongo/ucdata/2020-07-06/full/"
     production  = "businessdata/mongo/ucdata/2020-07-26/full/"
-  }
-}
-
-# See https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-hadoop-task-config.html#emr-hadoop-task-config-m5 for yarn configuration justifications
-
-variable "yarn_map_memory_mb" {
-  default = {
-    development = "3584"
-    qa          = "3584"
-    integration = "3584"
-    preprod     = "3584"
-    production  = "8022"
-  }
-}
-
-variable "yarn_reduce_memory_mb" {
-  default = {
-    development = "7168"
-    qa          = "7168"
-    integration = "7168"
-    preprod     = "7168"
-    production  = "16044"
-  }
-}
-
-variable "yarn_app_mapreduce_am_resource_mb" {
-  default = {
-    development = "3584"
-    qa          = "3584"
-    integration = "3584"
-    preprod     = "3584"
-    production  = "8022"
-  }
-}
-
-variable "yarn_map_java_opts" {
-  default = {
-    development = "-Xmx2867m"
-    qa          = "-Xmx2867m"
-    integration = "-Xmx2867m"
-    preprod     = "-Xmx2867m"
-    production  = "-Xmx6418m"
-  }
-}
-
-variable "yarn_reduce_java_opts" {
-  default = {
-    development = "-Xmx5734m"
-    qa          = "-Xmx5734m"
-    integration = "-Xmx5734m"
-    preprod     = "-Xmx5734m"
-    production  = "-Xmx12826m"
-  }
-}
-
-variable "yarn_min_allocation_mb" {
-  default = {
-    development = "32"
-    qa          = "32"
-    integration = "32"
-    preprod     = "32"
-    production  = "2048"
-  }
-}
-
-variable "yarn_max_allocation_mb" {
-  default = {
-    development = "57344"
-    qa          = "57344"
-    integration = "57344"
-    preprod     = "57344"
-    production  = "385024"
-  }
-}
-
-variable "yarn_node_manager_resource_mb" {
-  default = {
-    development = "57344"
-    qa          = "57344"
-    integration = "57344"
-    preprod     = "57344"
-    production  = "385024"
   }
 }
