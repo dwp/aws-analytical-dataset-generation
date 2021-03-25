@@ -173,7 +173,7 @@ Configurations:
     "tez.am.container.reuse.non-local-fallback.enabled": "true"
     "tez.am.container.reuse.locality.delay-allocation-millis": "120000"
     "tez.runtime.io.sort.mb": "${tez_runtime_io_sort_mb}"
-    "tez.runtime.unordered.output.buffer.size-mb": "${tez_runtime_unordered_output_buffer_size_mb}
+    "tez.runtime.unordered.output.buffer.size-mb": "${tez_runtime_unordered_output_buffer_size_mb}"
 
 - Classification: "emrfs-site"
   Properties:
