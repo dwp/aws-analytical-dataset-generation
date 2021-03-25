@@ -141,6 +141,7 @@ Configurations:
     "hive.server2.async.exec.keepalive.time": "60"
     "hive.tez.min.partition.factor": "0.25"
     "hive.tez.max.partition.factor": "2.0"
+    "hive.exec.reducers.max": "2000"
 
 - Classification: "mapred-site"
   Properties:
