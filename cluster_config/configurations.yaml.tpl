@@ -14,11 +14,6 @@ Configurations:
   Properties:
     "maximizeResourceAllocation": "false"
 
-- Classification: "mapred-site"
-  Properties:
-    "mapred.job.queue.name": "mrqueue"
-    "mapreduce.job.queuename": "mrqueue"
-
 - Classification: "capacity-scheduler"
   Properties:
     "yarn.scheduler.capacity.root.queues": "default,appqueue1,appqueue2,mrqueue"
@@ -27,14 +22,14 @@ Configurations:
     "yarn.scheduler.capacity.root.default.capacity": "5"
     "yarn.scheduler.capacity.root.default.maximum-capacity": "10"
     "yarn.scheduler.capacity.root.default.acl_submit_applications": ""
-    "yarn.scheduler.capacity.root.appqueue1.capacity": "23"
+    "yarn.scheduler.capacity.root.appqueue1.capacity": "15"
     "yarn.scheduler.capacity.root.appqueue1.acl_submit_applications": "*"
     "yarn.scheduler.capacity.root.appqueue1.maximum-capacity": "90"
     "yarn.scheduler.capacity.root.appqueue1.state": "RUNNING"
     "yarn.scheduler.capacity.root.appqueue1.ordering-policy": "fair"
     "yarn.scheduler.capacity.root.appqueue1.ordering-policy.fair.enable-size-based-weight": "true"
     "yarn.scheduler.capacity.root.appqueue1.default-application-priority": "1"
-    "yarn.scheduler.capacity.root.appqueue2.capacity": "22"
+    "yarn.scheduler.capacity.root.appqueue2.capacity": "15"
     "yarn.scheduler.capacity.root.appqueue2.acl_submit_applications": "*"
     "yarn.scheduler.capacity.root.appqueue2.maximum-capacity": "90"
     "yarn.scheduler.capacity.root.appqueue2.state": "RUNNING"
@@ -42,7 +37,7 @@ Configurations:
     "yarn.scheduler.capacity.root.appqueue2.ordering-policy.fair.enable-size-based-weight": "true"
     "yarn.scheduler.capacity.root.appqueue2.default-application-priority": "1"
     "yarn.scheduler.capacity.root.mrqueue.ordering-policy.fair.enable-size-based-weight": "true"
-    "yarn.scheduler.capacity.root.mrqueue.capacity": "50"
+    "yarn.scheduler.capacity.root.mrqueue.capacity": "65"
     "yarn.scheduler.capacity.root.mrqueue.acl_submit_applications": "*"
     "yarn.scheduler.capacity.root.mrqueue.maximum-capacity": "90"
     "yarn.scheduler.capacity.root.mrqueue.state": "RUNNING"
@@ -114,7 +109,7 @@ Configurations:
     "hive.mapred.mode": "nonstrict"
     "hive.strict.checks.cartesian.product": "false"
     "hive.exec.parallel": "true"
-    "hive.exec.parallel.thread.number": "64"
+    "hive.exec.parallel.thread.number": "128"
     "hive.exec.failure.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
     "hive.exec.post.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
     "hive.exec.pre.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
@@ -130,32 +125,61 @@ Configurations:
     "hive.server2.tez.default.queues": "appqueue1, appqueue2"
     "hive.server2.tez.sessions.per.default.queue": "15"
     "hive.server2.tez.initialize.default.sessions": "true"
-    "hive.llap.enabled": "true"
-    "hive.llap.percent-allocation": "0.3"
-    "hive.llap.num-instances": "1"
+    "hive.tez.auto.reducer.parallelism": "true"
+    "hive.exec.reducers.bytes.per.reducer": "13421728"
+    "hive.optimize.reducededuplication.min.reducer": "1"
+    "hive.llap.enabled": "false"
     "hive.blobstore.optimizations.enabled": "false"
     "hive.prewarm.enabled": "true"
     "hive.tez.container.size": "${hive_tez_container_size}"
     "hive.tez.java.opts": "${hive_tez_java_opts}"
     "hive.auto.convert.join": "true"
-    "hive.auto.convert.join.noconditionaltask.size": "4915"
+    "hive.auto.convert.join.noconditionaltask.size": "${hive_auto_convert_join_noconditionaltask_size}"
     "hive.server2.tez.session.lifetime": "0"
     "hive.server2.async.exec.threads": "1000"
     "hive.server2.async.exec.wait.queue.size": "1000"
     "hive.server2.async.exec.keepalive.time": "60"
+    "hive.tez.min.partition.factor": "0.25"
+    "hive.tez.max.partition.factor": "2.0"
+
+- Classification: "mapred-site"
+  Properties:
+    "mapreduce.map.resource.vcores": "3"
+    "mapreduce.reduce.resource.vcores": "3"
+    "mapreduce.map.memory.mb": "${yarn_map_memory}"
+    "mapreduce.reduce.memory.mb": "${yarn_reduce_memory}"
+    "mapreduce.map.java.opts": "${yarn_map_java_opts}"
+    "mapreduce.reduce.java.opts": "${yarn_reduce_java_opts}"
+    "yarn.scheduler.minimum-allocation-mb": "${yarn_min_allocation_mb}"
+    "yarn.scheduler.maximum-allocation-mb": "${yarn_max_allocation_mb}"
+    "yarn.app.mapreduce.am.resource.mb": "${yarn_app_mapreduce_am_resource_mb}"
+    "mapred.job.queue.name": "mrqueue"
+    "mapreduce.job.queuename": "mrqueue"
+    "yarn.nodemanager.resource.memory-mb": "${yarn_node_manager_resource_mb}"
+    "yarn.scheduler.minimum-allocation-mb": "${yarn_min_allocation_mb}"
+    "yarn.scheduler.maximum-allocation-mb": "${yarn_max_allocation_mb}"
+    "yarn.app.mapreduce.am.resource.vcores": "10"
+    "mapred.reduce.tasks": "-1"
 
 - Classification: "tez-site"
   Properties:
+    "tez.task.resource.memory.mb": "${tez_task_resource_memory_mb}"
     "tez.grouping.min-size": "${tez_grouping_min_size}"
     "tez.grouping.max-size": "${tez_grouping_max_size}"
     "tez.am.resource.memory.mb": "${tez_am_resource_memory_mb}"
     "tez.am.launch.cmd-opts": "${tez_am_launch_cmd_opts}"
     "tez.am.container.reuse.enabled": "true"
+    "tez.runtime.pipelined.sorter.lazy-allocate.memory": "true"
+    "tez.am.container.reuse.non-local-fallback.enabled": "true"
+    "tez.am.container.reuse.locality.delay-allocation-millis": "120000"
+    "tez.runtime.io.sort.mb": "${tez_runtime_io_sort_mb}"
+    "tez.runtime.unordered.output.buffer.size-mb": "${tez_runtime_unordered_output_buffer_size_mb}
 
 - Classification: "emrfs-site"
   Properties:
     "fs.s3.maxConnections": "10000"
     "fs.s3.maxRetries": "20"
+
 - Classification: "spark-env"
   Configurations:
   - Classification: "export"
@@ -163,12 +187,14 @@ Configurations:
       "PYSPARK_PYTHON": "/usr/bin/python3"
       "S3_PUBLISH_BUCKET": "${s3_published_bucket}"
       "S3_HTME_BUCKET": "${s3_htme_bucket}"
+
 - Classification: "hadoop-env"
   Configurations:
   - Classification: "export"
     Properties:
       "HADOOP_NAMENODE_OPTS": "\"-javaagent:/opt/emr/metrics/dependencies/jmx_prometheus_javaagent-0.14.0.jar=7101:/opt/emr/metrics/prometheus_config.yml\""
       "HADOOP_DATANODE_OPTS": "\"-javaagent:/opt/emr/metrics/dependencies/jmx_prometheus_javaagent-0.14.0.jar=7103:/opt/emr/metrics/prometheus_config.yml\""
+
 - Classification: "yarn-env"
   Configurations:
   - Classification: "export"
