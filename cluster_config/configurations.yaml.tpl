@@ -41,7 +41,7 @@ Configurations:
     "yarn.scheduler.capacity.root.queue3.capacity": "30"
     "yarn.scheduler.capacity.root.queue3.acl_submit_applications": "*"
     "yarn.scheduler.capacity.root.queue3.maximum-capacity": "80"
-    "yarn.scheduler.capacity.root.queue3.state": "RUNNING
+    "yarn.scheduler.capacity.root.queue3.state": "RUNNING"
     "yarn.scheduler.capacity.root.queue3.ordering-policy": "fair"
     "yarn.scheduler.capacity.root.queue3.ordering-policy.fair.enable-size-based-weight": "true"
 
