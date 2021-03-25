@@ -164,7 +164,6 @@ Configurations:
 - Classification: "tez-site"
   Properties:
     "tez.task.resource.memory.mb": "${tez_task_resource_memory_mb}"
-    "tez.am.launch.cmd-opts": "${tez_am_launch_opts}"
     "tez.grouping.min-size": "${tez_grouping_min_size}"
     "tez.grouping.max-size": "${tez_grouping_max_size}"
     "tez.am.resource.memory.mb": "${tez_am_resource_memory_mb}"
