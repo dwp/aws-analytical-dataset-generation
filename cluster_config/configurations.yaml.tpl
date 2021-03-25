@@ -14,11 +14,6 @@ Configurations:
   Properties:
     "maximizeResourceAllocation": "false"
 
-- Classification: "mapred-site"
-  Properties:
-    "mapred.job.queue.name": "mrqueue"
-    "mapreduce.job.queuename": "mrqueue"
-
 - Classification: "capacity-scheduler"
   Properties:
     "yarn.scheduler.capacity.root.queues": "default,appqueue1,appqueue2,mrqueue"
@@ -156,6 +151,8 @@ Configurations:
     "yarn.scheduler.minimum-allocation-mb": "${yarn_min_allocation_mb}"
     "yarn.scheduler.maximum-allocation-mb": "${yarn_max_allocation_mb}"
     "yarn.app.mapreduce.am.resource.mb": "${yarn_app_mapreduce_am_resource_mb}"
+    "mapred.job.queue.name": "mrqueue"
+    "mapreduce.job.queuename": "mrqueue"
 
 - Classification: "tez-site"
   Properties:
