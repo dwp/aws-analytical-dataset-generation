@@ -296,6 +296,22 @@ locals {
     production  = "15360"
   }
 
+  tez_am_launch_opts = {
+    development = "-Xmx1024"
+    qa          = "-Xmx1024"
+    integration = "-Xmx1024"
+    preprod     = "-Xmx1024"
+    production  = "-Xmx12000"
+  }
+
+  tez_task_resource_memory_mb = {
+    development = "1024"
+    qa          = "1024"
+    integration = "1024"
+    preprod     = "1024"
+    production  = "4098"
+  }
+
   tez_am_launch_cmd_opts = {
     development = "-Xmx3072m"
     qa          = "-Xmx3072m"
