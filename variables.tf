@@ -195,80 +195,80 @@ variable "htme_data_location" {
 
 variable "yarn_map_memory_mb" {
   default = {
-    development = "3072"
-    qa          = "3072"
-    integration = "3072"
-    preprod     = "3072"
+    development = "3584"
+    qa          = "3584"
+    integration = "3584"
+    preprod     = "3584"
     production  = "8022"
   }
 }
 
 variable "yarn_reduce_memory_mb" {
   default = {
-    development = "6144"
-    qa          = "6144"
-    integration = "6144"
-    preprod     = "6144"
+    development = "7168"
+    qa          = "7168"
+    integration = "7168"
+    preprod     = "7168"
     production  = "16044"
   }
 }
 
 variable "yarn_app_mapreduce_am_resource_mb" {
   default = {
-    development = "6144"
-    qa          = "6144"
-    integration = "6144"
-    preprod     = "6144"
+    development = "3584"
+    qa          = "3584"
+    integration = "3584"
+    preprod     = "3584"
     production  = "8022"
   }
 }
 
 variable "yarn_map_java_opts" {
   default = {
-    development = "-Xmx2458m"
-    qa          = "-Xmx2458m"
-    integration = "-Xmx2458m"
-    preprod     = "-Xmx2458m"
+    development = "-Xmx2867m"
+    qa          = "-Xmx2867m"
+    integration = "-Xmx2867m"
+    preprod     = "-Xmx2867m"
     production  = "-Xmx6418m"
   }
 }
 
 variable "yarn_reduce_java_opts" {
   default = {
-    development = "-Xmx4916m"
-    qa          = "-Xmx4916m"
-    integration = "-Xmx4916m"
-    preprod     = "-Xmx4916m"
+    development = "-Xmx5734m"
+    qa          = "-Xmx5734m"
+    integration = "-Xmx5734m"
+    preprod     = "-Xmx5734m"
     production  = "-Xmx12826m"
   }
 }
 
 variable "yarn_min_allocation_mb" {
   default = {
-    development = "512"
-    qa          = "512"
-    integration = "512"
-    preprod     = "512"
+    development = "32"
+    qa          = "32"
+    integration = "32"
+    preprod     = "32"
     production  = "2048"
   }
 }
 
 variable "yarn_max_allocation_mb" {
   default = {
-    development = "24576"
-    qa          = "24576"
-    integration = "24576"
-    preprod     = "24576"
+    development = "57344"
+    qa          = "57344"
+    integration = "57344"
+    preprod     = "57344"
     production  = "385024"
   }
 }
 
 variable "yarn_node_manager_resource_mb" {
   default = {
-    development = "24576"
-    qa          = "24576"
-    integration = "24576"
-    preprod     = "24576"
+    development = "57344"
+    qa          = "57344"
+    integration = "57344"
+    preprod     = "57344"
     production  = "385024"
   }
 }
