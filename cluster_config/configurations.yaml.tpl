@@ -129,7 +129,7 @@ Configurations:
     "hive.llap.enabled": "true"
     "hive.llap.percent-allocation": "0.8"
     "hive.llap.num-instances": "${llap_number_of_instances}"
-    "hive.llap.daemon.yarn.container.mb": "${yarn_scheduler_max_allocation_mb}"
+    "hive.llap.daemon.yarn.container.mb": "${llap_daemon_yarn_container_mb}"
     "hive.blobstore.optimizations.enabled": "false"
     "hive.prewarm.enabled": "true"
     "hive.tez.container.size": "${hive_tez_container_size}"

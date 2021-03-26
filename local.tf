@@ -336,7 +336,8 @@ locals {
     production  = "-Xmx18893m"
   }
 
-  yarn_scheduler_max_allocation_mb = {
+  // This value should be the same as yarn.scheduler.maximum-allocation-mb
+  llap_daemon_yarn_container_mb = {
     development = "57344"
     qa          = "57344"
     integration = "57344"
