@@ -128,6 +128,9 @@ resource "aws_s3_bucket_object" "configurations" {
       spark_executor_instances                      = local.spark_executor_instances
       spark_default_parallelism                     = local.spark_default_parallelism
       environment                                   = local.environment
+      hive_tez_container_size                       = local.hive_tez_container_size[local.environment]
+      hive_tez_java_opts                            = local.hive_tez_java_opts[local.environment]
+      hive_auto_convert_join_noconditionaltask_size = local.hive_auto_convert_join_noconditionaltask_size[local.environment]
       tez_grouping_min_size                         = local.tez_grouping_min_size[local.environment]
       tez_grouping_max_size                         = local.tez_grouping_max_size[local.environment]
       tez_am_resource_memory_mb                     = local.tez_am_resource_memory_mb[local.environment]
