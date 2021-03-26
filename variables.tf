@@ -127,22 +127,7 @@ variable "spark_executor_instances" {
     qa          = 50
     integration = 50
     preprod     = 50
-    production  = 350 # More than possible as it won't create them if no core or memory available
-  }
-}
-
-
-# Note this isn't the amount of RAM the instance has; it's the maximum amount
-# that EMR automatically configures for YARN. See
-# https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-hadoop-task-config.html
-# (search for yarn.nodemanager.resource.memory-mb)
-variable "emr_yarn_memory_gb_per_core_instance" {
-  default = {
-    development = "48"  # Set for m5.4xlarge
-    qa          = "48"  # Set for m5.4xlarge
-    integration = "48"  # Set for m5.4xlarge
-    preprod     = "48"  # Set for m5.4xlarge
-    production  = "376" # Set for m5.24xlarge
+    production  = 500 # More than possible as it won't create them if no core or memory available
   }
 }
 

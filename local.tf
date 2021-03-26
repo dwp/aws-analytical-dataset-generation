@@ -352,4 +352,36 @@ locals {
     preprod     = "5"
     production  = "20"
   }
+
+  map_reduce_vcores_per_node = {
+    development = "10"
+    qa          = "10"
+    integration = "10"
+    preprod     = "10"
+    production  = "15"
+  }
+
+  map_reduce_vcores_per_task = {
+    development = "2"
+    qa          = "2"
+    integration = "2"
+    preprod     = "2"
+    production  = "5"
+  }
+
+  hive_max_reducers = {
+    development = "1099"
+    qa          = "1099"
+    integration = "1099"
+    preprod     = "1099"
+    production  = "3000"
+  }
+
+  hive_tez_sessions_per_queue = {
+    development = "10"
+    qa          = "10"
+    integration = "10"
+    preprod     = "10"
+    production  = "25"
+  }
 }
