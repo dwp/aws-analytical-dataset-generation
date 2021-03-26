@@ -123,7 +123,7 @@ Configurations:
     "mapred.job.queue.name": "mrqueue"
     "mapreduce.job.queuename": "mrqueue"
     "hive.server2.tez.default.queues": "appqueue1, appqueue2"
-    "hive.server2.tez.sessions.per.default.queue": "20"
+    "hive.server2.tez.sessions.per.default.queue": "25"
     "hive.server2.tez.initialize.default.sessions": "true"
     "hive.exec.reducers.bytes.per.reducer": "13421728"
     "hive.llap.enabled": "true"
@@ -142,15 +142,15 @@ Configurations:
     "hive.server2.async.exec.keepalive.time": "60"
     "hive.tez.min.partition.factor": "0.25"
     "hive.tez.max.partition.factor": "2.0"
-    "hive.exec.reducers.max": "2000"
+    "hive.exec.reducers.max": "3000"
 
 - Classification: "mapred-site"
   Properties:
-    "mapreduce.map.resource.vcores": "3"
-    "mapreduce.reduce.resource.vcores": "3"
+    "mapreduce.map.resource.vcores": "5"
+    "mapreduce.reduce.resource.vcores": "5"
     "mapred.job.queue.name": "mrqueue"
     "mapreduce.job.queuename": "mrqueue"
-    "yarn.app.mapreduce.am.resource.vcores": "10"
+    "yarn.app.mapreduce.am.resource.vcores": "15"
     "mapred.reduce.tasks": "-1"
 
 - Classification: "tez-site"
