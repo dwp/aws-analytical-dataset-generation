@@ -217,11 +217,11 @@ locals {
   }
 
   mongo_latest_version = {
-    development = "0.0.43"
-    qa          = "0.0.43"
-    integration = "0.0.43"
-    preprod     = "0.0.43"
-    production  = "0.0.43"
+    development = "0.0.48"
+    qa          = "0.0.48"
+    integration = "0.0.48"
+    preprod     = "0.0.48"
+    production  = "0.0.48"
   }
 
   skip_pdm_trigger_on_adg_completion = {
@@ -261,7 +261,7 @@ locals {
     qa          = "2688"
     integration = "2688"
     preprod     = "2688"
-    production  = "10752"
+    production  = "21614"
   }
 
   hive_tez_java_opts = {
@@ -269,15 +269,39 @@ locals {
     qa          = "-Xmx2150m"
     integration = "-Xmx2150m"
     preprod     = "-Xmx2150m"
-    production  = "-Xmx8600m"
+    production  = "-Xmx17400m"
+  }
+
+  hive_auto_convert_join_noconditionaltask_size = {
+    development = "896"
+    qa          = "896"
+    integration = "896"
+    preprod     = "896"
+    production  = "8168"
+  }
+
+  tez_runtime_unordered_output_buffer_size_mb = {
+    development = "268"
+    qa          = "268"
+    integration = "268"
+    preprod     = "268"
+    production  = "2148"
+  }
+
+  tez_runtime_io_sort_mb = {
+    development = "1075"
+    qa          = "1075"
+    integration = "1075"
+    preprod     = "1075"
+    production  = "8600"
   }
 
   tez_grouping_min_size = {
-    development = "134217728"
-    qa          = "134217728"
-    integration = "134217728"
-    preprod     = "134217728"
-    production  = "536870912"
+    development = "1342177"
+    qa          = "1342177"
+    integration = "1342177"
+    preprod     = "1342177"
+    production  = "52428800"
   }
 
   tez_grouping_max_size = {
@@ -293,7 +317,15 @@ locals {
     qa          = "3840"
     integration = "3840"
     preprod     = "3840"
-    production  = "15360"
+    production  = "23622"
+  }
+
+  tez_task_resource_memory_mb = {
+    development = "1024"
+    qa          = "1024"
+    integration = "1024"
+    preprod     = "1024"
+    production  = "8196"
   }
 
   tez_am_launch_cmd_opts = {
@@ -301,6 +333,6 @@ locals {
     qa          = "-Xmx3072m"
     integration = "-Xmx3072m"
     preprod     = "-Xmx3072m"
-    production  = "-Xmx12288m"
+    production  = "-Xmx18893m"
   }
 }

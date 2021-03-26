@@ -57,7 +57,7 @@ variable "emr_instance_type_master" {
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
     preprod     = "m5.4xlarge"
-    production  = "m5.24xlarge"
+    production  = "m5.16xlarge"
   }
 }
 
@@ -67,7 +67,7 @@ variable "emr_instance_type_core_one" {
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
     preprod     = "m5.4xlarge"
-    production  = "m5.24xlarge"
+    production  = "m5.16xlarge"
   }
 }
 
@@ -77,7 +77,7 @@ variable "emr_instance_type_core_two" {
     qa          = "m5a.4xlarge"
     integration = "m5a.4xlarge"
     preprod     = "m5a.4xlarge"
-    production  = "m5a.24xlarge"
+    production  = "m5a.16xlarge"
   }
 }
 
@@ -87,7 +87,7 @@ variable "emr_instance_type_core_three" {
     qa          = "r5a.4xlarge"
     integration = "r5a.4xlarge"
     preprod     = "r5a.4xlarge"
-    production  = "r5a.24xlarge"
+    production  = "r5a.16xlarge"
   }
 }
 
@@ -97,7 +97,7 @@ variable "emr_instance_type_core_four" {
     qa          = "r5.4xlarge"
     integration = "r5.4xlarge"
     preprod     = "r5.4xlarge"
-    production  = "r5.24xlarge"
+    production  = "r5.16xlarge"
   }
 }
 
@@ -107,7 +107,7 @@ variable "emr_core_instance_count" {
     qa          = "10"
     integration = "10"
     preprod     = "10"
-    production  = "25"
+    production  = "35"
   }
 }
 
