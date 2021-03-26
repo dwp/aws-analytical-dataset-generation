@@ -116,7 +116,7 @@ Configurations:
     "mapred.job.queue.name": "mrqueue"
     "mapreduce.job.queuename": "mrqueue"
     "hive.server2.tez.default.queues": "appqueue"
-    "hive.server2.tez.sessions.per.default.queue": "${[local.environment]}"
+    "hive.server2.tez.sessions.per.default.queue": "${hive_tez_sessions_per_queue}"
     "hive.server2.tez.initialize.default.sessions": "true"
     "hive.exec.reducers.bytes.per.reducer": "13421728"
     "hive.llap.enabled": "true"
