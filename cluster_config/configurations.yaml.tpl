@@ -6,9 +6,11 @@ Configurations:
     "yarn.nodemanager.remote-app-log-dir": "s3://${s3_log_bucket}/${s3_log_prefix}/yarn"
     "yarn.nodemanager.vmem-check-enabled": "false"
     "yarn.nodemanager.pmem-check-enabled": "false"
+
 - Classification: "spark"
   Properties:
     "maximizeResourceAllocation": "false"
+
 - Classification: "spark-defaults"
   Properties:
     "spark.yarn.jars": "/usr/lib/spark/jars/*,/opt/emr/metrics/dependencies/*"
@@ -85,11 +87,11 @@ Configurations:
     "hive.server2.tez.sessions.per.default.queue": "5"
     "hive.server2.tez.initialize.default.sessions": "true"
     "hive.blobstore.optimizations.enabled": "false"
-    %{~ if environment == "production" ~}
-    "hive.tez.container.size": "32768"
-    "hive.tez.java.opts": "-Xmx26214m"
-    "hive.auto.convert.join.noconditionaltask.size": "10922"
-    %{~ endif ~}
+    "hive.prewarm.enabled": "true"
+    "hive.tez.container.size": "${hive_tez_container_size}"
+    "hive.tez.java.opts": "${hive_tez_java_opts}"
+    "hive.auto.convert.join": "true"
+    "hive.auto.convert.join.noconditionaltask.size": "${hive_auto_convert_join_noconditionaltask_size}"
 
 - Classification: "tez-site"
   Properties:
