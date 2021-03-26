@@ -335,4 +335,12 @@ locals {
     preprod     = "-Xmx3072m"
     production  = "-Xmx18893m"
   }
+
+  llap_number_of_instances = {
+    development = "5"
+    qa          = "5"
+    integration = "5"
+    preprod     = "5"
+    production  = "15"
+  }
 }

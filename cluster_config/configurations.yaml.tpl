@@ -128,7 +128,7 @@ Configurations:
     "hive.exec.reducers.bytes.per.reducer": "13421728"
     "hive.llap.enabled": "true"
     "hive.llap.percent-allocation": "0.8"
-    "hive.llap.num-instances": "15"
+    "hive.llap.num-instances": "${llap_number_of_instances}"
     "hive.llap.daemon.yarn.container.mb": "32"
     "hive.blobstore.optimizations.enabled": "false"
     "hive.prewarm.enabled": "true"
