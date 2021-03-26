@@ -6,38 +6,9 @@ Configurations:
     "yarn.nodemanager.remote-app-log-dir": "s3://${s3_log_bucket}/${s3_log_prefix}/yarn"
     "yarn.nodemanager.vmem-check-enabled": "false"
     "yarn.nodemanager.pmem-check-enabled": "false"
-    "yarn.acl.enable": "true"
-    "yarn.resourcemanager.scheduler.monitor.enable": "true"
-    "yarn.resourcemanager.scheduler.class": "org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler"
-
 - Classification: "spark"
   Properties:
     "maximizeResourceAllocation": "false"
-
-- Classification: "capacity-scheduler"
-  Properties:
-    "yarn.scheduler.capacity.root.queues": "default,appqueue,mrqueue"
-    "yarn.scheduler.capacity.maximum-am-resource-percent": "0.9"
-    "yarn.scheduler.capacity.resource-calculator": "org.apache.hadoop.yarn.util.resource.DominantResourceCalculator"
-    "yarn.scheduler.capacity.root.default.capacity": "5"
-    "yarn.scheduler.capacity.root.default.maximum-capacity": "10"
-    "yarn.scheduler.capacity.root.default.acl_submit_applications": ""
-    "yarn.scheduler.capacity.root.appqueue.capacity": "25"
-    "yarn.scheduler.capacity.root.appqueue.acl_submit_applications": "*"
-    "yarn.scheduler.capacity.root.appqueue.maximum-capacity": "90"
-    "yarn.scheduler.capacity.root.appqueue.state": "RUNNING"
-    "yarn.scheduler.capacity.root.appqueue.ordering-policy": "fair"
-    "yarn.scheduler.capacity.root.appqueue.ordering-policy.fair.enable-size-based-weight": "true"
-    "yarn.scheduler.capacity.root.appqueue.default-application-priority": "1"
-    "yarn.scheduler.capacity.root.mrqueue.ordering-policy.fair.enable-size-based-weight": "true"
-    "yarn.scheduler.capacity.root.mrqueue.capacity": "70"
-    "yarn.scheduler.capacity.root.mrqueue.acl_submit_applications": "*"
-    "yarn.scheduler.capacity.root.mrqueue.maximum-capacity": "90"
-    "yarn.scheduler.capacity.root.mrqueue.state": "RUNNING"
-    "yarn.scheduler.capacity.root.mrqueue.ordering-policy": "fair"
-    "yarn.scheduler.capacity.root.mrqueue.ordering-policy.fair.enable-size-based-weight": "true"
-    "yarn.scheduler.capacity.root.mrqueue.default-application-priority": "2"
-
 - Classification: "spark-defaults"
   Properties:
     "spark.yarn.jars": "/usr/lib/spark/jars/*,/opt/emr/metrics/dependencies/*"
@@ -59,7 +30,6 @@ Configurations:
     "spark.driver.cores": "${spark_driver_cores}"
     "spark.executor.instances": "${spark_executor_instances}"
     "spark.default.parallelism": "${spark_default_parallelism}"
-    "spark.yarn.queue": "appqueue"
 
 - Classification: "spark-hive-site"
   Properties:
@@ -102,7 +72,6 @@ Configurations:
     "hive.mapred.mode": "nonstrict"
     "hive.strict.checks.cartesian.product": "false"
     "hive.exec.parallel": "true"
-    "hive.exec.parallel.thread.number": "128"
     "hive.exec.failure.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
     "hive.exec.post.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
     "hive.exec.pre.hooks": "org.apache.hadoop.hive.ql.hooks.ATSHook"
@@ -113,42 +82,17 @@ Configurations:
     "hive.vectorized.execution.ptf.enabled": "false"
     "hive.vectorized.row.serde.inputformat.excludes": ""
     "hive_timeline_logging_enabled": "true"
-    "mapred.job.queue.name": "mrqueue"
-    "mapreduce.job.queuename": "mrqueue"
-    "hive.server2.tez.default.queues": "appqueue"
-    "hive.server2.tez.sessions.per.default.queue": "${hive_tez_sessions_per_queue}"
+    "hive.server2.tez.sessions.per.default.queue": "5"
     "hive.server2.tez.initialize.default.sessions": "true"
-    "hive.exec.reducers.bytes.per.reducer": "13421728"
-    "hive.llap.enabled": "true"
-    "hive.llap.percent-allocation": "0.8"
-    "hive.llap.num-instances": "${llap_number_of_instances}"
-    "hive.llap.daemon.yarn.container.mb": "${llap_daemon_yarn_container_mb}"
     "hive.blobstore.optimizations.enabled": "false"
-    "hive.prewarm.enabled": "true"
-    "hive.tez.container.size": "${hive_tez_container_size}"
-    "hive.tez.java.opts": "${hive_tez_java_opts}"
-    "hive.auto.convert.join": "true"
-    "hive.auto.convert.join.noconditionaltask.size": "${hive_auto_convert_join_noconditionaltask_size}"
-    "hive.server2.tez.session.lifetime": "0"
-    "hive.server2.async.exec.threads": "1000"
-    "hive.server2.async.exec.wait.queue.size": "1000"
-    "hive.server2.async.exec.keepalive.time": "60"
-    "hive.tez.min.partition.factor": "0.25"
-    "hive.tez.max.partition.factor": "2.0"
-    "hive.exec.reducers.max": "${hive_max_reducers}"
-
-- Classification: "mapred-site"
-  Properties:
-    "mapreduce.map.resource.vcores": "${map_reduce_vcores_per_task}"
-    "mapreduce.reduce.resource.vcores": "${map_reduce_vcores_per_task}"
-    "mapred.job.queue.name": "mrqueue"
-    "mapreduce.job.queuename": "mrqueue"
-    "yarn.app.mapreduce.am.resource.vcores": "${map_reduce_vcores_per_node}"
-    "mapred.reduce.tasks": "-1"
+    %{~ if environment == "production" ~}
+    "hive.tez.container.size": "32768"
+    "hive.tez.java.opts": "-Xmx26214m"
+    "hive.auto.convert.join.noconditionaltask.size": "10922"
+    %{~ endif ~}
 
 - Classification: "tez-site"
   Properties:
-    "tez.task.resource.memory.mb": "${tez_task_resource_memory_mb}"
     "tez.grouping.min-size": "${tez_grouping_min_size}"
     "tez.grouping.max-size": "${tez_grouping_max_size}"
     "tez.am.resource.memory.mb": "${tez_am_resource_memory_mb}"
@@ -161,7 +105,6 @@ Configurations:
   Properties:
     "fs.s3.maxConnections": "10000"
     "fs.s3.maxRetries": "20"
-
 - Classification: "spark-env"
   Configurations:
   - Classification: "export"
@@ -169,14 +112,12 @@ Configurations:
       "PYSPARK_PYTHON": "/usr/bin/python3"
       "S3_PUBLISH_BUCKET": "${s3_published_bucket}"
       "S3_HTME_BUCKET": "${s3_htme_bucket}"
-
 - Classification: "hadoop-env"
   Configurations:
   - Classification: "export"
     Properties:
       "HADOOP_NAMENODE_OPTS": "\"-javaagent:/opt/emr/metrics/dependencies/jmx_prometheus_javaagent-0.14.0.jar=7101:/opt/emr/metrics/prometheus_config.yml\""
       "HADOOP_DATANODE_OPTS": "\"-javaagent:/opt/emr/metrics/dependencies/jmx_prometheus_javaagent-0.14.0.jar=7103:/opt/emr/metrics/prometheus_config.yml\""
-
 - Classification: "yarn-env"
   Configurations:
   - Classification: "export"
