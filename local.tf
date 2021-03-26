@@ -336,6 +336,14 @@ locals {
     production  = "-Xmx18893m"
   }
 
+  yarn_scheduler_max_allocation_mb = {
+    development = "57344"
+    qa          = "57344"
+    integration = "57344"
+    preprod     = "57344"
+    production  = "253952"
+  }
+
   llap_number_of_instances = {
     development = "5"
     qa          = "5"
