@@ -5,6 +5,9 @@
 The choice was made that each EMR cluster should have its own configuration - this is because ADG Full and Incremental run different applications and configurations for one application would cause a negative effect on the other.
 Therefore ADG Full and Incremental have individual configurations, `configuration` and `configuration-incremental` respectively.
 
+## Useful information
+AWS EMR provides Yarn timeline UI and Tez UI - this allows you to check the status, timings and logs of a task at a very granular level. Familiarise yourself with these interfaces.
+
 ## Configuration explanation
 
 ### Yarn configuration
@@ -16,6 +19,8 @@ Each queue has a defined minimum percentage of cluster resources available to it
 For the `default` queue, that capacity is 5% with a burst of 10%.
 For the `appqueue` queue, that capacity is 25% with a burst of 90%.
 For the `mrqueue` queue, that capacity is 70% with a burst of 90%.
+
+See Capacity Scheduler for more details.
 
 *`mrqueue` means Map Reduce Queue. Mappers and reducers spawned by Tez are ran as seperate applications in Yarn. We can control the queue they use by the config setting `mapreduce.job.queuename`.
 
@@ -91,6 +96,20 @@ These values define the minimum and maximum size of a split, for a task. We have
 ### Capacity Scheduler
 AWS EMR by default uses Yarn Capacity scheduler for its queues.
 
+Traditional usage of the capacity scheduler allows for a clusters resources to be allocated departmentally, with an burstable capacity if the cluster is not being utilised, offering an elastic nature.
+With the deprecation of 'Fair Scheduler', it's ordering policy has been implemented into capacity scheduler.
+
+Capacity scheduler has three policies for ordering tasks:
+First In First Out - A single job can utilise 100% of the clusters resources, only this application runs until it has completed.
+Capacity scheduler - Allows for resource allocation with elastic maximum capacity.
+Fair scheduler - Assigns resources to all tasks running across multiple queues, such that on average, they get a fair share of the clusters resources. Job priorities can be provided to sway the resource utilisation in favour of a job.
+
+[Source|https://medium.com/@sohamghosh/schedulers-in-emr-6445180b44f6]
+[Source|https://blog.cloudera.com/yarn-capacity-scheduler/]
+[Source|https://hadoop.apache.org/docs/r1.2.1/capacity_scheduler.html]
+
+Note: We believe by configuring three seperate queues, one which for map reducers, one for application tasks and one for default (all misc. tasks), we've seen the most noticeable speed improvement and greater utilisation of the cluster.
+
 ## How does Yarn, Hive and Tez link together
 It took trial and error to understand this, so it's worth making a record to skip hours of pain.
 
@@ -106,3 +125,4 @@ https://cwiki.apache.org/confluence/display/TEZ/How+initial+task+parallelism+wor
 https://community.cloudera.com/t5/Community-Articles/Hive-LLAP-deep-dive/ta-p/248893
 https://blog.cloudera.com/yarn-capacity-scheduler/
 https://medium.com/@sohamghosh/schedulers-in-emr-6445180b44f6
+https://hadoop.apache.org/docs/r1.2.1/capacity_scheduler.html
