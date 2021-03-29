@@ -260,23 +260,25 @@ locals {
     qa          = "2688"
     integration = "2688"
     preprod     = "2688"
-    production  = "21614"
+    production  = "15360"
   }
 
+  # 0.8 of hive_tez_container_size
   hive_tez_java_opts = {
     development = "-Xmx2150m"
     qa          = "-Xmx2150m"
     integration = "-Xmx2150m"
     preprod     = "-Xmx2150m"
-    production  = "-Xmx17400m"
+    production  = "-Xmx12288m"
   }
 
+  # 0.33 of hive_tez_container_size
   hive_auto_convert_join_noconditionaltask_size = {
     development = "896"
     qa          = "896"
     integration = "896"
     preprod     = "896"
-    production  = "8168"
+    production  = "5068"
   }
 
   tez_runtime_unordered_output_buffer_size_mb = {
@@ -287,12 +289,13 @@ locals {
     production  = "2148"
   }
 
+  # 0.4 of hive_tez_container_size
   tez_runtime_io_sort_mb = {
     development = "1075"
     qa          = "1075"
     integration = "1075"
     preprod     = "1075"
-    production  = "8600"
+    production  = "6144"
   }
 
   tez_grouping_min_size = {
@@ -312,13 +315,14 @@ locals {
   }
 
   tez_am_resource_memory_mb = {
-    development = "3840"
-    qa          = "3840"
-    integration = "3840"
-    preprod     = "3840"
-    production  = "23622"
+    development = "1024"
+    qa          = "1024"
+    integration = "1024"
+    preprod     = "1024"
+    production  = "12288"
   }
 
+  # 0.8 of hive_tez_container_size
   tez_task_resource_memory_mb = {
     development = "1024"
     qa          = "1024"
@@ -327,12 +331,13 @@ locals {
     production  = "8196"
   }
 
+  # 0.8 of tez_am_resource_memory_mb
   tez_am_launch_cmd_opts = {
-    development = "-Xmx3072m"
-    qa          = "-Xmx3072m"
-    integration = "-Xmx3072m"
-    preprod     = "-Xmx3072m"
-    production  = "-Xmx18893m"
+    development = "-Xmx819m"
+    qa          = "-Xmx819m"
+    integration = "-Xmx819m"
+    preprod     = "-Xmx819m"
+    production  = "-Xmx6556m"
   }
 
   // This value should be the same as yarn.scheduler.maximum-allocation-mb
@@ -381,6 +386,6 @@ locals {
     qa          = "10"
     integration = "10"
     preprod     = "10"
-    production  = "25"
+    production  = "35"
   }
 }

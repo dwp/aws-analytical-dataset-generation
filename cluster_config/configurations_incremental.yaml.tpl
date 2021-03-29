@@ -123,7 +123,9 @@ Configurations:
     "hive.llap.percent-allocation": "0.8"
     "hive.llap.num-instances": "${llap_number_of_instances}"
     "hive.llap.daemon.yarn.container.mb": "${llap_daemon_yarn_container_mb}"
-    "hive.blobstore.optimizations.enabled": "false"
+    "hive.blobstore.optimizations.enabled": "true"
+    "hive.blobstore.use.blobstore.as.scratchdir": "false"
+    "hive.exec.input.listing.max.threads": "2"
     "hive.prewarm.enabled": "true"
     "hive.tez.container.size": "${hive_tez_container_size}"
     "hive.tez.java.opts": "${hive_tez_java_opts}"
@@ -136,6 +138,14 @@ Configurations:
     "hive.tez.min.partition.factor": "0.25"
     "hive.tez.max.partition.factor": "2.0"
     "hive.exec.reducers.max": "${hive_max_reducers}"
+    "hive.default.fileformat": "ORC"
+    "hive.exec.orc.default.compress": "ZLIB"
+    "hive.exec.orc.default.block.size": "268435456"
+    "hive.exec.orc.encoding.strategy": "SPEED"
+    "hive.exec.orc.split.strategy": "HYBRID"
+    "hive.exec.orc.default.row.index.stride": "10000"
+    "hive.exec.orc.default.stripe.size": "268435456"
+    "hive.exec.orc.compression.strategy": "SPEED"
 
 - Classification: "mapred-site"
   Properties:
@@ -154,6 +164,7 @@ Configurations:
     "tez.am.resource.memory.mb": "${tez_am_resource_memory_mb}"
     "tez.am.launch.cmd-opts": "${tez_am_launch_cmd_opts}"
     "tez.am.container.reuse.enabled": "true"
+    "tez.am.container.reuse.non-local-fallback.enabled": "true"
     "tez.runtime.io.sort.mb": "${tez_runtime_io_sort_mb}"
     "tez.runtime.unordered.output.buffer.size-mb": "${tez_runtime_unordered_output_buffer_size_mb}"
 
