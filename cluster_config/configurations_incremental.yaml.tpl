@@ -154,6 +154,7 @@ Configurations:
     "tez.am.resource.memory.mb": "${tez_am_resource_memory_mb}"
     "tez.am.launch.cmd-opts": "${tez_am_launch_cmd_opts}"
     "tez.am.container.reuse.enabled": "true"
+    "tez.am.container.reuse.non-local-fallback.enabled": "true"
     "tez.runtime.io.sort.mb": "${tez_runtime_io_sort_mb}"
     "tez.runtime.unordered.output.buffer.size-mb": "${tez_runtime_unordered_output_buffer_size_mb}"
 
