@@ -54,7 +54,7 @@ This parameter tells Tez which Yarn queue to assign tasks to. Note: If you set t
 ### LLAP Configuration
 Hive 'Live Long and Process'
 
-A good description of LLAP:
+A good description of LLAP [Source](https://community.cloudera.com/t5/Community-Articles/Hive-LLAP-deep-dive/ta-p/248893):
 
 LLAP provides a hybrid execution model. It consists of a long-lived daemon which replaces direct interactions with the HDFS Data Node, and a tightly integrated DAG-based framework.
 Functionality such as caching, pre-fetching, some query processing and access control are moved into the daemon. Small/short queries are largely processed by this daemon directly, while any heavy lifting will be performed in standard YARN containers.
@@ -68,7 +68,7 @@ Slider AM: The slider application which spawns, monitor and maintains the LLAP d
 TEZ AM query coordinator: TEZ Am which accepts the incoming the request of the user and execute them in executors available inside the LLAP daemons (JVM).
 LLAP daemons: To facilitate caching and JIT optimization, and to eliminate most of the startup costs, a daemon runs on the worker nodes on the cluster. The daemon handles I/O, caching, and query fragment execution.
 
-[Source](https://community.cloudera.com/t5/Community-Articles/Hive-LLAP-deep-dive/ta-p/248893)
+[Reference](https://community.cloudera.com/t5/Community-Articles/Hive-LLAP-deep-dive/ta-p/248893)
 
 For our configuration, we are controlling the number of LLAP instances across the cluster with `hive.llap.num-instances`, controlling the resources provided to LLAP with `hive.llap.percent-allocation`.
 For `hive.llap.percent-allocation`, this is a percentage given in decimal form. eg 0.1 is 10%.
@@ -91,7 +91,7 @@ Other configurations to consider, which affect the number of map reducers a task
 `tez.grouping.min-size` & `tez.grouping.max-size`
 These values define the minimum and maximum size of a split, for a task. We have seen Tez log information when we had set these values too high for the data it was processing. Look out for that!
 
-[Source](https://cwiki.apache.org/confluence/display/TEZ/How+initial+task+parallelism+works)
+[Reference](https://cwiki.apache.org/confluence/display/TEZ/How+initial+task+parallelism+works)
 
 ### Capacity Scheduler
 AWS EMR by default uses Yarn Capacity scheduler for its queues.
@@ -104,9 +104,9 @@ First In First Out - A single job can utilise 100% of the clusters resources, on
 Capacity scheduler - Allows for resource allocation with elastic maximum capacity.
 Fair scheduler - Assigns resources to all tasks running across multiple queues, such that on average, they get a fair share of the clusters resources. Job priorities can be provided to sway the resource utilisation in favour of a job.
 
-[Source](https://medium.com/@sohamghosh/schedulers-in-emr-6445180b44f6)
-[Source](https://blog.cloudera.com/yarn-capacity-scheduler/)
-[Source](https://hadoop.apache.org/docs/r1.2.1/capacity_scheduler.html)
+[Reference: Schedulers in EMR](https://medium.com/@sohamghosh/schedulers-in-emr-6445180b44f6)
+[Reference: Capacity Scheduler](https://blog.cloudera.com/yarn-capacity-scheduler/)
+[Reference: Capacity Scheduler Documentation](https://hadoop.apache.org/docs/r1.2.1/capacity_scheduler.html)
 
 Note: We believe by configuring three seperate queues, one which for map reducers, one for application tasks and one for default (all misc. tasks), we've seen the most noticeable speed improvement and greater utilisation of the cluster.
 
