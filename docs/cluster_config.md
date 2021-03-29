@@ -87,12 +87,12 @@ We have configured the Yarn queue that map reduce tasks use with `mapreduce.job.
 
 In addition to the Yarn queue capacity, which defines the maximum resources that can be used by map reducers; we have configured additional values.
 
-`hive.exec.reducers.max` - To configure the maximum number of map reducers and single task can have. More is not always better. A balance must be found.
+`tez.grouping.min-size` & `tez.grouping.max-size` - These values define the minimum and maximum size of a split, for a task. We have seen Tez log information when we had set these values too high for the data it was processing. Look out for that!
 `yarn.app.mapreduce.am.resource.vcores` - The vCores per map reducer
 
-Other configurations to consider, which affect the number of map reducers a task gets / requires:
-`tez.grouping.min-size` & `tez.grouping.max-size`
-These values define the minimum and maximum size of a split, for a task. We have seen Tez log information when we had set these values too high for the data it was processing. Look out for that!
+`hive.exec.reducers.bytes.per.reducer` - To configure the number of reducers any single task can have
+`hive.exec.reducers.max` - To configure the maximum number of mappers, any single task can have. More is not always better. A balance must be found.
+
 
 [Reference](https://cwiki.apache.org/confluence/display/TEZ/How+initial+task+parallelism+works)
 
