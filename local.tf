@@ -346,7 +346,7 @@ locals {
     qa          = "57344"
     integration = "57344"
     preprod     = "57344"
-    production  = "253952"
+    production  = "385024"
   }
 
   llap_number_of_instances = {
@@ -386,6 +386,6 @@ locals {
     qa          = "10"
     integration = "10"
     preprod     = "10"
-    production  = "35"
+    production  = "50"
   }
 }
