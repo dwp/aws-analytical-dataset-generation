@@ -184,6 +184,7 @@ resource "aws_s3_bucket_object" "configurations_incremental" {
       map_reduce_vcores_per_task                    = local.map_reduce_vcores_per_task[local.environment]
       map_reduce_vcores_per_node                    = local.map_reduce_vcores_per_node[local.environment]
       hive_tez_sessions_per_queue                   = local.hive_tez_sessions_per_queue[local.environment]
+      hive_bytes_per_reducer                        = local.hive_bytes_per_reducer[local.environment]
     }
   )
 }

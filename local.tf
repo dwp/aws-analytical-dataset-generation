@@ -281,6 +281,14 @@ locals {
     production  = "5068"
   }
 
+  hive_bytes_per_reducer = {
+    development = "52428800"
+    qa          = "52428800"
+    integration = "52428800"
+    preprod     = "52428800"
+    production  = "52428800"
+  }
+
   tez_runtime_unordered_output_buffer_size_mb = {
     development = "268"
     qa          = "268"
