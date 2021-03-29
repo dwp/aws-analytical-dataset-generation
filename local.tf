@@ -366,18 +366,18 @@ locals {
   }
 
   map_reduce_vcores_per_node = {
-    development = "10"
-    qa          = "10"
-    integration = "10"
-    preprod     = "10"
+    development = "5"
+    qa          = "5"
+    integration = "5"
+    preprod     = "5"
     production  = "15"
   }
 
   map_reduce_vcores_per_task = {
-    development = "2"
-    qa          = "2"
-    integration = "2"
-    preprod     = "2"
+    development = "1"
+    qa          = "1"
+    integration = "1"
+    preprod     = "1"
     production  = "5"
   }
 
