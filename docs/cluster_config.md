@@ -31,6 +31,9 @@ At the next level, HiveServer, which operates and controls Tez, has Tez containe
 
 Vectorisation is disabled due to undiagnosed SQL failures that it causes.
 
+As Hive utilises S3 as the data store location, it's important for `hive.blobstore.optimizations.enabled` to be `true`. This parameter allows Hive to utilise local HDFS as the intermediate storage location for map reducers.
+The end result of the map reducers will be saved to S3, but this reduces the traffic to and from S3, offering a performance enhancement by using local storage.
+
 ### Tez configuration
 Finally, at the highest level we have Tez configuration. Tez is responsible for organising and executing the tasks ran against Hive.
 Tez has two elements to consider: Tez Application Master (known as Tez AM) and Tez tasks.
