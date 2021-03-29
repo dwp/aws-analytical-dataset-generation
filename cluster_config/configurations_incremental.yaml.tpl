@@ -138,6 +138,14 @@ Configurations:
     "hive.tez.min.partition.factor": "0.25"
     "hive.tez.max.partition.factor": "2.0"
     "hive.exec.reducers.max": "${hive_max_reducers}"
+    "hive.default.fileformat": "ORC"
+    "hive.exec.orc.default.compress": "ZLIB"
+    "hive.exec.orc.default.block.size": "268435456"
+    "hive.exec.orc.encoding.strategy": "SPEED"
+    "hive.exec.orc.split.strategy": "HYBRID"
+    "hive.exec.orc.default.row.index.stride": "10000"
+    "hive.exec.orc.default.stripe.size": "268435456"
+    "hive.exec.orc.compression.strategy": "SPEED"
 
 - Classification: "mapred-site"
   Properties:
