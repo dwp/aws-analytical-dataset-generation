@@ -143,10 +143,10 @@ variable "emr_instance_type_weighting_core_four" {
 
 variable "emr_instance_type_core_five" {
   default = {
-    development = "i3en.3xlarge"
-    qa          = "i3en.3xlarge"
-    integration = "i3en.3xlarge"
-    preprod     = "i3en.3xlarge"
+    development = "i3en.6xlarge"
+    qa          = "i3en.6xlarge"
+    integration = "i3en.6xlarge"
+    preprod     = "i3en.6xlarge"
     production  = "i3en.12xlarge"
   }
 }
@@ -201,7 +201,7 @@ variable "emr_spot_timeout_duration_minutes" {
     qa          = "5"
     integration = "5"
     preprod     = "5"
-    production  = "20"
+    production  = "5"
   }
 }
 
