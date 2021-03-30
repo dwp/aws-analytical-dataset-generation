@@ -16,6 +16,15 @@ resources:
     check_every: 720h
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
+  - name: aws-analytical-dataset-generation-branch
+    type: git
+    source:
+      branch: arm-instances
+      repository: dwp/aws-analytical-dataset-generation
+      uri: https://github.com/dwp/aws-analytical-dataset-generation.git
+    check_every: 720h
+    webhook_token: ((dataworks.concourse_github_webhook_token))
+
   - name: aws-analytical-dataset-generation-update-pipeline
     type: git
     source:
@@ -106,6 +115,18 @@ resources:
         is-public: false
         state: available
         name: dw-al2-emr-ami-*
+
+  - name: al2-emr-ami-arm
+    type: ami
+    check_every: 1h
+    source:
+      aws_role_arn: arn:aws:iam::((dataworks.aws_management_acc)):role/ci
+      region: ((dataworks.aws_region))
+      filters:
+        owner-id: ((dataworks.aws_management_acc))
+        is-public: false
+        state: available
+        name: dw-al2-emr-ami-arm-*
 
   - name: manage-mysql-user-release
     type: github-release
