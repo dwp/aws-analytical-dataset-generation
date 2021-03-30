@@ -53,7 +53,7 @@ variable "emr_release" {
 
 variable "emr_instance_type_master" {
   default = {
-    development = "r5a.4xlarge"
+    development = "r6g.4xlarge"
     qa          = "r5a.4xlarge"
     integration = "r5a.4xlarge"
     preprod     = "r5a.4xlarge"
@@ -63,7 +63,7 @@ variable "emr_instance_type_master" {
 
 variable "emr_instance_type_core_one" {
   default = {
-    development = "r5.4xlarge"
+    development = "r6g.4xlarge"
     qa          = "r5.4xlarge"
     integration = "r5.4xlarge"
     preprod     = "r5.4xlarge"
@@ -83,7 +83,7 @@ variable "emr_instance_type_weighting_core_one" {
 
 variable "emr_instance_type_core_two" {
   default = {
-    development = "r5a.4xlarge"
+    development = "r6gd.4xlarge"
     qa          = "r5a.4xlarge"
     integration = "r5a.4xlarge"
     preprod     = "r5a.4xlarge"
@@ -103,7 +103,7 @@ variable "emr_instance_type_weighting_core_two" {
 
 variable "emr_instance_type_core_three" {
   default = {
-    development = "r5d.4xlarge"
+    development = "m6g.8xlarge"
     qa          = "r5d.4xlarge"
     integration = "r5d.4xlarge"
     preprod     = "r5d.4xlarge"
@@ -123,7 +123,7 @@ variable "emr_instance_type_weighting_core_three" {
 
 variable "emr_instance_type_core_four" {
   default = {
-    development = "m5.8xlarge"
+    development = "m6g.12xlarge"
     qa          = "m5.8xlarge"
     integration = "m5.8xlarge"
     preprod     = "m5.8xlarge"
@@ -143,7 +143,7 @@ variable "emr_instance_type_weighting_core_four" {
 
 variable "emr_instance_type_core_five" {
   default = {
-    development = "i3en.6xlarge"
+    development = "m6g.16xlarge"
     qa          = "i3en.6xlarge"
     integration = "i3en.6xlarge"
     preprod     = "i3en.6xlarge"
