@@ -26,8 +26,7 @@ Instances:
     TargetOnDemandCapacity: ${core_instance_capacity_on_demand}
     TargetSpotCapacity: ${core_instance_capacity_spot}
     LaunchSpecifications:
-    - SpotSpecification:
-        AllocationStrategy: "capacity-optimized"
+      SpotSpecification:
         BlockDurationMinutes: ${spot_block_duration_minutes}
         TimeoutDurationMinutes: ${spot_timeout_duration_minutes}
         TimeoutAction: "SWITCH_TO_ON_DEMAND"
@@ -40,7 +39,7 @@ Instances:
           VolumesPerInstance: 1
       InstanceType: "${instance_type_core_one}"
       BidPriceAsPercentageOfOnDemandPrice: 100
-      WeightedCapacity: "${instance_type_weighting_core_one}"
+      WeightedCapacity: ${instance_type_weighting_core_one}
     - EbsConfiguration:
         EbsBlockDeviceConfigs:
         - VolumeSpecification:
@@ -49,7 +48,7 @@ Instances:
           VolumesPerInstance: 1
       InstanceType: "${instance_type_core_two}"
       BidPriceAsPercentageOfOnDemandPrice: 100
-      WeightedCapacity: "${instance_type_weighting_core_two}"
+      WeightedCapacity: ${instance_type_weighting_core_two}
     - EbsConfiguration:
         EbsBlockDeviceConfigs:
         - VolumeSpecification:
@@ -58,7 +57,7 @@ Instances:
           VolumesPerInstance: 1
       InstanceType: "${instance_type_core_three}"
       BidPriceAsPercentageOfOnDemandPrice: 100
-      WeightedCapacity: "${instance_type_weighting_core_three}"
+      WeightedCapacity: ${instance_type_weighting_core_three}
     - EbsConfiguration:
         EbsBlockDeviceConfigs:
         - VolumeSpecification:
@@ -67,7 +66,7 @@ Instances:
           VolumesPerInstance: 1
       InstanceType: "${instance_type_core_four}"
       BidPriceAsPercentageOfOnDemandPrice: 100
-      WeightedCapacity: "${instance_type_weighting_core_four}"
+      WeightedCapacity: ${instance_type_weighting_core_four}
     - EbsConfiguration:
         EbsBlockDeviceConfigs:
         - VolumeSpecification:
@@ -76,4 +75,4 @@ Instances:
           VolumesPerInstance: 1
       InstanceType: "${instance_type_core_five}"
       BidPriceAsPercentageOfOnDemandPrice: 100
-      WeightedCapacity: "${instance_type_weighting_core_five}"
+      WeightedCapacity: ${instance_type_weighting_core_five}
