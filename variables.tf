@@ -175,11 +175,11 @@ variable "emr_core_instance_capacity_on_demand" {
 # This is weighted not a count of instances
 variable "emr_core_instance_capacity_spot" {
   default = {
-    development = "75"
-    qa          = "75"
-    integration = "75"
-    preprod     = "75"
-    production  = "200"
+    development = "45"
+    qa          = "45"
+    integration = "45"
+    preprod     = "45"
+    production  = "150"
   }
 }
 
