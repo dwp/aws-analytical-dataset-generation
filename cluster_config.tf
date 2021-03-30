@@ -37,10 +37,20 @@ resource "aws_s3_bucket_object" "instances" {
       slave_sg                 = aws_security_group.adg_slave.id
       service_access_sg        = aws_security_group.adg_emr_service.id
       instance_type_core_one   = var.emr_instance_type_core_one[local.environment]
+      instance_type_weighting_core_one   = var.emr_instance_type_core_one[local.environment]
       instance_type_core_two   = var.emr_instance_type_core_two[local.environment]
+      instance_type_weighting_core_two   = var.emr_instance_type_weighting_core_two[local.environment]
       instance_type_core_three = var.emr_instance_type_core_three[local.environment]
+      instance_type_weighting_core_three   = var.emr_instance_type_weighting_core_three[local.environment]
+      instance_type_core_four = var.emr_instance_type_core_four[local.environment]
+      instance_type_weighting_core_four   = var.emr_instance_type_weighting_core_four[local.environment]
+      instance_type_core_five = var.emr_instance_type_core_five[local.environment]
+      instance_type_weighting_core_five   = var.emr_instance_type_weighting_core_five[local.environment]
       instance_type_master     = var.emr_instance_type_master[local.environment]
-      core_instance_count      = var.emr_core_instance_count[local.environment]
+      core_instance_capacity_on_demand      = var.emr_core_instance_capacity_on_demand[local.environment]
+      core_instance_capacity_spot      = var.emr_core_instance_capacity_spot[local.environment]
+      spot_block_duration_minutes = var.emr_spot_block_duration_minutes[local.environment]
+      spot_timeout_duration_minutes = var.emr_spot_timeout_duration_minutes[local.environment]
     }
   )
 }
