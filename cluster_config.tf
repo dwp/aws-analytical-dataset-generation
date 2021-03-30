@@ -39,7 +39,6 @@ resource "aws_s3_bucket_object" "instances" {
       instance_type_core_one   = var.emr_instance_type_core_one[local.environment]
       instance_type_core_two   = var.emr_instance_type_core_two[local.environment]
       instance_type_core_three = var.emr_instance_type_core_three[local.environment]
-      instance_type_core_four  = var.emr_instance_type_core_four[local.environment]
       instance_type_master     = var.emr_instance_type_master[local.environment]
       core_instance_count      = var.emr_core_instance_count[local.environment]
     }
@@ -185,6 +184,7 @@ resource "aws_s3_bucket_object" "configurations_incremental" {
       map_reduce_vcores_per_task                    = local.map_reduce_vcores_per_task[local.environment]
       map_reduce_vcores_per_node                    = local.map_reduce_vcores_per_node[local.environment]
       hive_tez_sessions_per_queue                   = local.hive_tez_sessions_per_queue[local.environment]
+      hive_bytes_per_reducer                        = local.hive_bytes_per_reducer[local.environment]
     }
   )
 }

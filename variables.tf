@@ -53,51 +53,41 @@ variable "emr_release" {
 
 variable "emr_instance_type_master" {
   default = {
-    development = "m5.4xlarge"
-    qa          = "m5.4xlarge"
-    integration = "m5.4xlarge"
-    preprod     = "m5.4xlarge"
-    production  = "m5.16xlarge"
+    development = "r5.4xlarge"
+    qa          = "r5.4xlarge"
+    integration = "r5.4xlarge"
+    preprod     = "r5.4xlarge"
+    production  = "r5.12xlarge"
   }
 }
 
 variable "emr_instance_type_core_one" {
   default = {
-    development = "m5.4xlarge"
-    qa          = "m5.4xlarge"
-    integration = "m5.4xlarge"
-    preprod     = "m5.4xlarge"
-    production  = "m5.16xlarge"
+    development = "r5.4xlarge"
+    qa          = "r5.4xlarge"
+    integration = "r5.4xlarge"
+    preprod     = "r5.4xlarge"
+    production  = "r5.12xlarge"
   }
 }
 
 variable "emr_instance_type_core_two" {
   default = {
-    development = "m5a.4xlarge"
-    qa          = "m5a.4xlarge"
-    integration = "m5a.4xlarge"
-    preprod     = "m5a.4xlarge"
-    production  = "m5a.16xlarge"
+    development = "r5a.4xlarge"
+    qa          = "r5a.4xlarge"
+    integration = "r5a.4xlarge"
+    preprod     = "r5a.4xlarge"
+    production  = "r5a.12xlarge"
   }
 }
 
 variable "emr_instance_type_core_three" {
   default = {
-    development = "r5a.4xlarge"
-    qa          = "r5a.4xlarge"
-    integration = "r5a.4xlarge"
-    preprod     = "r5a.4xlarge"
-    production  = "r5a.16xlarge"
-  }
-}
-
-variable "emr_instance_type_core_four" {
-  default = {
-    development = "r5.4xlarge"
-    qa          = "r5.4xlarge"
-    integration = "r5.4xlarge"
-    preprod     = "r5.4xlarge"
-    production  = "r5.16xlarge"
+    development = "r5d.4xlarge"
+    qa          = "r5d.4xlarge"
+    integration = "r5d.4xlarge"
+    preprod     = "r5d.4xlarge"
+    production  = "r5d.12xlarge"
   }
 }
 
