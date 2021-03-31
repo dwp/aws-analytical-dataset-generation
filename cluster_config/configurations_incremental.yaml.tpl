@@ -118,7 +118,7 @@ Configurations:
     "hive.server2.tez.default.queues": "appqueue"
     "hive.server2.tez.sessions.per.default.queue": "${hive_tez_sessions_per_queue}"
     "hive.server2.tez.initialize.default.sessions": "true"
-    "hive.exec.reducers.bytes.per.reducer": "13421728"
+    "hive.exec.reducers.bytes.per.reducer": "${hive_bytes_per_reducer}"
     "hive.llap.enabled": "true"
     "hive.llap.percent-allocation": "0.8"
     "hive.llap.num-instances": "${llap_number_of_instances}"

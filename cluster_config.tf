@@ -29,19 +29,28 @@ resource "aws_s3_bucket_object" "instances" {
   key    = "emr/adg/instances.yaml"
   content = templatefile("${path.module}/cluster_config/instances.yaml.tpl",
     {
-      keep_cluster_alive       = local.keep_cluster_alive[local.environment]
-      add_master_sg            = aws_security_group.adg_common.id
-      add_slave_sg             = aws_security_group.adg_common.id
-      subnet_ids               = join(",", data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.ids)
-      master_sg                = aws_security_group.adg_master.id
-      slave_sg                 = aws_security_group.adg_slave.id
-      service_access_sg        = aws_security_group.adg_emr_service.id
-      instance_type_core_one   = var.emr_instance_type_core_one[local.environment]
-      instance_type_core_two   = var.emr_instance_type_core_two[local.environment]
-      instance_type_core_three = var.emr_instance_type_core_three[local.environment]
-      instance_type_core_four  = var.emr_instance_type_core_four[local.environment]
-      instance_type_master     = var.emr_instance_type_master[local.environment]
-      core_instance_count      = var.emr_core_instance_count[local.environment]
+      keep_cluster_alive                 = local.keep_cluster_alive[local.environment]
+      add_master_sg                      = aws_security_group.adg_common.id
+      add_slave_sg                       = aws_security_group.adg_common.id
+      subnet_ids                         = join(",", data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.ids)
+      master_sg                          = aws_security_group.adg_master.id
+      slave_sg                           = aws_security_group.adg_slave.id
+      service_access_sg                  = aws_security_group.adg_emr_service.id
+      instance_type_core_one             = var.emr_instance_type_core_one[local.environment]
+      instance_type_weighting_core_one   = var.emr_instance_type_weighting_core_one[local.environment]
+      instance_type_core_two             = var.emr_instance_type_core_two[local.environment]
+      instance_type_weighting_core_two   = var.emr_instance_type_weighting_core_two[local.environment]
+      instance_type_core_three           = var.emr_instance_type_core_three[local.environment]
+      instance_type_weighting_core_three = var.emr_instance_type_weighting_core_three[local.environment]
+      instance_type_core_four            = var.emr_instance_type_core_four[local.environment]
+      instance_type_weighting_core_four  = var.emr_instance_type_weighting_core_four[local.environment]
+      instance_type_core_five            = var.emr_instance_type_core_five[local.environment]
+      instance_type_weighting_core_five  = var.emr_instance_type_weighting_core_five[local.environment]
+      instance_type_master               = var.emr_instance_type_master[local.environment]
+      core_instance_capacity_on_demand   = var.emr_core_instance_capacity_on_demand[local.environment]
+      core_instance_capacity_spot        = var.emr_core_instance_capacity_spot[local.environment]
+      spot_block_duration_minutes        = var.emr_spot_block_duration_minutes[local.environment]
+      spot_timeout_duration_minutes      = var.emr_spot_timeout_duration_minutes[local.environment]
     }
   )
 }
@@ -185,6 +194,7 @@ resource "aws_s3_bucket_object" "configurations_incremental" {
       map_reduce_vcores_per_task                    = local.map_reduce_vcores_per_task[local.environment]
       map_reduce_vcores_per_node                    = local.map_reduce_vcores_per_node[local.environment]
       hive_tez_sessions_per_queue                   = local.hive_tez_sessions_per_queue[local.environment]
+      hive_bytes_per_reducer                        = local.hive_bytes_per_reducer[local.environment]
     }
   )
 }
