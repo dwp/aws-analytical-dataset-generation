@@ -25,14 +25,14 @@
 
     # No sudo needed to write to file for any of the below, so redirect is fine
     #shellcheck disable=SC2024
-    sudo -E $PIP install boto3 >> /var/log/adg/install-boto3.log 2>&1
+    sudo -E "$PIP" install boto3 >> "/var/log/adg/install-boto3.log" 2>&1
     #shellcheck disable=SC2024
-    sudo -E $PIP install requests >> /var/log/adg/install-requests.log 2>&1
+    sudo -E "$PIP" install requests >> "/var/log/adg/install-requests.log" 2>&1
 
     #shellcheck disable=SC2024
     {
         sudo yum install -y python3-devel
-        sudo -E $PIP install pycrypto
+        sudo -E "$PIP" install pycrypto
         sudo yum remove -y python3-devel
     } >> /var/log/adg/install-pycrypto.log 2>&1
 
