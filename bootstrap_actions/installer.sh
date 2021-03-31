@@ -32,7 +32,9 @@
     #shellcheck disable=SC2024
     {
         sudo yum install -y python3-devel
+        sudo -e "$PIP" uninstall pycryptodome
         sudo -E "$PIP" install pycrypto
+        sudo -e "$PIP" install pycryptodome
         sudo yum remove -y python3-devel
     } >> /var/log/adg/install-pycrypto.log 2>&1
 
