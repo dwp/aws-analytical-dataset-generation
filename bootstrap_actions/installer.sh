@@ -36,9 +36,13 @@
     #shellcheck disable=SC2024
     {
         sudo yum install -y python3-devel
-        sudo -E $PIP install pycrypto requests
+        sudo -E $PIP install pycrypto
         sudo yum remove -y python3-devel
     } >> /var/log/adg/install-pycrypto.log 2>&1
+
+    {
+        sudo -E $PIP install requests
+    } >> /var/log/adg/install-python-requirements.log 2>&1
 
     log_wrapper_message "Completed the installer.sh step of the EMR Cluster"
 
