@@ -121,7 +121,7 @@ We have set it to `appqueue`, this is the same name as a Yarn queue.
 
 Tez pushes applications directly to the Yarn queue(s) you specify. If those tasks spawn mappers or reducers, those mappers and reducers are configured to use the highest capacity queue `mrqueue`.
 It is our understanding that mappers and reducers are the lowest denominator in the performance of the system. By increasing the resources available, the number of maximum mappers or reducers for a task and giving them the highest queue priority, they finish quickly and efficiently.
-Once the mappers and reducers finish, they all the Tez task which is awaiting completion on the `appqueue` to finish also, therefore progressing two queues.
+Once the mappers and reducers finish, they allow the Tez task which is awaiting completion on the `appqueue` to finish also, therefore progressing two queues.
 
 ## Resources
 https://cwiki.apache.org/confluence/display/TEZ/How+initial+task+parallelism+works
