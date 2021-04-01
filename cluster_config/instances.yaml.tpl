@@ -5,7 +5,7 @@ Instances:
   - "${add_master_sg}"
   AdditionalSlaveSecurityGroups:
   - "${add_slave_sg}"
-  Ec2SubnetIds: "${subnet_id}"
+  Ec2SubnetId: "${subnet_id}"
   EmrManagedMasterSecurityGroup: "${master_sg}"
   EmrManagedSlaveSecurityGroup: "${slave_sg}"
   ServiceAccessSecurityGroup: "${service_access_sg}"
@@ -15,9 +15,9 @@ Instances:
     TargetOnDemandCapacity: 1
     LaunchSpecifications:
       OnDemandSpecification:
+        AllocationStrategy: "lowest-price"
         CapacityReservationOptions:
           CapacityReservationPreference: "${capacity_reservation_preference}"
-          CapacityReservationResourceGroupArn: "${capacity_reservation_arn}"
           UsageStrategy: "use-capacity-reservations-first"
     InstanceTypeConfigs:
     - EbsConfiguration:
@@ -32,9 +32,9 @@ Instances:
     TargetOnDemandCapacity: ${core_instance_count}
     LaunchSpecifications:
       OnDemandSpecification:
+        AllocationStrategy: "lowest-price"
         CapacityReservationOptions:
           CapacityReservationPreference: "${capacity_reservation_preference}"
-          CapacityReservationResourceGroupArn: "${capacity_reservation_arn}"
           UsageStrategy: "use-capacity-reservations-first"
     InstanceTypeConfigs:
     - EbsConfiguration:
