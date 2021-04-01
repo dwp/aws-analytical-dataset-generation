@@ -413,11 +413,13 @@ locals {
     production  = data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.id
   }
 
+  emr_subnet_non_capacity_reserved_environments = "eu-west-2b"
+
   emr_subnet_id = {
-    development = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, "eu-west-2a")].id
+    development = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, local.emr_subnet_non_capacity_reserved_environments)].id
     qa          = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.availability_zone)].id
-    integration = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, "eu-west-2a")].id
-    preprod     = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, "eu-west-2a")].id
+    integration = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, local.emr_subnet_non_capacity_reserved_environments)].id
+    preprod     = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, local.emr_subnet_non_capacity_reserved_environments)].id
     production  = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.availability_zone)].id
   }
 }
