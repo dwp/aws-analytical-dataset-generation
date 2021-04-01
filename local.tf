@@ -405,5 +405,13 @@ locals {
     production  = "open"
   }
 
+  emr_capacity_reservation_usage_strategy = {
+    development = ""
+    qa          = "use-capacity-reservations-first"
+    integration = ""
+    preprod     = ""
+    production  = "use-capacity-reservations-first"
+  }
+
   emr_subnet_non_capacity_reserved_environments = "eu-west-2b"
 }

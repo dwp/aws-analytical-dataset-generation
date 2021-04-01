@@ -18,7 +18,7 @@ Instances:
         AllocationStrategy: "lowest-price"
         CapacityReservationOptions:
           CapacityReservationPreference: "${capacity_reservation_preference}"
-          UsageStrategy: "use-capacity-reservations-first"
+          UsageStrategy: "${capacity_reservation_usage_strategy}"
     InstanceTypeConfigs:
     - EbsConfiguration:
         EbsBlockDeviceConfigs:
@@ -35,7 +35,7 @@ Instances:
         AllocationStrategy: "lowest-price"
         CapacityReservationOptions:
           CapacityReservationPreference: "${capacity_reservation_preference}"
-          UsageStrategy: "use-capacity-reservations-first"
+          UsageStrategy: "${capacity_reservation_usage_strategy}"
     InstanceTypeConfigs:
     - EbsConfiguration:
         EbsBlockDeviceConfigs:
