@@ -396,4 +396,28 @@ locals {
     preprod     = "10"
     production  = "50"
   }
+
+  emr_capacity_reservation_preference = {
+    development = "none"
+    qa          = "open"
+    integration = "none"
+    preprod     = "none"
+    production  = "open"
+  }
+
+  emr_capacity_reservation_arn = {
+    development = ""
+    qa          = data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.arn
+    integration = ""
+    preprod     = ""
+    production  = data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.arn
+  }
+
+  emr_subnet_ids = {
+    development = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, "eu-west-2a")]
+    qa          = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.availability_zone)]
+    integration = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, "eu-west-2a")]
+    preprod     = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, "eu-west-2a")]
+    production  = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.availability_zone)]
+  }
 }
