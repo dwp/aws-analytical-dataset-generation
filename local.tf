@@ -1,10 +1,15 @@
 locals {
   emr_cluster_name         = "aws-analytical-dataset-generator"
-  hbase_root_path          = format("s3://%s", data.terraform_remote_state.ingest.outputs.s3_buckets.hbase_rootdir)
   secret_name_full         = "/concourse/dataworks/adg/fulls"
   secret_name_incremental  = "/concourse/dataworks/adg/incrementals"
   pdm_lambda_launcher_name = "pdm_cw_emr_launcher"
   pdm_lambda_cw_trigger    = "${local.pdm_lambda_launcher_name}-scheduled-rule"
+  common_emr_tags = merge(
+    local.common_tags,
+    {
+      for-use-with-amazon-emr-managed-policies = "true"
+    },
+  )
   common_tags = {
     Environment  = local.environment
     Application  = local.emr_cluster_name
@@ -127,6 +132,7 @@ locals {
   cw_agent_bootstrap_loggrp_name       = "/app/analytical_dataset_generator/bootstrap_actions"
   cw_agent_steps_loggrp_name           = "/app/analytical_dataset_generator/step_logs"
   cw_agent_yarnspark_loggrp_name       = "/app/analytical_dataset_generator/yarn-spark_logs"
+  cw_agent_tests_loggrp_name           = "/app/analytical_dataset_generator/tests_logs"
   cw_agent_metrics_collection_interval = 60
 
   s3_log_prefix          = "emr/analytical_dataset_generator"
@@ -210,11 +216,11 @@ locals {
   }
 
   mongo_latest_version = {
-    development = "0.0.36"
-    qa          = "0.0.36"
-    integration = "0.0.36"
-    preprod     = "0.0.36"
-    production  = "0.0.36"
+    development = "0.0.49"
+    qa          = "0.0.49"
+    integration = "0.0.49"
+    preprod     = "0.0.49"
+    production  = "0.0.49"
   }
 
   skip_pdm_trigger_on_adg_completion = {
@@ -248,4 +254,164 @@ locals {
     preprod     = false
     production  = true
   }
+
+  hive_tez_container_size = {
+    development = "2688"
+    qa          = "2688"
+    integration = "2688"
+    preprod     = "2688"
+    production  = "15360"
+  }
+
+  # 0.8 of hive_tez_container_size
+  hive_tez_java_opts = {
+    development = "-Xmx2150m"
+    qa          = "-Xmx2150m"
+    integration = "-Xmx2150m"
+    preprod     = "-Xmx2150m"
+    production  = "-Xmx12288m"
+  }
+
+  # 0.33 of hive_tez_container_size
+  hive_auto_convert_join_noconditionaltask_size = {
+    development = "896"
+    qa          = "896"
+    integration = "896"
+    preprod     = "896"
+    production  = "5068"
+  }
+
+  hive_bytes_per_reducer = {
+    development = "52428800"
+    qa          = "52428800"
+    integration = "52428800"
+    preprod     = "52428800"
+    production  = "52428800"
+  }
+
+  tez_runtime_unordered_output_buffer_size_mb = {
+    development = "268"
+    qa          = "268"
+    integration = "268"
+    preprod     = "268"
+    production  = "2148"
+  }
+
+  # 0.4 of hive_tez_container_size
+  tez_runtime_io_sort_mb = {
+    development = "1075"
+    qa          = "1075"
+    integration = "1075"
+    preprod     = "1075"
+    production  = "6144"
+  }
+
+  tez_grouping_min_size = {
+    development = "1342177"
+    qa          = "1342177"
+    integration = "1342177"
+    preprod     = "1342177"
+    production  = "52428800"
+  }
+
+  tez_grouping_max_size = {
+    development = "268435456"
+    qa          = "268435456"
+    integration = "268435456"
+    preprod     = "268435456"
+    production  = "1073741824"
+  }
+
+  tez_am_resource_memory_mb = {
+    development = "1024"
+    qa          = "1024"
+    integration = "1024"
+    preprod     = "1024"
+    production  = "12288"
+  }
+
+  # 0.8 of hive_tez_container_size
+  tez_task_resource_memory_mb = {
+    development = "1024"
+    qa          = "1024"
+    integration = "1024"
+    preprod     = "1024"
+    production  = "8196"
+  }
+
+  # 0.8 of tez_am_resource_memory_mb
+  tez_am_launch_cmd_opts = {
+    development = "-Xmx819m"
+    qa          = "-Xmx819m"
+    integration = "-Xmx819m"
+    preprod     = "-Xmx819m"
+    production  = "-Xmx6556m"
+  }
+
+  // This value should be the same as yarn.scheduler.maximum-allocation-mb
+  llap_daemon_yarn_container_mb = {
+    development = "57344"
+    qa          = "57344"
+    integration = "57344"
+    preprod     = "57344"
+    production  = "385024"
+  }
+
+  llap_number_of_instances = {
+    development = "5"
+    qa          = "5"
+    integration = "5"
+    preprod     = "5"
+    production  = "20"
+  }
+
+  map_reduce_vcores_per_node = {
+    development = "5"
+    qa          = "5"
+    integration = "5"
+    preprod     = "5"
+    production  = "15"
+  }
+
+  map_reduce_vcores_per_task = {
+    development = "1"
+    qa          = "1"
+    integration = "1"
+    preprod     = "1"
+    production  = "5"
+  }
+
+  hive_max_reducers = {
+    development = "1099"
+    qa          = "1099"
+    integration = "1099"
+    preprod     = "1099"
+    production  = "3000"
+  }
+
+  hive_tez_sessions_per_queue = {
+    development = "10"
+    qa          = "10"
+    integration = "10"
+    preprod     = "10"
+    production  = "50"
+  }
+
+  emr_capacity_reservation_preference = {
+    development = "none"
+    qa          = "open"
+    integration = "none"
+    preprod     = "none"
+    production  = "open"
+  }
+
+  emr_capacity_reservation_usage_strategy = {
+    development = ""
+    qa          = "use-capacity-reservations-first"
+    integration = ""
+    preprod     = ""
+    production  = "use-capacity-reservations-first"
+  }
+
+  emr_subnet_non_capacity_reserved_environments = "eu-west-2b"
 }

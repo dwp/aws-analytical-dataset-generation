@@ -8,6 +8,7 @@ cwa_log_group_name="$3"
 cwa_bootstrap_loggrp_name="$5"
 cwa_steps_loggrp_name="$6"
 cwa_yarnspark_loggrp_name="$7"
+cwa_tests_loggrp_name="$8"
 
 export AWS_DEFAULT_REGION="$${4}"
 
@@ -66,9 +67,9 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/metrics_setup.log",
+            "file_path": "/var/log/adg/metrics-setup.log",
             "log_group_name": "$${cwa_bootstrap_loggrp_name}",
-            "log_stream_name": "{instance_id}-metrics_setup.log",
+            "log_stream_name": "{instance_id}-metrics-setup.log",
             "timezone": "UTC"
           },
           {
@@ -183,6 +184,12 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "file_path": "/var/log/adg/excuteUpdateToDo.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
             "log_stream_name": "{instance_id}-excuteUpdateToDo.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/e2e.log",
+            "log_group_name": "$${cwa_tests_loggrp_name}",
+            "log_stream_name": "{instance_id}-e2e.log",
             "timezone": "UTC"
           }
 

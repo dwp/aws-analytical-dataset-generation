@@ -53,61 +53,32 @@ variable "emr_release" {
 
 variable "emr_instance_type_master" {
   default = {
-    development = "m5.2xlarge"
-    qa          = "m5.2xlarge"
-    integration = "m5.2xlarge"
-    preprod     = "m5.2xlarge"
-    production  = "m5.24xlarge"
+    development = "m5.4xlarge"
+    qa          = "m5.4xlarge"
+    integration = "m5.4xlarge"
+    preprod     = "m5.4xlarge"
+    production  = "m5.16xlarge"
   }
 }
 
 variable "emr_instance_type_core_one" {
   default = {
-    development = "m5.2xlarge"
-    qa          = "m5.2xlarge"
-    integration = "m5.2xlarge"
-    preprod     = "m5.2xlarge"
-    production  = "m5.24xlarge"
+    development = "m5.4xlarge"
+    qa          = "m5.4xlarge"
+    integration = "m5.4xlarge"
+    preprod     = "m5.4xlarge"
+    production  = "m5.16xlarge"
   }
 }
 
-variable "emr_instance_type_core_two" {
-  default = {
-    development = "m5a.2xlarge"
-    qa          = "m5a.2xlarge"
-    integration = "m5a.2xlarge"
-    preprod     = "m5a.2xlarge"
-    production  = "m5a.24xlarge"
-  }
-}
-
-variable "emr_instance_type_core_three" {
-  default = {
-    development = "r5a.2xlarge"
-    qa          = "r5a.2xlarge"
-    integration = "r5a.2xlarge"
-    preprod     = "r5a.2xlarge"
-    production  = "r5a.24xlarge"
-  }
-}
-
-variable "emr_instance_type_core_four" {
-  default = {
-    development = "r5.2xlarge"
-    qa          = "r5.2xlarge"
-    integration = "r5.2xlarge"
-    preprod     = "r5.2xlarge"
-    production  = "r5.24xlarge"
-  }
-}
-
+# Count of instances
 variable "emr_core_instance_count" {
   default = {
-    development = "5"
-    qa          = "5"
-    integration = "5"
-    preprod     = "5"
-    production  = "25"
+    development = "10"
+    qa          = "10"
+    integration = "10"
+    preprod     = "10"
+    production  = "35"
   }
 }
 
@@ -123,26 +94,11 @@ variable "spark_kyro_buffer" {
 
 variable "spark_executor_instances" {
   default = {
-    development = 14
-    qa          = 14
-    integration = 14
-    preprod     = 14
-    production  = 350 # More than possible as it won't create them if no core or memory available
-  }
-}
-
-
-# Note this isn't the amount of RAM the instance has; it's the maximum amount
-# that EMR automatically configures for YARN. See
-# https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-hadoop-task-config.html
-# (search for yarn.nodemanager.resource.memory-mb)
-variable "emr_yarn_memory_gb_per_core_instance" {
-  default = {
-    development = "24"  # Set for m5.2xlarge
-    qa          = "24"  # Set for m5.2xlarge
-    integration = "24"  # Set for m5.2xlarge
-    preprod     = "24"  # Set for m5.2xlarge
-    production  = "376" # Set for m5.24xlarge
+    development = 50
+    qa          = 50
+    integration = 50
+    preprod     = 50
+    production  = 500 # More than possible as it won't create them if no core or memory available
   }
 }
 
