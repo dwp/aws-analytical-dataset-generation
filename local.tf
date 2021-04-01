@@ -405,13 +405,5 @@ locals {
     production  = "open"
   }
 
-  emr_capacity_reservation_arn = {
-    development = ""
-    qa          = data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.arn
-    integration = ""
-    preprod     = ""
-    production  = data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.arn
-  }
-
   emr_subnet_non_capacity_reserved_environments = "eu-west-2b"
 }
