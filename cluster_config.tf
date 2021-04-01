@@ -37,13 +37,14 @@ resource "aws_s3_bucket_object" "instances" {
         data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, local.emr_subnet_non_capacity_reserved_environments)].id :
         data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.availability_zone)].id
       )
-      master_sg                       = aws_security_group.adg_master.id
-      slave_sg                        = aws_security_group.adg_slave.id
-      service_access_sg               = aws_security_group.adg_emr_service.id
-      instance_type_core_one          = var.emr_instance_type_core_one[local.environment]
-      instance_type_master            = var.emr_instance_type_master[local.environment]
-      core_instance_count             = var.emr_core_instance_count[local.environment]
-      capacity_reservation_preference = local.emr_capacity_reservation_preference[local.environment]
+      master_sg                           = aws_security_group.adg_master.id
+      slave_sg                            = aws_security_group.adg_slave.id
+      service_access_sg                   = aws_security_group.adg_emr_service.id
+      instance_type_core_one              = var.emr_instance_type_core_one[local.environment]
+      instance_type_master                = var.emr_instance_type_master[local.environment]
+      core_instance_count                 = var.emr_core_instance_count[local.environment]
+      capacity_reservation_preference     = local.emr_capacity_reservation_preference[local.environment]
+      capacity_reservation_usage_strategy = local.emr_capacity_reservation_usage_strategy[local.environment]
     }
   )
 }
