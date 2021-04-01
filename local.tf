@@ -413,7 +413,7 @@ locals {
     production  = data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.arn
   }
 
-  emr_subnet_ids = {
+  emr_subnet_id = {
     development = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, "eu-west-2a")]
     qa          = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.availability_zone)]
     integration = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, "eu-west-2a")]

@@ -5,7 +5,7 @@ Instances:
   - "${add_master_sg}"
   AdditionalSlaveSecurityGroups:
   - "${add_slave_sg}"
-  Ec2SubnetIds: ${subnet_ids}
+  Ec2SubnetIds: "${subnet_id}"
   EmrManagedMasterSecurityGroup: "${master_sg}"
   EmrManagedSlaveSecurityGroup: "${slave_sg}"
   ServiceAccessSecurityGroup: "${service_access_sg}"
