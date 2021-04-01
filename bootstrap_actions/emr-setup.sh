@@ -14,6 +14,7 @@ chmod u+x /opt/emr/create_pdm_trigger.py
 chmod u+x /opt/emr/resume_step.sh
 chmod u+x /opt/emr/update_dynamo.sh
 
+
 (
     # Import the logging functions
     source /opt/emr/logging.sh
@@ -93,7 +94,7 @@ EOF
     --jks-only true >> /var/log/adg/acm-cert-retriever.log 2>&1
     
     #shellcheck disable=SC2024
-    sudo -E acm-cert-retriever \
+    sudo -E env "PATH=$PATH" acm-cert-retriever \
     --acm-cert-arn "${acm_cert_arn}" \
     --acm-key-passphrase "$ACM_KEY_PASSWORD" \
     --private-key-alias "${private_key_alias}" \
