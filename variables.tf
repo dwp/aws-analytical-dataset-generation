@@ -53,7 +53,7 @@ variable "emr_release" {
 
 variable "emr_instance_type_master" {
   default = {
-    development = "m5.4xlarge"
+    development = "m6g.4xlarge"
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
     preprod     = "m5.4xlarge"
@@ -63,7 +63,7 @@ variable "emr_instance_type_master" {
 
 variable "emr_instance_type_core_one" {
   default = {
-    development = "m5.4xlarge"
+    development = "m6g.4xlarge"
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
     preprod     = "m5.4xlarge"
