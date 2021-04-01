@@ -18,7 +18,6 @@ Instances:
         AllocationStrategy: "lowest-price"
         CapacityReservationOptions:
           CapacityReservationPreference: "${capacity_reservation_preference}"
-          CapacityReservationResourceGroupArn: "${capacity_reservation_arn}"
           UsageStrategy: "use-capacity-reservations-first"
     InstanceTypeConfigs:
     - EbsConfiguration:
@@ -36,7 +35,6 @@ Instances:
         AllocationStrategy: "lowest-price"
         CapacityReservationOptions:
           CapacityReservationPreference: "${capacity_reservation_preference}"
-          CapacityReservationResourceGroupArn: "${capacity_reservation_arn}"
           UsageStrategy: "use-capacity-reservations-first"
     InstanceTypeConfigs:
     - EbsConfiguration:
