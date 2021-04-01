@@ -16,30 +16,30 @@ data "aws_iam_policy_document" "emr_capacity_reservations" {
     effect = "Allow"
 
     actions = [
-        "ec2:CreateLaunchTemplateVersion"
+      "ec2:CreateLaunchTemplateVersion"
     ]
 
-	resources = ["*"]
+    resources = ["*"]
   }
 
   statement {
     effect = "Allow"
 
     actions = [
-		"ec2:DescribeCapacityReservations"
+      "ec2:DescribeCapacityReservations"
     ]
 
-	resources = ["*"]
+    resources = ["*"]
   }
 
   statement {
     effect = "Allow"
 
     actions = [
-		"resource-groups:ListGroupResources"
+      "resource-groups:ListGroupResources"
     ]
 
-	resources = ["*"]
+    resources = ["*"]
   }
 }
 
