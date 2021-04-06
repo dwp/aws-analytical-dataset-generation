@@ -144,7 +144,7 @@ class TestReplayer(unittest.TestCase):
 
 
     def test_generate_do_not_run_before_date(self):
-        expected = datetime.strptime("2019-09-18 15:00:00", '%Y-%m-%d %H:%M:%S')
+        expected = datetime.strptime("2019-09-18 14:00:00", '%Y-%m-%d %H:%M:%S')
         actual = create_pdm_trigger.generate_do_not_run_before_date(EXPORT_DATE)
 
         assert actual == expected
