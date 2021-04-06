@@ -106,7 +106,7 @@ def generate_cut_off_date(export_date):
 
 def generate_do_not_run_before_date(export_date):
     export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
-    return export_date_parsed.replace(hour=15, minute=00, second=00)
+    return export_date_parsed.replace(hour=14, minute=00, second=00)
 
 
 def get_events_client():
