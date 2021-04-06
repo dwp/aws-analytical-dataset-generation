@@ -282,11 +282,11 @@ locals {
   }
 
   hive_bytes_per_reducer = {
-    development = "52428800"
-    qa          = "52428800"
-    integration = "52428800"
-    preprod     = "52428800"
-    production  = "52428800"
+    development = "13421728"
+    qa          = "13421728"
+    integration = "13421728"
+    preprod     = "13421728"
+    production  = "13421728"
   }
 
   tez_runtime_unordered_output_buffer_size_mb = {
@@ -394,7 +394,7 @@ locals {
     qa          = "10"
     integration = "10"
     preprod     = "10"
-    production  = "50"
+    production  = "35"
   }
 
   emr_capacity_reservation_preference = {
