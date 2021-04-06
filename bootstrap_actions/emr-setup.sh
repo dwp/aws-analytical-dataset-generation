@@ -14,7 +14,6 @@ chmod u+x /opt/emr/create_pdm_trigger.py
 chmod u+x /opt/emr/resume_step.sh
 chmod u+x /opt/emr/update_dynamo.sh
 
-
 (
     # Import the logging functions
     source /opt/emr/logging.sh
@@ -79,7 +78,9 @@ data.key.service.url=${dks_endpoint}
 EOF
     
     log_wrapper_message "Retrieving the ACM Certificate details"
-    
+
+    which update-ca-trust
+
     acm-cert-retriever \
     --acm-cert-arn "${acm_cert_arn}" \
     --acm-key-passphrase "$ACM_KEY_PASSWORD" \
