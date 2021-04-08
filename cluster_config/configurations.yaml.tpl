@@ -92,6 +92,7 @@ Configurations:
     "hive.tez.java.opts": "${hive_tez_java_opts}"
     "hive.auto.convert.join": "true"
     "hive.auto.convert.join.noconditionaltask.size": "${hive_auto_convert_join_noconditionaltask_size}"
+    "hive.convert.join.bucket.mapjoin.tez": "false"
 
 - Classification: "tez-site"
   Properties:
