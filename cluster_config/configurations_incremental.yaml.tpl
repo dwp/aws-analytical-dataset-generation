@@ -146,7 +146,6 @@ Configurations:
     "hive.exec.orc.default.row.index.stride": "10000"
     "hive.exec.orc.default.stripe.size": "268435456"
     "hive.exec.orc.compression.strategy": "SPEED"
-    "hive.convert.join.bucket.mapjoin.tez": "false"
 
 - Classification: "mapred-site"
   Properties:
