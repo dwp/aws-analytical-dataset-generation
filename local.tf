@@ -199,22 +199,6 @@ locals {
     production  = true
   }
 
-  adg_prefix = {
-    development = "analytical-dataset"
-    qa          = "analytical-dataset"
-    integration = "analytical-dataset"
-    preprod     = "analytical-dataset"
-    production  = "analytical-dataset"
-  }
-
-  adg_retention_days = {
-    development = 1
-    qa          = 1
-    integration = 1
-    preprod     = 20
-    production  = 20
-  }
-
   mongo_latest_version = {
     development = "0.0.50"
     qa          = "0.0.50"
@@ -227,7 +211,7 @@ locals {
     development = "true"
     qa          = "true"
     integration = "true"
-    preprod     = "true"
+    preprod     = "false"
     production  = "false"
   }
 
@@ -235,7 +219,7 @@ locals {
     development = "true"
     qa          = "true"
     integration = "true"
-    preprod     = "true"
+    preprod     = "false"
     production  = "false"
   }
 
@@ -259,7 +243,7 @@ locals {
     development = "2688"
     qa          = "2688"
     integration = "2688"
-    preprod     = "2688"
+    preprod     = "15360"
     production  = "15360"
   }
 
@@ -268,7 +252,7 @@ locals {
     development = "-Xmx2150m"
     qa          = "-Xmx2150m"
     integration = "-Xmx2150m"
-    preprod     = "-Xmx2150m"
+    preprod     = "-Xmx12288m"
     production  = "-Xmx12288m"
   }
 
@@ -277,7 +261,7 @@ locals {
     development = "896"
     qa          = "896"
     integration = "896"
-    preprod     = "896"
+    preprod     = "5068"
     production  = "5068"
   }
 
@@ -293,7 +277,7 @@ locals {
     development = "268"
     qa          = "268"
     integration = "268"
-    preprod     = "268"
+    preprod     = "2148"
     production  = "2148"
   }
 
@@ -302,7 +286,7 @@ locals {
     development = "1075"
     qa          = "1075"
     integration = "1075"
-    preprod     = "1075"
+    preprod     = "6144"
     production  = "6144"
   }
 
@@ -310,7 +294,7 @@ locals {
     development = "1342177"
     qa          = "1342177"
     integration = "1342177"
-    preprod     = "1342177"
+    preprod     = "52428800"
     production  = "52428800"
   }
 
@@ -318,7 +302,7 @@ locals {
     development = "268435456"
     qa          = "268435456"
     integration = "268435456"
-    preprod     = "268435456"
+    preprod     = "1073741824"
     production  = "1073741824"
   }
 
@@ -326,7 +310,7 @@ locals {
     development = "1024"
     qa          = "1024"
     integration = "1024"
-    preprod     = "1024"
+    preprod     = "12288"
     production  = "12288"
   }
 
@@ -335,7 +319,7 @@ locals {
     development = "1024"
     qa          = "1024"
     integration = "1024"
-    preprod     = "1024"
+    preprod     = "8196"
     production  = "8196"
   }
 
@@ -344,7 +328,7 @@ locals {
     development = "-Xmx819m"
     qa          = "-Xmx819m"
     integration = "-Xmx819m"
-    preprod     = "-Xmx819m"
+    preprod     = "-Xmx6556m"
     production  = "-Xmx6556m"
   }
 
@@ -353,7 +337,7 @@ locals {
     development = "57344"
     qa          = "57344"
     integration = "57344"
-    preprod     = "57344"
+    preprod     = "385024"
     production  = "385024"
   }
 
@@ -361,7 +345,7 @@ locals {
     development = "5"
     qa          = "5"
     integration = "5"
-    preprod     = "5"
+    preprod     = "20"
     production  = "20"
   }
 
@@ -369,7 +353,7 @@ locals {
     development = "5"
     qa          = "5"
     integration = "5"
-    preprod     = "5"
+    preprod     = "15"
     production  = "15"
   }
 
@@ -377,7 +361,7 @@ locals {
     development = "1"
     qa          = "1"
     integration = "1"
-    preprod     = "1"
+    preprod     = "5"
     production  = "5"
   }
 
@@ -385,7 +369,7 @@ locals {
     development = "1099"
     qa          = "1099"
     integration = "1099"
-    preprod     = "1099"
+    preprod     = "3000"
     production  = "3000"
   }
 
@@ -393,7 +377,7 @@ locals {
     development = "10"
     qa          = "10"
     integration = "10"
-    preprod     = "10"
+    preprod     = "35"
     production  = "35"
   }
 
