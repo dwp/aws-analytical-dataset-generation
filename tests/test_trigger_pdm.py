@@ -65,7 +65,7 @@ class TestReplayer(unittest.TestCase):
         
         get_now_mock.assert_called_once()
         generate_cut_off_date_mock.assert_called_once_with(
-            EXPORT_DATE,
+            EXPORT_DATE, any()
         )
         should_step_be_skipped_mock.assert_called_once_with(
             "false",
@@ -74,7 +74,7 @@ class TestReplayer(unittest.TestCase):
         )
         get_events_client_mock.assert_called_once()
         generate_do_not_run_before_date_mock.assert_called_once_with(
-            EXPORT_DATE,
+            EXPORT_DATE, any()
         )
         get_cron_mock.assert_called_once_with(
             now,
@@ -129,7 +129,7 @@ class TestReplayer(unittest.TestCase):
 
         get_now_mock.assert_called_once()
         generate_cut_off_date_mock.assert_called_once_with(
-            EXPORT_DATE,
+            EXPORT_DATE, any()
         )
         should_step_be_skipped_mock.assert_called_once_with(
             "true",
@@ -144,15 +144,15 @@ class TestReplayer(unittest.TestCase):
 
 
     def test_generate_do_not_run_before_date(self):
-        expected = datetime.strptime("2019-09-18 14:00:00", '%Y-%m-%d %H:%M:%S')
-        actual = create_pdm_trigger.generate_do_not_run_before_date(EXPORT_DATE)
+        expected = datetime.strptime("2019-09-18 13:00:00", '%Y-%m-%d %H:%M:%S')
+        actual = create_pdm_trigger.generate_do_not_run_before_date(EXPORT_DATE, 13)
 
         assert actual == expected
 
 
     def test_generate_cut_off_date(self):
         expected = datetime.strptime("2019-09-19 03:00:00", '%Y-%m-%d %H:%M:%S')
-        actual = create_pdm_trigger.generate_cut_off_date(EXPORT_DATE)
+        actual = create_pdm_trigger.generate_cut_off_date(EXPORT_DATE, 3)
 
         assert actual == expected
 

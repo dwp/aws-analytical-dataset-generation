@@ -29,7 +29,8 @@ def create_pdm_trigger(
     events_client=None
 ):
     now = get_now()
-    do_not_run_after = generate_cut_off_date(args.export_date)
+    do_not_run_after_hour = int("${pdm_start_do_not_run_after_hour}")
+    do_not_run_after = generate_cut_off_date(args.export_date, do_not_run_after_hour)
 
     if should_step_be_skipped(skip_pdm_trigger, now, do_not_run_after):
         return None
@@ -37,7 +38,8 @@ def create_pdm_trigger(
     if events_client is None:
         events_client = get_events_client()
 
-    do_not_run_before = generate_do_not_run_before_date(args.export_date)
+    do_not_run_before_hour = int("${pdm_start_do_not_run_before_hour}")
+    do_not_run_before = generate_do_not_run_before_date(args.export_date, do_not_run_before_hour)
     cron = get_cron(now, do_not_run_before)
 
     rule_name = put_cloudwatch_event_rule(events_client, now, cron)
@@ -98,16 +100,14 @@ def get_now():
     return datetime.now()
 
 
-def generate_cut_off_date(export_date):
+def generate_cut_off_date(export_date, do_not_run_after_hour):
     export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
     day_after_export_date = export_date_parsed + timedelta(days = 1)
-    do_not_run_after_hour = int("${pdm_start_do_not_run_after_hour}")
     return day_after_export_date.replace(hour=do_not_run_after_hour, minute=00, second=00)
 
 
-def generate_do_not_run_before_date(export_date):
+def generate_do_not_run_before_date(export_date, do_not_run_before_hour):
     export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
-    do_not_run_before_hour = int("${pdm_start_do_not_run_before_hour}")
     return export_date_parsed.replace(hour=do_not_run_before_hour, minute=00, second=00)
 
 
