@@ -101,12 +101,14 @@ def get_now():
 def generate_cut_off_date(export_date):
     export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
     day_after_export_date = export_date_parsed + timedelta(days = 1)
-    return day_after_export_date.replace(hour=3, minute=00, second=00)
+    do_not_run_after_hour = int("${pdm_start_do_not_run_after_hour}")
+    return day_after_export_date.replace(hour=do_not_run_after_hour, minute=00, second=00)
 
 
 def generate_do_not_run_before_date(export_date):
     export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
-    return export_date_parsed.replace(hour=14, minute=00, second=00)
+    do_not_run_before_hour = int("${pdm_start_do_not_run_before_hour}")
+    return export_date_parsed.replace(hour=do_not_run_before_hour, minute=00, second=00)
 
 
 def get_events_client():
