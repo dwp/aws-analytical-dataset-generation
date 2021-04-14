@@ -29,8 +29,7 @@ def create_pdm_trigger(
     events_client=None
 ):
     now = get_now()
-    do_not_run_after_hour = int("${pdm_start_do_not_run_after_hour}")
-    do_not_run_after = generate_cut_off_date(args.export_date, do_not_run_after_hour)
+    do_not_run_after = generate_cut_off_date(args.export_date, args.pdm_start_do_not_run_after_hour)
 
     if should_step_be_skipped(skip_pdm_trigger, now, do_not_run_after):
         return None
@@ -38,8 +37,7 @@ def create_pdm_trigger(
     if events_client is None:
         events_client = get_events_client()
 
-    do_not_run_before_hour = int("${pdm_start_do_not_run_before_hour}")
-    do_not_run_before = generate_do_not_run_before_date(args.export_date, do_not_run_before_hour)
+    do_not_run_before = generate_do_not_run_before_date(args.export_date, args.pdm_start_do_not_run_before_hour)
     cron = get_cron(now, do_not_run_before)
 
     rule_name = put_cloudwatch_event_rule(events_client, now, cron)
@@ -63,6 +61,8 @@ def get_parameters():
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
     parser.add_argument("--snapshot_type", default="full")
     parser.add_argument("--export_date", default=datetime.now().strftime("%Y-%m-%d"))
+    parser.add_argument("--pdm_start_do_not_run_after_hour", default=int("${pdm_start_do_not_run_after_hour}"))
+    parser.add_argument("--pdm_start_do_not_run_before_hour", default=int("${pdm_start_do_not_run_before_hour}"))
     args, unrecognized_args = parser.parse_known_args()
     the_logger.warning(
         "Unrecognized args %s found for the correlation id %s",

@@ -13,12 +13,16 @@ EXPORT_DATE = "2019-09-18"
 CORRELATION_ID = "test_id"
 S3_PREFIX = "test_prefix"
 SNAPSHOT_TYPE_FULL = "full"
+PDM_START_DO_DO_RUN_AFTER_HOUR = 13
+PDM_START_DO_DO_RUN_BEFORE_HOUR = 3
 
 args = argparse.Namespace()
 args.correlation_id = CORRELATION_ID
 args.s3_prefix = S3_PREFIX
 args.snapshot_type = SNAPSHOT_TYPE_FULL
 args.export_date = EXPORT_DATE
+args.pdm_start_do_not_run_after_hour = PDM_START_DO_DO_RUN_AFTER_HOUR
+args.pdm_start_do_not_run_before_hour = PDM_START_DO_DO_RUN_BEFORE_HOUR
 
 
 class TestReplayer(unittest.TestCase):
@@ -65,7 +69,7 @@ class TestReplayer(unittest.TestCase):
         
         get_now_mock.assert_called_once()
         generate_cut_off_date_mock.assert_called_once_with(
-            EXPORT_DATE, any()
+            EXPORT_DATE, args.pdm_start_do_not_run_after_hour
         )
         should_step_be_skipped_mock.assert_called_once_with(
             "false",
@@ -74,7 +78,7 @@ class TestReplayer(unittest.TestCase):
         )
         get_events_client_mock.assert_called_once()
         generate_do_not_run_before_date_mock.assert_called_once_with(
-            EXPORT_DATE, any()
+            EXPORT_DATE, args.pdm_start_do_not_run_before_hour
         )
         get_cron_mock.assert_called_once_with(
             now,
@@ -129,7 +133,7 @@ class TestReplayer(unittest.TestCase):
 
         get_now_mock.assert_called_once()
         generate_cut_off_date_mock.assert_called_once_with(
-            EXPORT_DATE, any()
+            EXPORT_DATE, args.pdm_start_do_not_run_after_hour
         )
         should_step_be_skipped_mock.assert_called_once_with(
             "true",
@@ -145,14 +149,14 @@ class TestReplayer(unittest.TestCase):
 
     def test_generate_do_not_run_before_date(self):
         expected = datetime.strptime("2019-09-18 13:00:00", '%Y-%m-%d %H:%M:%S')
-        actual = create_pdm_trigger.generate_do_not_run_before_date(EXPORT_DATE, 13)
+        actual = create_pdm_trigger.generate_do_not_run_before_date(EXPORT_DATE, PDM_START_DO_DO_RUN_AFTER_HOUR)
 
         assert actual == expected
 
 
     def test_generate_cut_off_date(self):
         expected = datetime.strptime("2019-09-19 03:00:00", '%Y-%m-%d %H:%M:%S')
-        actual = create_pdm_trigger.generate_cut_off_date(EXPORT_DATE, 3)
+        actual = create_pdm_trigger.generate_cut_off_date(EXPORT_DATE, PDM_START_DO_DO_RUN_BEFORE_HOUR)
 
         assert actual == expected
 
