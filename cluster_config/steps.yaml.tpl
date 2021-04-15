@@ -75,4 +75,3 @@ Steps:
     - "file:/var/ci/flush-pushgateway.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
-
