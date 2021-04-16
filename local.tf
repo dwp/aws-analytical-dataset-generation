@@ -404,7 +404,7 @@ locals {
     qa          = "23"
     integration = "23"
     preprod     = "23"
-    production  = "02" # 1am (UTC) the day after the export as would then interfere with next day's jobs
+    production  = "02" # 0200 (UTC) the day after the export as would then interfere with next day's jobs
   }
 
   pdm_start_do_not_run_before_hour = {
