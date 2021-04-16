@@ -400,7 +400,7 @@ locals {
   emr_subnet_non_capacity_reserved_environments = "eu-west-2b"
 
   pdm_start_do_not_run_after_hour = {
-    development = "23" # 11pm (UTC) the day after the export as for lower environments we want to run on demand
+    development = "23" # 2300 (UTC) the day after the export as for lower environments we want to run on demand
     qa          = "23"
     integration = "23"
     preprod     = "23"
