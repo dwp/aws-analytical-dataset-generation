@@ -97,7 +97,7 @@ def validate_required_args(args):
 
 
 def get_now():
-    return datetime.now()
+    return datetime.utcnow()
 
 
 def generate_cut_off_date(export_date, do_not_run_after_hour):
