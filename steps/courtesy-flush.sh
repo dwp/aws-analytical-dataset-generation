@@ -5,7 +5,6 @@ S3_PREFIX="$4"
 SNAPSHOT_TYPE="$6"
 EXPORT_DATE="$8"
 
-set -euo pipefail
 (
     # Set the ddb values as this is the initial step
     echo "$CORRELATION_ID" >>     /opt/emr/correlation_id.txt
@@ -24,7 +23,7 @@ set -euo pipefail
     }
     
     log_wrapper_message "Flushing the ADG pushgateway"
-    curl --silent --output /dev/null --show-error --fail -X PUT "http://${adg_pushgateway_hostname}:9091/api/v1/admin/wipe"
+    curl -X PUT "http://${adg_pushgateway_hostname}:9091/api/v1/admin/wipe"
     log_wrapper_message "Done flushing the ADG pushgateway"
     
 ) >> /var/log/adg/flush-pushgateway.log 2>&1
