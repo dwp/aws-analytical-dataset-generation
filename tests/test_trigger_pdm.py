@@ -343,7 +343,7 @@ class TestReplayer(unittest.TestCase):
 
     def test_get_cron_gives_cut_out_time_when_before_cut_off_over_date_boundary(self):
         now = datetime.strptime("18/09/19 23:55:19", '%d/%m/%y %H:%M:%S')
-        do_not_run_before = datetime.strptime("19/09/19 01:55:19", '%d/%m/%y %H:%M:%S')
+        do_not_run_before = datetime.strptime("19/09/19 01:50:19", '%d/%m/%y %H:%M:%S')
 
         expected = "55 01 19 09 ? 2019"
         actual = create_pdm_trigger.get_cron(
