@@ -59,8 +59,8 @@
       value=$1
     log_wrapper_message "Sending to push gateway with value $1"
 
-cat << EOF | curl --data-binary @- "http://${adg_pushgateway_hostname}:9091/metrics/job/mark_test"
-            adg_status{snapshot_type="$SNAPSHOT_TYPE", export_date="$EXPORT_DATE", cluster_id="$CLUSTER_ID", component="ADG"} $1
+    cat << EOF | curl --data-binary @- "http://${adg_pushgateway_hostname}:9091/metrics/job/adg"
+                adg_status{snapshot_type="$SNAPSHOT_TYPE", export_date="$EXPORT_DATE", cluster_id="$CLUSTER_ID", component="ADG"} $1
 EOF
 
   }
