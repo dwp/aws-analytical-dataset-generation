@@ -86,7 +86,6 @@ resource "aws_s3_bucket_object" "status_metrics_sh" {
   )
 }
 
-
 resource "aws_s3_bucket_object" "logging_script" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
   key     = "component/analytical-dataset-generation/logging.sh"
