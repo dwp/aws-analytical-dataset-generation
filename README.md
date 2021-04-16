@@ -50,7 +50,7 @@ If you put a comment as the first line of a query it can do for a proxy title.
 1. make sure to delete locally generated directories  metastore_db, spark-temp, spark-warehouse directory if unit tests 
    fail when run locally
    
-# Exporting application and OS metrics
+
 
 To export application and OS metrics, JMX exporter and node exporter were chosen. They integrate with the existing metrics infrastructure and allow for metrics to be scraped by Prometheus.
 These metrics should then be queryable in Thanos.
@@ -269,3 +269,16 @@ along with other upgrades including Spark. Below is a list of steps taken to upg
 
 Make sure that the first time anything uses the metastore it initialises with Hive 3, otherwise it will have to be rebuilt. 
 
+# Status Metrics
+
+In order to generate status metrics, the emr-setup bootstrap step kicks off a shell script named status_metrics.sh which runs in the background.
+
+This script loops in the background for the lifecycle of the cluster and sends a metric called `adg_status` to the ADG pushgateway. This metric has the following
+values which map to a certain cluster status
+
+| Cluster Status  | Metric Value |
+| ------------- | ------------- |
+| Running    | 1
+| Completed  | 2  |
+| Failed  | 3  |
+| Cancelled  | 4  |
