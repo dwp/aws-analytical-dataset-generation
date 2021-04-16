@@ -412,6 +412,6 @@ locals {
     qa          = "01"
     integration = "01"
     preprod     = "01"
-    production  = "14" # 2pm (UTC) the day of the export as before would interfere with the working day's queries from users
+    production  = "14" # 1400 (UTC) the day of the export as before would interfere with the working day's queries from users
   }
 }
