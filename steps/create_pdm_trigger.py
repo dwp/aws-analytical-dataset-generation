@@ -204,14 +204,15 @@ def should_step_be_skipped(skip_pdm_trigger, now, do_not_trigger_after):
 
 def get_cron(now, do_not_run_before):
     if now < do_not_run_before:
-        cron = f'{do_not_run_before.strftime("%M")} {do_not_run_before.strftime("%H")} {do_not_run_before.strftime("%d")} {do_not_run_before.strftime("%m")} ? {do_not_run_before.year}'
+        five_minutes_from_do_not_run_before = do_not_run_before + timedelta(minutes = 5)
+        cron = f'{five_minutes_from_do_not_run_before.strftime("%M")} {five_minutes_from_do_not_run_before.strftime("%H")} {five_minutes_from_do_not_run_before.strftime("%d")} {five_minutes_from_do_not_run_before.strftime("%m")} ? {five_minutes_from_do_not_run_before.year}'
         the_logger.info(
-            f"Time now is before cut off time so returning cut off time cron of '{cron}' ",
+            f"Time now is before cut off time so returning cut off time cron of '{cron}' for 5 minutes after the cut off",
         )
         return cron
     
-    ten_minutes_from_now = now + timedelta(minutes = 5)
-    cron = f'{ten_minutes_from_now.strftime("%M")} {ten_minutes_from_now.strftime("%H")} {ten_minutes_from_now.strftime("%d")} {ten_minutes_from_now.strftime("%m")} ? {ten_minutes_from_now.year}'
+    five_minutes_from_now = now + timedelta(minutes = 5)
+    cron = f'{five_minutes_from_now.strftime("%M")} {five_minutes_from_now.strftime("%H")} {five_minutes_from_now.strftime("%d")} {five_minutes_from_now.strftime("%m")} ? {five_minutes_from_now.year}'
     the_logger.info(
         f"Time now is after cut off time so returning cron of '{cron}' for 5 minutes time",
     )
