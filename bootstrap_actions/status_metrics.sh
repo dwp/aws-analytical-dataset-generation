@@ -26,7 +26,6 @@
 
   FAILED_STATUS="FAILED"
   COMPLETED_STATUS="COMPLETED"
-  IN_PROGRESS_STATUS="IN_PROGRESS"
   CANCELLED_STATUS="CANCELLED"
 
   FINAL_STEP_NAME="flush-pushgateway"
@@ -39,7 +38,6 @@
   CORRELATION_ID=$(cat $CORRELATION_ID_FILE)
   SNAPSHOT_TYPE=$(cat $SNAPSHOT_TYPE_FILE)
   EXPORT_DATE=$(cat $EXPORT_DATE_FILE)
-  DATA_PRODUCT="ADG-$SNAPSHOT_TYPE"
 
   if [[ -z "$EXPORT_DATE" ]]; then
     log_wrapper_message "Export date from file was empty, so defaulting to today's date"
@@ -53,11 +51,10 @@
   processed_files=()
 
   push_metric() {
-      value=$1
     log_wrapper_message "Sending to push gateway with value $1"
 
     cat << EOF | curl --silent --output /dev/null --show-error --fail --data-binary @- "http://${adg_pushgateway_hostname}:9091/metrics/job/adg"
-                adg_status{snapshot_type="$SNAPSHOT_TYPE", export_date="$EXPORT_DATE", cluster_id="$CLUSTER_ID", component="ADG"} $1
+                adg_status{snapshot_type="$SNAPSHOT_TYPE", export_date="$EXPORT_DATE", cluster_id="$CLUSTER_ID", component="ADG" correlation_id="$CORRELATION_ID} $1
 EOF
 
   }
