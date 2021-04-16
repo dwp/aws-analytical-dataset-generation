@@ -408,7 +408,7 @@ locals {
   }
 
   pdm_start_do_not_run_before_hour = {
-    development = "01" # 1am (UTC) the day of the export as for lower environments we want to run on demand
+    development = "01" # 0100 (UTC) the day of the export as for lower environments we want to run on demand
     qa          = "01"
     integration = "01"
     preprod     = "01"
