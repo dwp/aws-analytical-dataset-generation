@@ -199,35 +199,19 @@ locals {
     production  = true
   }
 
-  adg_prefix = {
-    development = "analytical-dataset"
-    qa          = "analytical-dataset"
-    integration = "analytical-dataset"
-    preprod     = "analytical-dataset"
-    production  = "analytical-dataset"
-  }
-
-  adg_retention_days = {
-    development = 1
-    qa          = 1
-    integration = 1
-    preprod     = 20
-    production  = 20
-  }
-
   mongo_latest_version = {
-    development = "0.0.49"
-    qa          = "0.0.49"
-    integration = "0.0.49"
-    preprod     = "0.0.49"
-    production  = "0.0.49"
+    development = "0.0.50"
+    qa          = "0.0.50"
+    integration = "0.0.50"
+    preprod     = "0.0.50"
+    production  = "0.0.50"
   }
 
   skip_pdm_trigger_on_adg_completion = {
     development = "true"
     qa          = "true"
     integration = "true"
-    preprod     = "true"
+    preprod     = "false"
     production  = "false"
   }
 
@@ -235,7 +219,7 @@ locals {
     development = "true"
     qa          = "true"
     integration = "true"
-    preprod     = "true"
+    preprod     = "false"
     production  = "false"
   }
 
@@ -259,7 +243,7 @@ locals {
     development = "2688"
     qa          = "2688"
     integration = "2688"
-    preprod     = "2688"
+    preprod     = "15360"
     production  = "15360"
   }
 
@@ -268,7 +252,7 @@ locals {
     development = "-Xmx2150m"
     qa          = "-Xmx2150m"
     integration = "-Xmx2150m"
-    preprod     = "-Xmx2150m"
+    preprod     = "-Xmx12288m"
     production  = "-Xmx12288m"
   }
 
@@ -277,23 +261,23 @@ locals {
     development = "896"
     qa          = "896"
     integration = "896"
-    preprod     = "896"
+    preprod     = "5068"
     production  = "5068"
   }
 
   hive_bytes_per_reducer = {
-    development = "52428800"
-    qa          = "52428800"
-    integration = "52428800"
-    preprod     = "52428800"
-    production  = "52428800"
+    development = "13421728"
+    qa          = "13421728"
+    integration = "13421728"
+    preprod     = "13421728"
+    production  = "13421728"
   }
 
   tez_runtime_unordered_output_buffer_size_mb = {
     development = "268"
     qa          = "268"
     integration = "268"
-    preprod     = "268"
+    preprod     = "2148"
     production  = "2148"
   }
 
@@ -302,7 +286,7 @@ locals {
     development = "1075"
     qa          = "1075"
     integration = "1075"
-    preprod     = "1075"
+    preprod     = "6144"
     production  = "6144"
   }
 
@@ -310,7 +294,7 @@ locals {
     development = "1342177"
     qa          = "1342177"
     integration = "1342177"
-    preprod     = "1342177"
+    preprod     = "52428800"
     production  = "52428800"
   }
 
@@ -318,7 +302,7 @@ locals {
     development = "268435456"
     qa          = "268435456"
     integration = "268435456"
-    preprod     = "268435456"
+    preprod     = "1073741824"
     production  = "1073741824"
   }
 
@@ -326,7 +310,7 @@ locals {
     development = "1024"
     qa          = "1024"
     integration = "1024"
-    preprod     = "1024"
+    preprod     = "12288"
     production  = "12288"
   }
 
@@ -335,7 +319,7 @@ locals {
     development = "1024"
     qa          = "1024"
     integration = "1024"
-    preprod     = "1024"
+    preprod     = "8196"
     production  = "8196"
   }
 
@@ -344,7 +328,7 @@ locals {
     development = "-Xmx819m"
     qa          = "-Xmx819m"
     integration = "-Xmx819m"
-    preprod     = "-Xmx819m"
+    preprod     = "-Xmx6556m"
     production  = "-Xmx6556m"
   }
 
@@ -353,7 +337,7 @@ locals {
     development = "57344"
     qa          = "57344"
     integration = "57344"
-    preprod     = "57344"
+    preprod     = "385024"
     production  = "385024"
   }
 
@@ -361,7 +345,7 @@ locals {
     development = "5"
     qa          = "5"
     integration = "5"
-    preprod     = "5"
+    preprod     = "20"
     production  = "20"
   }
 
@@ -369,7 +353,7 @@ locals {
     development = "5"
     qa          = "5"
     integration = "5"
-    preprod     = "5"
+    preprod     = "15"
     production  = "15"
   }
 
@@ -377,7 +361,7 @@ locals {
     development = "1"
     qa          = "1"
     integration = "1"
-    preprod     = "1"
+    preprod     = "5"
     production  = "5"
   }
 
@@ -385,7 +369,7 @@ locals {
     development = "1099"
     qa          = "1099"
     integration = "1099"
-    preprod     = "1099"
+    preprod     = "3000"
     production  = "3000"
   }
 
@@ -393,8 +377,8 @@ locals {
     development = "10"
     qa          = "10"
     integration = "10"
-    preprod     = "10"
-    production  = "50"
+    preprod     = "35"
+    production  = "35"
   }
 
   emr_capacity_reservation_preference = {
@@ -414,4 +398,20 @@ locals {
   }
 
   emr_subnet_non_capacity_reserved_environments = "eu-west-2b"
+
+  pdm_start_do_not_run_after_hour = {
+    development = "23" # 2300 (UTC) the day after the export as for lower environments we want to run on demand
+    qa          = "23"
+    integration = "23"
+    preprod     = "23"
+    production  = "02" # 0200 (UTC) the day after the export as would then interfere with next day's jobs
+  }
+
+  pdm_start_do_not_run_before_hour = {
+    development = "01" # 0100 (UTC) the day of the export as for lower environments we want to run on demand
+    qa          = "01"
+    integration = "01"
+    preprod     = "01"
+    production  = "14" # 1400 (UTC) the day of the export as before would interfere with the working day's queries from users
+  }
 }

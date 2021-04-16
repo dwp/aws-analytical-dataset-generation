@@ -56,7 +56,7 @@ variable "emr_instance_type_master" {
     development = "m5.4xlarge"
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
-    preprod     = "m5.4xlarge"
+    preprod     = "m5.16xlarge"
     production  = "m5.16xlarge"
   }
 }
@@ -66,7 +66,7 @@ variable "emr_instance_type_core_one" {
     development = "m5.4xlarge"
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
-    preprod     = "m5.4xlarge"
+    preprod     = "m5.16xlarge"
     production  = "m5.16xlarge"
   }
 }
@@ -77,8 +77,8 @@ variable "emr_core_instance_count" {
     development = "10"
     qa          = "10"
     integration = "10"
-    preprod     = "10"
-    production  = "35"
+    preprod     = "39"
+    production  = "39"
   }
 }
 
@@ -87,7 +87,7 @@ variable "spark_kyro_buffer" {
     development = "128m"
     qa          = "128m"
     integration = "128m"
-    preprod     = "128m"
+    preprod     = "2047m"
     production  = "2047m" # Max amount allowed
   }
 }
@@ -97,8 +97,8 @@ variable "spark_executor_instances" {
     development = 50
     qa          = 50
     integration = 50
-    preprod     = 50
-    production  = 500 # More than possible as it won't create them if no core or memory available
+    preprod     = 600
+    production  = 600 # More than possible as it won't create them if no core or memory available
   }
 }
 

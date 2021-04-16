@@ -29,7 +29,7 @@ def create_pdm_trigger(
     events_client=None
 ):
     now = get_now()
-    do_not_run_after = generate_cut_off_date(args.export_date)
+    do_not_run_after = generate_cut_off_date(args.export_date, args.pdm_start_do_not_run_after_hour)
 
     if should_step_be_skipped(skip_pdm_trigger, now, do_not_run_after):
         return None
@@ -37,7 +37,7 @@ def create_pdm_trigger(
     if events_client is None:
         events_client = get_events_client()
 
-    do_not_run_before = generate_do_not_run_before_date(args.export_date)
+    do_not_run_before = generate_do_not_run_before_date(args.export_date, args.pdm_start_do_not_run_before_hour)
     cron = get_cron(now, do_not_run_before)
 
     rule_name = put_cloudwatch_event_rule(events_client, now, cron)
@@ -61,6 +61,8 @@ def get_parameters():
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
     parser.add_argument("--snapshot_type", default="full")
     parser.add_argument("--export_date", default=datetime.now().strftime("%Y-%m-%d"))
+    parser.add_argument("--pdm_start_do_not_run_after_hour", default=int("${pdm_start_do_not_run_after_hour}"))
+    parser.add_argument("--pdm_start_do_not_run_before_hour", default=int("${pdm_start_do_not_run_before_hour}"))
     args, unrecognized_args = parser.parse_known_args()
     the_logger.warning(
         "Unrecognized args %s found for the correlation id %s",
@@ -95,18 +97,18 @@ def validate_required_args(args):
 
 
 def get_now():
-    return datetime.now()
+    return datetime.utcnow()
 
 
-def generate_cut_off_date(export_date):
+def generate_cut_off_date(export_date, do_not_run_after_hour):
     export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
     day_after_export_date = export_date_parsed + timedelta(days = 1)
-    return day_after_export_date.replace(hour=3, minute=00, second=00)
+    return day_after_export_date.replace(hour=do_not_run_after_hour, minute=00, second=00)
 
 
-def generate_do_not_run_before_date(export_date):
+def generate_do_not_run_before_date(export_date, do_not_run_before_hour):
     export_date_parsed = datetime.strptime(export_date, '%Y-%m-%d')
-    return export_date_parsed.replace(hour=15, minute=00, second=00)
+    return export_date_parsed.replace(hour=do_not_run_before_hour, minute=00, second=00)
 
 
 def get_events_client():
@@ -202,14 +204,15 @@ def should_step_be_skipped(skip_pdm_trigger, now, do_not_trigger_after):
 
 def get_cron(now, do_not_run_before):
     if now < do_not_run_before:
-        cron = f'{do_not_run_before.strftime("%M")} {do_not_run_before.strftime("%H")} {do_not_run_before.strftime("%d")} {do_not_run_before.strftime("%m")} ? {do_not_run_before.year}'
+        five_minutes_from_do_not_run_before = do_not_run_before + timedelta(minutes = 5)
+        cron = f'{five_minutes_from_do_not_run_before.strftime("%M")} {five_minutes_from_do_not_run_before.strftime("%H")} {five_minutes_from_do_not_run_before.strftime("%d")} {five_minutes_from_do_not_run_before.strftime("%m")} ? {five_minutes_from_do_not_run_before.year}'
         the_logger.info(
-            f"Time now is before cut off time so returning cut off time cron of '{cron}' ",
+            f"Time now is before cut off time so returning cut off time cron of '{cron}' for 5 minutes after the cut off",
         )
         return cron
     
-    ten_minutes_from_now = now + timedelta(minutes = 5)
-    cron = f'{ten_minutes_from_now.strftime("%M")} {ten_minutes_from_now.strftime("%H")} {ten_minutes_from_now.strftime("%d")} {ten_minutes_from_now.strftime("%m")} ? {ten_minutes_from_now.year}'
+    five_minutes_from_now = now + timedelta(minutes = 5)
+    cron = f'{five_minutes_from_now.strftime("%M")} {five_minutes_from_now.strftime("%H")} {five_minutes_from_now.strftime("%d")} {five_minutes_from_now.strftime("%m")} ? {five_minutes_from_now.year}'
     the_logger.info(
         f"Time now is after cut off time so returning cron of '{cron}' for 5 minutes time",
     )
