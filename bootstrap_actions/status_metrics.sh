@@ -18,7 +18,6 @@
   STEP_DETAILS_DIR=/mnt/var/lib/info/steps
   CORRELATION_ID_FILE=/opt/emr/correlation_id.txt
   SNAPSHOT_TYPE_FILE=/opt/emr/snapshot_type.txt
-  OUTPUT_LOCATION_FILE=/opt/emr/output_location.txt
   EXPORT_DATE_FILE=/opt/emr/export_date.txt
   
   DATE=$(date '+%Y-%m-%d')
@@ -51,15 +50,13 @@
     FINAL_STEP_NAME="executeUpdateAll"
   fi
 
-
-
   processed_files=()
 
   push_metric() {
       value=$1
     log_wrapper_message "Sending to push gateway with value $1"
 
-    cat << EOF | curl --data-binary @- "http://${adg_pushgateway_hostname}:9091/metrics/job/adg"
+    cat << EOF | curl --silent --output /dev/null --show-error --fail --data-binary @- "http://${adg_pushgateway_hostname}:9091/metrics/job/adg"
                 adg_status{snapshot_type="$SNAPSHOT_TYPE", export_date="$EXPORT_DATE", cluster_id="$CLUSTER_ID", component="ADG"} $1
 EOF
 
