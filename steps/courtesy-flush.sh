@@ -5,7 +5,6 @@ S3_PREFIX="$4"
 SNAPSHOT_TYPE="$6"
 EXPORT_DATE="$8"
 
-set -euo pipefail
 (
     # Set the ddb values as this is the initial step
     echo "$CORRELATION_ID" >>     /opt/emr/correlation_id.txt

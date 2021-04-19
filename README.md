@@ -269,3 +269,16 @@ along with other upgrades including Spark. Below is a list of steps taken to upg
 
 Make sure that the first time anything uses the metastore it initialises with Hive 3, otherwise it will have to be rebuilt. 
 
+# Status Metrics
+
+In order to generate status metrics, the emr-setup bootstrap step kicks off a shell script named status_metrics.sh which runs in the background.
+
+This script loops in the background for the lifecycle of the cluster and sends a metric called `adg_status` to the ADG pushgateway. This metric has the following
+values which map to a certain cluster status
+
+| Cluster Status  | Metric Value |
+| ------------- | ------------- |
+| Running    | 1
+| Completed  | 2  |
+| Failed  | 3  |
+| Cancelled  | 4  |
