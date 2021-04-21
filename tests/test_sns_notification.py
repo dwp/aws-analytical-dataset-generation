@@ -1,5 +1,5 @@
 import boto3
-from steps import send_notification
+from steps import sns_notification
 from moto import mock_sns, mock_s3
 
 AWS_REGION = "eu-west-2"
@@ -26,7 +26,7 @@ def test_send_sns_message():
     topics_json = sns_client.list_topics()
     status_topic_arn = topics_json["Topics"][0]["TopicArn"]
 
-    response = send_notification.send_sns_message(
+    response = sns_notification.send_sns_message(
         PUBLISH_BUCKET, status_topic_arn, ADG_PARAM_KEY, "false", sns_client, s3_client
     )
 
@@ -34,7 +34,7 @@ def test_send_sns_message():
 
 
 def test_skip_sns_message():
-    response = send_notification.send_sns_message(
+    response = sns_notification.send_sns_message(
         PUBLISH_BUCKET, "test-arn", ADG_PARAM_KEY, "true"
     )
 
