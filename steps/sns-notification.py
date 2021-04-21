@@ -16,7 +16,12 @@ the_logger = setup_logging(
 
 
 def send_sns_message(
-    publish_bucket, status_topic_arn, adg_param_key, skip_message_sending, sns_client=None, s3_client=None
+    publish_bucket,
+    status_topic_arn,
+    adg_param_key,
+    skip_message_sending,
+    sns_client=None,
+    s3_client=None,
 ):
     if exit_if_skipping_step(skip_message_sending):
         return None
@@ -37,7 +42,12 @@ def send_sns_message(
         reader = csv.reader(file)
         next(reader)
         for row in reader:
-            payload = {"correlation_id": row[0], "s3_prefix": row[1], "snapshot_type": row[2], "export_date": row[3]}
+            payload = {
+                "correlation_id": row[0],
+                "s3_prefix": row[1],
+                "snapshot_type": row[2],
+                "export_date": row[3],
+            }
     json_message = json.dumps(payload)
 
     sns_response = sns_client.publish(TopicArn=status_topic_arn, Message=json_message)
@@ -55,11 +65,8 @@ def exit_if_skipping_step(skip_message_sending):
         return True
 
     if should_skip_step(the_logger, "submit-job"):
-        the_logger.info(
-            "Step needs to be skipped so will exit without error"
-        )
+        the_logger.info("Step needs to be skipped so will exit without error")
         return True
-    
 
     return False
 
@@ -69,4 +76,6 @@ if __name__ == "__main__":
     status_topic_arn = "${status_topic_arn}"
     skip_message_sending = "${skip_message_sending}"
     adg_param_key = "analytical-dataset/full/adg_output/adg_params.csv"
-    send_sns_message(publish_bucket, status_topic_arn, adg_param_key, skip_message_sending)
+    send_sns_message(
+        publish_bucket, status_topic_arn, adg_param_key, skip_message_sending
+    )

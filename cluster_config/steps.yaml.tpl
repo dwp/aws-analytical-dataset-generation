@@ -59,7 +59,7 @@ Steps:
   HadoopJarStep:
     Args:
     - "python3"
-    - "/opt/emr/send_notification.py"
+    - "/opt/emr/sns-notification.py"
     Jar: "command-runner.jar"
   ActionOnFailure: "${action_on_failure}"
 - Name: "build-day-1-all"
