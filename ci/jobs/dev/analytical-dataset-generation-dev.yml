@@ -6,6 +6,7 @@ jobs:
           - put: meta
             resource: meta-development
           - get: aws-analytical-dataset-generation
+            resource: aws-analytical-dataset-generation-test
             trigger: true
           - get: emr-launcher-release
             trigger: true

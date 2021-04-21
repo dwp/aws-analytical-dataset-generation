@@ -55,11 +55,11 @@ Steps:
     - "/opt/emr/create_pdm_trigger.py"
     Jar: "command-runner.jar"
   ActionOnFailure: "${action_on_failure}"
-- Name: "sns-notification"
+- Name: "sns_notification"
   HadoopJarStep:
     Args:
     - "python3"
-    - "/opt/emr/sns-notification.py"
+    - "/opt/emr/sns_notification.py"
     Jar: "command-runner.jar"
   ActionOnFailure: "${action_on_failure}"
 - Name: "build-day-1-all"
