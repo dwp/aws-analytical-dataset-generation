@@ -44,10 +44,10 @@ resource "aws_s3_bucket_object" "resume_step" {
   content = file("${path.module}/steps/resume_step.py")
 }
 
-resource "aws_s3_bucket_object" "send_notification_script" {
+resource "aws_s3_bucket_object" "sns_notification_script" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/analytical-dataset-generation/send_notification.py"
-  content = templatefile("${path.module}/steps/send_notification.py",
+  key    = "component/analytical-dataset-generation/sns_notification.py"
+  content = templatefile("${path.module}/steps/sns_notification.py",
     {
       publish_bucket       = data.terraform_remote_state.common.outputs.published_bucket.id
       status_topic_arn     = aws_sns_topic.adg_completion_status_sns.arn
