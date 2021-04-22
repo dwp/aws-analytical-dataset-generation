@@ -10,7 +10,7 @@ from moto import mock_s3
 from datetime import datetime
 
 import steps
-from steps import submit_job
+from steps import generate_dataset_from_htme
 
 VALUE_KEY = "Value"
 NAME_KEY = "Key"
@@ -76,14 +76,17 @@ def test_retrieve_secrets(monkeypatch):
                 return Client()
 
     monkeypatch.setattr(boto3, "session", MockSession)
-    assert submit_job.retrieve_secrets(
+    assert generate_dataset_from_htme.retrieve_secrets(
         mock_args(), SNAPSHOT_TYPE_FULL
     ) == ast.literal_eval(SECRETS)
 
 
 def test_get_collections():
     secret_dict = ast.literal_eval(SECRETS)
-    assert submit_job.get_collections(secret_dict, mock_args()) == SECRETS_COLLECTIONS
+    assert (
+        generate_dataset_from_htme.get_collections(secret_dict, mock_args())
+        == SECRETS_COLLECTIONS
+    )
 
 
 @mock_s3
@@ -96,7 +99,7 @@ def test_get_list_keys_for_prefix(aws_credentials):
         Key=f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}",
     )
 
-    assert submit_job.get_list_keys_for_prefix(
+    assert generate_dataset_from_htme.get_list_keys_for_prefix(
         s3_client, S3_HTME_BUCKET, S3_PREFIX
     ) == [f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}"]
 
@@ -106,7 +109,7 @@ def test_group_keys_by_collection():
         f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}",
         f"{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}",
     ]
-    assert submit_job.group_keys_by_collection(keys) == [
+    assert generate_dataset_from_htme.group_keys_by_collection(keys) == [
         {f"{DB_CORE_CONTRACT}": [f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}"]},
         {f"{DB_CORE_ACCOUNTS}": [f"{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}"]},
     ]
@@ -121,7 +124,7 @@ def test_get_collections_in_secrets():
         {f"{DB_CORE_CONTRACT}": [f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}"]}
     ]
     assert (
-        submit_job.get_collections_in_secrets(
+        generate_dataset_from_htme.get_collections_in_secrets(
             list_of_dicts, SECRETS_COLLECTIONS, mock_args()
         )
         == expected_list_of_dicts
@@ -181,7 +184,7 @@ def verify_processed_data(
         },
     )
     monkeypatch_with_mocks(monkeypatch)
-    submit_job.main(
+    generate_dataset_from_htme.main(
         spark,
         s3_client,
         S3_HTME_BUCKET,
@@ -262,7 +265,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         },
     )
     monkeypatch_with_mocks(monkeypatch)
-    submit_job.main(
+    generate_dataset_from_htme.main(
         spark,
         s3_client,
         S3_HTME_BUCKET,
@@ -283,11 +286,13 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
 
 
 def monkeypatch_with_mocks(monkeypatch):
-    monkeypatch.setattr(steps.submit_job, "add_metric", mock_add_metric)
-    monkeypatch.setattr(steps.submit_job, "decompress", mock_decompress)
-    monkeypatch.setattr(steps.submit_job, "persist_json", mock_persist_json)
-    monkeypatch.setattr(steps.submit_job, "decrypt", mock_decrypt)
-    monkeypatch.setattr(steps.submit_job, "call_dks", mock_call_dks)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
+    monkeypatch.setattr(
+        steps.generate_dataset_from_htme, "persist_json", mock_persist_json
+    )
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
 
 
 def test_create_hive_on_published_for_full(
@@ -296,7 +301,7 @@ def test_create_hive_on_published_for_full(
     json_location = "s3://test/t"
     collection_name = "tabtest"
     all_processed_collections = [(collection_name, json_location)]
-    steps.submit_job.create_hive_tables_on_published(
+    steps.generate_dataset_from_htme.create_hive_tables_on_published(
         spark,
         all_processed_collections,
         PUBLISHED_DATABASE_NAME,
@@ -304,8 +309,10 @@ def test_create_hive_on_published_for_full(
         RUN_TIME_STAMP,
     )
 
-    monkeypatch.setattr(steps.submit_job, "persist_json", mock_persist_json)
-    assert submit_job.get_collection(collection_name) in [
+    monkeypatch.setattr(
+        steps.generate_dataset_from_htme, "persist_json", mock_persist_json
+    )
+    assert generate_dataset_from_htme.get_collection(collection_name) in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
     ]
 
@@ -329,10 +336,12 @@ def test_exception_when_decompression_fails(
                 "datakeyencryptionkeyid": "123",
             },
         )
-        monkeypatch.setattr(steps.submit_job, "add_metric", mock_add_metric)
-        monkeypatch.setattr(steps.submit_job, "decrypt", mock_decrypt)
-        monkeypatch.setattr(steps.submit_job, "call_dks", mock_call_dks)
-        submit_job.main(
+        monkeypatch.setattr(
+            steps.generate_dataset_from_htme, "add_metric", mock_add_metric
+        )
+        monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
+        monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
+        generate_dataset_from_htme.main(
             spark,
             s3_client,
             S3_HTME_BUCKET,
@@ -348,7 +357,10 @@ def test_exception_when_decompression_fails(
 
 def test_get_tags():
     tag_value = SECRETS_COLLECTIONS[DB_CORE_CONTRACT]
-    assert submit_job.get_tags(tag_value, SNAPSHOT_TYPE_FULL) == TAG_SET_FULL
+    assert (
+        generate_dataset_from_htme.get_tags(tag_value, SNAPSHOT_TYPE_FULL)
+        == TAG_SET_FULL
+    )
 
 
 def mock_decompress(compressed_text):
@@ -390,7 +402,7 @@ def mock_persist_json(json_location, values):
 def test_retry_requests_with_no_retries():
     start_time = time.perf_counter()
     with pytest.raises(requests.exceptions.ConnectionError):
-        submit_job.retry_requests(retries=0).post(MOCK_LOCALHOST_URL)
+        generate_dataset_from_htme.retry_requests(retries=0).post(MOCK_LOCALHOST_URL)
     end_time = time.perf_counter()
     assert round(end_time - start_time) == 0
 
@@ -398,7 +410,7 @@ def test_retry_requests_with_no_retries():
 def test_retry_requests_with_2_retries():
     start_time = time.perf_counter()
     with pytest.raises(requests.exceptions.ConnectionError):
-        submit_job.retry_requests(retries=2).post(MOCK_LOCALHOST_URL)
+        generate_dataset_from_htme.retry_requests(retries=2).post(MOCK_LOCALHOST_URL)
     end_time = time.perf_counter()
     assert round(end_time - start_time) == 2
 
@@ -406,7 +418,7 @@ def test_retry_requests_with_2_retries():
 def test_retry_requests_with_3_retries():
     start_time = time.perf_counter()
     with pytest.raises(requests.exceptions.ConnectionError):
-        submit_job.retry_requests(retries=3).post(MOCK_LOCALHOST_URL)
+        generate_dataset_from_htme.retry_requests(retries=3).post(MOCK_LOCALHOST_URL)
     end_time = time.perf_counter()
     assert round(end_time - start_time) == 6
 
@@ -414,7 +426,7 @@ def test_retry_requests_with_3_retries():
 def test_validate_required_args_with_missing_args():
     args = argparse.Namespace()
     with pytest.raises(argparse.ArgumentError) as argument_error:
-        submit_job.validate_required_args(args)
+        generate_dataset_from_htme.validate_required_args(args)
     assert (
         str(argument_error.value)
         == "ArgumentError: The following required arguments are missing: correlation_id, s3_prefix, snapshot_type"
@@ -428,7 +440,7 @@ def test_validate_required_args_with_invalid_values_for_snapshot_type():
     args.export_date = EXPORT_DATE
     args.snapshot_type = INVALID_SNAPSHOT_TYPE
     with pytest.raises(argparse.ArgumentError) as argument_error:
-        submit_job.validate_required_args(args)
+        generate_dataset_from_htme.validate_required_args(args)
     assert (
         str(argument_error.value)
         == "ArgumentError: Valid values for snapshot_type are: full, incremental"

@@ -217,7 +217,7 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
   content = templatefile("${path.module}/bootstrap_actions/hive-setup.sh",
     {
       python_logger               = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
-      generate_analytical_dataset = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.submit_job_script.key)
+      generate_analytical_dataset = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_dataset_from_htme_script.key)
       python_resume_script        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.resume_step.key)
       published_db                = local.published_db
     }
