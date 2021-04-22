@@ -12,19 +12,27 @@ from datetime import datetime
 import steps
 from steps import generate_dataset_from_htme
 
-VALUE_KEY = 'Value'
-NAME_KEY = 'Key'
+VALUE_KEY = "Value"
+NAME_KEY = "Key"
 PII_KEY = "pii"
 TRUE_VALUE = "true"
 DB_KEY = "db"
-TABLE_KEY= "table"
+TABLE_KEY = "table"
 SNAPSHOT_TYPE_FULL = "full"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_KEY = "snapshot_type"
-TAG_SET_FULL = [{NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE}, {NAME_KEY: DB_KEY, VALUE_KEY: 'core'}, {
-    NAME_KEY: TABLE_KEY, VALUE_KEY: 'contract'}, {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_FULL}]
-TAG_SET_INCREMENTAL = [{NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE}, {NAME_KEY: DB_KEY, VALUE_KEY: 'core'}, {
-    NAME_KEY: TABLE_KEY, VALUE_KEY: 'contract'}, {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_INCREMENTAL}]
+TAG_SET_FULL = [
+    {NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE},
+    {NAME_KEY: DB_KEY, VALUE_KEY: "core"},
+    {NAME_KEY: TABLE_KEY, VALUE_KEY: "contract"},
+    {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_FULL},
+]
+TAG_SET_INCREMENTAL = [
+    {NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE},
+    {NAME_KEY: DB_KEY, VALUE_KEY: "core"},
+    {NAME_KEY: TABLE_KEY, VALUE_KEY: "contract"},
+    {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_INCREMENTAL},
+]
 INVALID_SNAPSHOT_TYPE = "abc"
 MOCK_LOCALHOST_URL = "http://localhost:1000"
 MOTO_SERVER_URL = "http://127.0.0.1:5000"
@@ -36,7 +44,9 @@ S3_PREFIX = "mongo/ucdata"
 S3_HTME_BUCKET = "test"
 S3_PUBLISH_BUCKET = "target"
 SECRETS = "{'collections_all': {'db.core.contract': {'pii' : 'true', 'db' : 'core', 'table' : 'contract'}}}"
-SECRETS_COLLECTIONS = {DB_CORE_CONTRACT: {'pii' : 'true', 'db' : 'core', 'table' : 'contract'}}
+SECRETS_COLLECTIONS = {
+    DB_CORE_CONTRACT: {"pii": "true", "db": "core", "table": "contract"}
+}
 KEYS_MAP = {"test_ciphertext": "test_key"}
 RUN_TIME_STAMP = "2020-10-10_10-10-10"
 EXPORT_DATE = "2020-10-10"
@@ -66,9 +76,9 @@ def test_retrieve_secrets(monkeypatch):
                 return Client()
 
     monkeypatch.setattr(boto3, "session", MockSession)
-    assert generate_dataset_from_htme.retrieve_secrets(mock_args(), SNAPSHOT_TYPE_FULL) == ast.literal_eval(
-        SECRETS
-    )
+    assert generate_dataset_from_htme.retrieve_secrets(
+        mock_args(), SNAPSHOT_TYPE_FULL
+    ) == ast.literal_eval(SECRETS)
 
 
 def test_get_collections():
@@ -149,7 +159,11 @@ def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_increm
 def verify_processed_data(
     mocked_args, monkeypatch, spark, s3_prefix_adg, adg_output_key
 ):
-    tag_set = TAG_SET_FULL if mocked_args.snapshot_type == SNAPSHOT_TYPE_FULL else TAG_SET_INCREMENTAL
+    tag_set = (
+        TAG_SET_FULL
+        if mocked_args.snapshot_type == SNAPSHOT_TYPE_FULL
+        else TAG_SET_INCREMENTAL
+    )
     tbl_name = "core_contract"
     collection_location = "core"
     collection_name = "contract"
@@ -220,7 +234,11 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     core_accounts_collection_name = "core_accounts"
     test_data = '{"name":"abcd"}\n{"name":"xyz"}'
     secret_collections = SECRETS_COLLECTIONS
-    secret_collections[DB_CORE_ACCOUNTS] = {PII_KEY : TRUE_VALUE, DB_KEY : 'core', TABLE_KEY : 'accounts'}
+    secret_collections[DB_CORE_ACCOUNTS] = {
+        PII_KEY: TRUE_VALUE,
+        DB_KEY: "core",
+        TABLE_KEY: "accounts",
+    }
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -284,7 +302,11 @@ def test_create_hive_on_published_for_full(
     collection_name = "tabtest"
     all_processed_collections = [(collection_name, json_location)]
     steps.generate_dataset_from_htme.create_hive_tables_on_published(
-        spark, all_processed_collections, PUBLISHED_DATABASE_NAME, mock_args(), RUN_TIME_STAMP
+        spark,
+        all_processed_collections,
+        PUBLISHED_DATABASE_NAME,
+        mock_args(),
+        RUN_TIME_STAMP,
     )
 
     monkeypatch.setattr(
@@ -335,7 +357,10 @@ def test_exception_when_decompression_fails(
 
 def test_get_tags():
     tag_value = SECRETS_COLLECTIONS[DB_CORE_CONTRACT]
-    assert generate_dataset_from_htme.get_tags(tag_value , SNAPSHOT_TYPE_FULL) == TAG_SET_FULL
+    assert (
+        generate_dataset_from_htme.get_tags(tag_value, SNAPSHOT_TYPE_FULL)
+        == TAG_SET_FULL
+    )
 
 
 def mock_decompress(compressed_text):

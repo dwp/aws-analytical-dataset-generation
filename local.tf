@@ -223,6 +223,14 @@ locals {
     production  = "false"
   }
 
+  dynamodb_final_step = {
+    development = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
+    qa          = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
+    integration = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
+    preprod     = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
+    production  = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
+  }
+
   adg_max_retry_count = {
     development = "0"
     qa          = "0"
