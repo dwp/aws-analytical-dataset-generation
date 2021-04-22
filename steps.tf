@@ -1,7 +1,7 @@
-resource "aws_s3_bucket_object" "generate_dataset_from_htme_script" {
+resource "aws_s3_bucket_object" "submit_job_script" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/analytical-dataset-generation/generate_dataset_from_htme.py"
-  content = templatefile("${path.module}/steps/generate_dataset_from_htme.py",
+  key    = "component/analytical-dataset-generation/submit_job.py"
+  content = templatefile("${path.module}/steps/submit_job.py",
     {
       secret_name_full        = local.secret_name_full
       secret_name_incremental = local.secret_name_incremental

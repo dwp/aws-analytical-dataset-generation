@@ -37,7 +37,7 @@ Steps:
     - "file:/var/ci/create-mongo-latest-dbs.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
-- Name: "generate_dataset_from_htme"
+- Name: "submit_job"
   HadoopJarStep:
     Args:
     - "spark-submit"
@@ -45,7 +45,7 @@ Steps:
     - "yarn"
     - "--conf"
     - "spark.yarn.submit.waitAppCompletion=true"
-    - "/opt/emr/generate_dataset_from_htme.py"
+    - "/opt/emr/submit_job.py"
     Jar: "command-runner.jar"
   ActionOnFailure: "${action_on_failure}"
 - Name: "create_pdm_trigger"
