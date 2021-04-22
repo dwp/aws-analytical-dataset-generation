@@ -37,7 +37,7 @@ Steps:
     - "file:/var/ci/create-mongo-latest-dbs.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
-- Name: "generate_dataset_from_htme"
+- Name: "submit-job"
   HadoopJarStep:
     Args:
     - "spark-submit"
