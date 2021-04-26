@@ -54,6 +54,7 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       publish_bucket_id               = data.terraform_remote_state.common.outputs.published_bucket.id
       update_dynamo_sh                = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.update_dynamo_sh.key)
       dynamo_schema_json              = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.dynamo_json_file.key)
+      status_metrics_sh               = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.status_metrics_sh.key)
   })
 }
 
@@ -70,6 +71,17 @@ resource "aws_s3_bucket_object" "installer_sh" {
     {
       full_proxy    = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
       full_no_proxy = local.no_proxy
+    }
+  )
+}
+
+resource "aws_s3_bucket_object" "status_metrics_sh" {
+  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
+  key    = "component/analytical-dataset-generation/status_metrics.sh"
+  content = templatefile("${path.module}/bootstrap_actions/status_metrics.sh",
+    {
+      adg_pushgateway_hostname = data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname
+
     }
   )
 }
@@ -194,6 +206,7 @@ resource "aws_s3_bucket_object" "update_dynamo_sh" {
   content = templatefile("${path.module}/bootstrap_actions/update_dynamo.sh",
     {
       dynamodb_table_name = local.data_pipeline_metadata
+      dynamodb_final_step = local.dynamodb_final_step[local.environment]
     }
   )
 }
