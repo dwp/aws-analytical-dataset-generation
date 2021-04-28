@@ -143,7 +143,7 @@ locals {
     development = "db.t3.medium"
     qa          = "db.r5.large"
     integration = "db.t3.medium"
-    preprod     = "db.t3.medium"
+    preprod     = "db.r5.large"
     production  = "db.r5.large"
   }
 
@@ -160,7 +160,7 @@ locals {
     development = "200"
     qa          = "unused"
     integration = "200"
-    preprod     = "200"
+    preprod     = "unused"
     production  = "unused"
   }
 
@@ -168,7 +168,7 @@ locals {
     development = true
     qa          = false
     integration = true
-    preprod     = true
+    preprod     = false
     production  = false
   }
 
@@ -195,7 +195,7 @@ locals {
     development = false
     qa          = true
     integration = false
-    preprod     = false
+    preprod     = true
     production  = true
   }
 
@@ -422,4 +422,49 @@ locals {
     preprod     = "01"
     production  = "14" # 1400 (UTC) the day of the export as before would interfere with the working day's queries from users
   }
+
+  # See https://aws.amazon.com/blogs/big-data/best-practices-for-successfully-managing-memory-for-apache-spark-applications-on-amazon-emr/
+  spark_executor_cores = {
+    development = 1
+    qa          = 1
+    integration = 1
+    preprod     = 1
+    production  = 1
+  }
+
+  spark_executor_memory = {
+    development = 10
+    qa          = 10
+    integration = 10
+    preprod     = 35
+    production  = 35 # At least 20 or more per executor core
+  }
+
+  spark_yarn_executor_memory_overhead = {
+    development = 2
+    qa          = 2
+    integration = 2
+    preprod     = 7
+    production  = 7
+  }
+
+  spark_driver_memory = {
+    development = 5
+    qa          = 5
+    integration = 5
+    preprod     = 10
+    production  = 10 # Doesn't need as much as executors
+  }
+
+  spark_driver_cores = {
+    development = 1
+    qa          = 1
+    integration = 1
+    preprod     = 1
+    production  = 1
+  }
+
+  spark_executor_instances  = var.spark_executor_instances[local.environment]
+  spark_default_parallelism = local.spark_executor_instances * local.spark_executor_cores[local.environment] * 2
+  spark_kyro_buffer         = var.spark_kyro_buffer[local.environment]
 }
