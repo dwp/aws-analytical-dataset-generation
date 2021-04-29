@@ -132,33 +132,23 @@ def main(
         )
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
-    # Create hive tables only if all the collections have been processed successfully else raise exception
-    list_of_processed_collections = list(all_processed_collections)
-    if (
-        not len(list_of_processed_collections) == len(secrets_collections)
-        and args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL
-    ):
-        the_logger.error(
-            "Not all collections have been processed looks like there is missing data, stopping Spark for correlation id: %s",
-            args.correlation_id,
-        )
-        sys.exit(-1)
-    else:
-        create_hive_tables_on_published(
-            spark,
-            list_of_processed_collections,
-            published_database_name,
-            args,
-            run_time_stamp,
-        )
-        create_adg_status_csv(
-            args.correlation_id,
-            s3_publish_bucket,
-            s3_client,
-            run_time_stamp,
-            args.snapshot_type,
-            args.export_date,
-        )
+
+    create_hive_tables_on_published(
+        spark,
+        list(all_processed_collections),
+        published_database_name,
+        args,
+        run_time_stamp,
+    )
+
+    create_adg_status_csv(
+        args.correlation_id,
+        s3_publish_bucket,
+        s3_client,
+        run_time_stamp,
+        args.snapshot_type,
+        args.export_date,
+    )
 
 
 def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
