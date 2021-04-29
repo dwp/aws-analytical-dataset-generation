@@ -12,3 +12,4 @@ jobs:
             EXPORT_DATE: "2021-04-01"
             CORRELATION_ID: generate_snapshots_preprod_generate_full_snapshots_4_full
             SNAPSHOT_TYPE: full
+            SKIP_PDM_TRIGGER: "true"

@@ -162,10 +162,29 @@ Whenever a step starts on a cluster, it calls a common method which checks if th
 
 In this way, we are able to retry the entire cluster but not repeat steps that have already succeeded, therefore saving us potentially hours or time for retry scenarios.
 
+## Concourse pipeline
 
-### Full cluster restart
+There is a concourse pipeline for ADG named `analytical-dataset-generation`. The code for this pipeline is in the `ci` folder. The main part of the pipeline (the `master` group) deploys the infrastructure and runs the e2e tests. There are a number of groups for rotating passwords and there are also admin groups for each environment.
 
-## Full cluster restart
+### Admin jobs
+
+There are a number of available admin jobs for each environment.
+
+#### Start cluster
+
+This job will start an ADG cluster running. In order to make the cluster do what you want it to do, you can alter the following environment variables in the pipeline config and then run `aviator` to update the pipeline before kicking it off:
+
+1. S3_PREFIX (required) -> the S3 output location for the HTME data to process, i.e. `businessdata/mongo/ucdata/2021-04-01/full`
+1. EXPORT_DATE (required) -> the date the data was exported, i.e `2021-04-01`
+1. CORRELATION_ID (required) -> the correlation id for this run, i.e. `generate_snapshots_preprod_generate_full_snapshots_4_full`
+1. SNAPSHOT_TYPE (required) -> either `full` or `incremental` for the type of ADG to start
+1. SKIP_PDM_TRIGGER (optional) -> if not provided, the environment wide terraform default is used to decide whether ADG should trigger PDM when finished - if provided must be either `true` or `false` to explicity trigger or not trigger PDM (note this only applies to ADG-full clusters, this value is ignored for ADG-incremental)
+
+#### Stop clusters
+
+For stopping clusters, you can run either the `stop-full-clusters` job to terminate ALL current `ADG-full` clusters on the environment or `stop-incremental-clusters` to terminate ALL current `ADG-incremental` clusters on the environment.
+
+### Clear dynamo row (i.e. for a cluster restart)
 
 Sometimes the ADG cluster is required to restart from the beginning instead of restarting from the failure point.
 To be able to do a full cluster restart, delete the associated DynamoDB row if it exists. The keys to the row are `Correlation_Id` and `DataProduct` in the DynamoDB table storing cluster state information (see [Retries](#retries)).   
