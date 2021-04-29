@@ -707,7 +707,7 @@ def save_output_location(args, run_time_stamp):
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
-        "Processing spark job for correlation id : %s, export date : %s, snapshot_type : %s and s3_prefix : %s,
+        "Processing spark job for correlation id : %s, export date : %s, snapshot_type : %s and s3_prefix : %s",
         args.correlation_id,
         args.export_date,
         args.snapshot_type.lower(),
