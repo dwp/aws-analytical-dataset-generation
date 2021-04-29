@@ -372,8 +372,8 @@ def retrieve_secrets(args, secret_name):
 def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket, snapshot_type):
     the_logger.info(
         "Looking for files to tag in bucket : %s with prefix : %s",
-        s3_htme_bucket,
-        s3_prefix,
+        s3_publish_bucket,
+        prefix,
     )
     for key in s3_client.list_objects(Bucket=s3_publish_bucket, Prefix=prefix)[
         "Contents"
