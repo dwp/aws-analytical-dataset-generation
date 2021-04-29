@@ -128,8 +128,9 @@ def main(
         the_logger.error(
             "Some error occurred for correlation id : %s %s ",
             args.correlation_id,
-            str(ex),
+            repr(ex),
         )
+        traceback.print_exc()
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
 
@@ -328,7 +329,7 @@ def consolidate_rdd_per_collection(
             collection_name,
             str(ex),
         )
-        sys.exit(-1)
+        raise BaseException(ex)
     return (collection_name, json_location)
 
 
@@ -511,7 +512,7 @@ def create_hive_tables_on_published(
             args.correlation_id,
             str(ex),
         )
-        sys.exit(-1)
+        raise BaseException(ex)
 
 
 def create_hive_tables_on_published_for_collection_threaded(
