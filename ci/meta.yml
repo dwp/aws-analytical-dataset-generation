@@ -390,12 +390,18 @@ meta:
               source /assume-role
               set +x
               export topic_arn=arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACC}:export_status_sns_fulls
+
+              if [[ -z "$SKIP_PDM_TRIGGER" ]]; then
+                SKIP_PDM_TRIGGER="NOT_SET"
+              fi
+
               export message_json=$(cat <<EOF
               {
                 "correlation_id": "$CORRELATION_ID",
                 "s3_prefix": "$S3_PREFIX",
                 "snapshot_type": "$SNAPSHOT_TYPE",
-                "export_date": "$EXPORT_DATE"
+                "export_date": "$EXPORT_DATE",
+                "skip_pdm_trigger": "$SKIP_PDM_TRIGGER"
               }
               EOF
               )
