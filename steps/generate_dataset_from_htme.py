@@ -132,14 +132,15 @@ def main(
         )
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
-    # Create hive tables only if all the collections have been processed successfully else raise exception
+
     create_hive_tables_on_published(
         spark,
-        list_of_processed_collections,
+        list(all_processed_collections),
         published_database_name,
         args,
         run_time_stamp,
     )
+
     create_adg_status_csv(
         args.correlation_id,
         s3_publish_bucket,
