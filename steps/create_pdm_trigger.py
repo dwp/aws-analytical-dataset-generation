@@ -25,13 +25,12 @@ the_logger = setup_logging(
 
 def create_pdm_trigger(
     args,
-    skip_pdm_trigger,
     events_client=None
 ):
     now = get_now()
     do_not_run_after = generate_cut_off_date(args.export_date, args.pdm_start_do_not_run_after_hour)
 
-    if should_step_be_skipped(skip_pdm_trigger, now, do_not_run_after):
+    if should_step_be_skipped(args.skip_pdm_trigger, now, do_not_run_after):
         return None
 
     if events_client is None:
@@ -57,6 +56,7 @@ def get_parameters():
         description="Receive args provided to spark submit job"
     )
 
+    parser.add_argument("--skip_pdm_trigger", default="${skip_pdm_trigger}")
     parser.add_argument("--correlation_id", default="0")
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
     parser.add_argument("--snapshot_type", default="full")
@@ -222,5 +222,4 @@ def get_cron(now, do_not_run_before):
 
 if __name__ == "__main__":
     args = get_parameters()
-    skip_pdm_trigger = "${skip_pdm_trigger}"
-    create_pdm_trigger(args, skip_pdm_trigger)
+    create_pdm_trigger(args)

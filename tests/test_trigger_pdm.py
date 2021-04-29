@@ -21,6 +21,7 @@ args.correlation_id = CORRELATION_ID
 args.s3_prefix = S3_PREFIX
 args.snapshot_type = SNAPSHOT_TYPE_FULL
 args.export_date = EXPORT_DATE
+args.skip_pdm_trigger = "false"
 args.pdm_start_do_not_run_after_hour = PDM_START_DO_DO_RUN_AFTER_HOUR
 args.pdm_start_do_not_run_before_hour = PDM_START_DO_DO_RUN_BEFORE_HOUR
 
@@ -64,7 +65,6 @@ class TestReplayer(unittest.TestCase):
         
         create_pdm_trigger.create_pdm_trigger(
             args,
-            "false", 
         )
         
         get_now_mock.assert_called_once()
@@ -125,10 +125,10 @@ class TestReplayer(unittest.TestCase):
         get_now_mock.return_value = now
         generate_cut_off_date_mock.return_value = do_not_run_after
         should_step_be_skipped_mock.return_value = True
+        args.skip_pdm_trigger = "true"
         
         create_pdm_trigger.create_pdm_trigger(
             args,
-            "true", 
         )
 
         get_now_mock.assert_called_once()
