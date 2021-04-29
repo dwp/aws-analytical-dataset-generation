@@ -125,7 +125,7 @@ def main(
                 itertools.repeat(args),
                 itertools.repeat(s3_resource),
             )
-    except Exception as ex:
+    except BaseException as ex:
         the_logger.error(
             "Some error occurred for correlation id : %s %s ",
             args.correlation_id,
