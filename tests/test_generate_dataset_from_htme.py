@@ -321,7 +321,7 @@ def test_create_hive_on_published_for_full(
 def test_exception_when_decompression_fails(
     spark, monkeypatch, handle_server, aws_credentials
 ):
-    with pytest.raises(SystemExit):
+    with pytest.raises(BaseException):
         s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
         s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
         s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
