@@ -61,11 +61,14 @@ def get_parameters():
         if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
         else SNAPSHOT_TYPE_FULL
     )
-    the_logger.warning(
-        "Unrecognized args %s found for the correlation id %s",
-        unrecognized_args,
-        args.correlation_id,
-    )
+    
+    if len(unrecognized_args) > 0:
+        the_logger.warning(
+            "Unrecognized args %s found for the correlation id %s",
+            unrecognized_args,
+            args.correlation_id,
+        )
+
     validate_required_args(args)
 
     return args
@@ -181,6 +184,11 @@ def get_s3_resource():
 
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
+    the_logger.info(
+        "Looking for files to process in bucket : %s with prefix : %s",
+        s3_htme_bucket,
+        s3_prefix,
+    )
     keys = []
     paginator = s3_client.get_paginator("list_objects_v2")
     pages = paginator.paginate(Bucket=s3_htme_bucket, Prefix=s3_prefix)
@@ -364,6 +372,11 @@ def retrieve_secrets(args, secret_name):
 
 
 def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket, snapshot_type):
+    the_logger.info(
+        "Looking for files to tag in bucket : %s with prefix : %s",
+        s3_htme_bucket,
+        s3_prefix,
+    )
     for key in s3_client.list_objects(Bucket=s3_publish_bucket, Prefix=prefix)[
         "Contents"
     ]:
@@ -696,10 +709,11 @@ def save_output_location(args, run_time_stamp):
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
-        "Processing spark job for correlation id : %s, export date : %s and snapshot_type : %s",
+        "Processing spark job for correlation id : %s, export date : %s, snapshot_type : %s and s3_prefix : %s,
         args.correlation_id,
         args.export_date,
         args.snapshot_type.lower(),
+        args.s3_prefix,
     )
 
     the_logger.info("Checking if step should be skipped")
