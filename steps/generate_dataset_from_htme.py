@@ -9,6 +9,7 @@ import sys
 import time
 import zlib
 import json
+import traceback
 import concurrent.futures
 from datetime import datetime, timedelta
 from itertools import groupby
@@ -124,12 +125,13 @@ def main(
                 itertools.repeat(args),
                 itertools.repeat(s3_resource),
             )
-    except Exception as ex:
+    except BaseException as ex:
         the_logger.error(
             "Some error occurred for correlation id : %s %s ",
             args.correlation_id,
-            str(ex),
+            repr(ex),
         )
+        traceback.print_exc()
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
 
@@ -328,7 +330,7 @@ def consolidate_rdd_per_collection(
             collection_name,
             str(ex),
         )
-        sys.exit(-1)
+        raise BaseException(ex)
     return (collection_name, json_location)
 
 
@@ -511,7 +513,7 @@ def create_hive_tables_on_published(
             args.correlation_id,
             str(ex),
         )
-        sys.exit(-1)
+        raise BaseException(ex)
 
 
 def create_hive_tables_on_published_for_collection_threaded(
