@@ -9,7 +9,6 @@ import sys
 import time
 import zlib
 import json
-import traceback
 import concurrent.futures
 from datetime import datetime, timedelta
 from itertools import groupby
@@ -134,7 +133,6 @@ def main(
             args.correlation_id,
             repr(ex),
         )
-        traceback.print_exc()
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
 
