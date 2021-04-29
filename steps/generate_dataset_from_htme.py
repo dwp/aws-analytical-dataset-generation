@@ -9,6 +9,7 @@ import sys
 import time
 import zlib
 import json
+import traceback
 import concurrent.futures
 from datetime import datetime, timedelta
 from itertools import groupby
