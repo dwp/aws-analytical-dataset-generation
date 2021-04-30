@@ -22,6 +22,7 @@ args.s3_prefix = S3_PREFIX
 args.snapshot_type = SNAPSHOT_TYPE_FULL
 args.export_date = EXPORT_DATE
 args.skip_pdm_trigger = "false"
+args.skip_date_checks = "false"
 args.pdm_start_do_not_run_after_hour = PDM_START_DO_DO_RUN_AFTER_HOUR
 args.pdm_start_do_not_run_before_hour = PDM_START_DO_DO_RUN_BEFORE_HOUR
 
@@ -75,10 +76,12 @@ class TestReplayer(unittest.TestCase):
             "false",
             now,
             do_not_run_after,
+            args.skip_date_checks,
         )
         get_events_client_mock.assert_called_once()
         generate_do_not_run_before_date_mock.assert_called_once_with(
-            EXPORT_DATE, args.pdm_start_do_not_run_before_hour
+            EXPORT_DATE, 
+            args.pdm_start_do_not_run_before_hour
         )
         get_cron_mock.assert_called_once_with(
             now,
@@ -139,6 +142,7 @@ class TestReplayer(unittest.TestCase):
             "true",
             now,
             do_not_run_after,
+            args.skip_date_checks,
         )
         get_events_client_mock.assert_not_called()
         generate_do_not_run_before_date_mock.assert_not_called()
@@ -233,10 +237,51 @@ class TestReplayer(unittest.TestCase):
         actual = create_pdm_trigger.should_step_be_skipped(
             "false",
             now, 
-            do_not_trigger_after
+            do_not_trigger_after,
+            "false",
         )
 
         assert True == actual
+
+
+    @mock.patch("steps.create_pdm_trigger.check_should_skip_step")
+    def test_should_skip_returns_false_when_after_cut_off_and_ignore_date_checks_set_to_true(
+        self,
+        check_should_skip_step_mock,
+    ):
+        now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
+        do_not_trigger_after = datetime.strptime("18/09/19 22:55:19", '%d/%m/%y %H:%M:%S')
+
+        check_should_skip_step_mock.return_value = False
+
+        actual = create_pdm_trigger.should_step_be_skipped(
+            "false",
+            now, 
+            do_not_trigger_after,
+            "true",
+        )
+
+        assert False == actual
+
+
+    @mock.patch("steps.create_pdm_trigger.check_should_skip_step")
+    def test_should_skip_returns_false_when_after_cut_off_and_ignore_date_checks_set_to_true_upper_case(
+        self,
+        check_should_skip_step_mock,
+    ):
+        now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
+        do_not_trigger_after = datetime.strptime("18/09/19 22:55:19", '%d/%m/%y %H:%M:%S')
+
+        check_should_skip_step_mock.return_value = False
+
+        actual = create_pdm_trigger.should_step_be_skipped(
+            "false",
+            now, 
+            do_not_trigger_after,
+            "TRUE",
+        )
+
+        assert False == actual
 
 
     @mock.patch("steps.create_pdm_trigger.check_should_skip_step")
@@ -252,7 +297,28 @@ class TestReplayer(unittest.TestCase):
         actual = create_pdm_trigger.should_step_be_skipped(
             "false",
             now, 
-            do_not_trigger_after
+            do_not_trigger_after,
+            "false",
+        )
+
+        assert True == actual
+
+
+    @mock.patch("steps.create_pdm_trigger.check_should_skip_step")
+    def test_should_skip_returns_true_when_after_cut_off_but_resume_step_returns_true_and_ignore_date_checks_set_to_true(
+        self,
+        check_should_skip_step_mock,
+    ):
+        now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
+        do_not_trigger_after = datetime.strptime("18/09/19 23:59:19", '%d/%m/%y %H:%M:%S')
+
+        check_should_skip_step_mock.return_value = True
+
+        actual = create_pdm_trigger.should_step_be_skipped(
+            "false",
+            now, 
+            do_not_trigger_after,
+            "true",
         )
 
         assert True == actual
@@ -271,7 +337,28 @@ class TestReplayer(unittest.TestCase):
         actual = create_pdm_trigger.should_step_be_skipped(
             "true",
             now, 
-            do_not_trigger_after
+            do_not_trigger_after,
+            "false",
+        )
+
+        assert True == actual
+
+
+    @mock.patch("steps.create_pdm_trigger.check_should_skip_step")
+    def test_should_skip_returns_true_when_skip_setting_set_to_true_and_ignore_date_checks_set_to_true(
+        self,
+        check_should_skip_step_mock,
+    ):
+        now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
+        do_not_trigger_after = datetime.strptime("18/09/19 23:59:19", '%d/%m/%y %H:%M:%S')
+
+        check_should_skip_step_mock.return_value = False
+
+        actual = create_pdm_trigger.should_step_be_skipped(
+            "true",
+            now, 
+            do_not_trigger_after,
+            "true",
         )
 
         assert True == actual
@@ -290,7 +377,8 @@ class TestReplayer(unittest.TestCase):
         actual = create_pdm_trigger.should_step_be_skipped(
             "TRUE",
             now, 
-            do_not_trigger_after
+            do_not_trigger_after,
+            "false",
         )
 
         assert True == actual
@@ -309,7 +397,8 @@ class TestReplayer(unittest.TestCase):
         actual = create_pdm_trigger.should_step_be_skipped(
             "false",
             now, 
-            do_not_trigger_after
+            do_not_trigger_after,
+            "false",
         )
 
         assert False == actual
