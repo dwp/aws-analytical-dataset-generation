@@ -30,7 +30,7 @@ def create_pdm_trigger(
     now = get_now()
     do_not_run_after = generate_cut_off_date(args.export_date, args.pdm_start_do_not_run_after_hour)
 
-    if should_step_be_skipped(args.skip_pdm_trigger, now, do_not_run_after):
+    if should_step_be_skipped(args.skip_pdm_trigger, now, do_not_run_after, args.skip_date_checks):
         return None
 
     if events_client is None:
@@ -57,6 +57,7 @@ def get_parameters():
     )
 
     parser.add_argument("--skip_pdm_trigger", default="${skip_pdm_trigger}")
+    parser.add_argument("--skip_date_checks", default="${skip_date_checks}")
     parser.add_argument("--correlation_id", default="0")
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
     parser.add_argument("--snapshot_type", default="full")
@@ -180,14 +181,14 @@ def check_should_skip_step():
     return should_skip_step(the_logger, "trigger-pdm")
 
 
-def should_step_be_skipped(skip_pdm_trigger, now, do_not_trigger_after):
+def should_step_be_skipped(skip_pdm_trigger, now, do_not_trigger_after, skip_date_checks):
     if skip_pdm_trigger.lower() == "true":
         the_logger.info(
             f"Skipping PDM trigger due to skip_pdm_trigger value of {skip_pdm_trigger}",
         )
         return True
 
-    if now > do_not_trigger_after:
+    if skip_date_checks.lower() != "true" and now > do_not_trigger_after:
         the_logger.info(
             f"Skipping PDM triggering as datetime now '{now}' if after cut off of '{do_not_trigger_after}'",
         )
