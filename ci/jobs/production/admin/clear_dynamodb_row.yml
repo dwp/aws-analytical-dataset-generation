@@ -6,5 +6,5 @@ jobs:
           params:
             AWS_ROLE_ARN: arn:aws:iam::((aws_account.production)):role/ci
             AWS_ACC: ((aws_account.production))
-            CORRELATION_ID: generate_snapshots_preprod_generate_full_snapshots_4_full
-            DATA_PRODUCT: ADG-full
+            CORRELATION_ID: ingest_emr_scheduled_tasks_export_snapshots_to_crown_production_incremental_157_incremental
+            DATA_PRODUCT: ADG-incremental
