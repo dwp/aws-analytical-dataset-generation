@@ -24,7 +24,7 @@ resource "aws_iam_instance_profile" "analytical_dataset_generator" {
 
 resource "aws_iam_role_policy_attachment" "ec2_for_ssm_attachment" {
   role       = aws_iam_role.analytical_dataset_generator.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {
