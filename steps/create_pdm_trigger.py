@@ -125,7 +125,7 @@ def get_existing_cloudwatch_event_rules(client):
         f"Retrieving all existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}'",
     )
 
-    rules_batch = client.list_rules(
+    first_batch = client.list_rules(
         NamePrefix=CLOUDWATCH_RULE_PREFIX,
     )
     all_rules = first_batch["Rules"]
