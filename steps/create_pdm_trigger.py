@@ -51,8 +51,14 @@ def create_pdm_trigger(
         args.s3_prefix,
     )
 
-    existing_rules = get_existing_cloudwatch_event_rules(events_client)
-    delete_old_cloudwatch_event_rules(events_client, existing_rules, rule_name)
+    try:
+        existing_rules = get_existing_cloudwatch_event_rules(events_client)
+        delete_old_cloudwatch_event_rules(events_client, existing_rules, rule_name)
+    except BaseException as ex:
+        the_logger.warning(
+            "Error occurred when trying to delete old cloudwatch rules: '%s'",
+            repr(ex),
+        )
 
 
 def get_parameters():
