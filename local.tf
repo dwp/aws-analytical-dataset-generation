@@ -200,10 +200,10 @@ locals {
   }
 
   mongo_latest_version = {
-    development = "0.0.57"
-    qa          = "0.0.57"
-    integration = "0.0.57"
-    preprod     = "0.0.57"
+    development = "0.0.59"
+    qa          = "0.0.59"
+    integration = "0.0.59"
+    preprod     = "0.0.59"
     production  = "0.0.57"
   }
 
