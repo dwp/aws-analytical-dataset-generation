@@ -204,7 +204,7 @@ locals {
     qa          = "0.0.59"
     integration = "0.0.59"
     preprod     = "0.0.59"
-    production  = "0.0.57"
+    production  = "0.0.59"
   }
 
   skip_pdm_trigger_on_adg_completion = {
