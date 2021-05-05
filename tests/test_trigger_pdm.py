@@ -283,7 +283,7 @@ class TestReplayer(unittest.TestCase):
 
         events_client.list_rules.assert_has_calls(calls)
 
-        self.assertEqual(3, events_client.delete_rule.call_count)
+        self.assertEqual(3, events_client.list_rules.call_count)
         self.assertEqual(expected, actual)
 
 

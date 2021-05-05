@@ -51,7 +51,7 @@ def create_pdm_trigger(
         args.s3_prefix,
     )
 
-    existing_rules = get_existing_cloudwatch_event_rules(client)
+    existing_rules = get_existing_cloudwatch_event_rules(events_client)
     delete_old_cloudwatch_event_rules(client, existing_rules, rule_name)
 
 
@@ -156,7 +156,7 @@ def get_existing_cloudwatch_event_rules(client):
 
 def delete_old_cloudwatch_event_rules(client, all_rules, new_rule_name):
     the_logger.info(
-        f"Deleting all existing PDM cloudwatch rules with prefix of '{name}' except the one named '{new_rule_name}'",
+        f"Deleting all existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}' except the one named '{new_rule_name}'",
     )
 
     for rule in all_rules:
@@ -173,7 +173,7 @@ def delete_old_cloudwatch_event_rules(client, all_rules, new_rule_name):
             )
 
     the_logger.info(
-        f"Deleted {len(all_rules)} existing PDM cloudwatch rules with prefix of '{name}' except the one named '{new_rule_name}'",
+        f"Deleted {len(all_rules)} existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}' except the one named '{new_rule_name}'",
     )
 
     return all_rules
