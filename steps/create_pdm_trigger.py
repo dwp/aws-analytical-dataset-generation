@@ -151,7 +151,7 @@ def get_existing_cloudwatch_event_rules(client):
         f"Retrieved {len(all_rules)} existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}'",
     )
 
-    return { rule['Name'] : rule for rule in all_rules }.values()
+    return [rule['Name'] : rule for rule in all_rules]
 
 
 def delete_old_cloudwatch_event_rules(client, all_rules, new_rule_name):
