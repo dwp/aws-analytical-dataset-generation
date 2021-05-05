@@ -52,7 +52,7 @@ def create_pdm_trigger(
     )
 
     existing_rules = get_existing_cloudwatch_event_rules(events_client)
-    delete_old_cloudwatch_event_rules(client, existing_rules, rule_name)
+    delete_old_cloudwatch_event_rules(events_client, existing_rules, rule_name)
 
 
 def get_parameters():
