@@ -129,7 +129,11 @@ def get_existing_cloudwatch_event_rules(client):
         NamePrefix=CLOUDWATCH_RULE_PREFIX,
     )
     all_rules = first_batch["Rules"]
-    next_token = first_batch["NextToken"]
+    next_token = (
+        first_batch["NextToken"]
+        if "NextToken" in first_batch
+        else None
+    )
 
     while next_token is not None:
         next_batch = client.list_rules(
@@ -137,7 +141,11 @@ def get_existing_cloudwatch_event_rules(client):
             NextToken=next_token,
         )
         all_rules.extend(next_batch["Rules"])
-        next_token = next_batch["NextToken"]
+        next_token = (
+            next_batch["NextToken"]
+            if "NextToken" in next_batch
+            else None
+        )
 
     the_logger.info(
         f"Retrieved {len(all_rules)} existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}'",
