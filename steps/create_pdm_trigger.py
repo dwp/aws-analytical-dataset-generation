@@ -153,7 +153,7 @@ def delete_old_cloudwatch_event_rules(client, all_rules, new_rule_name):
 
     for rule in all_rules:
         rule_name = rule["Name"]
-        if rule_name != new_rule_name:=
+        if rule_name != new_rule_name:
             the_logger.info(
                 f"Deleting rule named '{rule_name}'",
             )
