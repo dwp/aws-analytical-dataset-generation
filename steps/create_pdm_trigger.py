@@ -122,7 +122,7 @@ def get_events_client():
 
 def get_existing_cloudwatch_event_rules(client):
     the_logger.info(
-        f"Retrieving all existing PDM cloudwatch rules with prefix of '{name}'",
+        f"Retrieving all existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}'",
     )
 
     rules_batch = client.list_rules(
@@ -140,7 +140,7 @@ def get_existing_cloudwatch_event_rules(client):
         next_token = next_batch["NextToken"]
 
     the_logger.info(
-        f"Retrieved {len(all_rules)} existing PDM cloudwatch rules with prefix of '{name}'",
+        f"Retrieved {len(all_rules)} existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}'",
     )
 
     return list(dict.fromkeys(all_rules))
