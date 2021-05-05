@@ -171,7 +171,7 @@ def delete_old_cloudwatch_event_rules(client, all_rules, new_rule_name):
             the_logger.info(
                 f"Deleting rule named '{rule_name}'",
             )
-            next_batch = client.delete_rule(
+            client.delete_rule(
                 Name=rule_name,
             )
             the_logger.info(

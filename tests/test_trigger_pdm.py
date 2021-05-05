@@ -300,7 +300,7 @@ class TestReplayer(unittest.TestCase):
             {"Name": "Rule6"},
         ]
 
-        actual = create_pdm_trigger.delete_old_cloudwatch_event_rules(
+        create_pdm_trigger.delete_old_cloudwatch_event_rules(
             events_client,
             rules,
             "Rule3",
