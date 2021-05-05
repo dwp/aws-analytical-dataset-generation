@@ -251,24 +251,24 @@ class TestReplayer(unittest.TestCase):
         events_client.list_rules.side_effect = [
             {
                 "NextToken": "1", 
-                "Rules": [{"RuleName": "Rule1"}]
+                "Rules": [{"Name": "Rule1"}]
             },
             {
                 "NextToken": "2", 
-                "Rules": [{"RuleName": "Rule2"}, {"RuleName": "Rule3"}, {"RuleName": "Rule1"}]
+                "Rules": [{"Name": "Rule2"}, {"Name": "Rule3"}, {"Name": "Rule1"}]
             },
             {
-                "Rules": [{"RuleName": "Rule4"}, {"RuleName": "Rule5"}, {"RuleName": "Rule6"}]
+                "Rules": [{"Name": "Rule4"}, {"Name": "Rule5"}, {"Name": "Rule6"}]
             },
         ]
 
         expected = [
-            {"RuleName": "Rule1"},
-            {"RuleName": "Rule2"},
-            {"RuleName": "Rule3"},
-            {"RuleName": "Rule4"},
-            {"RuleName": "Rule5"},
-            {"RuleName": "Rule6"},
+            {"Name": "Rule1"},
+            {"Name": "Rule2"},
+            {"Name": "Rule3"},
+            {"Name": "Rule4"},
+            {"Name": "Rule5"},
+            {"Name": "Rule6"},
         ]
 
         actual = create_pdm_trigger.get_existing_cloudwatch_event_rules(
@@ -292,12 +292,12 @@ class TestReplayer(unittest.TestCase):
         events_client.delete_rule = mock.MagicMock()
 
         rules = [
-            {"RuleName": "Rule1"},
-            {"RuleName": "Rule2"},
-            {"RuleName": "Rule3"},
-            {"RuleName": "Rule4"},
-            {"RuleName": "Rule5"},
-            {"RuleName": "Rule6"},
+            {"Name": "Rule1"},
+            {"Name": "Rule2"},
+            {"Name": "Rule3"},
+            {"Name": "Rule4"},
+            {"Name": "Rule5"},
+            {"Name": "Rule6"},
         ]
 
         actual = create_pdm_trigger.delete_old_cloudwatch_event_rules(
