@@ -14,6 +14,7 @@ ARG_EXPORT_DATE = "export_date"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
 ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
+CLOUDWATCH_RULE_PREFIX = "pdm_cw_emr_launcher_schedule_"
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -49,6 +50,15 @@ def create_pdm_trigger(
         args.snapshot_type,
         args.s3_prefix,
     )
+
+    try:
+        existing_rules = get_existing_cloudwatch_event_rules(events_client)
+        delete_old_cloudwatch_event_rules(events_client, existing_rules, rule_name)
+    except BaseException as ex:
+        the_logger.warning(
+            "Error occurred when trying to delete old cloudwatch rules: '%s'",
+            repr(ex),
+        )
 
 
 def get_parameters():
@@ -116,9 +126,68 @@ def get_events_client():
     return boto3.client("events")
 
 
+def get_existing_cloudwatch_event_rules(client):
+    the_logger.info(
+        f"Retrieving all existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}'",
+    )
+
+    first_batch = client.list_rules(
+        NamePrefix=CLOUDWATCH_RULE_PREFIX,
+    )
+    all_rules = first_batch["Rules"]
+    next_token = (
+        first_batch["NextToken"]
+        if "NextToken" in first_batch
+        else None
+    )
+
+    while next_token is not None:
+        next_batch = client.list_rules(
+            NamePrefix=CLOUDWATCH_RULE_PREFIX,
+            NextToken=next_token,
+        )
+        all_rules.extend(next_batch["Rules"])
+        next_token = (
+            next_batch["NextToken"]
+            if "NextToken" in next_batch
+            else None
+        )
+
+    the_logger.info(
+        f"Retrieved {len(all_rules)} existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}'",
+    )
+
+    return list({ rule['Name'] : rule for rule in all_rules }.values())
+
+
+def delete_old_cloudwatch_event_rules(client, all_rules, new_rule_name):
+    the_logger.info(
+        f"Deleting all existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}' except the one named '{new_rule_name}'",
+    )
+
+    for rule in all_rules:
+        rule_name = rule["Name"]
+        if rule_name != new_rule_name:
+            the_logger.info(
+                f"Deleting rule named '{rule_name}'",
+            )
+            client.delete_rule(
+                Name=rule_name,
+            )
+            the_logger.info(
+                f"Deleted rule named '{rule_name}'",
+            )
+
+    the_logger.info(
+        f"Deleted {len(all_rules)} existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}' except the one named '{new_rule_name}'",
+    )
+
+    return all_rules
+
+
 def put_cloudwatch_event_rule(client, now, cron):
     now_string = now.strftime("%d_%m_%Y_%H_%M_%S")
-    name = f"pdm_cw_emr_launcher_schedule_{now_string}"
+    name = f"{CLOUDWATCH_RULE_PREFIX}{now_string}"
 
     the_logger.info(
         f"Putting new cloudwatch event rule with name of '{name}' and cron of '{cron}'",
