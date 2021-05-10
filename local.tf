@@ -120,6 +120,14 @@ locals {
     production  = false
   }
 
+  keep_cluster_alive_incremental = {
+    development = true
+    qa          = false
+    integration = false
+    preprod     = false
+    production  = false
+  }
+
   step_fail_action = {
     development = "CONTINUE"
     qa          = "TERMINATE_CLUSTER"
@@ -406,7 +414,23 @@ locals {
     production  = "open"
   }
 
+  emr_capacity_reservation_preference_incremental = {
+    development = "none"
+    qa          = "open"
+    integration = "none"
+    preprod     = "open"
+    production  = "open"
+  }
+
   emr_capacity_reservation_usage_strategy = {
+    development = ""
+    qa          = "use-capacity-reservations-first"
+    integration = ""
+    preprod     = "use-capacity-reservations-first"
+    production  = "use-capacity-reservations-first"
+  }
+
+  emr_capacity_reservation_usage_strategy_incremental = {
     development = ""
     qa          = "use-capacity-reservations-first"
     integration = ""
