@@ -51,7 +51,6 @@
   processed_files=()
 
   push_metric() {
-    curl -X PUT "http://${adg_pushgateway_hostname}:9091/api/v1/admin/wipe"
     log_wrapper_message "Sending to push gateway with value $1"
 
     cat << EOF | curl --data-binary @- "http://${adg_pushgateway_hostname}:9091/metrics/job/adg"
