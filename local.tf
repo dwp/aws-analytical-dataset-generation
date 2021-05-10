@@ -1,4 +1,5 @@
 locals {
+
   emr_cluster_name         = "aws-analytical-dataset-generator"
   secret_name_full         = "/concourse/dataworks/adg/fulls"
   secret_name_incremental  = "/concourse/dataworks/adg/incrementals"
@@ -362,7 +363,7 @@ locals {
     qa          = "5"
     integration = "5"
     preprod     = "20"
-    production  = "20"
+    production  = "29"
   }
 
   map_reduce_vcores_per_node = {
