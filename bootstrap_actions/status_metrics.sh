@@ -51,13 +51,15 @@
   processed_files=()
 
   push_metric() {
+    curl -X PUT "http://${adg_pushgateway_hostname}:9091/api/v1/admin/wipe"
     log_wrapper_message "Sending to push gateway with value $1"
 
-    cat << EOF | curl --silent --output /dev/null --show-error --fail --data-binary @- "http://${adg_pushgateway_hostname}:9091/metrics/job/adg"
-                adg_status{snapshot_type="$SNAPSHOT_TYPE", export_date="$EXPORT_DATE", cluster_id="$CLUSTER_ID", component="ADG" correlation_id="$CORRELATION_ID"} $1
+    cat << EOF | curl --data-binary @- "http://${adg_pushgateway_hostname}:9091/metrics/job/adg"
+                adg_status{snapshot_type="$SNAPSHOT_TYPE", export_date="$EXPORT_DATE", cluster_id="$CLUSTER_ID", component="ADG", correlation_id="$CORRELATION_ID"} $1
 EOF
 
   }
+
 
   check_step_dir() {
     cd "$STEP_DETAILS_DIR" || exit
