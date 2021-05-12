@@ -14,6 +14,7 @@ ARG_EXPORT_DATE = "export_date"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
 ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
+CLOUDWATCH_RULE_PREFIX = "pdm_cw_emr_launcher_schedule_"
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -25,13 +26,12 @@ the_logger = setup_logging(
 
 def create_pdm_trigger(
     args,
-    skip_pdm_trigger,
     events_client=None
 ):
     now = get_now()
     do_not_run_after = generate_cut_off_date(args.export_date, args.pdm_start_do_not_run_after_hour)
 
-    if should_step_be_skipped(skip_pdm_trigger, now, do_not_run_after):
+    if should_step_be_skipped(args.skip_pdm_trigger, now, do_not_run_after, args.skip_date_checks):
         return None
 
     if events_client is None:
@@ -51,12 +51,23 @@ def create_pdm_trigger(
         args.s3_prefix,
     )
 
+    try:
+        existing_rules = get_existing_cloudwatch_event_rules(events_client)
+        delete_old_cloudwatch_event_rules(events_client, existing_rules, rule_name)
+    except BaseException as ex:
+        the_logger.warning(
+            "Error occurred when trying to delete old cloudwatch rules: '%s'",
+            repr(ex),
+        )
+
 
 def get_parameters():
     parser = argparse.ArgumentParser(
         description="Receive args provided to spark submit job"
     )
 
+    parser.add_argument("--skip_pdm_trigger", default="${skip_pdm_trigger}")
+    parser.add_argument("--skip_date_checks", default="${skip_date_checks}")
     parser.add_argument("--correlation_id", default="0")
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
     parser.add_argument("--snapshot_type", default="full")
@@ -115,9 +126,68 @@ def get_events_client():
     return boto3.client("events")
 
 
+def get_existing_cloudwatch_event_rules(client):
+    the_logger.info(
+        f"Retrieving all existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}'",
+    )
+
+    first_batch = client.list_rules(
+        NamePrefix=CLOUDWATCH_RULE_PREFIX,
+    )
+    all_rules = first_batch["Rules"]
+    next_token = (
+        first_batch["NextToken"]
+        if "NextToken" in first_batch
+        else None
+    )
+
+    while next_token is not None:
+        next_batch = client.list_rules(
+            NamePrefix=CLOUDWATCH_RULE_PREFIX,
+            NextToken=next_token,
+        )
+        all_rules.extend(next_batch["Rules"])
+        next_token = (
+            next_batch["NextToken"]
+            if "NextToken" in next_batch
+            else None
+        )
+
+    the_logger.info(
+        f"Retrieved {len(all_rules)} existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}'",
+    )
+
+    return list({ rule['Name'] : rule for rule in all_rules }.values())
+
+
+def delete_old_cloudwatch_event_rules(client, all_rules, new_rule_name):
+    the_logger.info(
+        f"Deleting all existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}' except the one named '{new_rule_name}'",
+    )
+
+    for rule in all_rules:
+        rule_name = rule["Name"]
+        if rule_name != new_rule_name:
+            the_logger.info(
+                f"Deleting rule named '{rule_name}'",
+            )
+            client.delete_rule(
+                Name=rule_name,
+            )
+            the_logger.info(
+                f"Deleted rule named '{rule_name}'",
+            )
+
+    the_logger.info(
+        f"Deleted {len(all_rules)} existing PDM cloudwatch rules with prefix of '{CLOUDWATCH_RULE_PREFIX}' except the one named '{new_rule_name}'",
+    )
+
+    return all_rules
+
+
 def put_cloudwatch_event_rule(client, now, cron):
     now_string = now.strftime("%d_%m_%Y_%H_%M_%S")
-    name = f"pdm_cw_emr_launcher_schedule_{now_string}"
+    name = f"{CLOUDWATCH_RULE_PREFIX}{now_string}"
 
     the_logger.info(
         f"Putting new cloudwatch event rule with name of '{name}' and cron of '{cron}'",
@@ -180,14 +250,14 @@ def check_should_skip_step():
     return should_skip_step(the_logger, "trigger-pdm")
 
 
-def should_step_be_skipped(skip_pdm_trigger, now, do_not_trigger_after):
+def should_step_be_skipped(skip_pdm_trigger, now, do_not_trigger_after, skip_date_checks):
     if skip_pdm_trigger.lower() == "true":
         the_logger.info(
             f"Skipping PDM trigger due to skip_pdm_trigger value of {skip_pdm_trigger}",
         )
         return True
 
-    if now > do_not_trigger_after:
+    if skip_date_checks.lower() != "true" and now > do_not_trigger_after:
         the_logger.info(
             f"Skipping PDM triggering as datetime now '{now}' if after cut off of '{do_not_trigger_after}'",
         )
@@ -222,5 +292,4 @@ def get_cron(now, do_not_run_before):
 
 if __name__ == "__main__":
     args = get_parameters()
-    skip_pdm_trigger = "${skip_pdm_trigger}"
-    create_pdm_trigger(args, skip_pdm_trigger)
+    create_pdm_trigger(args)

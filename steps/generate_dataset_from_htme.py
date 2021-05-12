@@ -60,11 +60,14 @@ def get_parameters():
         if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
         else SNAPSHOT_TYPE_FULL
     )
-    the_logger.warning(
-        "Unrecognized args %s found for the correlation id %s",
-        unrecognized_args,
-        args.correlation_id,
-    )
+    
+    if len(unrecognized_args) > 0:
+        the_logger.warning(
+            "Unrecognized args %s found for the correlation id %s",
+            unrecognized_args,
+            args.correlation_id,
+        )
+
     validate_required_args(args)
 
     return args
@@ -124,41 +127,31 @@ def main(
                 itertools.repeat(args),
                 itertools.repeat(s3_resource),
             )
-    except Exception as ex:
+    except BaseException as ex:
         the_logger.error(
             "Some error occurred for correlation id : %s %s ",
             args.correlation_id,
-            str(ex),
+            repr(ex),
         )
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
-    # Create hive tables only if all the collections have been processed successfully else raise exception
-    list_of_processed_collections = list(all_processed_collections)
-    if (
-        not len(list_of_processed_collections) == len(secrets_collections)
-        and args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL
-    ):
-        the_logger.error(
-            "Not all collections have been processed looks like there is missing data, stopping Spark for correlation id: %s",
-            args.correlation_id,
-        )
-        sys.exit(-1)
-    else:
-        create_hive_tables_on_published(
-            spark,
-            list_of_processed_collections,
-            published_database_name,
-            args,
-            run_time_stamp,
-        )
-        create_adg_status_csv(
-            args.correlation_id,
-            s3_publish_bucket,
-            s3_client,
-            run_time_stamp,
-            args.snapshot_type,
-            args.export_date,
-        )
+
+    create_hive_tables_on_published(
+        spark,
+        list(all_processed_collections),
+        published_database_name,
+        args,
+        run_time_stamp,
+    )
+
+    create_adg_status_csv(
+        args.correlation_id,
+        s3_publish_bucket,
+        s3_client,
+        run_time_stamp,
+        args.snapshot_type,
+        args.export_date,
+    )
 
 
 def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
@@ -189,6 +182,11 @@ def get_s3_resource():
 
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
+    the_logger.info(
+        "Looking for files to process in bucket : %s with prefix : %s",
+        s3_htme_bucket,
+        s3_prefix,
+    )
     keys = []
     paginator = s3_client.get_paginator("list_objects_v2")
     pages = paginator.paginate(Bucket=s3_htme_bucket, Prefix=s3_prefix)
@@ -338,7 +336,7 @@ def consolidate_rdd_per_collection(
             collection_name,
             str(ex),
         )
-        sys.exit(-1)
+        raise BaseException(ex)
     return (collection_name, json_location)
 
 
@@ -372,6 +370,11 @@ def retrieve_secrets(args, secret_name):
 
 
 def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket, snapshot_type):
+    the_logger.info(
+        "Looking for files to tag in bucket : %s with prefix : %s",
+        s3_publish_bucket,
+        prefix,
+    )
     for key in s3_client.list_objects(Bucket=s3_publish_bucket, Prefix=prefix)[
         "Contents"
     ]:
@@ -521,7 +524,7 @@ def create_hive_tables_on_published(
             args.correlation_id,
             str(ex),
         )
-        sys.exit(-1)
+        raise BaseException(ex)
 
 
 def create_hive_tables_on_published_for_collection_threaded(
@@ -704,10 +707,11 @@ def save_output_location(args, run_time_stamp):
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
-        "Processing spark job for correlation id : %s, export date : %s and snapshot_type : %s",
+        "Processing spark job for correlation id : %s, export date : %s, snapshot_type : %s and s3_prefix : %s",
         args.correlation_id,
         args.export_date,
         args.snapshot_type.lower(),
+        args.s3_prefix,
     )
 
     the_logger.info("Checking if step should be skipped")

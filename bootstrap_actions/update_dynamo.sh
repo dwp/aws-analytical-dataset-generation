@@ -142,7 +142,7 @@
           log_wrapper_message "Successful step. Last step name: $PREVIOUS_STEP, Last step status: $PREVIOUS_STATE, Current step name: $CURRENT_STEP, Current step status: $state"
           processed_files+=( "$i" )
         else
-          sleep 5
+          sleep 0.2
         fi
         PREVIOUS_STATE="$state"
         PREVIOUS_STEP="$CURRENT_STEP"

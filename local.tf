@@ -1,4 +1,5 @@
 locals {
+
   emr_cluster_name         = "aws-analytical-dataset-generator"
   secret_name_full         = "/concourse/dataworks/adg/fulls"
   secret_name_incremental  = "/concourse/dataworks/adg/incrementals"
@@ -119,6 +120,14 @@ locals {
     production  = false
   }
 
+  keep_cluster_alive_incremental = {
+    development = true
+    qa          = false
+    integration = false
+    preprod     = false
+    production  = false
+  }
+
   step_fail_action = {
     development = "CONTINUE"
     qa          = "TERMINATE_CLUSTER"
@@ -200,11 +209,11 @@ locals {
   }
 
   mongo_latest_version = {
-    development = "0.0.55"
-    qa          = "0.0.55"
-    integration = "0.0.55"
-    preprod     = "0.0.55"
-    production  = "0.0.55"
+    development = "0.0.61"
+    qa          = "0.0.61"
+    integration = "0.0.61"
+    preprod     = "0.0.61"
+    production  = "0.0.61"
   }
 
   skip_pdm_trigger_on_adg_completion = {
@@ -212,6 +221,14 @@ locals {
     qa          = "true"
     integration = "true"
     preprod     = "false"
+    production  = "false"
+  }
+
+  skip_pdm_trigger_date_checks_on_adg_completion = {
+    development = "true"
+    qa          = "true"
+    integration = "true"
+    preprod     = "true"
     production  = "false"
   }
 
@@ -243,7 +260,7 @@ locals {
     development = false
     qa          = false
     integration = false
-    preprod     = false
+    preprod     = true
     production  = true
   }
 
@@ -354,7 +371,7 @@ locals {
     qa          = "5"
     integration = "5"
     preprod     = "20"
-    production  = "20"
+    production  = "29"
   }
 
   map_reduce_vcores_per_node = {
@@ -397,7 +414,23 @@ locals {
     production  = "open"
   }
 
+  emr_capacity_reservation_preference_incremental = {
+    development = "none"
+    qa          = "open"
+    integration = "none"
+    preprod     = "open"
+    production  = "open"
+  }
+
   emr_capacity_reservation_usage_strategy = {
+    development = ""
+    qa          = "use-capacity-reservations-first"
+    integration = ""
+    preprod     = "use-capacity-reservations-first"
+    production  = "use-capacity-reservations-first"
+  }
+
+  emr_capacity_reservation_usage_strategy_incremental = {
     development = ""
     qa          = "use-capacity-reservations-first"
     integration = ""
@@ -416,10 +449,10 @@ locals {
   }
 
   pdm_start_do_not_run_before_hour = {
-    development = "01" # 0100 (UTC) the day of the export as for lower environments we want to run on demand
-    qa          = "01"
-    integration = "01"
-    preprod     = "01"
+    development = "00" # 0000 (UTC) the day of the export as for lower environments we want to run on demand
+    qa          = "00"
+    integration = "00"
+    preprod     = "00"
     production  = "14" # 1400 (UTC) the day of the export as before would interfere with the working day's queries from users
   }
 

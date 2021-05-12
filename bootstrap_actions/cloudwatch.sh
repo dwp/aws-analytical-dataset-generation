@@ -187,9 +187,15 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/excuteUpdateToDo.log",
+            "file_path": "/var/log/adg/executeUpdateToDo.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "{instance_id}-excuteUpdateToDo.log",
+            "log_stream_name": "{instance_id}-executeUpdateToDo.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/executeUpdateAppointment.log",
+            "log_group_name": "$${cwa_steps_loggrp_name}",
+            "log_stream_name": "{instance_id}-executeUpdateAppointment.log",
             "timezone": "UTC"
           },
           {
