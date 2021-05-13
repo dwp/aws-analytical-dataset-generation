@@ -1,10 +1,12 @@
 #!/bin/bash
 
 sudo mkdir -p /var/log/adg
+sudo mkdir -p /var/log/mongo_latest
 sudo mkdir -p /opt/emr
 sudo mkdir -p /opt/shared
 sudo mkdir -p /var/ci
 sudo chown hadoop:hadoop /var/log/adg
+sudo chown hadoop:hadoop /var/log/mongo_latest
 sudo chown hadoop:hadoop /opt/emr
 sudo chown hadoop:hadoop /opt/shared
 sudo chown hadoop:hadoop /var/ci
