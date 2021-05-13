@@ -209,11 +209,11 @@ locals {
   }
 
   mongo_latest_version = {
-    development = "0.0.61"
-    qa          = "0.0.61"
-    integration = "0.0.61"
-    preprod     = "0.0.61"
-    production  = "0.0.61"
+    development = "0.0.62"
+    qa          = "0.0.62"
+    integration = "0.0.62"
+    preprod     = "0.0.62"
+    production  = "0.0.62"
   }
 
   skip_pdm_trigger_on_adg_completion = {
