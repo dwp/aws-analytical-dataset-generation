@@ -371,7 +371,7 @@ locals {
     qa          = "5"
     integration = "5"
     preprod     = "20"
-    production  = "29"
+    production  = "20"
   }
 
   map_reduce_vcores_per_node = {

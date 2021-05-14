@@ -98,7 +98,7 @@ variable "emr_core_instance_count" {
     qa          = "10"
     integration = "10"
     preprod     = "39"
-    production  = "58"
+    production  = "39"
   }
 }
 
@@ -108,7 +108,7 @@ variable "emr_core_instance_count_incremental" {
     qa          = "10"
     integration = "10"
     preprod     = "39"
-    production  = "58"
+    production  = "39"
   }
 }
 
