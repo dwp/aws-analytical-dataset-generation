@@ -336,6 +336,8 @@ meta:
               pytest -vs tests
         inputs:
           - name: aws-analytical-dataset-generation
+        params:
+          SPARK_LOCAL_HOSTNAME: localhost
 
     e2e-tests:
       task: e2e-tests
