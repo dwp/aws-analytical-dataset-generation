@@ -72,6 +72,7 @@ jobs:
             args:
               - -exc
               - |
+                terraform fmt -recursive -check=true
                 cp ../terraform-config/terraform.tf .
                 cp ../terraform-config/terraform.tfvars .
                 export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
@@ -82,7 +83,6 @@ jobs:
                 export TF_VAR_analytical_dataset_generation_exporter_jar="{base_path = \"../analytical-dataset-generation-exporter-release\", version = \"$(ls ../analytical-dataset-generation-exporter-release/*.jar | sed -e 's/^.*exporter-//' -e 's/.jar$//')\"}"
                 terraform init
                 terraform workspace show
-                terraform fmt -recursive -check=true
                 terraform plan
           inputs:
             - name: aws-analytical-dataset-generation
