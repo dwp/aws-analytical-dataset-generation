@@ -221,7 +221,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_success_with_errors" {
     RuleName = aws_cloudwatch_event_rule.adg_full_success_with_errors.name
   }
   tags = merge(
-  local.common_tags,
+    local.common_tags,
     {
       Name              = "adg_full_success_with_errors",
       notification_type = "Warning",
@@ -481,7 +481,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_success_with_errors" {
     RuleName = aws_cloudwatch_event_rule.adg_incremental_success_with_errors.name
   }
   tags = merge(
-  local.common_tags,
+    local.common_tags,
     {
       Name              = "adg_incremental_success_with_errors",
       notification_type = "Warning",
