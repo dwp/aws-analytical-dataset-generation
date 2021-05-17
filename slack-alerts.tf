@@ -66,8 +66,33 @@ resource "aws_cloudwatch_event_rule" "adg_full_success" {
       "analytical-dataset-generator-full"
     ],
     "stateChangeReason": [
-      "{\"code\":\"ALL_STEPS_COMPLETED\",\"message\":\"Steps completed\"}",
-      "{\"code\":\"ALL_STEPS_COMPLETED\",\"message\":\"Steps completed with errors\"}"
+      "{\"code\":\"ALL_STEPS_COMPLETED\",\"message\":\"Steps completed\"}"
+    ]
+  }
+}
+EOF
+}
+
+resource "aws_cloudwatch_event_rule" "adg_full_success_with_errors" {
+  name          = "adg_full_success_with_errors"
+  description   = "checks that all mandatory steps complete but with failures on non mandatory steps"
+  event_pattern = <<EOF
+{
+  "source": [
+    "aws.emr"
+  ],
+  "detail-type": [
+    "EMR Cluster State Change"
+  ],
+  "detail": {
+    "state": [
+      "TERMINATED"
+    ],
+    "name": [
+      "analytical-dataset-generator-full"
+    ],
+    "stateChangeReason": [
+      "{\"code\":\"STEP_FAILURE\",\"message\":\"Steps completed with errors\"}"
     ]
   }
 }
@@ -108,6 +133,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_failed" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster failed with errors"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -134,6 +160,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_terminated" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster terminated by user request"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -160,6 +187,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_success" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg full completion"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -175,6 +203,34 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_success" {
   )
 }
 
+resource "aws_cloudwatch_metric_alarm" "adg_full_success_with_errors" {
+  count                     = local.adg_alerts[local.environment] == true ? 1 : 0
+  alarm_name                = "adg_full_success_with_errors"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "TriggeredRules"
+  namespace                 = "AWS/Events"
+  period                    = "60"
+  statistic                 = "Sum"
+  threshold                 = "1"
+  alarm_description         = "Monitoring adg full completion with non-critical errors"
+  treat_missing_data        = "ignore"
+  insufficient_data_actions = []
+  alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
+  dimensions = {
+    RuleName = aws_cloudwatch_event_rule.adg_full_success_with_errors.name
+  }
+  tags = merge(
+    local.common_tags,
+    {
+      Name              = "adg_full_success_with_errors",
+      notification_type = "Warning",
+      severity          = "High"
+    },
+  )
+}
+
+
 resource "aws_cloudwatch_metric_alarm" "adg_full_running" {
   count                     = local.adg_alerts[local.environment] == true ? 1 : 0
   alarm_name                = "adg_full_running"
@@ -186,6 +242,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_running" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg full running"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -269,8 +326,33 @@ resource "aws_cloudwatch_event_rule" "adg_incremental_success" {
       "analytical-dataset-generator-incremental"
     ],
     "stateChangeReason": [
-      "{\"code\":\"ALL_STEPS_COMPLETED\",\"message\":\"Steps completed\"}",
-      "{\"code\":\"ALL_STEPS_COMPLETED\",\"message\":\"Steps completed with errors\"}"
+      "{\"code\":\"ALL_STEPS_COMPLETED\",\"message\":\"Steps completed\"}"
+    ]
+  }
+}
+EOF
+}
+
+resource "aws_cloudwatch_event_rule" "adg_incremental_success_with_errors" {
+  name          = "adg_incremental_success_with_errors"
+  description   = "checks that all mandatory steps complete but with failures on non mandatory steps"
+  event_pattern = <<EOF
+{
+  "source": [
+    "aws.emr"
+  ],
+  "detail-type": [
+    "EMR Cluster State Change"
+  ],
+  "detail": {
+    "state": [
+      "TERMINATED"
+    ],
+    "name": [
+      "analytical-dataset-generator-incremental"
+    ],
+    "stateChangeReason": [
+      "{\"code\":\"STEP_FAILURE\",\"message\":\"Steps completed with errors\"}"
     ]
   }
 }
@@ -311,6 +393,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_failed" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster failed with errors"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -337,6 +420,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_terminated" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster terminated by user request"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -363,6 +447,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_success" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg incremental completion"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -378,6 +463,33 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_success" {
   )
 }
 
+resource "aws_cloudwatch_metric_alarm" "adg_incremental_success_with_errors" {
+  count                     = local.adg_alerts[local.environment] == true ? 1 : 0
+  alarm_name                = "adg_incremental_success_with_errors"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "TriggeredRules"
+  namespace                 = "AWS/Events"
+  period                    = "60"
+  statistic                 = "Sum"
+  threshold                 = "1"
+  alarm_description         = "Monitoring adg incremental completion with non-critical errors"
+  treat_missing_data        = "ignore"
+  insufficient_data_actions = []
+  alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
+  dimensions = {
+    RuleName = aws_cloudwatch_event_rule.adg_incremental_success_with_errors.name
+  }
+  tags = merge(
+    local.common_tags,
+    {
+      Name              = "adg_incremental_success_with_errors",
+      notification_type = "Warning",
+      severity          = "High"
+    },
+  )
+}
+
 resource "aws_cloudwatch_metric_alarm" "adg_incremental_running" {
   count                     = local.adg_alerts[local.environment] == true ? 1 : 0
   alarm_name                = "adg_incremental_running"
@@ -389,6 +501,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_running" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg incremental running"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
