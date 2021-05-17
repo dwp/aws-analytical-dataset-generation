@@ -74,7 +74,7 @@ EOF
 }
 
 resource "aws_cloudwatch_event_rule" "adg_full_success_with_errors" {
-  name          = "adg_full_success"
+  name          = "adg_full_success_with_errors"
   description   = "checks that all mandatory steps complete but with failures on non mandatory steps"
   event_pattern = <<EOF
 {
@@ -127,12 +127,13 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_failed" {
   alarm_name                = "adg_full_failed"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
-  metric_name               = "TriggeredRules"
+  metric_name               = "adg_full_failed"
   namespace                 = "AWS/Events"
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster failed with errors"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -153,12 +154,13 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_terminated" {
   alarm_name                = "adg_full_terminated"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
-  metric_name               = "TriggeredRules"
+  metric_name               = "adg_full_terminated"
   namespace                 = "AWS/Events"
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster terminated by user request"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -179,12 +181,13 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_success" {
   alarm_name                = "adg_full_success"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
-  metric_name               = "TriggeredRules"
+  metric_name               = "adg_full_success"
   namespace                 = "AWS/Events"
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg full completion"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -205,12 +208,13 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_success_with_errors" {
   alarm_name                = "adg_full_success_with_errors"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
-  metric_name               = "TriggeredRules"
+  metric_name               = "adg_full_success_with_errors"
   namespace                 = "AWS/Events"
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg full completion with non-critical errors"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -220,8 +224,8 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_success_with_errors" {
   local.common_tags,
     {
       Name              = "adg_full_success_with_errors",
-      notification_type = "Information",
-      severity          = "Warning"
+      notification_type = "Warning",
+      severity          = "High"
     },
   )
 }
@@ -232,12 +236,13 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_running" {
   alarm_name                = "adg_full_running"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
-  metric_name               = "TriggeredRules"
+  metric_name               = "adg_full_running"
   namespace                 = "AWS/Events"
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg full running"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -382,12 +387,13 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_failed" {
   alarm_name                = "adg_incremental_failed"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
-  metric_name               = "TriggeredRules"
+  metric_name               = "adg_incremental_failed"
   namespace                 = "AWS/Events"
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster failed with errors"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -408,12 +414,13 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_terminated" {
   alarm_name                = "adg_incremental_terminated"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
-  metric_name               = "TriggeredRules"
+  metric_name               = "adg_incremental_terminated"
   namespace                 = "AWS/Events"
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster terminated by user request"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -434,12 +441,13 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_success" {
   alarm_name                = "adg_incremental_success"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
-  metric_name               = "TriggeredRules"
+  metric_name               = "adg_incremental_success"
   namespace                 = "AWS/Events"
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg incremental completion"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -460,12 +468,13 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_success_with_errors" {
   alarm_name                = "adg_incremental_success_with_errors"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
-  metric_name               = "TriggeredRules"
+  metric_name               = "adg_incremental_success_with_errors"
   namespace                 = "AWS/Events"
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg incremental completion with non-critical errors"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -476,7 +485,7 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_success_with_errors" {
     {
       Name              = "adg_incremental_success_with_errors",
       notification_type = "Warning",
-      severity          = "Critical"
+      severity          = "High"
     },
   )
 }
@@ -486,12 +495,13 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_running" {
   alarm_name                = "adg_incremental_running"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
-  metric_name               = "TriggeredRules"
+  metric_name               = "adg_incremental_running"
   namespace                 = "AWS/Events"
   period                    = "60"
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg incremental running"
+  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
