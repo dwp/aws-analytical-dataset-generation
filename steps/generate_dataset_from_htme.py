@@ -185,7 +185,7 @@ def get_dynamodb_client():
     client_config = botocore.config.Config(
         max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
     )
-    client = boto3.client("dynamodb", config=client_config)
+    client = boto3.client("dynamodb", region_name="${aws_default_region}", config=client_config)
     return client
 
 
@@ -243,18 +243,18 @@ def consolidate_rdd_per_collection(
     dynamodb_client,
 ):
     try:
+        update_adg_status_for_collection(
+            dynamodb_client,
+            "${dynamodb_table_name}",
+            args.correlation_id,
+            collection_name,
+            "In_Progress",
+        )
         for collection_name, collection_files_keys in collection.items():
             the_logger.info(
                 "Processing collection : %s for correlation id : %s",
                 collection_name,
                 args.correlation_id,
-            )
-            update_adg_status_for_collection(
-                dynamodb_client,
-                "${dynamodb_table_name}",
-                args.correlation_id,
-                collection_name,
-                "In_Progress",
             )
             tag_value = secrets_collections[collection_name]
             start_time = time.perf_counter()
@@ -309,6 +309,13 @@ def consolidate_rdd_per_collection(
                 s3_publish_bucket,
                 args.snapshot_type,
             )
+        update_adg_status_for_collection(
+            dynamodb_client,
+            "${dynamodb_table_name}",
+            args.correlation_id,
+            collection_name,
+            "Completed",
+        )
         add_metric(
             "htme_collection_size.csv", collection_name, str(total_collection_size)
         )
@@ -320,7 +327,7 @@ def consolidate_rdd_per_collection(
             s3_resource,
         )
         the_logger.info(
-            "Creating Hive tables of collection : %s for correlation id : %s",
+            "Created Hive tables of collection : %s for correlation id : %s",
             collection_name,
             args.correlation_id,
         )
@@ -355,6 +362,13 @@ def consolidate_rdd_per_collection(
             args.correlation_id,
             collection_name,
             str(ex),
+        )
+        update_adg_status_for_collection(
+            dynamodb_client,
+            "${dynamodb_table_name}",
+            args.correlation_id,
+            collection_name,
+            "Failed",
         )
         raise BaseException(ex)
     return (collection_name, json_location)

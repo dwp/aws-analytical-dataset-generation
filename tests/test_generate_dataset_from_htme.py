@@ -169,7 +169,7 @@ def verify_processed_data(
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
     target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
-    dynamodb_client = boto3.client("dynamodb", region="eu-west-2", endpoint_url=MOTO_SERVER_URL)
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -241,7 +241,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         DB_KEY: "core",
         TABLE_KEY: "accounts",
     }
-    dynamodb_client = boto3.client("dynamodb", region="eu-west-2", endpoint_url=MOTO_SERVER_URL)
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -326,7 +326,7 @@ def test_exception_when_decompression_fails(
     spark, monkeypatch, handle_server, aws_credentials
 ):
     with pytest.raises(BaseException):
-        dynamodb_client = boto3.client("dynamodb", region="eu-west-2", endpoint_url=MOTO_SERVER_URL)
+        dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
         s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
         s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
         s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -362,7 +362,7 @@ def test_exception_when_decompression_fails(
 
 @mock_dynamodb2
 def test_update_adg_status_for_collection(aws_credentials):
-    dynamodb_client = boto3.client("dynamodb", region="eu-west-2", endpoint_url=MOTO_SERVER_URL)
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     table_name = 'UCExportToCrownStatus'
     expected = "test_status"
     dynamodb_client.create_table(TableName=table_name,
