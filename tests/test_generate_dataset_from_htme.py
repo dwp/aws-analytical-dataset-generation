@@ -389,7 +389,7 @@ def test_update_adg_status_for_collection(aws_credentials):
             "CollectionName": {"S": "test_collection"},
         },
         ConsistentRead=True,
-    )['ADGStatus']
+    )
 
     assert expected == actual
 
