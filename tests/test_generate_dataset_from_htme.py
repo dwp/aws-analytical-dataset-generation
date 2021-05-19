@@ -393,7 +393,7 @@ def test_update_adg_status_for_collection(aws_credentials):
             "CorrelationId": {"S": CORRELATION_ID},
             "CollectionName": {"S": collection_name},
         },
-    )["ADGStatus"]
+    )["Item"]["ADGStatus"]
 
     assert expected == actual
 
