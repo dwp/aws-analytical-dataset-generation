@@ -368,7 +368,6 @@ def test_update_adg_status_for_collection(aws_credentials):
     dynamodb_client.create_table(
         TableName=table_name,
         KeySchema=[
-        KeySchema=[
             {'AttributeName': 'CorrelationId','KeyType': 'HASH'},
             {'AttributeName': 'CollectionName','KeyType': 'RANGE'}
         ],
