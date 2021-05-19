@@ -755,7 +755,7 @@ def update_adg_status_for_collection(
         + f'"{correlation_id}", "collection_name": "{collection_name}", "status": "{status}'
     )
 
-    response = dynamodb_client.update_item(
+    dynamodb_client.update_item(
         TableName=ddb_export_table,
         Key={
             CORRELATION_ID_DDB_FIELD_NAME: {"S": correlation_id},
@@ -768,7 +768,7 @@ def update_adg_status_for_collection(
 
     the_logger.info(
         f'Updated collection status in dynamodb", "ddb_export_table": "{ddb_export_table}", "correlation_id": '
-        + f'"{correlation_id}", "status": "{status}", "collection_name": "{collection_name}", "response": "{response}'
+        + f'"{correlation_id}", "status": "{status}", "collection_name": "{collection_name}'
     )
 
 

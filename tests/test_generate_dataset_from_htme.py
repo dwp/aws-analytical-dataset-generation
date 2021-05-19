@@ -363,24 +363,26 @@ def test_exception_when_decompression_fails(
 @mock_dynamodb2
 def test_update_adg_status_for_collection(aws_credentials):
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
-    table_name = 'UCExportToCrownStatus'
+    table_name = "UCExportToCrownStatus"
     expected = "test_status"
+    collection_name = "test_collection"
     dynamodb_client.create_table(
         TableName=table_name,
         KeySchema=[
-            {'AttributeName': 'CorrelationId','KeyType': 'HASH'},
-            {'AttributeName': 'CollectionName','KeyType': 'RANGE'}
+            {'AttributeName': 'CorrelationId', 'KeyType': 'HASH'},
+            {'AttributeName': 'CollectionName', 'KeyType': 'RANGE'}
         ],
         AttributeDefinitions=[
-            {'AttributeName': 'ADGStatus','AttributeType': 'S'}
+            {'AttributeName': 'CorrelationId', 'AttributeType': 'S'},
+            {'AttributeName': 'CollectionName', 'AttributeType': 'S'}
         ]
     )
 
     generate_dataset_from_htme.update_adg_status_for_collection(
         dynamodb_client,
-        "UCExportToCrownStatus",
+        table_name,
         CORRELATION_ID,
-        "test_collection",
+        collection_name,
         expected,
     )
 
@@ -388,9 +390,8 @@ def test_update_adg_status_for_collection(aws_credentials):
         TableName='UCExportToCrownStatus',
         Key={
             "CorrelationId": {"S": CORRELATION_ID},
-            "CollectionName": {"S": "test_collection"},
+            "CollectionName": {"S": collection_name},
         },
-        ConsistentRead=True,
     )
 
     assert expected == actual
