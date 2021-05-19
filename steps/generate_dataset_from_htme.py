@@ -769,8 +769,6 @@ def update_adg_status_for_collection(
         + f'"{correlation_id}", "status": "{status}", "collection_name": "{collection_name}", "response": "{response}'
     )
 
-    return response[ATTRIBUTES_FIELD_NAME]
-
 
 if __name__ == "__main__":
     args = get_parameters()
