@@ -133,7 +133,6 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_failed" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster failed with errors"
-  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -160,7 +159,6 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_terminated" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster terminated by user request"
-  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -187,7 +185,6 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_success" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg full completion"
-  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -214,7 +211,6 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_success_with_errors" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg full completion with non-critical errors"
-  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -242,7 +238,6 @@ resource "aws_cloudwatch_metric_alarm" "adg_full_running" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg full running"
-  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -393,7 +388,6 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_failed" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster failed with errors"
-  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -420,7 +414,6 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_terminated" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "This metric monitors cluster terminated by user request"
-  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -447,7 +440,6 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_success" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg incremental completion"
-  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -474,7 +466,6 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_success_with_errors" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg incremental completion with non-critical errors"
-  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
@@ -501,7 +492,6 @@ resource "aws_cloudwatch_metric_alarm" "adg_incremental_running" {
   statistic                 = "Sum"
   threshold                 = "1"
   alarm_description         = "Monitoring adg incremental running"
-  treat_missing_data        = "ignore"
   insufficient_data_actions = []
   alarm_actions             = [data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn]
   dimensions = {
