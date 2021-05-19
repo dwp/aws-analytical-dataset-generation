@@ -249,6 +249,13 @@ def consolidate_rdd_per_collection(
                 collection_name,
                 args.correlation_id,
             )
+            update_adg_status_for_collection(
+                dynamodb_client,
+                "${dynamodb_table_name}",
+                args.correlation_id,
+                collection_name,
+                "In_Progress",
+            )
             tag_value = secrets_collections[collection_name]
             start_time = time.perf_counter()
             rdd_list = []
