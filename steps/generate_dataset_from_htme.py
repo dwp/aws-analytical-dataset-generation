@@ -746,7 +746,7 @@ def update_adg_status_for_collection(
     collection_name,
     status,
 ):
-    logger.info(
+    the_logger.info(
         f'Updating collection status in dynamodb", "ddb_export_table": "{ddb_export_table}", "correlation_id": '
         + f'"{correlation_id}", "collection_name": "{collection_name}", "status": "{status}'
     )
@@ -762,7 +762,7 @@ def update_adg_status_for_collection(
         ReturnValues="ALL_NEW",
     )
 
-    logger.info(
+    the_logger.info(
         f'Updated collection status in dynamodb", "ddb_export_table": "{ddb_export_table}", "correlation_id": '
         + f'"{correlation_id}", "status": "{status}", "collection_name": "{collection_name}", "response": "{response}'
     )
