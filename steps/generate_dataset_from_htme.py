@@ -243,6 +243,8 @@ def consolidate_rdd_per_collection(
     dynamodb_client,
 ):
     try:
+        (collection_name, collection_files_keys) = collection[0]
+
         update_adg_status_for_collection(
             dynamodb_client,
             "${dynamodb_table_name}",
@@ -250,65 +252,64 @@ def consolidate_rdd_per_collection(
             collection_name,
             "In_Progress",
         )
-        for collection_name, collection_files_keys in collection.items():
-            the_logger.info(
-                "Processing collection : %s for correlation id : %s",
-                collection_name,
-                args.correlation_id,
+        the_logger.info(
+            "Processing collection : %s for correlation id : %s",
+            collection_name,
+            args.correlation_id,
+        )
+        tag_value = secrets_collections[collection_name]
+        start_time = time.perf_counter()
+        rdd_list = []
+        total_collection_size = 0
+        for collection_file_key in collection_files_keys:
+            encrypted = read_binary(
+                spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
             )
-            tag_value = secrets_collections[collection_name]
-            start_time = time.perf_counter()
-            rdd_list = []
-            total_collection_size = 0
-            for collection_file_key in collection_files_keys:
-                encrypted = read_binary(
-                    spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
-                )
-                metadata = get_metadatafor_key(
-                    collection_file_key, s3_client, s3_htme_bucket
-                )
-                total_collection_size += get_filesize(
-                    s3_client, s3_htme_bucket, collection_file_key
-                )
-                ciphertext = metadata["ciphertext"]
-                datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
-                iv = metadata["iv"]
-                plain_text_key = get_plaintext_key_calling_dks(
-                    ciphertext, datakeyencryptionkeyid, keys_map, args, run_time_stamp
-                )
-                decrypted = encrypted.mapValues(
-                    lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(
-                        plain_text_key, iv, val, args, run_time_stamp
-                    )
-                )
-                decompressed = decrypted.mapValues(decompress)
-                decoded = decompressed.mapValues(decode)
-                rdd_list.append(decoded)
-            consolidated_rdd = spark.sparkContext.union(rdd_list)
-            consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
-            the_logger.info(
-                "Persisting Json of collection : %s for correlation id : %s",
-                collection_name,
-                args.correlation_id,
+            metadata = get_metadatafor_key(
+                collection_file_key, s3_client, s3_htme_bucket
             )
-            collection_name_key = get_collection(collection_name)
-            collection_name_key = collection_name_key.replace("_", "-")
-            file_location = "${file_location}"
-            json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
-            json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
-            persist_json(json_location, consolidated_rdd_mapped)
-            the_logger.info(
-                "Applying Tags for prefix : %s for correlation id : %s",
-                json_location_prefix,
-                args.correlation_id,
+            total_collection_size += get_filesize(
+                s3_client, s3_htme_bucket, collection_file_key
             )
-            tag_objects(
-                json_location_prefix,
-                tag_value,
-                s3_client,
-                s3_publish_bucket,
-                args.snapshot_type,
+            ciphertext = metadata["ciphertext"]
+            datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
+            iv = metadata["iv"]
+            plain_text_key = get_plaintext_key_calling_dks(
+                ciphertext, datakeyencryptionkeyid, keys_map, args, run_time_stamp
             )
+            decrypted = encrypted.mapValues(
+                lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(
+                    plain_text_key, iv, val, args, run_time_stamp
+                )
+            )
+            decompressed = decrypted.mapValues(decompress)
+            decoded = decompressed.mapValues(decode)
+            rdd_list.append(decoded)
+        consolidated_rdd = spark.sparkContext.union(rdd_list)
+        consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
+        the_logger.info(
+            "Persisting Json of collection : %s for correlation id : %s",
+            collection_name,
+            args.correlation_id,
+        )
+        collection_name_key = get_collection(collection_name)
+        collection_name_key = collection_name_key.replace("_", "-")
+        file_location = "${file_location}"
+        json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
+        json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+        persist_json(json_location, consolidated_rdd_mapped)
+        the_logger.info(
+            "Applying Tags for prefix : %s for correlation id : %s",
+            json_location_prefix,
+            args.correlation_id,
+        )
+        tag_objects(
+            json_location_prefix,
+            tag_value,
+            s3_client,
+            s3_publish_bucket,
+            args.snapshot_type,
+        )
         update_adg_status_for_collection(
             dynamodb_client,
             "${dynamodb_table_name}",

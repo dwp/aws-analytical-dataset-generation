@@ -374,8 +374,6 @@ def test_update_adg_status_for_collection(aws_credentials):
             {'AttributeName': 'ADGStatus','AttributeType': 'S'}
         ])
 
-    counter = mock.MagicMock()
-
     generate_dataset_from_htme.update_adg_status_for_collection(
         dynamodb_client,
         "UCExportToCrownStatus",
