@@ -365,14 +365,17 @@ def test_update_adg_status_for_collection(aws_credentials):
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     table_name = 'UCExportToCrownStatus'
     expected = "test_status"
-    dynamodb_client.create_table(TableName=table_name,
+    dynamodb_client.create_table(
+        TableName=table_name,
+        KeySchema=[
         KeySchema=[
             {'AttributeName': 'CorrelationId','KeyType': 'HASH'},
             {'AttributeName': 'CollectionName','KeyType': 'RANGE'}
         ],
         AttributeDefinitions=[
             {'AttributeName': 'ADGStatus','AttributeType': 'S'}
-        ])
+        ]
+    )
 
     generate_dataset_from_htme.update_adg_status_for_collection(
         dynamodb_client,
