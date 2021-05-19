@@ -393,7 +393,7 @@ def test_update_adg_status_for_collection(aws_credentials):
         ConsistentRead=True,
     )['ADGStatus']
 
-    assert expected = actual
+    assert expected == actual
 
 
 def test_get_tags():
