@@ -35,6 +35,8 @@ SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
 ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
 TTL_KEY = "TimeToExist"
+ADG_STATUS_FIELD_NAME = "ADGStatus"
+ADG_CLUSTER_ID_FIELD_NAME = "ADGClusterId"
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -106,6 +108,7 @@ def main(
     published_database_name,
     args,
     s3_resource,
+    dynamodb_client,
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -126,6 +129,7 @@ def main(
                 itertools.repeat(s3_publish_bucket),
                 itertools.repeat(args),
                 itertools.repeat(s3_resource),
+                itertools.repeat(dynamodb_client),
             )
     except BaseException as ex:
         the_logger.error(
@@ -174,6 +178,14 @@ def get_s3_client():
         max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
     )
     client = boto3.client("s3", config=client_config)
+    return client
+
+
+def get_dynamodb_client():
+    client_config = botocore.config.Config(
+        max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
+    )
+    client = boto3.client("dynamodb", config=client_config)
     return client
 
 
@@ -228,6 +240,7 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     s3_resource,
+    dynamodb_client,
 ):
     try:
         for collection_name, collection_files_keys in collection.items():
@@ -704,6 +717,37 @@ def save_output_location(args, run_time_stamp):
         output_location_file.write(output_location)
 
 
+def update_adg_status_for_collection(
+    dynamodb_client,
+    ddb_export_table,
+    correlation_id,
+    collection_name,
+    status,
+):
+    logger.info(
+        f'Updating collection status in dynamodb", "ddb_export_table": "{ddb_export_table}", "correlation_id": '
+        + f'"{correlation_id}", "collection_name": "{collection_name}", "status": "{status}'
+    )
+
+    response = dynamodb_client.update_item(
+        TableName=ddb_export_table,
+        Key={
+            CORRELATION_ID_DDB_FIELD_NAME: {"S": correlation_id},
+            COLLECTION_NAME_DDB_FIELD_NAME: {"S": collection_name},
+        },
+        UpdateExpression=f"SET {ADG_STATUS_FIELD_NAME} = :a",
+        ExpressionAttributeValues={":a": {"S": status}},
+        ReturnValues="ALL_NEW",
+    )
+
+    logger.info(
+        f'Updated collection status in dynamodb", "ddb_export_table": "{ddb_export_table}", "correlation_id": '
+        + f'"{correlation_id}", "status": "{status}", "collection_name": "{collection_name}", "response": "{response}'
+    )
+
+    return response[ATTRIBUTES_FIELD_NAME]
+
+
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
@@ -727,6 +771,7 @@ if __name__ == "__main__":
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_s3_client()
     s3_resource = get_s3_resource()
+    dynamodb_client = get_dynamodb_client()
     secret_name = (
         secret_name_incremental
         if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
@@ -747,6 +792,7 @@ if __name__ == "__main__":
         published_database_name,
         args,
         s3_resource,
+        dynamodb_client,
     )
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)

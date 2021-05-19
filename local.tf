@@ -146,6 +146,7 @@ locals {
 
   s3_log_prefix          = "emr/analytical_dataset_generator"
   data_pipeline_metadata = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
+  uc_export_crown_dynamodb_table = data.terraform_remote_state.internal_compute.outputs.uc_export_crown_dynamodb_table.name
 
   published_nonsensitive_prefix = "runmetadata"
   hive_metastore_instance_type = {

@@ -210,11 +210,17 @@ data "aws_iam_policy_document" "analytical_dataset_generator_write_dynamodb" {
     effect = "Allow"
 
     actions = [
-      "dynamodb:*",
+      "dynamodb:GetItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:PutItem",
+      "dynamodb:Scan",
+      "dynamodb:GetRecords",
+      "dynamodb:Query",
     ]
 
     resources = [
-      "arn:aws:dynamodb:${var.region}:${local.account[local.environment]}:table/${local.data_pipeline_metadata}"
+      data.terraform_remote_state.internal_compute.outputs.uc_export_crown_dynamodb_table.arn,
+      data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.arn
     ]
   }
 }
