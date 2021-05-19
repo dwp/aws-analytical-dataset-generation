@@ -244,7 +244,7 @@ def consolidate_rdd_per_collection(
     s3_resource,
     dynamodb_client,
 ):
-    (collection_name, collection_files_keys) = collection[0]
+    (collection_name, collection_files_keys) = collection.items()[0]
     try:
         update_adg_status_for_collection(
             dynamodb_client,
