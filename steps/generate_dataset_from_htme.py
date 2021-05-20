@@ -758,6 +758,7 @@ def update_adg_status_for_collection(
         },
         UpdateExpression=f"SET {ADG_STATUS_FIELD_NAME} = :a",
         ExpressionAttributeValues={":a": {"S": status}},
+        ReturnValues="UPDATED_NEW"
     )
 
     the_logger.info(
