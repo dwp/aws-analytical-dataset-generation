@@ -413,26 +413,6 @@ def test_get_tags():
     )
 
 
-def get_table_resource():
-    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2")
-    table_name = "UCExportToCrownStatus"
-    table = dynamodb_resource.create_table(
-        TableName=table_name,
-        KeySchema=[
-            {'AttributeName': 'CorrelationId', 'KeyType': 'HASH'},
-            {'AttributeName': 'CollectionName', 'KeyType': 'RANGE'}
-        ],
-        AttributeDefinitions=[
-            {'AttributeName': 'CorrelationId', 'AttributeType': 'S'},
-            {'AttributeName': 'CollectionName', 'AttributeType': 'S'}
-        ]
-    )
-
-    table.meta.client.get_waiter('table_exists').wait(TableName=table_name)
-    assert table.table_status == 'ACTIVE'
-    return table
-
-
 def mock_decompress(compressed_text):
     return zlib.decompress(compressed_text)
 
