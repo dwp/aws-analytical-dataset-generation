@@ -90,7 +90,8 @@ data "aws_iam_policy_document" "adg_emr_relauncher_scan_dynamo_policy" {
     ]
 
     resources = [
-      "arn:aws:dynamodb:${var.region}:${local.account[local.environment]}:table/${local.data_pipeline_metadata}"
+      data.terraform_remote_state.internal_compute.outputs.uc_export_crown_dynamodb_table.arn,
+      data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.arn
     ]
   }
 }

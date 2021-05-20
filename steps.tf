@@ -12,6 +12,7 @@ resource "aws_s3_bucket_object" "generate_dataset_from_htme_script" {
       aws_default_region      = "eu-west-2"
       log_path                = "/var/log/adg/generate-analytical-dataset.log"
       s3_prefix               = var.htme_data_location[local.environment]
+      dynamodb_table_name     = local.uc_export_crown_dynamodb_table
     }
   )
 }

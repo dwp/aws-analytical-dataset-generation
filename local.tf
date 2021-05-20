@@ -144,8 +144,9 @@ locals {
   cw_agent_tests_loggrp_name           = "/app/analytical_dataset_generator/tests_logs"
   cw_agent_metrics_collection_interval = 60
 
-  s3_log_prefix          = "emr/analytical_dataset_generator"
-  data_pipeline_metadata = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
+  s3_log_prefix                  = "emr/analytical_dataset_generator"
+  data_pipeline_metadata         = data.terraform_remote_state.internal_compute.outputs.data_pipeline_metadata_dynamo.name
+  uc_export_crown_dynamodb_table = data.terraform_remote_state.internal_compute.outputs.uc_export_crown_dynamodb_table.name
 
   published_nonsensitive_prefix = "runmetadata"
   hive_metastore_instance_type = {
@@ -209,11 +210,11 @@ locals {
   }
 
   mongo_latest_version = {
-    development = "0.0.63"
-    qa          = "0.0.63"
-    integration = "0.0.63"
-    preprod     = "0.0.63"
-    production  = "0.0.63"
+    development = "0.0.64"
+    qa          = "0.0.64"
+    integration = "0.0.64"
+    preprod     = "0.0.64"
+    production  = "0.0.64"
   }
 
   skip_pdm_trigger_on_adg_completion = {
@@ -371,7 +372,7 @@ locals {
     qa          = "5"
     integration = "5"
     preprod     = "20"
-    production  = "29"
+    production  = "20"
   }
 
   map_reduce_vcores_per_node = {

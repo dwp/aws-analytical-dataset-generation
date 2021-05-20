@@ -72,6 +72,7 @@ jobs:
             args:
               - -exc
               - |
+                terraform fmt -recursive -check=true
                 cp ../terraform-config/terraform.tf .
                 cp ../terraform-config/terraform.tfvars .
                 export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
