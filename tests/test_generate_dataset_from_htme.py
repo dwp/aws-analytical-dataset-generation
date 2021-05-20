@@ -400,7 +400,7 @@ def test_update_adg_status_for_collection():
             "CorrelationId": {"S": CORRELATION_ID},
             "CollectionName": {"S": collection_name},
         }
-    )
+    )["ADGStatus"]["S"]
 
     assert expected == actual
 
