@@ -388,6 +388,7 @@ def test_update_adg_status_for_collection():
 
     generate_dataset_from_htme.update_adg_status_for_collection(
         dynamodb_client,
+        table_name,
         CORRELATION_ID,
         collection_name,
         expected,
