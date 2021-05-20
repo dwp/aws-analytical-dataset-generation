@@ -39,6 +39,7 @@ ADG_STATUS_FIELD_NAME = "ADGStatus"
 ADG_CLUSTER_ID_FIELD_NAME = "ADGClusterId"
 CORRELATION_ID_DDB_FIELD_NAME = "CorrelationId"
 COLLECTION_NAME_DDB_FIELD_NAME = "CollectionName"
+TABLE_NAME = "${dynamodb_table_name}"
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -251,7 +252,7 @@ def consolidate_rdd_per_collection(
     try:
         update_adg_status_for_collection(
             dynamodb_client,
-            "${dynamodb_table_name}",
+            TABLE_NAME,
             args.correlation_id,
             collection_name,
             "In_Progress",
@@ -316,7 +317,7 @@ def consolidate_rdd_per_collection(
         )
         update_adg_status_for_collection(
             dynamodb_client,
-            "${dynamodb_table_name}",
+            TABLE_NAME,
             args.correlation_id,
             collection_name,
             "Completed",
@@ -370,7 +371,7 @@ def consolidate_rdd_per_collection(
         )
         update_adg_status_for_collection(
             dynamodb_client,
-            "${dynamodb_table_name}",
+            TABLE_NAME,
             args.correlation_id,
             collection_name,
             "Failed",
