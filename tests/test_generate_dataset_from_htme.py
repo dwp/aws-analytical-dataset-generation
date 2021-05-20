@@ -362,11 +362,11 @@ def test_exception_when_decompression_fails(
 
 @mock_dynamodb2
 def test_update_adg_status_for_collection():
-    dynamodb_client = boto3.resource("dynamodb", region_name="eu-west-2")
+    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2")
     table_name = "UCExportToCrownStatus"
     expected = "test_status"
     collection_name = "test_collection"
-    table = dynamodb_client.create_table(
+    table = dynamodb_resource.create_table(
         TableName=table_name,
         KeySchema=[
             {'AttributeName': 'CorrelationId', 'KeyType': 'HASH'},
@@ -382,15 +382,13 @@ def test_update_adg_status_for_collection():
     assert table.table_status == 'ACTIVE'
 
     generate_dataset_from_htme.update_adg_status_for_collection(
-        dynamodb_client,
-        table_name,
+        table,
         CORRELATION_ID,
         collection_name,
         expected,
     )
 
-    actual = dynamodb_client.get_item(
-        TableName='UCExportToCrownStatus',
+    actual = table.get_item(
         Key={
             "CorrelationId": {"S": CORRELATION_ID},
             "CollectionName": {"S": collection_name},
