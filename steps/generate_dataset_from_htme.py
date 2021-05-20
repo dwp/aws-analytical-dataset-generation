@@ -608,7 +608,7 @@ def create_hive_table_on_published_for_collection(
         dynamodb_client,
         TABLE_NAME,
         args.correlation_id,
-        completed_collection,
+        collection_name,
         "Publishing",
     )
     try:
@@ -628,7 +628,7 @@ def create_hive_table_on_published_for_collection(
             dynamodb_client,
             TABLE_NAME,
             args.correlation_id,
-            completed_collection,
+            collection_name,
             "Completed",
         )
         return collection_name
@@ -637,7 +637,7 @@ def create_hive_table_on_published_for_collection(
             dynamodb_client,
             TABLE_NAME,
             args.correlation_id,
-            completed_collection,
+            collection_name,
             "Failed_Publishing",
         )
         raise exc
