@@ -169,21 +169,7 @@ def verify_processed_data(
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
     target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
-    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
-    table_name = "UCExportToCrownStatus"
-    table = dynamodb_resource.create_table(
-        TableName=table_name,
-        KeySchema=[
-            {'AttributeName': 'CorrelationId', 'KeyType': 'HASH'},
-            {'AttributeName': 'CollectionName', 'KeyType': 'RANGE'}
-        ],
-        AttributeDefinitions=[
-            {'AttributeName': 'CorrelationId', 'AttributeType': 'S'},
-            {'AttributeName': 'CollectionName', 'AttributeType': 'S'}
-        ]
-    )
-
-    table.wait_until_exists()
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -210,7 +196,7 @@ def verify_processed_data(
         PUBLISHED_DATABASE_NAME,
         mocked_args,
         s3_resource,
-        table,
+        dynamodb_client,
     )
     assert len(s3_client.list_buckets()["Buckets"]) == 2
     assert (
@@ -255,21 +241,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         DB_KEY: "core",
         TABLE_KEY: "accounts",
     }
-    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
-    table_name = "UCExportToCrownStatus"
-    table = dynamodb_resource.create_table(
-        TableName=table_name,
-        KeySchema=[
-            {'AttributeName': 'CorrelationId', 'KeyType': 'HASH'},
-            {'AttributeName': 'CollectionName', 'KeyType': 'RANGE'}
-        ],
-        AttributeDefinitions=[
-            {'AttributeName': 'CorrelationId', 'AttributeType': 'S'},
-            {'AttributeName': 'CollectionName', 'AttributeType': 'S'}
-        ]
-    )
-
-    table.wait_until_exists()
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -307,7 +279,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         PUBLISHED_DATABASE_NAME,
         mock_args(),
         s3_resource,
-        table,
+        dynamodb_client,
     )
     assert core_contract_collection_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
@@ -353,22 +325,8 @@ def test_create_hive_on_published_for_full(
 def test_exception_when_decompression_fails(
     spark, monkeypatch, handle_server, aws_credentials
 ):
-    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
-    table_name = "UCExportToCrownStatus"
-    table = dynamodb_resource.create_table(
-        TableName=table_name,
-        KeySchema=[
-            {'AttributeName': 'CorrelationId', 'KeyType': 'HASH'},
-            {'AttributeName': 'CollectionName', 'KeyType': 'RANGE'}
-        ],
-        AttributeDefinitions=[
-            {'AttributeName': 'CorrelationId', 'AttributeType': 'S'},
-            {'AttributeName': 'CollectionName', 'AttributeType': 'S'}
-        ]
-    )
-
-    table.wait_until_exists()
     with pytest.raises(BaseException):
+        dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
         s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
         s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
         s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -399,7 +357,7 @@ def test_exception_when_decompression_fails(
             PUBLISHED_DATABASE_NAME,
             mock_args(),
             s3_resource,
-            table,
+            dynamodb_client,
         )
 
 @mock_dynamodb2
@@ -407,9 +365,9 @@ def test_update_adg_status_for_collection():
     expected = "test_status"
     collection_name = "test_collection"
     
-    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2")
     table_name = "UCExportToCrownStatus"
-    table = dynamodb_resource.create_table(
+    dynamodb_client.create_table(
         TableName=table_name,
         KeySchema=[
             {'AttributeName': 'CorrelationId', 'KeyType': 'HASH'},
@@ -421,16 +379,22 @@ def test_update_adg_status_for_collection():
         ]
     )
 
-    table.wait_until_exists()
+    active = False
+    while active == False
+        response = dynamodb_client.describe_table(
+            TableName=table_name
+        )
+        active = (response["Table"]["TableStatus"] == "ACTIVE")
 
     generate_dataset_from_htme.update_adg_status_for_collection(
-        table,
+        dynamodb_client,
         CORRELATION_ID,
         collection_name,
         expected,
     )
 
-    actual = table.get_item(
+    actual = dynamodb_client.get_item(
+        TableName=table_name,
         Key={
             "CorrelationId": {"S": CORRELATION_ID},
             "CollectionName": {"S": collection_name},
@@ -446,6 +410,26 @@ def test_get_tags():
         generate_dataset_from_htme.get_tags(tag_value, SNAPSHOT_TYPE_FULL)
         == TAG_SET_FULL
     )
+
+
+def get_table_resource():
+    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2")
+    table_name = "UCExportToCrownStatus"
+    table = dynamodb_resource.create_table(
+        TableName=table_name,
+        KeySchema=[
+            {'AttributeName': 'CorrelationId', 'KeyType': 'HASH'},
+            {'AttributeName': 'CollectionName', 'KeyType': 'RANGE'}
+        ],
+        AttributeDefinitions=[
+            {'AttributeName': 'CorrelationId', 'AttributeType': 'S'},
+            {'AttributeName': 'CollectionName', 'AttributeType': 'S'}
+        ]
+    )
+
+    table.meta.client.get_waiter('table_exists').wait(TableName=table_name)
+    assert table.table_status == 'ACTIVE'
+    return table
 
 
 def mock_decompress(compressed_text):
