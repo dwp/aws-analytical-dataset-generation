@@ -379,7 +379,7 @@ def test_update_adg_status_for_collection():
     )
 
     table.meta.client.get_waiter('table_exists').wait(TableName=table_name)
-    assert table.table_status == 'ACTIVE')
+    assert table.table_status == 'ACTIVE'
 
     generate_dataset_from_htme.update_adg_status_for_collection(
         dynamodb_client,
