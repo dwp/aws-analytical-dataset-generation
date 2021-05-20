@@ -184,7 +184,6 @@ def verify_processed_data(
     )
 
     table.meta.client.get_waiter('table_exists').wait(TableName=table_name)
-    assert table.table_status == 'ACTIVE'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -271,7 +270,6 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     )
 
     table.meta.client.get_waiter('table_exists').wait(TableName=table_name)
-    assert table.table_status == 'ACTIVE'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
@@ -370,7 +368,6 @@ def test_exception_when_decompression_fails(
     )
 
     table.meta.client.get_waiter('table_exists').wait(TableName=table_name)
-    assert table.table_status == 'ACTIVE'
     with pytest.raises(BaseException):
         s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
         s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
@@ -425,7 +422,6 @@ def test_update_adg_status_for_collection():
     )
 
     table.meta.client.get_waiter('table_exists').wait(TableName=table_name)
-    assert table.table_status == 'ACTIVE'
 
     generate_dataset_from_htme.update_adg_status_for_collection(
         table,
