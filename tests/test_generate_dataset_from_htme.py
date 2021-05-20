@@ -169,7 +169,7 @@ def verify_processed_data(
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
     target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
-    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2")
+    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     table_name = "UCExportToCrownStatus"
     table = dynamodb_resource.create_table(
         TableName=table_name,
@@ -256,7 +256,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         DB_KEY: "core",
         TABLE_KEY: "accounts",
     }
-    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2")
+    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     table_name = "UCExportToCrownStatus"
     table = dynamodb_resource.create_table(
         TableName=table_name,
@@ -355,7 +355,7 @@ def test_create_hive_on_published_for_full(
 def test_exception_when_decompression_fails(
     spark, monkeypatch, handle_server, aws_credentials
 ):
-    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2")
+    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     table_name = "UCExportToCrownStatus"
     table = dynamodb_resource.create_table(
         TableName=table_name,
@@ -410,7 +410,7 @@ def test_update_adg_status_for_collection():
     expected = "test_status"
     collection_name = "test_collection"
     
-    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2")
+    dynamodb_resource = boto3.resource("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     table_name = "UCExportToCrownStatus"
     table = dynamodb_resource.create_table(
         TableName=table_name,
