@@ -380,7 +380,7 @@ def test_update_adg_status_for_collection():
     )
 
     active = False
-    while active == False
+    while active == False:
         response = dynamodb_client.describe_table(
             TableName=table_name
         )
