@@ -35,6 +35,11 @@ SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_FULL = "full"
 ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
 TTL_KEY = "TimeToExist"
+ADG_STATUS_FIELD_NAME = "ADGStatus"
+ADG_CLUSTER_ID_FIELD_NAME = "ADGClusterId"
+CORRELATION_ID_DDB_FIELD_NAME = "CorrelationId"
+COLLECTION_NAME_DDB_FIELD_NAME = "CollectionName"
+TABLE_NAME = "${dynamodb_table_name}"
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -106,6 +111,7 @@ def main(
     published_database_name,
     args,
     s3_resource,
+    dynamodb_client,
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -126,6 +132,7 @@ def main(
                 itertools.repeat(s3_publish_bucket),
                 itertools.repeat(args),
                 itertools.repeat(s3_resource),
+                itertools.repeat(dynamodb_client),
             )
     except BaseException as ex:
         the_logger.error(
@@ -174,6 +181,14 @@ def get_s3_client():
         max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
     )
     client = boto3.client("s3", config=client_config)
+    return client
+
+
+def get_dynamodb_client():
+    client_config = botocore.config.Config(
+        max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
+    )
+    client = boto3.client("dynamodb", region_name="${aws_default_region}", config=client_config)
     return client
 
 
@@ -228,67 +243,85 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     s3_resource,
+    dynamodb_client,
 ):
+    collection_pairs = collection.items()
+    collection_iterator = iter(collection_pairs)
+    (collection_name, collection_files_keys) = next(collection_iterator)
+
     try:
-        for collection_name, collection_files_keys in collection.items():
-            the_logger.info(
-                "Processing collection : %s for correlation id : %s",
-                collection_name,
-                args.correlation_id,
+        update_adg_status_for_collection(
+            dynamodb_client,
+            TABLE_NAME,
+            args.correlation_id,
+            collection_name,
+            "In_Progress",
+        )
+        the_logger.info(
+            "Processing collection : %s for correlation id : %s",
+            collection_name,
+            args.correlation_id,
+        )
+        tag_value = secrets_collections[collection_name]
+        start_time = time.perf_counter()
+        rdd_list = []
+        total_collection_size = 0
+        for collection_file_key in collection_files_keys:
+            encrypted = read_binary(
+                spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
             )
-            tag_value = secrets_collections[collection_name]
-            start_time = time.perf_counter()
-            rdd_list = []
-            total_collection_size = 0
-            for collection_file_key in collection_files_keys:
-                encrypted = read_binary(
-                    spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
-                )
-                metadata = get_metadatafor_key(
-                    collection_file_key, s3_client, s3_htme_bucket
-                )
-                total_collection_size += get_filesize(
-                    s3_client, s3_htme_bucket, collection_file_key
-                )
-                ciphertext = metadata["ciphertext"]
-                datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
-                iv = metadata["iv"]
-                plain_text_key = get_plaintext_key_calling_dks(
-                    ciphertext, datakeyencryptionkeyid, keys_map, args, run_time_stamp
-                )
-                decrypted = encrypted.mapValues(
-                    lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(
-                        plain_text_key, iv, val, args, run_time_stamp
-                    )
-                )
-                decompressed = decrypted.mapValues(decompress)
-                decoded = decompressed.mapValues(decode)
-                rdd_list.append(decoded)
-            consolidated_rdd = spark.sparkContext.union(rdd_list)
-            consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
-            the_logger.info(
-                "Persisting Json of collection : %s for correlation id : %s",
-                collection_name,
-                args.correlation_id,
+            metadata = get_metadatafor_key(
+                collection_file_key, s3_client, s3_htme_bucket
             )
-            collection_name_key = get_collection(collection_name)
-            collection_name_key = collection_name_key.replace("_", "-")
-            file_location = "${file_location}"
-            json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
-            json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
-            persist_json(json_location, consolidated_rdd_mapped)
-            the_logger.info(
-                "Applying Tags for prefix : %s for correlation id : %s",
-                json_location_prefix,
-                args.correlation_id,
+            total_collection_size += get_filesize(
+                s3_client, s3_htme_bucket, collection_file_key
             )
-            tag_objects(
-                json_location_prefix,
-                tag_value,
-                s3_client,
-                s3_publish_bucket,
-                args.snapshot_type,
+            ciphertext = metadata["ciphertext"]
+            datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
+            iv = metadata["iv"]
+            plain_text_key = get_plaintext_key_calling_dks(
+                ciphertext, datakeyencryptionkeyid, keys_map, args, run_time_stamp
             )
+            decrypted = encrypted.mapValues(
+                lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(
+                    plain_text_key, iv, val, args, run_time_stamp
+                )
+            )
+            decompressed = decrypted.mapValues(decompress)
+            decoded = decompressed.mapValues(decode)
+            rdd_list.append(decoded)
+        consolidated_rdd = spark.sparkContext.union(rdd_list)
+        consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
+        the_logger.info(
+            "Persisting Json of collection : %s for correlation id : %s",
+            collection_name,
+            args.correlation_id,
+        )
+        collection_name_key = get_collection(collection_name)
+        collection_name_key = collection_name_key.replace("_", "-")
+        file_location = "${file_location}"
+        json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
+        json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+        persist_json(json_location, consolidated_rdd_mapped)
+        the_logger.info(
+            "Applying Tags for prefix : %s for correlation id : %s",
+            json_location_prefix,
+            args.correlation_id,
+        )
+        tag_objects(
+            json_location_prefix,
+            tag_value,
+            s3_client,
+            s3_publish_bucket,
+            args.snapshot_type,
+        )
+        update_adg_status_for_collection(
+            dynamodb_client,
+            TABLE_NAME,
+            args.correlation_id,
+            collection_name,
+            "Completed",
+        )
         add_metric(
             "htme_collection_size.csv", collection_name, str(total_collection_size)
         )
@@ -300,7 +333,7 @@ def consolidate_rdd_per_collection(
             s3_resource,
         )
         the_logger.info(
-            "Creating Hive tables of collection : %s for correlation id : %s",
+            "Created Hive tables of collection : %s for correlation id : %s",
             collection_name,
             args.correlation_id,
         )
@@ -335,6 +368,13 @@ def consolidate_rdd_per_collection(
             args.correlation_id,
             collection_name,
             str(ex),
+        )
+        update_adg_status_for_collection(
+            dynamodb_client,
+            TABLE_NAME,
+            args.correlation_id,
+            collection_name,
+            "Failed",
         )
         raise BaseException(ex)
     return (collection_name, json_location)
@@ -704,6 +744,35 @@ def save_output_location(args, run_time_stamp):
         output_location_file.write(output_location)
 
 
+def update_adg_status_for_collection(
+    dynamodb_client,
+    ddb_export_table,
+    correlation_id,
+    collection_name,
+    status,
+):
+    the_logger.info(
+        f'Updating collection status in dynamodb", "ddb_export_table": "{ddb_export_table}", "correlation_id": '
+        + f'"{correlation_id}", "collection_name": "{collection_name}", "status": "{status}'
+    )
+
+    dynamodb_client.update_item(
+        TableName=ddb_export_table,
+        Key={
+            CORRELATION_ID_DDB_FIELD_NAME: {"S": correlation_id},
+            COLLECTION_NAME_DDB_FIELD_NAME: {"S": collection_name},
+        },
+        UpdateExpression=f"SET {ADG_STATUS_FIELD_NAME} = :a",
+        ExpressionAttributeValues={":a": {"S": status}},
+        ReturnValues="ALL_NEW",
+    )
+
+    the_logger.info(
+        f'Updated collection status in dynamodb", "ddb_export_table": "{ddb_export_table}", "correlation_id": '
+        + f'"{correlation_id}", "status": "{status}", "collection_name": "{collection_name}'
+    )
+
+
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
@@ -727,6 +796,7 @@ if __name__ == "__main__":
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_s3_client()
     s3_resource = get_s3_resource()
+    dynamodb_client = get_dynamodb_client()
     secret_name = (
         secret_name_incremental
         if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
@@ -747,6 +817,7 @@ if __name__ == "__main__":
         published_database_name,
         args,
         s3_resource,
+        dynamodb_client,
     )
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
