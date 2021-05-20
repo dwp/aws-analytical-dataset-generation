@@ -299,9 +299,11 @@ def monkeypatch_with_mocks(monkeypatch):
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
 
 
+@mock_dynamodb2
 def test_create_hive_on_published_for_full(
     spark, handle_server, aws_credentials, monkeypatch
 ):
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     json_location = "s3://test/t"
     collection_name = "tabtest"
     all_processed_collections = [(collection_name, json_location)]
@@ -311,6 +313,7 @@ def test_create_hive_on_published_for_full(
         PUBLISHED_DATABASE_NAME,
         mock_args(),
         RUN_TIME_STAMP,
+        dynamodb_client,
     )
 
     monkeypatch.setattr(
