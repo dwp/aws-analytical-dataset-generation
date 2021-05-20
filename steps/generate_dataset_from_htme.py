@@ -149,6 +149,7 @@ def main(
         published_database_name,
         args,
         run_time_stamp,
+        dynamodb_client,
     )
 
     create_adg_status_csv(
@@ -255,7 +256,7 @@ def consolidate_rdd_per_collection(
             TABLE_NAME,
             args.correlation_id,
             collection_name,
-            "In_Progress",
+            "Processing",
         )
         the_logger.info(
             "Processing collection : %s for correlation id : %s",
@@ -320,7 +321,7 @@ def consolidate_rdd_per_collection(
             TABLE_NAME,
             args.correlation_id,
             collection_name,
-            "Completed",
+            "Processed",
         )
         add_metric(
             "htme_collection_size.csv", collection_name, str(total_collection_size)
@@ -374,7 +375,7 @@ def consolidate_rdd_per_collection(
             TABLE_NAME,
             args.correlation_id,
             collection_name,
-            "Failed",
+            "Failed_Processing",
         )
         raise BaseException(ex)
     return (collection_name, json_location)
@@ -538,7 +539,7 @@ def get_collections(secrets_response, args):
 
 
 def create_hive_tables_on_published(
-    spark, all_processed_collections, published_database_name, args, run_time_stamp
+    spark, all_processed_collections, published_database_name, args, run_time_stamp, dynamodb_client
 ):
     try:
         # Check to create database only if the backend is Aurora as Glue database is created through terraform
@@ -556,7 +557,7 @@ def create_hive_tables_on_published(
             spark.sql(create_db_query)
 
         create_hive_tables_on_published_for_collection_threaded(
-            spark, all_processed_collections, published_database_name, args,
+            spark, all_processed_collections, published_database_name, args, dynamodb_client
         )
     except BaseException as ex:
         the_logger.error(
@@ -568,7 +569,7 @@ def create_hive_tables_on_published(
 
 
 def create_hive_tables_on_published_for_collection_threaded(
-    spark, all_processed_collections, published_database_name, args
+    spark, all_processed_collections, published_database_name, args, dynamodb_client
 ):
     completed_collections = []
 
@@ -581,6 +582,7 @@ def create_hive_tables_on_published_for_collection_threaded(
                 collection_json_location,
                 published_database_name,
                 args,
+                dynamodb_client,
             ): (collection_name, collection_json_location)
             for (collection_name, collection_json_location) in all_processed_collections
         }
@@ -600,21 +602,45 @@ def create_hive_tables_on_published_for_collection_threaded(
 
 
 def create_hive_table_on_published_for_collection(
-    spark, collection_name, collection_json_location, published_database_name, args
+    spark, collection_name, collection_json_location, published_database_name, args, dynamodb_client
 ):
-    hive_table_name = get_collection(collection_name)
-    hive_table_name = hive_table_name.replace("/", "_")
-    src_hive_table = published_database_name + "." + hive_table_name
-    the_logger.info(
-        "Creating Hive table for : %s for correlation id : %s",
-        src_hive_table,
+    update_adg_status_for_collection(
+        dynamodb_client,
+        TABLE_NAME,
         args.correlation_id,
+        collection_name,
+        "Publishing",
     )
-    src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
-    src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
-    spark.sql(src_hive_drop_query)
-    spark.sql(src_hive_create_query)
-    return collection_name
+    try:
+        hive_table_name = get_collection(collection_name)
+        hive_table_name = hive_table_name.replace("/", "_")
+        src_hive_table = published_database_name + "." + hive_table_name
+        the_logger.info(
+            "Creating Hive table for : %s for correlation id : %s",
+            src_hive_table,
+            args.correlation_id,
+        )
+        src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
+        src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+        spark.sql(src_hive_drop_query)
+        spark.sql(src_hive_create_query)
+        update_adg_status_for_collection(
+            dynamodb_client,
+            TABLE_NAME,
+            args.correlation_id,
+            collection_name,
+            "Completed",
+        )
+        return collection_name
+    except Exception as exc:
+        update_adg_status_for_collection(
+            dynamodb_client,
+            TABLE_NAME,
+            args.correlation_id,
+            collection_name,
+            "Failed_Publishing",
+        )
+        raise exc
 
 
 def get_filesize(s3_client, s3_htme_bucket, collection_file_key):
