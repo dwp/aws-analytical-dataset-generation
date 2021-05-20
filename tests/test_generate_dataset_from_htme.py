@@ -362,7 +362,7 @@ def test_exception_when_decompression_fails(
 
 @mock_dynamodb2
 def test_update_adg_status_for_collection():
-    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2")
+    dynamodb_client = boto3.resource("dynamodb", region_name="eu-west-2")
     table_name = "UCExportToCrownStatus"
     expected = "test_status"
     collection_name = "test_collection"
