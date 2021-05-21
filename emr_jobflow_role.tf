@@ -210,6 +210,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_write_dynamodb" {
     effect = "Allow"
 
     actions = [
+      "dynamodb:DescribeTable",
       "dynamodb:GetItem",
       "dynamodb:UpdateItem",
       "dynamodb:PutItem",
