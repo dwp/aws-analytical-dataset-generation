@@ -186,8 +186,10 @@ def process_collections_threaded(
     s3_publish_bucket,
     s3_resource,
 ):
+    all_processed_collections = []
+
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        all_processed_collections = executor.map(
+        completed_collections = executor.map(
             process_collection,
             itertools.repeat(spark),
             itertools.repeat(published_database_name),
@@ -202,6 +204,9 @@ def process_collections_threaded(
             itertools.repeat(s3_publish_bucket),
             itertools.repeat(s3_resource)
         )
+
+    for completed_collection in completed_collections:
+        all_processed_collections.add(completed_collection)
 
     return all_processed_collections
 
