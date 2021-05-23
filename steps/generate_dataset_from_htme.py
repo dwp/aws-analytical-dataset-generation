@@ -119,21 +119,26 @@ def main(
         list_of_dicts_filtered = get_collections_in_secrets(
             list_of_dicts, secrets_collections, args
         )
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            all_processed_collections = executor.map(
-                consolidate_rdd_per_collection,
-                list_of_dicts_filtered,
-                itertools.repeat(secrets_collections),
-                itertools.repeat(s3_client),
-                itertools.repeat(s3_htme_bucket),
-                itertools.repeat(spark),
-                itertools.repeat(keys_map),
-                itertools.repeat(run_time_stamp),
-                itertools.repeat(s3_publish_bucket),
-                itertools.repeat(args),
-                itertools.repeat(s3_resource),
-                itertools.repeat(dynamodb_client),
-            )
+        create_metastore_db(
+            spark,
+            published_database_name,
+            args,
+        )
+        process_collections_threaded(
+            spark,
+            all_processed_collections,
+            published_database_name,
+            args,
+            run_time_stamp,
+            dynamodb_client,
+            list_of_dicts_filtered,
+            secrets_collections,
+            s3_client,
+            s3_htme_bucket,
+            keys_map,
+            s3_publish_bucket,
+            s3_resource,
+        )
     except BaseException as ex:
         the_logger.error(
             "Some error occurred for correlation id : %s %s ",
@@ -142,15 +147,6 @@ def main(
         )
         # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
         sys.exit(-1)
-
-    create_hive_tables_on_published(
-        spark,
-        list(all_processed_collections),
-        published_database_name,
-        args,
-        run_time_stamp,
-        dynamodb_client,
-    )
 
     create_adg_status_csv(
         args.correlation_id,
@@ -162,79 +158,113 @@ def main(
     )
 
 
-def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
-    filtered_list = []
-    for collection_dict in list_of_dicts:
-        for collection_name, collection_files_keys in collection_dict.items():
-            if collection_name in secrets_collections:
-                filtered_list.append(collection_dict)
-            else:
-                the_logger.warning(
-                    "%s is not present in the secret collections list for correlation id : %s",
-                    collection_name,
-                    args.correlation_id,
-                )
-    return filtered_list
+def process_collections_threaded(
+    spark,
+    published_database_name,
+    args,
+    run_time_stamp,
+    dynamodb_client,
+    list_of_dicts_filtered,
+    secrets_collections,
+    s3_client,
+    s3_htme_bucket,
+    keys_map,
+    s3_publish_bucket,
+    s3_resource,
+):
+    completed_collections = []
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        all_processed_collections = executor.map(
+            process_collection,
+            itertools.repeat(spark),
+            itertools.repeat(published_database_name),
+            itertools.repeat(args),
+            itertools.repeat(run_time_stamp),
+            itertools.repeat(dynamodb_client),
+            list_of_dicts_filtered,
+            itertools.repeat(secrets_collections),
+            itertools.repeat(s3_client),
+            itertools.repeat(s3_htme_bucket),
+            itertools.repeat(keys_map),
+            itertools.repeat(s3_publish_bucket),
+            itertools.repeat(s3_resource)
+        )
+
+    return all_processed_collections
 
 
-def get_s3_client():
-    client_config = botocore.config.Config(
-        max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
-    )
-    client = boto3.client("s3", config=client_config)
-    return client
+def create_metastore_db(
+    spark,
+    published_database_name,
+    args,
+):
+    try:
+        # Check to create database only if the backend is Aurora as Glue database is created through terraform
+        if "${hive_metastore_backend}" == "aurora":
+            the_logger.info(
+                "Creating metastore db while processing correlation_id %s",
+                args.correlation_id,
+            )
+            published_database_name = (
+                published_database_name
+                if args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL
+                else f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
+            )
+            create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
+            spark.sql(create_db_query)
 
 
-def get_dynamodb_client():
-    client_config = botocore.config.Config(
-        max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
-    )
-    client = boto3.client("dynamodb", region_name="${aws_default_region}", config=client_config)
-    return client
+def process_collection(
+    spark,
+    published_database_name,
+    args,
+    run_time_stamp,
+    dynamodb_client,
+    list_of_dicts_filtered,
+    secrets_collections,
+    s3_client,
+    s3_htme_bucket,
+    keys_map,
+    s3_publish_bucket,
+    s3_resource,
+):
+    try:
+        (collection_name, collection_json_location) = consolidate_rdd_per_collection(
+            list_of_dicts_filtered,
+            secrets_collections,
+            s3_client,
+            s3_htme_bucket,
+            spark,
+            keys_map,
+            run_time_stamp,
+            s3_publish_bucket,
+            args,
+            s3_resource,
+            dynamodb_client
+        )
 
-
-def get_s3_resource():
-    return boto3.resource("s3", region_name="${aws_default_region}")
-
-
-def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
-    the_logger.info(
-        "Looking for files to process in bucket : %s with prefix : %s",
-        s3_htme_bucket,
-        s3_prefix,
-    )
-    keys = []
-    paginator = s3_client.get_paginator("list_objects_v2")
-    pages = paginator.paginate(Bucket=s3_htme_bucket, Prefix=s3_prefix)
-    for page in pages:
-        for obj in page["Contents"]:
-            keys.append(obj["Key"])
-    if s3_prefix in keys:
-        keys.remove(s3_prefix)
-    return keys
-
-
-def group_keys_by_collection(keys):
-    file_key_dict = {key.split("/")[-1]: key for key in keys}
-    file_names = list(file_key_dict.keys())
-    file_pattern = r"^\w+\.([\w-]+)\.([\w]+)"
-    grouped_files = []
-    for pattern, group in groupby(
-        file_names, lambda x: re.match(file_pattern, x).group()
-    ):
-        grouped_files.append({pattern: list(group)})
-    list_of_dicts = []
-    for x in grouped_files:
-        for k, v in x.items():
-            gh = []
-            for x in v:
-                gh.append(file_key_dict[x])
-        list_of_dicts.append({k: gh})
-    return list_of_dicts
+        create_hive_table_on_published_for_collection(
+            spark,
+            collection_name,
+            collection_json_location,
+            published_database_name,
+            args,
+            dynamodb_client
+        )
+    except BaseException as ex:
+        the_logger.error(
+            "Error occurred with collection named %s for correlation id: %s %s",
+            collection_name,
+            args.correlation_id,
+            repr(ex),
+        )
+        raise BaseException(ex)
 
 
 def consolidate_rdd_per_collection(
-    collection,
+    collection_name,
+    collection_files_keys,
     secrets_collections,
     s3_client,
     s3_htme_bucket,
@@ -379,6 +409,141 @@ def consolidate_rdd_per_collection(
         )
         raise BaseException(ex)
     return (collection_name, json_location)
+
+
+def create_hive_table_on_published_for_collection(
+    spark,
+    collection_name,
+    collection_json_location,
+    published_database_name,
+    args,
+    dynamodb_client,
+):
+    update_adg_status_for_collection(
+        dynamodb_client,
+        TABLE_NAME,
+        args.correlation_id,
+        collection_name,
+        "Publishing",
+    )
+    try:
+        hive_table_name = get_collection(collection_name)
+        hive_table_name = hive_table_name.replace("/", "_")
+        src_hive_table = published_database_name + "." + hive_table_name
+        the_logger.info(
+            "Publishing collection named : %s for correlation id : %s",
+            collection_name,
+            args.correlation_id,
+        )
+        src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
+        src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+        spark.sql(src_hive_drop_query)
+        spark.sql(src_hive_create_query)
+        update_adg_status_for_collection(
+            dynamodb_client,
+            TABLE_NAME,
+            args.correlation_id,
+            collection_name,
+            "Completed",
+        )
+        the_logger.info(
+            "Published collection named : %s for correlation id : %s",
+            collection_name,
+            args.correlation_id,
+        )
+        return collection_name
+    except Exception as exc:
+        the_logger.error(
+            "Problem publishing collection named %s for correlation id: %s %s",
+            collection_name,
+            args.correlation_id,
+            repr(exc),
+        )
+        update_adg_status_for_collection(
+            dynamodb_client,
+            TABLE_NAME,
+            args.correlation_id,
+            collection_name,
+            "Failed_Publishing",
+        )
+        raise exc
+
+
+def get_filesize(s3_client, s3_htme_bucket, collection_file_key):
+    metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
+    filesize = metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"]
+    return int(filesize)
+
+
+def get_collections_in_secrets(list_of_dicts, secrets_collections, args):
+    filtered_list = []
+    for collection_dict in list_of_dicts:
+        for collection_name, collection_files_keys in collection_dict.items():
+            if collection_name in secrets_collections:
+                filtered_list.append(collection_dict)
+            else:
+                the_logger.warning(
+                    "%s is not present in the secret collections list for correlation id : %s",
+                    collection_name,
+                    args.correlation_id,
+                )
+    return filtered_list
+
+
+def get_s3_client():
+    client_config = botocore.config.Config(
+        max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
+    )
+    client = boto3.client("s3", config=client_config)
+    return client
+
+
+def get_dynamodb_client():
+    client_config = botocore.config.Config(
+        max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
+    )
+    client = boto3.client("dynamodb", region_name="${aws_default_region}", config=client_config)
+    return client
+
+
+def get_s3_resource():
+    return boto3.resource("s3", region_name="${aws_default_region}")
+
+
+def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
+    the_logger.info(
+        "Looking for files to process in bucket : %s with prefix : %s",
+        s3_htme_bucket,
+        s3_prefix,
+    )
+    keys = []
+    paginator = s3_client.get_paginator("list_objects_v2")
+    pages = paginator.paginate(Bucket=s3_htme_bucket, Prefix=s3_prefix)
+    for page in pages:
+        for obj in page["Contents"]:
+            keys.append(obj["Key"])
+    if s3_prefix in keys:
+        keys.remove(s3_prefix)
+    return keys
+
+
+def group_keys_by_collection(keys):
+    file_key_dict = {key.split("/")[-1]: key for key in keys}
+    file_names = list(file_key_dict.keys())
+    file_pattern = r"^\w+\.([\w-]+)\.([\w]+)"
+    grouped_files = []
+    for pattern, group in groupby(
+        file_names, lambda x: re.match(file_pattern, x).group()
+    ):
+        grouped_files.append({pattern: list(group)})
+    list_of_dicts = []
+    for x in grouped_files:
+        for k, v in x.items():
+            gh = []
+            for x in v:
+                gh.append(file_key_dict[x])
+        list_of_dicts.append({k: gh})
+    return list_of_dicts
 
 
 def decode(txt):
@@ -536,117 +701,6 @@ def get_collections(secrets_response, args):
         )
         sys.exit(-1)
     return collections
-
-
-def create_hive_tables_on_published(
-    spark, all_processed_collections, published_database_name, args, run_time_stamp, dynamodb_client
-):
-    try:
-        # Check to create database only if the backend is Aurora as Glue database is created through terraform
-        if "${hive_metastore_backend}" == "aurora":
-            the_logger.info(
-                "Creating metastore db while processing correlation_id %s",
-                args.correlation_id,
-            )
-            published_database_name = (
-                published_database_name
-                if args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL
-                else f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
-            )
-            create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
-            spark.sql(create_db_query)
-
-        create_hive_tables_on_published_for_collection_threaded(
-            spark, all_processed_collections, published_database_name, args, dynamodb_client
-        )
-    except BaseException as ex:
-        the_logger.error(
-            "Problem with creating Hive tables for correlation id: %s %s ",
-            args.correlation_id,
-            str(ex),
-        )
-        raise BaseException(ex)
-
-
-def create_hive_tables_on_published_for_collection_threaded(
-    spark, all_processed_collections, published_database_name, args, dynamodb_client
-):
-    completed_collections = []
-
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        results = {
-            executor.submit(
-                create_hive_table_on_published_for_collection,
-                spark,
-                collection_name,
-                collection_json_location,
-                published_database_name,
-                args,
-                dynamodb_client,
-            ): (collection_name, collection_json_location)
-            for (collection_name, collection_json_location) in all_processed_collections
-        }
-
-        for result in concurrent.futures.as_completed(results):
-            completed_collection = results[result]
-            completed_collections.append(completed_collection)
-            try:
-                data = result.result()
-                the_logger.info(
-                    f"Created published hive table for collection `{completed_collection}`"
-                )
-            except Exception as exc:
-                raise BaseException(exc)
-
-    return completed_collections
-
-
-def create_hive_table_on_published_for_collection(
-    spark, collection_name, collection_json_location, published_database_name, args, dynamodb_client
-):
-    update_adg_status_for_collection(
-        dynamodb_client,
-        TABLE_NAME,
-        args.correlation_id,
-        collection_name,
-        "Publishing",
-    )
-    try:
-        hive_table_name = get_collection(collection_name)
-        hive_table_name = hive_table_name.replace("/", "_")
-        src_hive_table = published_database_name + "." + hive_table_name
-        the_logger.info(
-            "Creating Hive table for : %s for correlation id : %s",
-            src_hive_table,
-            args.correlation_id,
-        )
-        src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
-        src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
-        spark.sql(src_hive_drop_query)
-        spark.sql(src_hive_create_query)
-        update_adg_status_for_collection(
-            dynamodb_client,
-            TABLE_NAME,
-            args.correlation_id,
-            collection_name,
-            "Completed",
-        )
-        return collection_name
-    except Exception as exc:
-        update_adg_status_for_collection(
-            dynamodb_client,
-            TABLE_NAME,
-            args.correlation_id,
-            collection_name,
-            "Failed_Publishing",
-        )
-        raise exc
-
-
-def get_filesize(s3_client, s3_htme_bucket, collection_file_key):
-    metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
-    filesize = metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"]
-    return int(filesize)
 
 
 def add_filesize_metric(
