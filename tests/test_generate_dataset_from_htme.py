@@ -300,19 +300,18 @@ def monkeypatch_with_mocks(monkeypatch):
 
 
 @mock_dynamodb2
-def test_create_hive_on_published_for_full(
+def test_create_hive_table_on_published_for_collection(
     spark, handle_server, aws_credentials, monkeypatch
 ):
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     json_location = "s3://test/t"
     collection_name = "tabtest"
-    all_processed_collections = [(collection_name, json_location)]
-    steps.generate_dataset_from_htme.create_hive_tables_on_published(
+    steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
         spark,
-        all_processed_collections,
+        collection_name,
+        json_location,
         PUBLISHED_DATABASE_NAME,
         mock_args(),
-        RUN_TIME_STAMP,
         dynamodb_client,
     )
 
@@ -439,12 +438,6 @@ def mock_args():
 
 def mock_call_dks(cek, kek, args, run_time_stamp):
     return kek
-
-
-def mock_create_hive_tables_on_published(
-    spark, all_processed_collections, published_database_name, args
-):
-    return published_database_name
 
 
 # Mocking because we don't have the compression codec libraries available in test phase

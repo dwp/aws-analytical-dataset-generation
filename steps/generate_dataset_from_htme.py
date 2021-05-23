@@ -171,24 +171,32 @@ def process_collections_threaded(
     s3_publish_bucket,
     s3_resource,
 ):
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        all_processed_collections = executor.map(
-            process_collection,
-            itertools.repeat(spark),
-            itertools.repeat(published_database_name),
-            itertools.repeat(args),
-            itertools.repeat(run_time_stamp),
-            itertools.repeat(dynamodb_client),
-            list_of_dicts_filtered,
-            itertools.repeat(secrets_collections),
-            itertools.repeat(s3_client),
-            itertools.repeat(s3_htme_bucket),
-            itertools.repeat(keys_map),
-            itertools.repeat(s3_publish_bucket),
-            itertools.repeat(s3_resource)
-        )
+    try:
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            all_processed_collections = executor.map(
+                process_collection,
+                itertools.repeat(spark),
+                itertools.repeat(published_database_name),
+                itertools.repeat(args),
+                itertools.repeat(run_time_stamp),
+                itertools.repeat(dynamodb_client),
+                list_of_dicts_filtered,
+                itertools.repeat(secrets_collections),
+                itertools.repeat(s3_client),
+                itertools.repeat(s3_htme_bucket),
+                itertools.repeat(keys_map),
+                itertools.repeat(s3_publish_bucket),
+                itertools.repeat(s3_resource)
+            )
 
-    return all_processed_collections
+        return all_processed_collections
+    except BaseException as ex:
+        the_logger.error(
+            "Some error occurred with one or more collections for correlation id : %s %s ",
+            args.correlation_id,
+            repr(ex),
+        )
+        raise BaseException(ex)
 
 
 def create_metastore_db(
@@ -468,7 +476,7 @@ def create_hive_table_on_published_for_collection(
             collection_name,
             "Failed_Publishing",
         )
-        raise exc
+        raise BaseException(exc)
 
 
 def get_filesize(s3_client, s3_htme_bucket, collection_file_key):
