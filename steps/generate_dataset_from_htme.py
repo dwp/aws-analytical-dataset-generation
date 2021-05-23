@@ -171,32 +171,24 @@ def process_collections_threaded(
     s3_publish_bucket,
     s3_resource,
 ):
-    try:
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            all_processed_collections = executor.map(
-                process_collection,
-                itertools.repeat(spark),
-                itertools.repeat(published_database_name),
-                itertools.repeat(args),
-                itertools.repeat(run_time_stamp),
-                itertools.repeat(dynamodb_client),
-                list_of_dicts_filtered,
-                itertools.repeat(secrets_collections),
-                itertools.repeat(s3_client),
-                itertools.repeat(s3_htme_bucket),
-                itertools.repeat(keys_map),
-                itertools.repeat(s3_publish_bucket),
-                itertools.repeat(s3_resource)
-            )
-
-        return all_processed_collections
-    except BaseException as ex:
-        the_logger.error(
-            "Some error occurred with one or more collections for correlation id : %s %s ",
-            args.correlation_id,
-            repr(ex),
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        all_processed_collections = executor.map(
+            process_collection,
+            itertools.repeat(spark),
+            itertools.repeat(published_database_name),
+            itertools.repeat(args),
+            itertools.repeat(run_time_stamp),
+            itertools.repeat(dynamodb_client),
+            list_of_dicts_filtered,
+            itertools.repeat(secrets_collections),
+            itertools.repeat(s3_client),
+            itertools.repeat(s3_htme_bucket),
+            itertools.repeat(keys_map),
+            itertools.repeat(s3_publish_bucket),
+            itertools.repeat(s3_resource)
         )
-        raise BaseException(ex)
+
+    return all_processed_collections
 
 
 def create_metastore_db(
@@ -403,6 +395,7 @@ def consolidate_rdd_per_collection(
             "adg_collection_size.csv",
             s3_resource,
         )
+        return (collection_name, json_location)
     except BaseException as ex:
         the_logger.error(
             "Error processing for correlation id: %s for collection %s %s",
@@ -418,7 +411,6 @@ def consolidate_rdd_per_collection(
             "Failed_Processing",
         )
         raise BaseException(ex)
-    return (collection_name, json_location)
 
 
 def create_hive_table_on_published_for_collection(
