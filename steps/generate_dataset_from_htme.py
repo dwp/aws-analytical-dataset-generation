@@ -206,7 +206,7 @@ def process_collections_threaded(
         )
 
     for completed_collection in completed_collections:
-        all_processed_collections.add(completed_collection)
+        all_processed_collections.append(completed_collection)
 
     return all_processed_collections
 
