@@ -126,7 +126,6 @@ def main(
         )
         process_collections_threaded(
             spark,
-            all_processed_collections,
             published_database_name,
             args,
             run_time_stamp,
@@ -172,8 +171,6 @@ def process_collections_threaded(
     s3_publish_bucket,
     s3_resource,
 ):
-    completed_collections = []
-
     with concurrent.futures.ThreadPoolExecutor() as executor:
         all_processed_collections = executor.map(
             process_collection,
@@ -269,8 +266,7 @@ def process_collection(
 
 
 def consolidate_rdd_per_collection(
-    collection_name,
-    collection_files_keys,
+    collection,
     secrets_collections,
     s3_client,
     s3_htme_bucket,
