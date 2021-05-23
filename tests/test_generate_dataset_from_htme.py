@@ -299,7 +299,6 @@ def monkeypatch_with_mocks(monkeypatch):
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
 
 
-@mock_dynamodb2
 def test_create_hive_table_on_published_for_collection(
     spark, handle_server, aws_credentials, monkeypatch
 ):
@@ -312,7 +311,6 @@ def test_create_hive_table_on_published_for_collection(
         json_location,
         PUBLISHED_DATABASE_NAME,
         mock_args(),
-        dynamodb_client,
     )
 
     monkeypatch.setattr(

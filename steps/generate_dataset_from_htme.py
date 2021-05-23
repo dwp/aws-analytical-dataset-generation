@@ -49,6 +49,21 @@ the_logger = setup_logging(
 )
 
 
+class CollectionException(Exception):
+    """Raised when collection could not be published"""
+    pass
+
+
+class CollectionProcessingException(CollectionException):
+    """Raised when collection could not be published"""
+    pass
+
+
+class CollectionPublishingException(CollectionException):
+    """Raised when collection could not be published"""
+    pass
+
+
 def get_parameters():
     """Define and parse command line args."""
     parser = argparse.ArgumentParser(
@@ -138,7 +153,7 @@ def main(
             s3_publish_bucket,
             s3_resource,
         )
-    except BaseException as ex:
+    except CollectionException as ex:
         the_logger.error(
             "Some error occurred for correlation id : %s %s ",
             args.correlation_id,
@@ -224,7 +239,7 @@ def process_collection(
     args,
     run_time_stamp,
     dynamodb_client,
-    list_of_dicts_filtered,
+    collection,
     secrets_collections,
     s3_client,
     s3_htme_bucket,
@@ -232,9 +247,22 @@ def process_collection(
     s3_publish_bucket,
     s3_resource,
 ):
+    collection_pairs = collection.items()
+    collection_iterator = iter(collection_pairs)
+    (collection_name, collection_files_keys) = next(collection_iterator)
+
+    update_adg_status_for_collection(
+        dynamodb_client,
+        TABLE_NAME,
+        args.correlation_id,
+        collection_name,
+        "Processing",
+    )
+
     try:
-        (collection_name, collection_json_location) = consolidate_rdd_per_collection(
-            list_of_dicts_filtered,
+        collection_json_location = consolidate_rdd_per_collection(
+            collection_name,
+            collection_files_keys,
             secrets_collections,
             s3_client,
             s3_htme_bucket,
@@ -244,29 +272,67 @@ def process_collection(
             s3_publish_bucket,
             args,
             s3_resource,
-            dynamodb_client
         )
+    except Exception as ex:
+        the_logger.error(
+            "Error occurred processing collection named %s for correlation id: %s %s",
+            collection_name,
+            args.correlation_id,
+            repr(ex),
+        )
+        update_adg_status_for_collection(
+            dynamodb_client,
+            TABLE_NAME,
+            args.correlation_id,
+            collection_name,
+            "Failed_Processing",
+        )
+        raise CollectionProcessingException(ex)
 
+    update_adg_status_for_collection(
+        dynamodb_client,
+        TABLE_NAME,
+        args.correlation_id,
+        collection_name,
+        "Publishing",
+    )
+
+    try:
         create_hive_table_on_published_for_collection(
             spark,
             collection_name,
             collection_json_location,
             published_database_name,
             args,
-            dynamodb_client
         )
-    except BaseException as ex:
+    except Exception as ex:
         the_logger.error(
-            "Error occurred with collection named %s for correlation id: %s %s",
+            "Error occurred publishing collection named %s for correlation id: %s %s",
             collection_name,
             args.correlation_id,
             repr(ex),
         )
-        raise BaseException(ex)
+        update_adg_status_for_collection(
+            dynamodb_client,
+            TABLE_NAME,
+            args.correlation_id,
+            collection_name,
+            "Failed_Publishing",
+        )
+        raise CollectionPublishingException(ex)
+    
+    update_adg_status_for_collection(
+        dynamodb_client,
+        TABLE_NAME,
+        args.correlation_id,
+        collection_name,
+        "Completed",
+    )
 
 
 def consolidate_rdd_per_collection(
-    collection,
+    collection_name,
+    collection_files_keys,
     secrets_collections,
     s3_client,
     s3_htme_bucket,
@@ -276,141 +342,106 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     s3_resource,
-    dynamodb_client,
 ):
-    collection_pairs = collection.items()
-    collection_iterator = iter(collection_pairs)
-    (collection_name, collection_files_keys) = next(collection_iterator)
-
-    try:
-        update_adg_status_for_collection(
-            dynamodb_client,
-            TABLE_NAME,
-            args.correlation_id,
-            collection_name,
-            "Processing",
+    the_logger.info(
+        "Processing collection : %s for correlation id : %s",
+        collection_name,
+        args.correlation_id,
+    )
+    tag_value = secrets_collections[collection_name]
+    start_time = time.perf_counter()
+    rdd_list = []
+    total_collection_size = 0
+    for collection_file_key in collection_files_keys:
+        encrypted = read_binary(
+            spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
         )
-        the_logger.info(
-            "Processing collection : %s for correlation id : %s",
-            collection_name,
-            args.correlation_id,
+        metadata = get_metadatafor_key(
+            collection_file_key, s3_client, s3_htme_bucket
         )
-        tag_value = secrets_collections[collection_name]
-        start_time = time.perf_counter()
-        rdd_list = []
-        total_collection_size = 0
-        for collection_file_key in collection_files_keys:
-            encrypted = read_binary(
-                spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
+        total_collection_size += get_filesize(
+            s3_client, s3_htme_bucket, collection_file_key
+        )
+        ciphertext = metadata["ciphertext"]
+        datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
+        iv = metadata["iv"]
+        plain_text_key = get_plaintext_key_calling_dks(
+            ciphertext, datakeyencryptionkeyid, keys_map, args, run_time_stamp
+        )
+        decrypted = encrypted.mapValues(
+            lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(
+                plain_text_key, iv, val, args, run_time_stamp
             )
-            metadata = get_metadatafor_key(
-                collection_file_key, s3_client, s3_htme_bucket
-            )
-            total_collection_size += get_filesize(
-                s3_client, s3_htme_bucket, collection_file_key
-            )
-            ciphertext = metadata["ciphertext"]
-            datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
-            iv = metadata["iv"]
-            plain_text_key = get_plaintext_key_calling_dks(
-                ciphertext, datakeyencryptionkeyid, keys_map, args, run_time_stamp
-            )
-            decrypted = encrypted.mapValues(
-                lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(
-                    plain_text_key, iv, val, args, run_time_stamp
-                )
-            )
-            decompressed = decrypted.mapValues(decompress)
-            decoded = decompressed.mapValues(decode)
-            rdd_list.append(decoded)
-        consolidated_rdd = spark.sparkContext.union(rdd_list)
-        consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
-        the_logger.info(
-            "Persisting Json of collection : %s for correlation id : %s",
-            collection_name,
-            args.correlation_id,
         )
-        collection_name_key = get_collection(collection_name)
-        collection_name_key = collection_name_key.replace("_", "-")
-        file_location = "${file_location}"
-        json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
-        json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
-        persist_json(json_location, consolidated_rdd_mapped)
-        the_logger.info(
-            "Applying Tags for prefix : %s for correlation id : %s",
-            json_location_prefix,
-            args.correlation_id,
-        )
-        tag_objects(
-            json_location_prefix,
-            tag_value,
-            s3_client,
-            s3_publish_bucket,
-            args.snapshot_type,
-        )
-        update_adg_status_for_collection(
-            dynamodb_client,
-            TABLE_NAME,
-            args.correlation_id,
-            collection_name,
-            "Processed",
-        )
-        add_metric(
-            "htme_collection_size.csv", collection_name, str(total_collection_size)
-        )
-        add_folder_size_metric(
-            collection_name,
-            s3_publish_bucket,
-            json_location_prefix,
-            "adg_collection_size.csv",
-            s3_resource,
-        )
-        the_logger.info(
-            "Created Hive tables of collection : %s for correlation id : %s",
-            collection_name,
-            args.correlation_id,
-        )
-        end_time = time.perf_counter()
-        total_time = round(end_time - start_time)
-        add_metric("processing_times.csv", collection_name, str(total_time))
-        the_logger.info(
-            "Completed Processing of collection : %s for correlation id : %s",
-            collection_name,
-            args.correlation_id,
-        )
-        adg_json_prefix = (
-            f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
-        )
-        add_folder_size_metric(
-            "all_collections",
-            s3_htme_bucket,
-            args.s3_prefix,
-            "htme_collection_size.csv",
-            s3_resource,
-        )
-        add_folder_size_metric(
-            "all_collections",
-            s3_publish_bucket,
-            adg_json_prefix,
-            "adg_collection_size.csv",
-            s3_resource,
-        )
-        return (collection_name, json_location)
-    except BaseException as ex:
-        the_logger.error(
-            "Error processing for correlation id: %s for collection %s %s",
-            args.correlation_id,
-            collection_name,
-            str(ex),
-        )
-        update_adg_status_for_collection(
-            dynamodb_client,
-            TABLE_NAME,
-            args.correlation_id,
-            collection_name,
-            "Failed_Processing",
-        )
-        raise BaseException(ex)
+        decompressed = decrypted.mapValues(decompress)
+        decoded = decompressed.mapValues(decode)
+        rdd_list.append(decoded)
+    consolidated_rdd = spark.sparkContext.union(rdd_list)
+    consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
+    the_logger.info(
+        "Persisting Json of collection : %s for correlation id : %s",
+        collection_name,
+        args.correlation_id,
+    )
+    collection_name_key = get_collection(collection_name)
+    collection_name_key = collection_name_key.replace("_", "-")
+    file_location = "${file_location}"
+    json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
+    json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+    persist_json(json_location, consolidated_rdd_mapped)
+    the_logger.info(
+        "Applying Tags for prefix : %s for correlation id : %s",
+        json_location_prefix,
+        args.correlation_id,
+    )
+    tag_objects(
+        json_location_prefix,
+        tag_value,
+        s3_client,
+        s3_publish_bucket,
+        args.snapshot_type,
+    )
+    add_metric(
+        "htme_collection_size.csv", collection_name, str(total_collection_size)
+    )
+    add_folder_size_metric(
+        collection_name,
+        s3_publish_bucket,
+        json_location_prefix,
+        "adg_collection_size.csv",
+        s3_resource,
+    )
+    the_logger.info(
+        "Created Hive tables of collection : %s for correlation id : %s",
+        collection_name,
+        args.correlation_id,
+    )
+    end_time = time.perf_counter()
+    total_time = round(end_time - start_time)
+    add_metric("processing_times.csv", collection_name, str(total_time))
+    the_logger.info(
+        "Completed Processing of collection : %s for correlation id : %s",
+        collection_name,
+        args.correlation_id,
+    )
+    adg_json_prefix = (
+        f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
+    )
+    add_folder_size_metric(
+        "all_collections",
+        s3_htme_bucket,
+        args.s3_prefix,
+        "htme_collection_size.csv",
+        s3_resource,
+    )
+    add_folder_size_metric(
+        "all_collections",
+        s3_publish_bucket,
+        adg_json_prefix,
+        "adg_collection_size.csv",
+        s3_resource,
+    )
+    return json_location
 
 
 def create_hive_table_on_published_for_collection(
@@ -419,56 +450,25 @@ def create_hive_table_on_published_for_collection(
     collection_json_location,
     published_database_name,
     args,
-    dynamodb_client,
 ):
-    update_adg_status_for_collection(
-        dynamodb_client,
-        TABLE_NAME,
-        args.correlation_id,
+    hive_table_name = get_collection(collection_name)
+    hive_table_name = hive_table_name.replace("/", "_")
+    src_hive_table = published_database_name + "." + hive_table_name
+    the_logger.info(
+        "Publishing collection named : %s for correlation id : %s",
         collection_name,
-        "Publishing",
+        args.correlation_id,
     )
-    try:
-        hive_table_name = get_collection(collection_name)
-        hive_table_name = hive_table_name.replace("/", "_")
-        src_hive_table = published_database_name + "." + hive_table_name
-        the_logger.info(
-            "Publishing collection named : %s for correlation id : %s",
-            collection_name,
-            args.correlation_id,
-        )
-        src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
-        src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
-        spark.sql(src_hive_drop_query)
-        spark.sql(src_hive_create_query)
-        update_adg_status_for_collection(
-            dynamodb_client,
-            TABLE_NAME,
-            args.correlation_id,
-            collection_name,
-            "Completed",
-        )
-        the_logger.info(
-            "Published collection named : %s for correlation id : %s",
-            collection_name,
-            args.correlation_id,
-        )
-        return collection_name
-    except Exception as exc:
-        the_logger.error(
-            "Problem publishing collection named %s for correlation id: %s %s",
-            collection_name,
-            args.correlation_id,
-            repr(exc),
-        )
-        update_adg_status_for_collection(
-            dynamodb_client,
-            TABLE_NAME,
-            args.correlation_id,
-            collection_name,
-            "Failed_Publishing",
-        )
-        raise BaseException(exc)
+    src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
+    src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+    spark.sql(src_hive_drop_query)
+    spark.sql(src_hive_create_query)
+    the_logger.info(
+        "Published collection named : %s for correlation id : %s",
+        collection_name,
+        args.correlation_id,
+    )
+    return collection_name
 
 
 def get_filesize(s3_client, s3_htme_bucket, collection_file_key):
@@ -651,7 +651,7 @@ def call_dks(cek, kek, args, run_time_stamp):
         the_logger.error(
             "Problem calling DKS for correlation id: %s %s",
             args.correlation_id,
-            str(ex),
+            repr(ex),
         )
         sys.exit(-1)
     return content["plaintextDataKey"]
@@ -671,7 +671,7 @@ def decrypt(plain_text_key, iv_key, data, args, run_time_stamp):
         the_logger.error(
             "Problem decrypting data for correlation id %s %s",
             args.correlation_id,
-            str(ex),
+            repr(ex),
         )
         sys.exit(-1)
     return decrypted
@@ -699,7 +699,7 @@ def get_collections(secrets_response, args):
         the_logger.error(
             "Problem with collections list for correlation id : %s %s",
             args.correlation_id,
-            str(ex),
+            repr(ex),
         )
         sys.exit(-1)
     return collections
@@ -746,7 +746,7 @@ def add_metric(metrics_file, collection_name, value):
             "Problem adding metric with file of '%s', collection name of '%s' and exception of '%s'",
             metrics_file,
             collection_name,
-            str(ex),
+            repr(ex),
         )
 
 
