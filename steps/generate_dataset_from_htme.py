@@ -134,14 +134,18 @@ def main(
         list_of_dicts_filtered = get_collections_in_secrets(
             list_of_dicts, secrets_collections, args
         )
-        create_metastore_db(
+        verified_database_name = create_metastore_db(
             spark,
             published_database_name,
             args,
         )
+        the_logger.info(
+            "Using database name %s",
+            verified_database_name,
+        )
         process_collections_threaded(
             spark,
-            published_database_name,
+            verified_database_name,
             args,
             run_time_stamp,
             dynamodb_client,
@@ -174,7 +178,7 @@ def main(
 
 def process_collections_threaded(
     spark,
-    published_database_name,
+    verified_database_name,
     args,
     run_time_stamp,
     dynamodb_client,
@@ -192,7 +196,7 @@ def process_collections_threaded(
         completed_collections = executor.map(
             process_collection,
             itertools.repeat(spark),
-            itertools.repeat(published_database_name),
+            itertools.repeat(verified_database_name),
             itertools.repeat(args),
             itertools.repeat(run_time_stamp),
             itertools.repeat(dynamodb_client),
@@ -216,19 +220,20 @@ def create_metastore_db(
     published_database_name,
     args,
 ):
+    verified_database_name = published_database_name
     # Check to create database only if the backend is Aurora as Glue database is created through terraform
     if "${hive_metastore_backend}" == "aurora":
         try:
+            if args.snapshot_type.lower() != SNAPSHOT_TYPE_FULL:
+                verified_database_name = f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
+
             the_logger.info(
-                "Creating metastore db while processing correlation_id %s",
+                "Creating metastore db with name of %s while processing correlation_id %s",
+                verified_database_name,
                 args.correlation_id,
             )
-            published_database_name = (
-                published_database_name
-                if args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL
-                else f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
-            )
-            create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
+
+            create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name}"
             spark.sql(create_db_query)
         except BaseException as ex:
             the_logger.error(
@@ -237,10 +242,12 @@ def create_metastore_db(
             )
             raise BaseException(ex)
 
+    return verified_database_name
+
 
 def process_collection(
     spark,
-    published_database_name,
+    verified_database_name,
     args,
     run_time_stamp,
     dynamodb_client,
@@ -307,7 +314,7 @@ def process_collection(
             spark,
             collection_name,
             collection_json_location,
-            published_database_name,
+            verified_database_name,
             args,
         )
     except Exception as ex:
@@ -453,12 +460,12 @@ def create_hive_table_on_published_for_collection(
     spark,
     collection_name,
     collection_json_location,
-    published_database_name,
+    verified_database_name,
     args,
 ):
     hive_table_name = get_collection(collection_name)
     hive_table_name = hive_table_name.replace("/", "_")
-    src_hive_table = published_database_name + "." + hive_table_name
+    src_hive_table = verified_database_name + "." + hive_table_name
     the_logger.info(
         "Publishing collection named : %s for correlation id : %s",
         collection_name,
