@@ -232,7 +232,7 @@ def create_metastore_db(
                 if args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL
                 else f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
             )
-            create_db_query = f"CREATE DATABASE IF NOT EXISTS {published_database_name}"
+            create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name}"
             spark.sql(create_db_query)
 
             return verified_database_name
