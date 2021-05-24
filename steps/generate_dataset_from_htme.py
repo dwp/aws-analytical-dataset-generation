@@ -220,28 +220,29 @@ def create_metastore_db(
     published_database_name,
     args,
 ):
+    verified_database_name = published_database_name
     # Check to create database only if the backend is Aurora as Glue database is created through terraform
     if "${hive_metastore_backend}" == "aurora":
         try:
+            if args.snapshot_type.lower() != SNAPSHOT_TYPE_FULL:
+                verified_database_name = f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
+
             the_logger.info(
-                "Creating metastore db while processing correlation_id %s",
+                "Creating metastore db with name of %s while processing correlation_id %s",
+                verified_database_name,
                 args.correlation_id,
             )
-            verified_database_name = (
-                published_database_name
-                if args.snapshot_type.lower() == SNAPSHOT_TYPE_FULL
-                else f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
-            )
+
             create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name}"
             spark.sql(create_db_query)
-
-            return verified_database_name
         except BaseException as ex:
             the_logger.error(
                 "Error occurred creating hive metastore backend %s",
                 repr(ex),
             )
             raise BaseException(ex)
+
+    return verified_database_name
 
 
 def process_collection(
