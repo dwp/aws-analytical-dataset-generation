@@ -400,6 +400,10 @@ def consolidate_rdd_per_collection(
     file_location = "${file_location}"
     json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
     json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+    if collection_name_key == 'audit':
+        current_date = datetime.today().strftime('%Y-%m-%d')
+        json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
+        json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
     persist_json(json_location, consolidated_rdd_mapped)
     the_logger.info(
         "Applying Tags for prefix : %s for correlation id : %s",
@@ -544,7 +548,7 @@ def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
 def group_keys_by_collection(keys):
     file_key_dict = {key.split("/")[-1]: key for key in keys}
     file_names = list(file_key_dict.keys())
-    file_pattern = r"^\w+\.([\w-]+)\.([\w]+)"
+    file_pattern = r"^(?:[\w+\.])?([\w-]+)\.([\w]+)"
     grouped_files = []
     for pattern, group in groupby(
         file_names, lambda x: re.match(file_pattern, x).group()
