@@ -33,7 +33,7 @@ chmod u+x /opt/emr/logging.sh
     }
 
     log_wrapper_message "Downloading & install latest bootstrap and steps scripts"
-    $(which aws) s3 cp --recursive "${scripts_location}/" /var/ci/ --include "*.sh"
+    $(which aws) s3 cp --recursive "${scripts_location}/" /var/ci/ --include "*.sh *.sql"
 
     log_wrapper_message "Apply recursive execute permissions to the folder"
     sudo chmod --recursive a+rx /var/ci
