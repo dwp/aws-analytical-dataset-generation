@@ -273,7 +273,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_htme" {
     ]
 
     resources = [
-      format("arn:aws:s3:::%s", data.terraform_remote_state.internal_compute.outputs.s3_buckets.htme_bucket),
+      format("arn:aws:s3:::%s", data.terraform_remote_state.internal_compute.outputs.htme_s3_bucket.id),
     ]
   }
 
@@ -285,7 +285,7 @@ data "aws_iam_policy_document" "analytical_dataset_generator_read_htme" {
     ]
 
     resources = [
-      format("arn:aws:s3:::%s/%s/*", data.terraform_remote_state.internal_compute.outputs.s3_buckets.htme_bucket, data.terraform_remote_state.internal_compute.outputs.s3_buckets.htme_prefix)
+      format("arn:aws:s3:::%s/%s/*", data.terraform_remote_state.internal_compute.outputs.htme_s3_bucket.id, data.terraform_remote_state.internal_compute.outputs.htme_s3_folder.id)
     ]
   }
 

@@ -99,7 +99,7 @@ resource "aws_s3_bucket_object" "configurations" {
       proxy_http_port                               = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
       proxy_https_host                              = data.terraform_remote_state.internal_compute.outputs.internet_proxy.host
       proxy_https_port                              = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
-      s3_htme_bucket                                = data.terraform_remote_state.internal_compute.outputs.s3_buckets.htme_bucket
+      s3_htme_bucket                                = data.terraform_remote_state.internal_compute.outputs.htme_s3_bucket.id
       spark_kyro_buffer                             = local.spark_kyro_buffer
       hive_metsatore_username                       = data.terraform_remote_state.internal_compute.outputs.metadata_store_users.adg_writer.username
       hive_metastore_pwd                            = data.terraform_remote_state.internal_compute.outputs.metadata_store_users.adg_writer.secret_name
@@ -140,7 +140,7 @@ resource "aws_s3_bucket_object" "configurations_incremental" {
       proxy_http_port                               = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
       proxy_https_host                              = data.terraform_remote_state.internal_compute.outputs.internet_proxy.host
       proxy_https_port                              = data.terraform_remote_state.internal_compute.outputs.internet_proxy.port
-      s3_htme_bucket                                = data.terraform_remote_state.internal_compute.outputs.s3_buckets.htme_bucket
+      s3_htme_bucket                                = data.terraform_remote_state.internal_compute.outputs.htme_s3_bucket.id
       spark_kyro_buffer                             = local.spark_kyro_buffer
       hive_metsatore_username                       = data.terraform_remote_state.internal_compute.outputs.metadata_store_users.adg_writer.username
       hive_metastore_pwd                            = data.terraform_remote_state.internal_compute.outputs.metadata_store_users.adg_writer.secret_name
