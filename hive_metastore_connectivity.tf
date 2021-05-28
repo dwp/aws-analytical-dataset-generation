@@ -1,4 +1,4 @@
-resource "aws_security_group_rule" "ingress_adg" {
+resource "aws_security_group_rule" "ingress_adg_metastore_v2" {
   description              = "Allow mysql traffic to Aurora RDS from ADG"
   from_port                = 3306
   protocol                 = "tcp"
@@ -8,7 +8,7 @@ resource "aws_security_group_rule" "ingress_adg" {
   source_security_group_id = aws_security_group.adg_common.id
 }
 
-resource "aws_security_group_rule" "egress_adg" {
+resource "aws_security_group_rule" "egress_adg_metastore_v2" {
   description              = "Allow mysql traffic to Aurora RDS from ADG"
   from_port                = 3306
   protocol                 = "tcp"
