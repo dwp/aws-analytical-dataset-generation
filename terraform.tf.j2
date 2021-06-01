@@ -11,20 +11,6 @@ terraform {
   }
 }
 
-data "terraform_remote_state" "ingest" {
-  backend   = "s3"
-  workspace = terraform.workspace
-
-  config = {
-    bucket         = "{{state_file_bucket}}"
-    key            = "terraform/dataworks/aws-ingestion.tfstate"
-    region         = "{{state_file_region}}"
-    encrypt        = true
-    kms_key_id     = "arn:aws:kms:{{state_file_region}}:{{state_file_account}}:key/{{state_file_kms_key}}"
-    dynamodb_table = "remote_state_locks"
-  }
-}
-
 data "terraform_remote_state" "common" {
   backend   = "s3"
   workspace = terraform.workspace
@@ -46,20 +32,6 @@ data "terraform_remote_state" "internal_compute" {
   config = {
     bucket         = "{{state_file_bucket}}"
     key            = "terraform/dataworks/aws-internal-compute.tfstate"
-    region         = "{{state_file_region}}"
-    encrypt        = true
-    kms_key_id     = "arn:aws:kms:{{state_file_region}}:{{state_file_account}}:key/{{state_file_kms_key}}"
-    dynamodb_table = "remote_state_locks"
-  }
-}
-
-data "terraform_remote_state" "metrics_infrastructure" {
-  backend   = "s3"
-  workspace = terraform.workspace
-
-  config = {
-    bucket         = "{{state_file_bucket}}"
-    key            = "terraform/dataworks/dataworks-metrics-infrastructure.tfstate"
     region         = "{{state_file_region}}"
     encrypt        = true
     kms_key_id     = "arn:aws:kms:{{state_file_region}}:{{state_file_account}}:key/{{state_file_kms_key}}"
@@ -93,76 +65,6 @@ data "terraform_remote_state" "artefact" {
     kms_key_id     = "arn:aws:kms:{{state_file_region}}:{{state_file_account}}:key/{{state_file_kms_key}}"
     dynamodb_table = "remote_state_locks"
   }
-}
-
-variable "assume_role" {
-  default = "ci"
-}
-
-variable "region" {
-  default = "eu-west-2"
-}
-
-provider "aws" {
-  version = "~> 3.2.0"
-  region  = var.region
-
-  assume_role {
-    role_arn = "arn:aws:iam::${lookup(local.account, local.environment)}:role/${var.assume_role}"
-  }
-}
-
-provider "aws" {
-  alias = "crypto"
-  version = "~> 3.2.0"
-  region  = var.region
-
-  assume_role {
-    role_arn = "arn:aws:iam::${local.account[local.management_account[local.environment]]}:role/${var.assume_role}"
-  }
-}
-
-// Get AWS Account ID for credentials in use
-data "aws_caller_identity" "current" {}
-
-data "aws_region" "current" {}
-data "aws_availability_zones" "available" {}
-
-locals {
-  account = { {% for key, value in accounts.items() %}
-    {{key}} = "{{value}}"{% endfor %}
-  }
-}
-
-locals {
-
-  environment = terraform.workspace == "default" ? "development" : terraform.workspace
-
-  tags = {
-  {% for key, value in common_tags.items() %}
-    {{key}} = "{{value}}"{% endfor %}
-    Environment  = local.environment
-    Application  = "aws-analytical-dataset-generation"
-  }
-}
-
-locals {
-
-  env_prefix = {
-    development = "dev."
-    qa          = "qa."
-    stage       = "stg."
-    integration = "int."
-    preprod     = "pre."
-    production  = ""
-  }
-
-}
-
-locals {
-
-  dataworks_domain_name = "{{dataworks_domain_name}}"
-
 }
 
 data "terraform_remote_state" "aws_certificate_authority" {
@@ -219,17 +121,71 @@ data "terraform_remote_state" "management_artefact" {
   }
 }
 
-data "terraform_remote_state" "pdm" {
-  backend   = "s3"
-  workspace = terraform.workspace
+variable "assume_role" {
+  default = "ci"
+}
 
-  config = {
-    bucket         = "{{state_file_bucket}}"
-    key            = "terraform/dataworks/aws-pdm-dataset-generation.tfstate"
-    region         = "{{state_file_region}}"
-    encrypt        = true
-    kms_key_id     = "arn:aws:kms:{{state_file_region}}:{{state_file_account}}:key/{{state_file_kms_key}}"
-    dynamodb_table = "remote_state_locks"
+variable "region" {
+  default = "eu-west-2"
+}
+
+provider "aws" {
+  version = "~> 3.2.0"
+  region  = var.region
+
+  assume_role {
+    role_arn = "arn:aws:iam::${lookup(local.account, local.environment)}:role/${var.assume_role}"
   }
 }
 
+provider "aws" {
+  alias = "crypto"
+  version = "~> 3.2.0"
+  region  = var.region
+
+  assume_role {
+    role_arn = "arn:aws:iam::${local.account[local.management_account[local.environment]]}:role/${var.assume_role}"
+  }
+}
+
+provider "aws" {
+  alias   = "management_dns"
+  version = "~> 3.2.0"
+  region  = var.region
+
+  assume_role {
+    role_arn = "arn:aws:iam::${local.account["management"]}:role/${var.assume_role}"
+  }
+}
+
+// Get AWS Account ID for credentials in use
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+data "aws_availability_zones" "available" {}
+
+locals {
+  account = { {% for key, value in accounts.items() %}
+    {{key}} = "{{value}}"{% endfor %}
+  }
+
+  environment = terraform.workspace == "default" ? "development" : terraform.workspace
+
+  tags = {
+  {% for key, value in common_tags.items() %}
+    {{key}} = "{{value}}"{% endfor %}
+    Environment  = local.environment
+    Application  = "aws-analytical-dataset-generation"
+  }
+
+  env_prefix = {
+    development = "dev."
+    qa          = "qa."
+    stage       = "stg."
+    integration = "int."
+    preprod     = "pre."
+    production  = ""
+  }
+
+  dataworks_domain_name = "{{dataworks_domain_name}}"
+}
