@@ -477,7 +477,7 @@ def create_hive_table_on_published_for_collection(
         collection_name,
         args.correlation_id,
     )
-    if collection_name_key == 'audit':
+    if collection_name == 'audit':
         auditlog_managed_table_sql_file = open("/var/ci/auditlog_managed_table.sql")
         auditlog_managed_table_sql_content = auditlog_managed_table_sql_file.read().replace('${hivevar:auditlog_database}', verified_database_name)
         spark.sql(auditlog_managed_table_sql_content)
@@ -561,7 +561,7 @@ def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
 def group_keys_by_collection(keys):
     file_key_dict = {key.split("/")[-1]: key for key in keys}
     file_names = list(file_key_dict.keys())
-    file_pattern = r"^(?:[\w+\.])?([\w-]+)\.([\w]+)"
+    file_pattern = r"^(?:db.)?([\w-]+)\.([\w]+)"
     grouped_files = []
     for pattern, group in groupby(
         file_names, lambda x: re.match(file_pattern, x).group()
