@@ -162,6 +162,16 @@ provider "aws" {
   }
 }
 
+provider "aws" {
+  alias   = "management_dns"
+  version = "~> 3.2.0"
+  region  = var.region
+
+  assume_role {
+    role_arn = "arn:aws:iam::${local.account["management"]}:role/${var.assume_role}"
+  }
+}
+
 // Get AWS Account ID for credentials in use
 data "aws_caller_identity" "current" {}
 
