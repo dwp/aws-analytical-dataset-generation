@@ -90,7 +90,7 @@ locals {
 
   amazon_region_domain = "${data.aws_region.current.name}.amazonaws.com"
   endpoint_services    = ["dynamodb", "ec2", "ec2messages", "glue", "kms", "logs", "monitoring", ".s3", "s3", "secretsmanager", "ssm", "ssmmessages"]
-  no_proxy             = "169.254.169.254,${join(",", formatlist("%s.%s", local.endpoint_services, local.amazon_region_domain))},${data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname}"
+  no_proxy             = "169.254.169.254,${join(",", formatlist("%s.%s", local.endpoint_services, local.amazon_region_domain))},${local.adg_pushgateway_hostname}"
 
   ebs_emrfs_em = {
     EncryptionConfiguration = {
@@ -481,4 +481,6 @@ locals {
   spark_executor_instances  = var.spark_executor_instances[local.environment]
   spark_default_parallelism = local.spark_executor_instances * local.spark_executor_cores[local.environment] * 2
   spark_kyro_buffer         = var.spark_kyro_buffer[local.environment]
+
+  adg_pushgateway_hostname = "${aws_service_discovery_service.adg_services.name}.${aws_service_discovery_private_dns_namespace.adg_services.name}"
 }

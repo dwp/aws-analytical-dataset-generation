@@ -65,7 +65,7 @@ resource "aws_s3_bucket_object" "flush_pushgateway" {
   key        = "component/analytical-dataset-generation/flush-pushgateway.sh"
   content = templatefile("${path.module}/steps/flush-pushgateway.sh",
     {
-      adg_pushgateway_hostname = data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname
+      adg_pushgateway_hostname = local.adg_pushgateway_hostname
     }
   )
 }
@@ -76,7 +76,7 @@ resource "aws_s3_bucket_object" "courtesy_flush" {
   key        = "component/analytical-dataset-generation/courtesy-flush.sh"
   content = templatefile("${path.module}/steps/courtesy-flush.sh",
     {
-      adg_pushgateway_hostname = data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname
+      adg_pushgateway_hostname = local.adg_pushgateway_hostname
     }
   )
 }
