@@ -80,8 +80,8 @@ resource "aws_s3_bucket_object" "status_metrics_sh" {
   key    = "component/analytical-dataset-generation/status_metrics.sh"
   content = templatefile("${path.module}/bootstrap_actions/status_metrics.sh",
     {
-      adg_pushgateway_hostname = data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname
-      final_step               = local.dynamodb_final_step[local.environment]
+      adg_pushgateway_hostname = local.adg_pushgateway_hostname
+      final_step               = "spark-submit" # Stops skipping final step on retry, we should mark success at data cretation.
 
     }
   )
@@ -154,7 +154,7 @@ resource "aws_s3_bucket_object" "metrics_properties" {
   key        = "component/analytical-dataset-generation/metrics/metrics.properties"
   content = templatefile("${path.module}/bootstrap_actions/metrics_config/metrics.properties",
     {
-      adg_pushgateway_hostname = data.terraform_remote_state.metrics_infrastructure.outputs.adg_pushgateway_hostname
+      adg_pushgateway_hostname = local.adg_pushgateway_hostname
     }
   )
 }
