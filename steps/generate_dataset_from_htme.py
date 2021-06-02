@@ -398,7 +398,7 @@ def consolidate_rdd_per_collection(
     collection_name_key = get_collection(collection_name)
     collection_name_key = collection_name_key.replace("_", "-")
     file_location = "${file_location}"
-    if collection_name_key == 'businessAudit':
+    if collection_name_key == 'data/businessAudit':
         current_date = datetime.today().strftime('%Y-%m-%d')
         json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
@@ -477,7 +477,7 @@ def create_hive_table_on_published_for_collection(
         collection_name,
         args.correlation_id,
     )
-    if collection_name == 'businessAudit':
+    if collection_name == 'data_businessAudit':
         auditlog_managed_table_sql_file = open("/var/ci/auditlog_managed_table.sql")
         auditlog_managed_table_sql_content = auditlog_managed_table_sql_file.read().replace('#{hivevar:auditlog_database}', verified_database_name)
         spark.sql(auditlog_managed_table_sql_content)
