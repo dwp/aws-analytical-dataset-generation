@@ -477,7 +477,7 @@ def create_hive_table_on_published_for_collection(
         collection_name,
         args.correlation_id,
     )
-    if collection_name == 'data_businessAudit':
+    if hive_table_name == 'data_businessAudit':
         auditlog_managed_table_sql_file = open("/var/ci/auditlog_managed_table.sql")
         auditlog_managed_table_sql_content = auditlog_managed_table_sql_file.read().replace('#{hivevar:auditlog_database}', verified_database_name)
         spark.sql(auditlog_managed_table_sql_content)
