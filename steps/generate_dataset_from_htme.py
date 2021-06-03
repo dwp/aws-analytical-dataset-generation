@@ -486,7 +486,7 @@ def create_hive_table_on_published_for_collection(
         date_hyphen = datetime.today().strftime('%Y-%m-%d')
         date_underscore = date_hyphen.replace('-', '_')
         queries = auditlog_external_table_sql_file.read().replace('#{hivevar:auditlog_database}', verified_database_name).replace('#{hivevar:date_underscore}', date_underscore).replace('#{hivevar:date_hyphen}', date_hyphen).replace('#{hivevar:serde}', 'org.openx.data.jsonserde.JsonSerDe').replace('#{hivevar:data_location}', collection_json_location)
-        split_queries = queries.split(';')
+        split_queries = queries.split(';', 3)
         print(list(map(lambda query: spark.sql(query), split_queries)))
     else:
         src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
