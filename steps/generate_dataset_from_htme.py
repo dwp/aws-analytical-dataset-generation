@@ -398,8 +398,14 @@ def consolidate_rdd_per_collection(
     collection_name_key = get_collection(collection_name)
     collection_name_key = collection_name_key.replace("_", "-")
     file_location = "${file_location}"
-    json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
-    json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+    if collection_name_key == 'data/businessAudit':
+        current_date = datetime.today().strftime('%Y-%m-%d')
+        json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
+        json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+    else:
+        json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
+        json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+
     persist_json(json_location, consolidated_rdd_mapped)
     the_logger.info(
         "Applying Tags for prefix : %s for correlation id : %s",
@@ -471,15 +477,27 @@ def create_hive_table_on_published_for_collection(
         collection_name,
         args.correlation_id,
     )
-    src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
-    src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
-    spark.sql(src_hive_drop_query)
-    spark.sql(src_hive_create_query)
-    the_logger.info(
-        "Published collection named : %s for correlation id : %s",
-        collection_name,
-        args.correlation_id,
-    )
+    if hive_table_name == 'data_businessAudit':
+        auditlog_managed_table_sql_file = open("/var/ci/auditlog_managed_table.sql")
+        auditlog_managed_table_sql_content = auditlog_managed_table_sql_file.read().replace('#{hivevar:auditlog_database}', verified_database_name)
+        spark.sql(auditlog_managed_table_sql_content)
+
+        auditlog_external_table_sql_file = open("/var/ci/auditlog_external_table.sql")
+        date_hyphen = datetime.today().strftime('%Y-%m-%d')
+        date_underscore = date_hyphen.replace('-', '_')
+        queries = auditlog_external_table_sql_file.read().replace('#{hivevar:auditlog_database}', verified_database_name).replace('#{hivevar:date_underscore}', date_underscore).replace('#{hivevar:date_hyphen}', date_hyphen).replace('#{hivevar:serde}', 'org.openx.data.jsonserde.JsonSerDe').replace('#{hivevar:data_location}', collection_json_location)
+        split_queries = queries.split(';', 3)
+        print(list(map(lambda query: spark.sql(query), split_queries)))
+    else:
+        src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
+        src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+        spark.sql(src_hive_drop_query)
+        spark.sql(src_hive_create_query)
+        the_logger.info(
+            "Published collection named : %s for correlation id : %s",
+            collection_name,
+            args.correlation_id,
+        )
     return collection_name
 
 
@@ -544,7 +562,7 @@ def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
 def group_keys_by_collection(keys):
     file_key_dict = {key.split("/")[-1]: key for key in keys}
     file_names = list(file_key_dict.keys())
-    file_pattern = r"^\w+\.([\w-]+)\.([\w]+)"
+    file_pattern = r"^(?:db.)?([\w-]+)\.([\w]+)"
     grouped_files = []
     for pattern, group in groupby(
         file_names, lambda x: re.match(file_pattern, x).group()
