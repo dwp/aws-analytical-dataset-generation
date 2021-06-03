@@ -2,8 +2,16 @@
 version: v1.13.5
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-  SNYK-JAVA-COMGOOGLEGUAVA-1015415:
+  Jinja2NoDefaultAutoEscape:
     - '*':
-        reason: No direct upgrade or patch
-        expires: 2021-12-01T00:00:00.000Z
+        reason: See security.md
+        expires: 2021-12-03T00:00:00.000Z
+  SNYK-CC-55:
+    - '*':
+        reason: See security.md
+        expires: 2021-12-03T00:00:00.000Z
+  SNYK-JAVA-ORGYAML-537645:
+    - '*':
+        reason: See security.md
+        expires: 2021-12-03T00:00:00.000Z
 patch: {}
