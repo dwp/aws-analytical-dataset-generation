@@ -485,8 +485,9 @@ def create_hive_table_on_published_for_collection(
         auditlog_external_table_sql_file = open("/var/ci/auditlog_external_table.sql")
         date_hyphen = datetime.today().strftime('%Y-%m-%d')
         date_underscore = date_hyphen.replace('-', '_')
-        auditlog_external_table_sql_content = auditlog_external_table_sql_file.read().replace('#{hivevar:auditlog_database}', verified_database_name).replace('#{hivevar:date_underscore}', date_underscore).replace('#{hivevar:date_hyphen}', date_hyphen).replace('#{hivevar:serde}', 'org.openx.data.jsonserde.JsonSerDe').replace('#{hivevar:data_location}', collection_json_location)
-        spark.sql(auditlog_external_table_sql_content)
+        queries = auditlog_external_table_sql_file.read().replace('#{hivevar:auditlog_database}', verified_database_name).replace('#{hivevar:date_underscore}', date_underscore).replace('#{hivevar:date_hyphen}', date_hyphen).replace('#{hivevar:serde}', 'org.openx.data.jsonserde.JsonSerDe').replace('#{hivevar:data_location}', collection_json_location)
+        split_queries = queries.split(';')
+        print(list(map(lambda query: spark.sql(query), split_queries)))
     else:
         src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
         src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
