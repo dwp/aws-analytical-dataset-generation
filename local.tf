@@ -120,14 +120,6 @@ locals {
     production  = false
   }
 
-  keep_cluster_alive_incremental = {
-    development = true
-    qa          = false
-    integration = false
-    preprod     = false
-    production  = false
-  }
-
   step_fail_action = {
     development = "CONTINUE"
     qa          = "TERMINATE_CLUSTER"
@@ -209,14 +201,6 @@ locals {
     production  = true
   }
 
-  mongo_latest_version = {
-    development = "0.0.64"
-    qa          = "0.0.64"
-    integration = "0.0.64"
-    preprod     = "0.0.64"
-    production  = "0.0.64"
-  }
-
   skip_pdm_trigger_on_adg_completion = {
     development = "true"
     qa          = "true"
@@ -241,12 +225,12 @@ locals {
     production  = "false"
   }
 
-  dynamodb_final_step = {
-    development = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
-    qa          = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
-    integration = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
-    preprod     = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
-    production  = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
+  dynamodb_final_step_full = {
+    development = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
+    qa          = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
+    integration = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
+    preprod     = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
+    production  = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
   }
 
   adg_max_retry_count = {

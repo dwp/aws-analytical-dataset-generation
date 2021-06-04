@@ -44,10 +44,6 @@
     EXPORT_DATE="$DATE"
   fi
 
-  if [[ "$SNAPSHOT_TYPE" == "incremental" ]]; then
-    FINAL_STEP_NAME="executeUpdateAll"
-  fi
-
   processed_files=()
 
   push_metric() {

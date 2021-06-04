@@ -2,7 +2,6 @@
 Applications:
 - Name: "Spark"
 - Name: "Ganglia"
-- Name: "Hive"
 CustomAmiId: "${ami_id}"
 EbsRootVolumeSize: 100
 LogUri: "s3://${s3_log_bucket}/${s3_log_prefix}"

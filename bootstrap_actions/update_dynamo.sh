@@ -49,10 +49,6 @@
     EXPORT_DATE="$DATE"
   fi
 
-  if [[ "$SNAPSHOT_TYPE" == "incremental" ]]; then
-    FINAL_STEP_NAME="executeUpdateAll"
-  fi
-
   get_ttl() {
       TIME_NOW=$(($(date +'%s * 1000 + %-N / 1000000')))
       echo $((TIME_NOW + 604800000))

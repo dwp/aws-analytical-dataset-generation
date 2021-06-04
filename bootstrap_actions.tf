@@ -82,7 +82,6 @@ resource "aws_s3_bucket_object" "status_metrics_sh" {
     {
       adg_pushgateway_hostname = local.adg_pushgateway_hostname
       final_step               = "spark-submit" # Stops skipping final step on retry, we should mark success at data cretation.
-
     }
   )
 }
@@ -180,19 +179,6 @@ resource "aws_s3_bucket_object" "metrics_jar" {
   content    = filebase64("${var.analytical_dataset_generation_exporter_jar.base_path}/analytical-dataset-generation-exporter-${var.analytical_dataset_generation_exporter_jar.version}.jar")
 }
 
-resource "aws_s3_bucket_object" "download_sql_sh" {
-  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/analytical-dataset-generation/download_sql.sh"
-  content = templatefile("${path.module}/bootstrap_actions/download_sql.sh",
-    {
-      version               = local.mongo_latest_version[local.environment]
-      s3_artefact_bucket_id = data.terraform_remote_state.management_artefact.outputs.artefact_bucket.id
-      adg_log_level         = local.adg_log_level[local.environment]
-      environment_name      = local.environment
-    }
-  )
-}
-
 resource "aws_s3_bucket_object" "dynamo_json_file" {
   bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
   kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
@@ -207,7 +193,8 @@ resource "aws_s3_bucket_object" "update_dynamo_sh" {
   content = templatefile("${path.module}/bootstrap_actions/update_dynamo.sh",
     {
       dynamodb_table_name = local.data_pipeline_metadata
-      dynamodb_final_step = local.dynamodb_final_step[local.environment]
+      dynamodb_final_step_full = local.dynamodb_final_step_full[local.environment]
+      dynamodb_final_step_incremental = local.dynamodb_final_step_incremental[local.environment]
     }
   )
 }
