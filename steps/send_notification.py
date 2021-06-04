@@ -7,6 +7,12 @@ import sys
 from steps.logger import setup_logging
 from steps.resume_step import should_skip_step
 
+ARG_SNAPSHOT_TYPE = "snapshot_type"
+ARG_S3_PREFIX = "s3_prefix"
+ARG_CORRELATION_ID = "correlation_id"
+ARG_EXPORT_DATE = "export_date"
+SNAPSHOT_TYPE_INCREMENTAL = "incremental"
+
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
     if "ADG_LOG_LEVEL" in os.environ
@@ -16,9 +22,9 @@ the_logger = setup_logging(
 
 
 def send_sns_message(
-    publish_bucket, status_topic_arn, adg_param_key, skip_message_sending, sns_client=None, s3_client=None
+    args, publish_bucket, status_topic_arn, adg_param_key, skip_message_sending, sns_client=None, s3_client=None
 ):
-    if exit_if_skipping_step(skip_message_sending):
+    if exit_if_skipping_step(skip_message_sending, args.snapshot_type):
         return None
 
     payload = {}
@@ -47,10 +53,58 @@ def send_sns_message(
     return sns_response
 
 
-def exit_if_skipping_step(skip_message_sending):
+def get_parameters():
+    parser = argparse.ArgumentParser(
+        description="Receive args provided to spark submit job"
+    )
+
+    parser.add_argument("--correlation_id", default="0")
+    parser.add_argument("--s3_prefix", default="${s3_prefix}")
+    parser.add_argument("--snapshot_type", default="full")
+    parser.add_argument("--export_date", default=datetime.now().strftime("%Y-%m-%d"))
+    args, unrecognized_args = parser.parse_known_args()
+    the_logger.warning(
+        "Unrecognized args %s found for the correlation id %s",
+        unrecognized_args,
+        args.correlation_id,
+    )
+    validate_required_args(args)
+
+    return args
+
+
+def validate_required_args(args):
+    required_args = [ARG_CORRELATION_ID, ARG_S3_PREFIX, ARG_SNAPSHOT_TYPE, ARG_EXPORT_DATE]
+    missing_args = []
+    for required_message_key in required_args:
+        if required_message_key not in args:
+            missing_args.append(required_message_key)
+    if missing_args:
+        raise argparse.ArgumentError(
+            None,
+            "ArgumentError: The following required arguments are missing: {}".format(
+                ", ".join(missing_args)
+            ),
+        )
+    if args.snapshot_type.lower() not in ARG_SNAPSHOT_TYPE_VALID_VALUES:
+        raise argparse.ArgumentError(
+            None,
+            "ArgumentError: Valid values for snapshot_type are: {}".format(
+                ", ".join(ARG_SNAPSHOT_TYPE_VALID_VALUES)
+            ),
+        )
+
+
+def exit_if_skipping_step(skip_message_sending, snapshot_type):
     if skip_message_sending.lower() == "true":
         the_logger.info(
             f"Skipping SNS message sending due to skip_message_sending value of {skip_message_sending}",
+        )
+        return True
+
+    if snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL.lower():
+        the_logger.info(
+            f"Skipping SNS message sending due to snapshot_type value of {snapshot_type}",
         )
         return True
 
@@ -69,4 +123,5 @@ if __name__ == "__main__":
     status_topic_arn = "${status_topic_arn}"
     skip_message_sending = "${skip_message_sending}"
     adg_param_key = "analytical-dataset/full/adg_output/adg_params.csv"
-    send_sns_message(publish_bucket, status_topic_arn, adg_param_key, skip_message_sending)
+    args = get_parameters()
+    send_sns_message(args, publish_bucket, status_topic_arn, adg_param_key, skip_message_sending)
