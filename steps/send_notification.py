@@ -3,6 +3,7 @@ import boto3
 import csv
 import os
 import sys
+import argparse
 
 from steps.logger import setup_logging
 from steps.resume_step import should_skip_step
