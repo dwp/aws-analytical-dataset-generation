@@ -225,7 +225,7 @@ locals {
     production  = "false"
   }
 
-  dynamodb_final_step_full = {
+  dynamodb_final_step = {
     development = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
     qa          = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
     integration = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
