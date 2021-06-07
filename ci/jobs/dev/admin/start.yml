@@ -8,7 +8,7 @@ jobs:
           params:
             AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
             AWS_ACC: ((aws_account.development))
-            S3_PREFIX: businessdata/mongo/ucdata/analytical_dataset_generation_analytical_dataset_generation_dev_748
-            EXPORT_DATE: "2021-03-17"
+            S3_PREFIX: businessdata/mongo/ucdata/analytical_dataset_generation_analytical_dataset_generation_dev_1011
+            EXPORT_DATE: "2021-06-07"
             CORRELATION_ID: test
-            SNAPSHOT_TYPE: incremental
+            SNAPSHOT_TYPE: full
