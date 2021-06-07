@@ -84,6 +84,7 @@ class TestReplayer(unittest.TestCase):
             now,
             do_not_run_after,
             args.skip_date_checks,
+            args.snapshot_type,
         )
         get_events_client_mock.assert_called_once()
         generate_do_not_run_before_date_mock.assert_called_once_with(
@@ -510,7 +511,7 @@ class TestReplayer(unittest.TestCase):
 
 
     @mock.patch("steps.create_pdm_trigger.check_should_skip_step")
-    def test_should_skip_returns_false_when_incremental(
+    def test_should_skip_returns_true_when_incremental(
         self,
         check_should_skip_step_mock,
     ):
@@ -527,7 +528,7 @@ class TestReplayer(unittest.TestCase):
             "incremental",
         )
 
-        assert False == actual
+        assert True == actual
 
 
     def test_get_cron_gives_cut_out_time_plus_5_minutes_when_before_cut_off(self):
