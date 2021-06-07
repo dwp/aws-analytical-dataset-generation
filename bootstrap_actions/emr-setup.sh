@@ -127,7 +127,8 @@ EOF
     hostnamectl set-hostname "$HOSTNAME"
     aws ec2 create-tags --resources "$INSTANCE_ID" --tags Key=Name,Value="$HOSTNAME"
 
-    sudo echo "log measurements statistics tracking" >> /etc/chrony.conf
+    sudo sh -c 'echo log measurements statistics tracking >> /etc/chrony.conf'
+    sudo systemctl restart chronyd
 
     log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 
