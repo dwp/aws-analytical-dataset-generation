@@ -41,3 +41,4 @@ chmod u+x /opt/emr/logging.sh
     log_wrapper_message "Script downloads completed"
 
 )  >> /var/log/adg/download_scripts.log 2>&1
+

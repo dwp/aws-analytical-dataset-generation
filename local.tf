@@ -132,7 +132,7 @@ locals {
     development = "CONTINUE"
     qa          = "TERMINATE_CLUSTER"
     integration = "TERMINATE_CLUSTER"
-    preprod     = "TERMINATE_CLUSTER"
+    preprod     = "CONTINUE"
     production  = "TERMINATE_CLUSTER"
   }
 
