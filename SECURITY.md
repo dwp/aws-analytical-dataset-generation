@@ -14,3 +14,5 @@ Project was removed from and re-added to Snyk to update manifests. Code Analysis
 | pom.xml | Snakeyaml DoS Vulnerability | Medium | This is pure DoS, and an internal, non-user facing endpoint | Low | 3-Jun-21 | 3-Dec-21 | Supress to focus on higher priority |
 
 N.B. Due to limitations in Snyk, some vulnerabilties cannot be ignored through the snyk file, so the console has been used to ignore all for the time shown above.
+
+N.B. We only consider medium and high vulnerabilties, lows are left.
