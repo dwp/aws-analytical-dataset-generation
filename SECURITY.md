@@ -8,7 +8,7 @@ Project was removed from and re-added to Snyk to update manifests. Code Analysis
 
 | File | Issue | Snyk Severity | Commentary | Adjusted Serverity | Reviewed | Next Review | Action |
 | ---- | ----- | ------------- | ---------- | ------------------ | -------- | ----------- | ------ |
-| bootstrap_terraform.py | Jinja2 No Default Escape | Medium | Used at deployment time only. Would allow XSS if we had user input but as used currentl there is no obvious attack vector. | 3-Jun-21 | 3-Dec-21 | Supress to focus on higher priority |
+| bootstrap_terraform.py | Jinja2 No Default Escape | Medium | Used at deployment time only. Would allow XSS if we had user input but as used currentl there is no obvious attack vector. | Low | 3-Jun-21 | 3-Dec-21 | Supress to focus on higher priority |
 | adg_completion_status_sns.tf | SNS Topic Not Encrypted | Medium | No customer data is sent via these SNS topics, they are for job control only. | Low | 3-Jun-21 | 3-Dec-21 | Supress to focus on higher priority |
 | pdm_cw_trigger_sns.tf | SNS Topic Not Encrypted | Medium | No customer data is sent via these SNS topics, they are for job control only. | Low | 3-Jun-21 | 3-Dec-21 | Supress to focus on higher priority |
 | pom.xml | Snakeyaml DoS Vulnerability | Medium | This is pure DoS, and an internal, non-user facing endpoint | Low | 3-Jun-21 | 3-Dec-21 | Supress to focus on higher priority |
