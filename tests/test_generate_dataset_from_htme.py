@@ -6,7 +6,7 @@ import time
 
 import boto3
 import pytest
-from moto import mock_s3, mock_dynamodb2, mocksns
+from moto import mock_s3, mock_dynamodb2, mock_sns
 from datetime import datetime
 
 import steps
