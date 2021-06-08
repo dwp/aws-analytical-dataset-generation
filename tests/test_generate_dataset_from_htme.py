@@ -6,7 +6,7 @@ import time
 
 import boto3
 import pytest
-from moto import mock_s3, mock_dynamodb2
+from moto import mock_s3, mock_dynamodb2, mocksns
 from datetime import datetime
 
 import steps
@@ -169,6 +169,7 @@ def verify_processed_data(
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
     target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
+    sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
@@ -197,6 +198,7 @@ def verify_processed_data(
         mocked_args,
         s3_resource,
         dynamodb_client,
+        sns_client,
     )
     assert len(s3_client.list_buckets()["Buckets"]) == 2
     assert (
@@ -241,6 +243,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         DB_KEY: "core",
         TABLE_KEY: "accounts",
     }
+    sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
@@ -280,6 +283,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         mock_args(),
         s3_resource,
         dynamodb_client,
+        sns_client,
     )
     assert core_contract_collection_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
@@ -326,6 +330,7 @@ def test_exception_when_decompression_fails(
     spark, monkeypatch, handle_server, aws_credentials
 ):
     with pytest.raises(BaseException):
+        sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
         dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
         s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
         s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
@@ -358,6 +363,7 @@ def test_exception_when_decompression_fails(
             mock_args(),
             s3_resource,
             dynamodb_client,
+            sns_client,
         )
 
 @mock_dynamodb2
@@ -489,3 +495,27 @@ def test_validate_required_args_with_invalid_values_for_snapshot_type():
         str(argument_error.value)
         == "ArgumentError: Valid values for snapshot_type are: full, incremental"
     )
+
+
+@mock_sns
+def test_send_sns_message():
+    status = "test_status"
+    collection_name = "test_collection"
+    sns_client = boto3.client(service_name="sns", region_name=AWS_REGION)
+    sns_client.create_topic(
+        Name="status_topic", Attributes={"DisplayName": "test-topic"}
+    )
+
+    topics_json = sns_client.list_topics()
+    status_topic_arn = topics_json["Topics"][0]["TopicArn"]
+
+    response = generate_dataset_from_htme.notify_of_collection_failure(
+        sns_client,
+        status_topic_arn,
+        CORRELATION_ID,
+        collection_name,
+        status,
+        SNAPSHOT_TYPE_FULL,
+    )
+
+    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200

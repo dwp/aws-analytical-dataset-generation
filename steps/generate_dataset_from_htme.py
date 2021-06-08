@@ -76,6 +76,7 @@ def get_parameters():
     # Parse command line inputs and set defaults
     parser.add_argument("--correlation_id", default="0")
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
+    parser.add_argument("--monitoring_topic_arn", default="${monitoring_topic_arn}")
     parser.add_argument("--snapshot_type", default="full")
     parser.add_argument("--export_date", default=datetime.now().strftime("%Y-%m-%d"))
     args, unrecognized_args = parser.parse_known_args()
@@ -131,6 +132,7 @@ def main(
     args,
     s3_resource,
     dynamodb_client,
+    sns_client,
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -160,6 +162,7 @@ def main(
             keys_map,
             s3_publish_bucket,
             s3_resource,
+            sns_client,
         )
     except CollectionException as ex:
         the_logger.error(
@@ -193,6 +196,7 @@ def process_collections_threaded(
     keys_map,
     s3_publish_bucket,
     s3_resource,
+    sns_client,
 ):
     all_processed_collections = []
 
@@ -211,6 +215,7 @@ def process_collections_threaded(
             itertools.repeat(keys_map),
             itertools.repeat(s3_publish_bucket),
             itertools.repeat(s3_resource),
+            itertools.repeat(sns_client)
         )
 
     for completed_collection in completed_collections:
@@ -264,6 +269,7 @@ def process_collection(
     keys_map,
     s3_publish_bucket,
     s3_resource,
+    sns_client,
 ):
     collection_pairs = collection.items()
     collection_iterator = iter(collection_pairs)
@@ -305,6 +311,14 @@ def process_collection(
             collection_name,
             "Failed_Processing",
         )
+        notify_of_collection_failure(
+            sns_client,
+            args.monitoring_topic_arn,
+            args.correlation_id,
+            collection_name,
+            "Failed_Publishing",
+            args.snapshot_type,
+        )
         raise CollectionProcessingException(ex)
 
     update_adg_status_for_collection(
@@ -336,6 +350,14 @@ def process_collection(
             args.correlation_id,
             collection_name,
             "Failed_Publishing",
+        )
+        notify_of_collection_failure(
+            sns_client,
+            args.monitoring_topic_arn,
+            args.correlation_id,
+            collection_name,
+            "Failed_Publishing",
+            args.snapshot_type,
         )
         raise CollectionPublishingException(ex)
 
@@ -548,6 +570,13 @@ def get_dynamodb_client():
     )
     return client
 
+
+def get_sns_client():
+    client_config = botocore.config.Config(
+        max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
+    )
+    client = boto3.client("sns", region_name="${aws_default_region}", config=client_config)
+    return client
 
 def get_s3_resource():
     return boto3.resource("s3", region_name="${aws_default_region}")
@@ -913,6 +942,47 @@ def update_adg_status_for_collection(
     )
 
 
+def notify_of_collection_failure(
+    sns_client,
+    sns_topic_arn,
+    correlation_id,
+    collection_name,
+    status,
+    snapshot_type,
+):
+    the_logger.info(
+        f'Notifying of failed collection", "sns_topic_arn": "{sns_topic_arn}", "correlation_id": '
+        + f'"{correlation_id}", "collection_name": "{collection_name}", "snapshot_type": '
+        + f'"{snapshot_type}", "status": "{status}'
+    )
+
+    custom_elements = [
+        {"key": "Collection Name", "value": collection_name},
+        {"key": "Collection Status", "value": status},
+        {"key": "Correlation Id", "value": correlation_id},
+        {"key": "Snapshot Type", "value": snapshot_type},
+    ]
+
+    payload = {
+        "severity": "High",
+        "notification_type": "Error",
+        "slack_username": f"ADG-{snapshot_type.lower()}",
+        "title_text": "Collection set to failure status",
+        "custom_elements": custom_elements,
+    }
+
+    json_message = json.dumps(payload)
+    response = sns_client.publish(TopicArn=sns_topic_arn, Message=json_message)
+
+    the_logger.info(
+        f'Notified of failed collection", "sns_topic_arn": "{sns_topic_arn}", "correlation_id": '
+        + f'"{correlation_id}", "collection_name": "{collection_name}", "snapshot_type": '
+        + f'"{snapshot_type}", "status": "{status}'
+    )
+
+    return response
+
+
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
@@ -937,6 +1007,7 @@ if __name__ == "__main__":
     s3_client = get_s3_client()
     s3_resource = get_s3_resource()
     dynamodb_client = get_dynamodb_client()
+    sns_client = get_sns_client()
     secret_name = (
         secret_name_incremental
         if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
@@ -958,6 +1029,7 @@ if __name__ == "__main__":
         args,
         s3_resource,
         dynamodb_client,
+        sns_client,
     )
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
