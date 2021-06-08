@@ -323,7 +323,7 @@ Case ID 8383474671
 
 Initally AWS support team suggest to raise this with S3 team and then passed on it to EMR team.
 
-On call with AWS support team it was discussed that troubleshooting this issue is difficult as it occurs randomly and EMR cluster is not alive to investigate the error .AWS EMR uses chronyd daemon for Time Sync Service and possibly this error occurs when chronyd service stops. They have requested  to provide complete error trace when happens next time. 
+On call with AWS support team it was discussed that troubleshooting this issue is difficult as it occurs randomly and EMR cluster is not alive to investigate the error .AWS EMR uses chronyd daemon for Time Sync Service and possibly this error occurs when chronyd service stops. They have requested  to provide complete error trace when happens next time which would include S3 request ID made from EMR to S3. 
 
 In order to get the complete error trace following steps are suggested and developed as part of DW-6406 ticket.
 
