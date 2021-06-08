@@ -316,7 +316,7 @@ def process_collection(
             args.monitoring_topic_arn,
             args.correlation_id,
             collection_name,
-            "Failed_Publishing",
+            "Failed_Processing",
             args.snapshot_type,
         )
         raise CollectionProcessingException(ex)
