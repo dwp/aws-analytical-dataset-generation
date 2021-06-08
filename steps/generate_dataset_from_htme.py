@@ -23,6 +23,7 @@ from Crypto.Util import Counter
 
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
+import logging
 from steps.resume_step import should_skip_step
 
 SNAPSHOT_TYPE_KEY = "snapshot_type"
@@ -51,16 +52,19 @@ the_logger = setup_logging(
 
 class CollectionException(Exception):
     """Raised when collection could not be published"""
+
     pass
 
 
 class CollectionProcessingException(CollectionException):
     """Raised when collection could not be published"""
+
     pass
 
 
 class CollectionPublishingException(CollectionException):
     """Raised when collection could not be published"""
+
     pass
 
 
@@ -80,7 +84,7 @@ def get_parameters():
         if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
         else SNAPSHOT_TYPE_FULL
     )
-    
+
     if len(unrecognized_args) > 0:
         the_logger.warning(
             "Unrecognized args %s found for the correlation id %s",
@@ -206,7 +210,7 @@ def process_collections_threaded(
             itertools.repeat(s3_htme_bucket),
             itertools.repeat(keys_map),
             itertools.repeat(s3_publish_bucket),
-            itertools.repeat(s3_resource)
+            itertools.repeat(s3_resource),
         )
 
     for completed_collection in completed_collections:
@@ -225,7 +229,9 @@ def create_metastore_db(
     if "${hive_metastore_backend}" == "aurora":
         try:
             if args.snapshot_type.lower() != SNAPSHOT_TYPE_FULL:
-                verified_database_name = f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
+                verified_database_name = (
+                    f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
+                )
 
             the_logger.info(
                 "Creating metastore db with name of %s while processing correlation_id %s",
@@ -332,7 +338,7 @@ def process_collection(
             "Failed_Publishing",
         )
         raise CollectionPublishingException(ex)
-    
+
     update_adg_status_for_collection(
         dynamodb_client,
         TABLE_NAME,
@@ -365,12 +371,8 @@ def consolidate_rdd_per_collection(
     rdd_list = []
     total_collection_size = 0
     for collection_file_key in collection_files_keys:
-        encrypted = read_binary(
-            spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
-        )
-        metadata = get_metadatafor_key(
-            collection_file_key, s3_client, s3_htme_bucket
-        )
+        encrypted = read_binary(spark, f"s3://{s3_htme_bucket}/{collection_file_key}")
+        metadata = get_metadatafor_key(collection_file_key, s3_client, s3_htme_bucket)
         total_collection_size += get_filesize(
             s3_client, s3_htme_bucket, collection_file_key
         )
@@ -398,8 +400,8 @@ def consolidate_rdd_per_collection(
     collection_name_key = get_collection(collection_name)
     collection_name_key = collection_name_key.replace("_", "-")
     file_location = "${file_location}"
-    if collection_name_key == 'data/businessAudit':
-        current_date = datetime.today().strftime('%Y-%m-%d')
+    if collection_name_key == "data/businessAudit":
+        current_date = datetime.today().strftime("%Y-%m-%d")
         json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
     else:
@@ -419,9 +421,7 @@ def consolidate_rdd_per_collection(
         s3_publish_bucket,
         args.snapshot_type,
     )
-    add_metric(
-        "htme_collection_size.csv", collection_name, str(total_collection_size)
-    )
+    add_metric("htme_collection_size.csv", collection_name, str(total_collection_size))
     add_folder_size_metric(
         collection_name,
         s3_publish_bucket,
@@ -442,9 +442,7 @@ def consolidate_rdd_per_collection(
         collection_name,
         args.correlation_id,
     )
-    adg_json_prefix = (
-        f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
-    )
+    adg_json_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
     add_folder_size_metric(
         "all_collections",
         s3_htme_bucket,
@@ -477,16 +475,27 @@ def create_hive_table_on_published_for_collection(
         collection_name,
         args.correlation_id,
     )
-    if hive_table_name == 'data_businessAudit':
+    if hive_table_name == "data_businessAudit":
         auditlog_managed_table_sql_file = open("/var/ci/auditlog_managed_table.sql")
-        auditlog_managed_table_sql_content = auditlog_managed_table_sql_file.read().replace('#{hivevar:auditlog_database}', verified_database_name)
+        auditlog_managed_table_sql_content = (
+            auditlog_managed_table_sql_file.read().replace(
+                "#{hivevar:auditlog_database}", verified_database_name
+            )
+        )
         spark.sql(auditlog_managed_table_sql_content)
 
         auditlog_external_table_sql_file = open("/var/ci/auditlog_external_table.sql")
-        date_hyphen = datetime.today().strftime('%Y-%m-%d')
-        date_underscore = date_hyphen.replace('-', '_')
-        queries = auditlog_external_table_sql_file.read().replace('#{hivevar:auditlog_database}', verified_database_name).replace('#{hivevar:date_underscore}', date_underscore).replace('#{hivevar:date_hyphen}', date_hyphen).replace('#{hivevar:serde}', 'org.openx.data.jsonserde.JsonSerDe').replace('#{hivevar:data_location}', collection_json_location)
-        split_queries = queries.split(';', 3)
+        date_hyphen = datetime.today().strftime("%Y-%m-%d")
+        date_underscore = date_hyphen.replace("-", "_")
+        queries = (
+            auditlog_external_table_sql_file.read()
+            .replace("#{hivevar:auditlog_database}", verified_database_name)
+            .replace("#{hivevar:date_underscore}", date_underscore)
+            .replace("#{hivevar:date_hyphen}", date_hyphen)
+            .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
+            .replace("#{hivevar:data_location}", collection_json_location)
+        )
+        split_queries = queries.split(";", 3)
         print(list(map(lambda query: spark.sql(query), split_queries)))
     else:
         src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
@@ -534,7 +543,9 @@ def get_dynamodb_client():
     client_config = botocore.config.Config(
         max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
     )
-    client = boto3.client("dynamodb", region_name="${aws_default_region}", config=client_config)
+    client = boto3.client(
+        "dynamodb", region_name="${aws_default_region}", config=client_config
+    )
     return client
 
 
@@ -583,17 +594,34 @@ def decode(txt):
 
 
 def get_metadatafor_key(key, s3_client, s3_htme_bucket):
-    s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
-    # print(s3_object)
-    iv = s3_object["Metadata"]["iv"]
-    ciphertext = s3_object["Metadata"]["ciphertext"]
-    datakeyencryptionkeyid = s3_object["Metadata"]["datakeyencryptionkeyid"]
-    metadata = {
-        "iv": iv,
-        "ciphertext": ciphertext,
-        "datakeyencryptionkeyid": datakeyencryptionkeyid,
-    }
-    return metadata
+    current_log_level = the_logger.root.level
+    the_logger.info("Changing boto3 and botocore log level to: %s", logging.DEBUG)
+    boto3.set_stream_logger("boto3.resources", logging.DEBUG)
+    boto3.set_stream_logger("botocore", logging.DEBUG)
+    try:
+        the_logger.info("Current time: %s", datetime.now())
+        s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
+        # print(s3_object)
+        iv = s3_object["Metadata"]["iv"]
+        ciphertext = s3_object["Metadata"]["ciphertext"]
+        datakeyencryptionkeyid = s3_object["Metadata"]["datakeyencryptionkeyid"]
+        metadata = {
+            "iv": iv,
+            "ciphertext": ciphertext,
+            "datakeyencryptionkeyid": datakeyencryptionkeyid,
+        }
+        the_logger.info(
+            "Restoring boto3 and botocore log level to: %s", current_log_level
+        )
+        boto3.set_stream_logger("boto3.resources", current_log_level)
+        boto3.set_stream_logger("botocore", current_log_level)
+        return metadata
+    except Exception as ex:
+        the_logger.error(
+            "Problem fetching key: %s %s",
+            key,
+            repr(ex),
+        )
 
 
 def retrieve_secrets(args, secret_name):
