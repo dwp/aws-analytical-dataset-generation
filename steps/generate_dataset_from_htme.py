@@ -980,10 +980,18 @@ def notify_of_collection_failure(
     }
 
     json_message = json.dumps(payload)
-    response = sns_client.publish(
-        TopicArn=sns_topic_arn,
-        Message=json_message
-    )
+
+    try:
+        response = sns_client.publish(
+            TopicArn=sns_topic_arn,
+            Message=json_message
+        )
+    except Exception as ex:
+        the_logger.warning(
+            f'Notification failed", "sns_topic_arn": "{sns_topic_arn}", "correlation_id": '
+            + f'"{correlation_id}", "collection_name": "{collection_name}", "snapshot_type": '
+            + f'"{snapshot_type}", "status": "{status}", "error": "{repr(ex)}'
+        )
 
     the_logger.info(
         f'Notified of failed collection", "sns_topic_arn": "{sns_topic_arn}", "correlation_id": '
