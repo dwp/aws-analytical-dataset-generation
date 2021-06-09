@@ -981,6 +981,7 @@ def notify_of_collection_failure(
 
     json_message = json.dumps(payload)
 
+    response = None
     try:
         response = sns_client.publish(
             TopicArn=sns_topic_arn,
