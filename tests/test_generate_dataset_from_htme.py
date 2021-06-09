@@ -462,7 +462,7 @@ def mock_args():
 def mock_sns_topic():
     status = "test_status"
     collection_name = "test_collection"
-    sns_client = boto3.client(service_name="sns", region_name=AWS_REGION)
+    sns_client = boto3.client(service_name="sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     sns_client.create_topic(
         Name="status_topic", Attributes={"DisplayName": "test-topic"}
     )
