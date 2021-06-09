@@ -133,6 +133,7 @@ locals {
   cw_agent_bootstrap_loggrp_name       = "/app/analytical_dataset_generator/bootstrap_actions"
   cw_agent_steps_loggrp_name           = "/app/analytical_dataset_generator/step_logs"
   cw_agent_yarnspark_loggrp_name       = "/app/analytical_dataset_generator/yarn-spark_logs"
+  cw_agent_chrony_loggrp_name          = "/app/analytical_dataset_generator/chrony"
   cw_agent_tests_loggrp_name           = "/app/analytical_dataset_generator/tests_logs"
   cw_agent_metrics_collection_interval = 60
 

@@ -9,6 +9,8 @@ cwa_bootstrap_loggrp_name="$5"
 cwa_steps_loggrp_name="$6"
 cwa_yarnspark_loggrp_name="$7"
 cwa_tests_loggrp_name="$8"
+cwa_chrony_loggrp_name="$9"
+
 
 export AWS_DEFAULT_REGION="$${4}"
 
@@ -148,6 +150,24 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "file_path": "/var/log/hadoop-yarn/yarn-yarn-nodemanager**.log",
             "log_group_name": "$${cwa_yarnspark_loggrp_name}",
             "log_stream_name": "{instance_id}-yarn_nodemanager.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/chrony/statistics.log",
+            "log_group_name": "$${cwa_chrony_loggrp_name}",
+            "log_stream_name": "{instance_id}-chrony-statistics.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/chrony/measurements.log",
+            "log_group_name": "$${cwa_chrony_loggrp_name}",
+            "log_stream_name": "{instance_id}-chrony-measurements.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/chrony/tracking.log",
+            "log_group_name": "$${cwa_chrony_loggrp_name}",
+            "log_stream_name": "{instance_id}-chrony-tracking.log",
             "timezone": "UTC"
           },
           {

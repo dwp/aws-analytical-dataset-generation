@@ -49,7 +49,7 @@ chmod u+x /opt/emr/status_metrics.sh
     sudo /opt/emr/cloudwatch.sh \
     "${cwa_metrics_collection_interval}" "${cwa_namespace}"  "${cwa_log_group_name}" \
     "${aws_default_region}" "${cwa_bootstrap_loggrp_name}" "${cwa_steps_loggrp_name}" \
-    "${cwa_yarnspark_loggrp_name}" "${cwa_tests_loggrp_name}"
+    "${cwa_yarnspark_loggrp_name}" "${cwa_tests_loggrp_name}" "${cwa_chrony_loggrp_name}"
     
     log_wrapper_message "Getting the DKS Certificate Details "
     
@@ -126,7 +126,8 @@ EOF
 
     hostnamectl set-hostname "$HOSTNAME"
     aws ec2 create-tags --resources "$INSTANCE_ID" --tags Key=Name,Value="$HOSTNAME"
-    
+
+
     log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 
     /opt/emr/update_dynamo.sh &

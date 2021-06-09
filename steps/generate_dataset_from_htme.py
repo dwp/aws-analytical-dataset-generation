@@ -23,6 +23,7 @@ from Crypto.Util import Counter
 
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
+import logging
 from steps.resume_step import should_skip_step
 
 SNAPSHOT_TYPE_KEY = "snapshot_type"
@@ -40,6 +41,7 @@ ADG_CLUSTER_ID_FIELD_NAME = "ADGClusterId"
 CORRELATION_ID_DDB_FIELD_NAME = "CorrelationId"
 COLLECTION_NAME_DDB_FIELD_NAME = "CollectionName"
 TABLE_NAME = "${dynamodb_table_name}"
+DEFAULT_REGION = "${aws_default_region}"
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -51,16 +53,19 @@ the_logger = setup_logging(
 
 class CollectionException(Exception):
     """Raised when collection could not be published"""
+
     pass
 
 
 class CollectionProcessingException(CollectionException):
     """Raised when collection could not be published"""
+
     pass
 
 
 class CollectionPublishingException(CollectionException):
     """Raised when collection could not be published"""
+
     pass
 
 
@@ -72,6 +77,7 @@ def get_parameters():
     # Parse command line inputs and set defaults
     parser.add_argument("--correlation_id", default="0")
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
+    parser.add_argument("--monitoring_topic_arn", default="${monitoring_topic_arn}")
     parser.add_argument("--snapshot_type", default="full")
     parser.add_argument("--export_date", default=datetime.now().strftime("%Y-%m-%d"))
     args, unrecognized_args = parser.parse_known_args()
@@ -80,7 +86,7 @@ def get_parameters():
         if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
         else SNAPSHOT_TYPE_FULL
     )
-    
+
     if len(unrecognized_args) > 0:
         the_logger.warning(
             "Unrecognized args %s found for the correlation id %s",
@@ -125,8 +131,9 @@ def main(
     s3_publish_bucket,
     published_database_name,
     args,
-    s3_resource,
     dynamodb_client,
+    sns_client,
+    s3_resource=None
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -155,6 +162,7 @@ def main(
             s3_htme_bucket,
             keys_map,
             s3_publish_bucket,
+            sns_client,
             s3_resource,
         )
     except CollectionException as ex:
@@ -188,7 +196,8 @@ def process_collections_threaded(
     s3_htme_bucket,
     keys_map,
     s3_publish_bucket,
-    s3_resource,
+    sns_client,
+    s3_resource=None
 ):
     all_processed_collections = []
 
@@ -206,7 +215,8 @@ def process_collections_threaded(
             itertools.repeat(s3_htme_bucket),
             itertools.repeat(keys_map),
             itertools.repeat(s3_publish_bucket),
-            itertools.repeat(s3_resource)
+            itertools.repeat(sns_client),
+            itertools.repeat(s3_resource),
         )
 
     for completed_collection in completed_collections:
@@ -225,7 +235,9 @@ def create_metastore_db(
     if "${hive_metastore_backend}" == "aurora":
         try:
             if args.snapshot_type.lower() != SNAPSHOT_TYPE_FULL:
-                verified_database_name = f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
+                verified_database_name = (
+                    f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
+                )
 
             the_logger.info(
                 "Creating metastore db with name of %s while processing correlation_id %s",
@@ -257,8 +269,12 @@ def process_collection(
     s3_htme_bucket,
     keys_map,
     s3_publish_bucket,
-    s3_resource,
+    sns_client,
+    s3_resource=None,
 ):
+    if s3_resource is None:
+        s3_resource = get_s3_resource()
+
     collection_pairs = collection.items()
     collection_iterator = iter(collection_pairs)
     (collection_name, collection_files_keys) = next(collection_iterator)
@@ -299,6 +315,14 @@ def process_collection(
             collection_name,
             "Failed_Processing",
         )
+        notify_of_collection_failure(
+            sns_client,
+            args.monitoring_topic_arn,
+            args.correlation_id,
+            collection_name,
+            "Failed_Processing",
+            args.snapshot_type,
+        )
         raise CollectionProcessingException(ex)
 
     update_adg_status_for_collection(
@@ -331,8 +355,16 @@ def process_collection(
             collection_name,
             "Failed_Publishing",
         )
+        notify_of_collection_failure(
+            sns_client,
+            args.monitoring_topic_arn,
+            args.correlation_id,
+            collection_name,
+            "Failed_Publishing",
+            args.snapshot_type,
+        )
         raise CollectionPublishingException(ex)
-    
+
     update_adg_status_for_collection(
         dynamodb_client,
         TABLE_NAME,
@@ -365,12 +397,8 @@ def consolidate_rdd_per_collection(
     rdd_list = []
     total_collection_size = 0
     for collection_file_key in collection_files_keys:
-        encrypted = read_binary(
-            spark, f"s3://{s3_htme_bucket}/{collection_file_key}"
-        )
-        metadata = get_metadatafor_key(
-            collection_file_key, s3_client, s3_htme_bucket
-        )
+        encrypted = read_binary(spark, f"s3://{s3_htme_bucket}/{collection_file_key}")
+        metadata = get_metadatafor_key(collection_file_key, s3_client, s3_htme_bucket)
         total_collection_size += get_filesize(
             s3_client, s3_htme_bucket, collection_file_key
         )
@@ -398,8 +426,8 @@ def consolidate_rdd_per_collection(
     collection_name_key = get_collection(collection_name)
     collection_name_key = collection_name_key.replace("_", "-")
     file_location = "${file_location}"
-    if collection_name_key == 'data/businessAudit':
-        current_date = datetime.today().strftime('%Y-%m-%d')
+    if collection_name_key == "data/businessAudit":
+        current_date = datetime.today().strftime("%Y-%m-%d")
         json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
     else:
@@ -419,9 +447,7 @@ def consolidate_rdd_per_collection(
         s3_publish_bucket,
         args.snapshot_type,
     )
-    add_metric(
-        "htme_collection_size.csv", collection_name, str(total_collection_size)
-    )
+    add_metric("htme_collection_size.csv", collection_name, str(total_collection_size))
     add_folder_size_metric(
         collection_name,
         s3_publish_bucket,
@@ -442,9 +468,7 @@ def consolidate_rdd_per_collection(
         collection_name,
         args.correlation_id,
     )
-    adg_json_prefix = (
-        f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
-    )
+    adg_json_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
     add_folder_size_metric(
         "all_collections",
         s3_htme_bucket,
@@ -477,16 +501,27 @@ def create_hive_table_on_published_for_collection(
         collection_name,
         args.correlation_id,
     )
-    if hive_table_name == 'data_businessAudit':
+    if hive_table_name == "data_businessAudit":
         auditlog_managed_table_sql_file = open("/var/ci/auditlog_managed_table.sql")
-        auditlog_managed_table_sql_content = auditlog_managed_table_sql_file.read().replace('#{hivevar:auditlog_database}', verified_database_name)
+        auditlog_managed_table_sql_content = (
+            auditlog_managed_table_sql_file.read().replace(
+                "#{hivevar:auditlog_database}", verified_database_name
+            )
+        )
         spark.sql(auditlog_managed_table_sql_content)
 
         auditlog_external_table_sql_file = open("/var/ci/auditlog_external_table.sql")
-        date_hyphen = datetime.today().strftime('%Y-%m-%d')
-        date_underscore = date_hyphen.replace('-', '_')
-        queries = auditlog_external_table_sql_file.read().replace('#{hivevar:auditlog_database}', verified_database_name).replace('#{hivevar:date_underscore}', date_underscore).replace('#{hivevar:date_hyphen}', date_hyphen).replace('#{hivevar:serde}', 'org.openx.data.jsonserde.JsonSerDe').replace('#{hivevar:data_location}', collection_json_location)
-        split_queries = queries.split(';', 3)
+        date_hyphen = datetime.today().strftime("%Y-%m-%d")
+        date_underscore = date_hyphen.replace("-", "_")
+        queries = (
+            auditlog_external_table_sql_file.read()
+            .replace("#{hivevar:auditlog_database}", verified_database_name)
+            .replace("#{hivevar:date_underscore}", date_underscore)
+            .replace("#{hivevar:date_hyphen}", date_hyphen)
+            .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
+            .replace("#{hivevar:data_location}", collection_json_location)
+        )
+        split_queries = queries.split(";", 3)
         print(list(map(lambda query: spark.sql(query), split_queries)))
     else:
         src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
@@ -534,12 +569,22 @@ def get_dynamodb_client():
     client_config = botocore.config.Config(
         max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
     )
-    client = boto3.client("dynamodb", region_name="${aws_default_region}", config=client_config)
+    client = boto3.client(
+        "dynamodb", region_name=DEFAULT_REGION, config=client_config
+    )
     return client
 
 
+def get_sns_client():
+    client_config = botocore.config.Config(
+        max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
+    )
+    client = boto3.client("sns", region_name=DEFAULT_REGION, config=client_config)
+    return client
+
 def get_s3_resource():
-    return boto3.resource("s3", region_name="${aws_default_region}")
+    session = boto3.session.Session()
+    return session.resource("s3", region_name=DEFAULT_REGION)
 
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
@@ -584,7 +629,6 @@ def decode(txt):
 
 def get_metadatafor_key(key, s3_client, s3_htme_bucket):
     s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
-    # print(s3_object)
     iv = s3_object["Metadata"]["iv"]
     ciphertext = s3_object["Metadata"]["ciphertext"]
     datakeyencryptionkeyid = s3_object["Metadata"]["datakeyencryptionkeyid"]
@@ -885,6 +929,59 @@ def update_adg_status_for_collection(
     )
 
 
+def notify_of_collection_failure(
+    sns_client,
+    sns_topic_arn,
+    correlation_id,
+    collection_name,
+    status,
+    snapshot_type,
+):
+    the_logger.info(
+        f'Notifying of failed collection", "sns_topic_arn": "{sns_topic_arn}", "correlation_id": '
+        + f'"{correlation_id}", "collection_name": "{collection_name}", "snapshot_type": '
+        + f'"{snapshot_type}", "status": "{status}'
+    )
+
+    custom_elements = [
+        {"key": "Collection Name", "value": collection_name},
+        {"key": "Collection Status", "value": status},
+        {"key": "Correlation Id", "value": correlation_id},
+        {"key": "Snapshot Type", "value": snapshot_type},
+    ]
+
+    payload = {
+        "severity": "High",
+        "notification_type": "Error",
+        "slack_username": f"ADG-{snapshot_type.lower()}",
+        "title_text": "Collection set to failure status",
+        "custom_elements": custom_elements
+    }
+
+    json_message = json.dumps(payload)
+
+    response = None
+    try:
+        response = sns_client.publish(
+            TopicArn=sns_topic_arn,
+            Message=json_message
+        )
+    except Exception as ex:
+        the_logger.warning(
+            f'Notification failed", "sns_topic_arn": "{sns_topic_arn}", "correlation_id": '
+            + f'"{correlation_id}", "collection_name": "{collection_name}", "snapshot_type": '
+            + f'"{snapshot_type}", "status": "{status}", "error": "{repr(ex)}'
+        )
+
+    the_logger.info(
+        f'Notified of failed collection", "sns_topic_arn": "{sns_topic_arn}", "correlation_id": '
+        + f'"{correlation_id}", "collection_name": "{collection_name}", "snapshot_type": '
+        + f'"{snapshot_type}", "status": "{status}'
+    )
+
+    return response
+
+
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
@@ -907,8 +1004,8 @@ if __name__ == "__main__":
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_s3_client()
-    s3_resource = get_s3_resource()
     dynamodb_client = get_dynamodb_client()
+    sns_client = get_sns_client()
     secret_name = (
         secret_name_incremental
         if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
@@ -928,8 +1025,8 @@ if __name__ == "__main__":
         s3_publish_bucket,
         published_database_name,
         args,
-        s3_resource,
         dynamodb_client,
+        sns_client,
     )
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
