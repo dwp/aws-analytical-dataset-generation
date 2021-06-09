@@ -976,7 +976,7 @@ def notify_of_collection_failure(
         "notification_type": "Error",
         "slack_username": f"ADG-{snapshot_type.lower()}",
         "title_text": "Collection set to failure status",
-        "custom_elements": custom_elements,
+        "custom_elements": custom_elements
     }
 
     json_message = json.dumps(payload)
