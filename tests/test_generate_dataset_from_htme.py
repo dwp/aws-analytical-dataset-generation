@@ -133,6 +133,7 @@ def test_get_collections_in_secrets():
 
 
 @mock_s3
+@mock_sns
 def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_full(
     spark, monkeypatch, handle_server, aws_credentials
 ):
@@ -143,6 +144,7 @@ def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_full(
 
 
 @mock_s3
+@mock_sns
 def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_incremental(
     spark, monkeypatch, handle_server, aws_credentials
 ):
@@ -232,6 +234,7 @@ def verify_processed_data(
     )
 
 
+@mock_sns
 def test_consolidate_rdd_per_collection_with_multiple_collections(
     spark, monkeypatch, handle_server, aws_credentials
 ):
@@ -327,6 +330,7 @@ def test_create_hive_table_on_published_for_collection(
 
 
 @mock_s3
+@mock_sns
 def test_exception_when_decompression_fails(
     spark, monkeypatch, handle_server, aws_credentials
 ):
