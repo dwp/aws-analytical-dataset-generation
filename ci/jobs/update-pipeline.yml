@@ -20,6 +20,7 @@ jobs:
                 sed -i 's/fly/nofly/' aviator.yml
                 /usr/bin/aviator -f aviator.yml
                 mv aviator_pipeline.yml ../pipeline
+                mv ci/vars.yml ../pipeline
             dir: aws-analytical-dataset-generation
           inputs:
             - name: aws-analytical-dataset-generation
@@ -27,3 +28,5 @@ jobs:
             - name: pipeline
       - set_pipeline: analytical-dataset-generation
         file: pipeline/aviator_pipeline.yml
+        var_files:
+          - pipeline/vars.yml
