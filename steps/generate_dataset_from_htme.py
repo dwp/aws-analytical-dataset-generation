@@ -328,6 +328,14 @@ def process_collection(
         collection_name,
         "Publishing",
     )
+    notify_of_collection_failure(
+        sns_client,
+        args.monitoring_topic_arn,
+        args.correlation_id,
+        collection_name,
+        "Publishing",
+        args.snapshot_type,
+    )
 
     try:
         create_hive_table_on_published_for_collection(
