@@ -41,6 +41,7 @@ ADG_CLUSTER_ID_FIELD_NAME = "ADGClusterId"
 CORRELATION_ID_DDB_FIELD_NAME = "CorrelationId"
 COLLECTION_NAME_DDB_FIELD_NAME = "CollectionName"
 TABLE_NAME = "${dynamodb_table_name}"
+DEFAULT_REGION = "${aws_default_region}"
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -566,7 +567,7 @@ def get_dynamodb_client():
         max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
     )
     client = boto3.client(
-        "dynamodb", region_name="${aws_default_region}", config=client_config
+        "dynamodb", region_name=DEFAULT_REGION, config=client_config
     )
     return client
 
@@ -575,11 +576,11 @@ def get_sns_client():
     client_config = botocore.config.Config(
         max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
     )
-    client = boto3.client("sns", region_name="${aws_default_region}", config=client_config)
+    client = boto3.client("sns", region_name=DEFAULT_REGION, config=client_config)
     return client
 
 def get_s3_resource():
-    return boto3.resource("s3", region_name="${aws_default_region}")
+    return boto3.resource("s3", region_name=DEFAULT_REGION)
 
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
