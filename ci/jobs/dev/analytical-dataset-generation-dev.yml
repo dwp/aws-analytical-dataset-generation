@@ -8,6 +8,7 @@ jobs:
           - get: aws-analytical-dataset-generation
             trigger: true
           - get: emr-launcher-release
+            version: { tag: ((emr-launcher-version.development)) }
             trigger: true
           - get: pdm-emr-launcher-release
             trigger: true

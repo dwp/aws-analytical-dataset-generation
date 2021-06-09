@@ -7,6 +7,7 @@ jobs:
             trigger: true
             version: every
           - get: emr-launcher-release
+            version: { tag: ((emr-launcher-version.qa)) }
             trigger: false
           - get: pdm-emr-launcher-release
             trigger: false
