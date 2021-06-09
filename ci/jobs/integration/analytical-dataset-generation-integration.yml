@@ -21,6 +21,7 @@ jobs:
             passed:
               - analytical-dataset-generation-qa
           - get: emr-launcher-release
+            version: { tag: ((emr-launcher-version.integration)) }
             trigger: true
             passed:
               - analytical-dataset-generation-qa

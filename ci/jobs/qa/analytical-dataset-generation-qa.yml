@@ -17,6 +17,7 @@ jobs:
           - get: dataworks-behavioural-framework
             trigger: false
           - get: emr-launcher-release
+            version: { tag: ((emr-launcher-version.qa)) }
             trigger: true
           - get: pdm-emr-launcher-release
             trigger: true
