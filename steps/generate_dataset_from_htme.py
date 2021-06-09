@@ -131,9 +131,9 @@ def main(
     s3_publish_bucket,
     published_database_name,
     args,
-    s3_resource,
     dynamodb_client,
     sns_client,
+    s3_resource=None
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -162,8 +162,8 @@ def main(
             s3_htme_bucket,
             keys_map,
             s3_publish_bucket,
-            s3_resource,
             sns_client,
+            s3_resource,
         )
     except CollectionException as ex:
         the_logger.error(
@@ -196,8 +196,8 @@ def process_collections_threaded(
     s3_htme_bucket,
     keys_map,
     s3_publish_bucket,
-    s3_resource,
     sns_client,
+    s3_resource=None
 ):
     all_processed_collections = []
 
@@ -215,8 +215,8 @@ def process_collections_threaded(
             itertools.repeat(s3_htme_bucket),
             itertools.repeat(keys_map),
             itertools.repeat(s3_publish_bucket),
+            itertools.repeat(sns_client),
             itertools.repeat(s3_resource),
-            itertools.repeat(sns_client)
         )
 
     for completed_collection in completed_collections:
@@ -269,9 +269,12 @@ def process_collection(
     s3_htme_bucket,
     keys_map,
     s3_publish_bucket,
-    s3_resource,
     sns_client,
+    s3_resource=None,
 ):
+    if s3_resource is None:
+        s3_resource = get_s3_resource()
+
     collection_pairs = collection.items()
     collection_iterator = iter(collection_pairs)
     (collection_name, collection_files_keys) = next(collection_iterator)
@@ -580,7 +583,8 @@ def get_sns_client():
     return client
 
 def get_s3_resource():
-    return boto3.resource("s3", region_name=DEFAULT_REGION)
+    session = boto3.session.Session()
+    return session.resource("s3", region_name=DEFAULT_REGION)
 
 
 def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
@@ -1018,7 +1022,6 @@ if __name__ == "__main__":
     s3_htme_bucket = os.getenv("S3_HTME_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_s3_client()
-    s3_resource = get_s3_resource()
     dynamodb_client = get_dynamodb_client()
     sns_client = get_sns_client()
     secret_name = (
@@ -1040,7 +1043,6 @@ if __name__ == "__main__":
         s3_publish_bucket,
         published_database_name,
         args,
-        s3_resource,
         dynamodb_client,
         sns_client,
     )
