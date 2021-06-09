@@ -628,34 +628,16 @@ def decode(txt):
 
 
 def get_metadatafor_key(key, s3_client, s3_htme_bucket):
-    current_log_level = the_logger.root.level
-    the_logger.info("Changing boto3 and botocore log level to: %s", logging.DEBUG)
-    boto3.set_stream_logger("boto3.resources", logging.DEBUG)
-    boto3.set_stream_logger("botocore", logging.DEBUG)
-    try:
-        the_logger.info("Current time: %s", datetime.now())
-        s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
-        # print(s3_object)
-        iv = s3_object["Metadata"]["iv"]
-        ciphertext = s3_object["Metadata"]["ciphertext"]
-        datakeyencryptionkeyid = s3_object["Metadata"]["datakeyencryptionkeyid"]
-        metadata = {
-            "iv": iv,
-            "ciphertext": ciphertext,
-            "datakeyencryptionkeyid": datakeyencryptionkeyid,
-        }
-        the_logger.info(
-            "Restoring boto3 and botocore log level to: %s", current_log_level
-        )
-        boto3.set_stream_logger("boto3.resources", current_log_level)
-        boto3.set_stream_logger("botocore", current_log_level)
-        return metadata
-    except Exception as ex:
-        the_logger.error(
-            "Problem fetching key: %s %s",
-            key,
-            repr(ex),
-        )
+    s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
+    iv = s3_object["Metadata"]["iv"]
+    ciphertext = s3_object["Metadata"]["ciphertext"]
+    datakeyencryptionkeyid = s3_object["Metadata"]["datakeyencryptionkeyid"]
+    metadata = {
+        "iv": iv,
+        "ciphertext": ciphertext,
+        "datakeyencryptionkeyid": datakeyencryptionkeyid,
+    }
+    return metadata
 
 
 def retrieve_secrets(args, secret_name):
