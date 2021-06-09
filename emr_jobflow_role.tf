@@ -337,6 +337,7 @@ data "aws_iam_policy_document" "adg_sns_topic_policy_for_completion_status" {
 
     resources = [
       aws_sns_topic.adg_completion_status_sns.arn,
+      data.terraform_remote_state.security-tools.outputs.sns_topic_london_monitoring.arn,
     ]
   }
 }
