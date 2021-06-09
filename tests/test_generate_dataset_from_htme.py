@@ -199,9 +199,9 @@ def verify_processed_data(
         S3_PUBLISH_BUCKET,
         PUBLISHED_DATABASE_NAME,
         mocked_args,
-        s3_resource,
         dynamodb_client,
         sns_client,
+        s3_resource,
     )
     assert len(s3_client.list_buckets()["Buckets"]) == 2
     assert (
@@ -285,9 +285,9 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         s3_publish_bucket_for_multiple_collections,
         PUBLISHED_DATABASE_NAME,
         mock_args(),
-        s3_resource,
         dynamodb_client,
         sns_client,
+        s3_resource,
     )
     assert core_contract_collection_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
@@ -365,9 +365,9 @@ def test_exception_when_decompression_fails(
             S3_PUBLISH_BUCKET,
             PUBLISHED_DATABASE_NAME,
             mock_args(),
-            s3_resource,
             dynamodb_client,
             sns_client,
+            s3_resource,
         )
 
 @mock_dynamodb2
