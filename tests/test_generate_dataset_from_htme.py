@@ -19,6 +19,7 @@ TRUE_VALUE = "true"
 DB_KEY = "db"
 TABLE_KEY = "table"
 SNAPSHOT_TYPE_FULL = "full"
+SNS_TOPIC_ARN = "test_arn"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_KEY = "snapshot_type"
 TAG_SET_FULL = [
@@ -437,6 +438,7 @@ def mock_args():
     args.s3_prefix = S3_PREFIX
     args.snapshot_type = SNAPSHOT_TYPE_FULL
     args.export_date = EXPORT_DATE
+    args.monitoring_topic_arn = SNS_TOPIC_ARN
     return args
 
 
