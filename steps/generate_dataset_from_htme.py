@@ -980,7 +980,10 @@ def notify_of_collection_failure(
     }
 
     json_message = json.dumps(payload)
-    response = sns_client.publish(TopicArn=sns_topic_arn, Message=json_message)
+    response = sns_client.publish(
+        TopicArn=sns_topic_arn,
+        Message=json_message
+    )
 
     the_logger.info(
         f'Notified of failed collection", "sns_topic_arn": "{sns_topic_arn}", "correlation_id": '

@@ -77,15 +77,17 @@ def test_retrieve_secrets(monkeypatch):
                 return Client()
 
     monkeypatch.setattr(boto3, "session", MockSession)
+    (sns_client, mocked_args) = mock_args()
     assert generate_dataset_from_htme.retrieve_secrets(
-        mock_args(), SNAPSHOT_TYPE_FULL
+        mocked_args, SNAPSHOT_TYPE_FULL
     ) == ast.literal_eval(SECRETS)
 
 
 def test_get_collections():
     secret_dict = ast.literal_eval(SECRETS)
+    (sns_client, mocked_args) = mock_args()
     assert (
-        generate_dataset_from_htme.get_collections(secret_dict, mock_args())
+        generate_dataset_from_htme.get_collections(secret_dict, mocked_args)
         == SECRETS_COLLECTIONS
     )
 
@@ -124,9 +126,10 @@ def test_get_collections_in_secrets():
     expected_list_of_dicts = [
         {f"{DB_CORE_CONTRACT}": [f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}"]}
     ]
+    (sns_client, mocked_args) = mock_args()
     assert (
         generate_dataset_from_htme.get_collections_in_secrets(
-            list_of_dicts, SECRETS_COLLECTIONS, mock_args()
+            list_of_dicts, SECRETS_COLLECTIONS, mocked_args
         )
         == expected_list_of_dicts
     )
@@ -137,9 +140,14 @@ def test_get_collections_in_secrets():
 def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_full(
     spark, monkeypatch, handle_server, aws_credentials
 ):
-    mocked_args = mock_args()
+    (sns_client, mocked_args) = mock_args()
     verify_processed_data(
-        mocked_args, monkeypatch, spark, S3_PREFIX_ADG_FULL, ADG_OUTPUT_FILE_KEY_FULL
+        mocked_args,
+        monkeypatch,
+        spark,
+        S3_PREFIX_ADG_FULL,
+        ADG_OUTPUT_FILE_KEY_FULL,
+        sns_client,
     )
 
 
@@ -148,7 +156,7 @@ def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_full(
 def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_incremental(
     spark, monkeypatch, handle_server, aws_credentials
 ):
-    mocked_args = mock_args()
+    (sns_client, mocked_args) = mock_args()
     mocked_args.snapshot_type = SNAPSHOT_TYPE_INCREMENTAL
     verify_processed_data(
         mocked_args,
@@ -156,11 +164,17 @@ def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_increm
         spark,
         S3_PREFIX_ADG_INCREMENTAL,
         ADG_OUTPUT_FILE_KEY_INCREMENTAL,
+        sns_client,
     )
 
 
 def verify_processed_data(
-    mocked_args, monkeypatch, spark, s3_prefix_adg, adg_output_key
+    mocked_args,
+    monkeypatch,
+    spark,
+    s3_prefix_adg,
+    adg_output_key,
+    sns_client,
 ):
     tag_set = (
         TAG_SET_FULL
@@ -172,7 +186,6 @@ def verify_processed_data(
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
     target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
-    sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
@@ -247,7 +260,6 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         DB_KEY: "core",
         TABLE_KEY: "accounts",
     }
-    sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
@@ -275,6 +287,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         },
     )
     monkeypatch_with_mocks(monkeypatch)
+    (sns_client, mocked_args) = mock_args()
     generate_dataset_from_htme.main(
         spark,
         s3_client,
@@ -284,7 +297,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         RUN_TIME_STAMP,
         s3_publish_bucket_for_multiple_collections,
         PUBLISHED_DATABASE_NAME,
-        mock_args(),
+        mocked_args,
         s3_resource,
         dynamodb_client,
         sns_client,
@@ -313,12 +326,13 @@ def test_create_hive_table_on_published_for_collection(
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     json_location = "s3://test/t"
     collection_name = "tabtest"
+    (sns_client, mocked_args) = mock_args()
     steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
         spark,
         collection_name,
         json_location,
         PUBLISHED_DATABASE_NAME,
-        mock_args(),
+        mocked_args,
     )
 
     monkeypatch.setattr(
@@ -335,7 +349,6 @@ def test_exception_when_decompression_fails(
     spark, monkeypatch, handle_server, aws_credentials
 ):
     with pytest.raises(BaseException):
-        sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
         dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
         s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
         s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
@@ -356,6 +369,7 @@ def test_exception_when_decompression_fails(
         )
         monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
         monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
+        (sns_client, mocked_args) = mock_args()
         generate_dataset_from_htme.main(
             spark,
             s3_client,
@@ -365,7 +379,7 @@ def test_exception_when_decompression_fails(
             RUN_TIME_STAMP,
             S3_PUBLISH_BUCKET,
             PUBLISHED_DATABASE_NAME,
-            mock_args(),
+            mocked_args,
             s3_resource,
             dynamodb_client,
             sns_client,
@@ -442,8 +456,19 @@ def mock_args():
     args.s3_prefix = S3_PREFIX
     args.snapshot_type = SNAPSHOT_TYPE_FULL
     args.export_date = EXPORT_DATE
-    args.monitoring_topic_arn = SNS_TOPIC_ARN
-    return args
+    (sns_client, args.monitoring_topic_arn) = mock_sns_topic()
+    return (sns_client, args)
+
+def mock_sns_topic():
+    status = "test_status"
+    collection_name = "test_collection"
+    sns_client = boto3.client(service_name="sns", region_name=AWS_REGION)
+    sns_client.create_topic(
+        Name="status_topic", Attributes={"DisplayName": "test-topic"}
+    )
+
+    topics_json = sns_client.list_topics()
+    return (sns_client, topics_json["Topics"][0]["TopicArn"])
 
 
 def mock_call_dks(cek, kek, args, run_time_stamp):
