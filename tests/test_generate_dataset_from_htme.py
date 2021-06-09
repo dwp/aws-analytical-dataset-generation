@@ -450,7 +450,8 @@ def mock_decrypt(plain_text_key, iv_key, data, args, run_time_stamp):
     return data
 
 
-def mock_args():
+@mock_sns
+def mock_args(aws_credentials):
     args = argparse.Namespace()
     args.correlation_id = CORRELATION_ID
     args.s3_prefix = S3_PREFIX
@@ -459,7 +460,8 @@ def mock_args():
     (sns_client, args.monitoring_topic_arn) = mock_sns_topic()
     return (sns_client, args)
 
-def mock_sns_topic():
+@mock_sns
+def mock_sns_topic(aws_credentials):
     status = "test_status"
     collection_name = "test_collection"
     sns_client = boto3.client(service_name="sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
