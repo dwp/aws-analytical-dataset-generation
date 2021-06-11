@@ -252,12 +252,12 @@ resource "aws_secretsmanager_secret" "metadata_store_kickstart_adg" {
 output "hive_metastore" {
   value = {
     security_group = {
-        id = aws_security_group.hive_metastore.id
+      id = aws_security_group.hive_metastore.id
     }
-    rds_cluster    = {
-        endpoint = aws_rds_cluster.hive_metastore
+    rds_cluster = {
+      endpoint = aws_rds_cluster.hive_metastore
     }
-    database_name  = aws_rds_cluster.hive_metastore.database_name
+    database_name = aws_rds_cluster.hive_metastore.database_name
   }
 }
 
