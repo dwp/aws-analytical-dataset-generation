@@ -388,5 +388,7 @@ resource "aws_security_group_rule" "emr_server_ingress_workspaces_slave_region_s
 }
 
 output "adg_common_sg" {
-  value = aws_security_group.adg_common
+  value = {
+      id = aws_security_group.adg_common.id
+  }
 }
