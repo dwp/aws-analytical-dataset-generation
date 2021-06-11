@@ -255,7 +255,7 @@ output "hive_metastore" {
       id = aws_security_group.hive_metastore.id
     }
     rds_cluster = {
-      endpoint = aws_rds_cluster.hive_metastore
+      endpoint = aws_rds_cluster.hive_metastore.endpoint
     }
     database_name = aws_rds_cluster.hive_metastore.database_name
   }
