@@ -7,6 +7,7 @@ jobs:
             trigger: true
             version: every
           - get: emr-launcher-release
+            version: { tag: ((emr-launcher-version.qa)) }
             trigger: false
           - get: pdm-emr-launcher-release
             trigger: false
@@ -60,7 +61,7 @@ jobs:
             type: docker-image
             source:
               repository: ((dataworks.terraform_repository))
-              tag: ((dataworks.terraform_version))
+              tag: ((dataworks.terraform_13_version))
           params:
             TF_INPUT: false
             TF_CLI_ARGS_apply: -lock-timeout=300s

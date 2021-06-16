@@ -301,3 +301,35 @@ values which map to a certain cluster status
 | Completed  | 2  |
 | Failed  | 3  |
 | Cancelled  | 4  |
+
+
+# Production Failures
+
+ADG-Full has been randomly failing on Production environment with below error
+
+```
+botocore.exceptions.ClientError: An error occurred (RequestTimeTooSkewed) when calling the GetObject operation:
+The difference between the request time and the current time is too large.
+
+```
+
+This error occurs while doing boto3 GetObject operation in the ADG's Spark code. This occurs when there is time difference between local time and the internet time which is used by S3 while making boto3 requests.
+Amazon S3 uses NTP (Network Time Protocol) to keep its system clocks accurate, NTP provides a standard way of synchronizing computer clocks on servers.
+
+As ADG runs on EMR and read/writes data in S3 there is no local system involved. We have raised following support tickets with Amazon support team
+
+Case ID 8420147331
+Case ID 8383474671
+
+Initally AWS support team suggest to raise this with S3 team and then passed on it to EMR team.
+
+On call with AWS support team it was discussed that troubleshooting this issue is difficult as it occurs randomly and EMR cluster is not alive to investigate the error .AWS EMR uses chronyd daemon for Time Sync Service and possibly this error occurs when chronyd service stops. They have requested  to provide complete error trace when happens next time which would include S3 request ID made from EMR to S3. 
+
+In order to get the complete error trace following steps are suggested and developed as part of DW-6406 ticket.
+
+Export Chrony logs (path  = /var/log/chrony) to cloudwatch
+Whenever we call boto3.get_object set the log level to debug. This will allow us to capture more information such as RequestID which is useful to the AWS support team. Then put the log_level back to original
+Log the UTC current time whenever we call boto3.get_object. This is to compare this time with the time generated on the S3 side to see if they vary.
+
+
+Next steps are whenenver this error happens check the complete error trace from the logs and contact AWS support team.
