@@ -19,3 +19,8 @@ resource_types:
     source:
       repository: olhtbr/metadata-resource
       tag: 2.0.1
+  - name: slack-notification
+    type: docker-image
+    source:
+      repository: cfcommunity/slack-notification-resource
+      tag: latest
