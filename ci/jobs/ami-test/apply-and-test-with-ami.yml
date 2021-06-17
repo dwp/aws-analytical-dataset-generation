@@ -54,21 +54,3 @@ jobs:
             TF_WORKSPACE: qa
             AWS_ACC: ((aws_account.qa))
             AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
-        on_success:
-          put: slack
-          attempts: 1
-          params:
-            attachments:
-              - text: "New untested AMI can now be used with aws-analytical-dataset-generation code"
-            channel: "#dataworks-aws-pod-c"
-            icon_emoji: ":concourse-red:"
-        on_failure:
-          put: slack
-          attempts: 1
-          params:
-            attachments:
-              - text: ":fire: New untested AMI can not be used with aws-analytical-dataset-generation code - please adjust the config to upgrade :fire:"
-            channel: "#dataworks-aws-pod-c"
-            icon_emoji: ":concourse-red:"
-
-

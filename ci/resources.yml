@@ -138,11 +138,6 @@ resources:
       uri: https://((dataworks.enterprise_github_url))/dip/secrets-management.git
     check_every: 5m
 
-  - name: slack
-    type: slack-notification
-    source:
-      url: ((dataworks.slack_webhook_url))
-
   - name: meta-development
     type: meta
   - name: meta-qa
