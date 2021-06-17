@@ -125,7 +125,7 @@ locals {
     qa          = false
     integration = false
     preprod     = false
-    production  = false
+    production  = true
   }
 
   step_fail_action = {
@@ -133,7 +133,7 @@ locals {
     qa          = "TERMINATE_CLUSTER"
     integration = "TERMINATE_CLUSTER"
     preprod     = "CONTINUE"
-    production  = "TERMINATE_CLUSTER"
+    production  = "CONTINUE"
   }
 
   cw_agent_namespace                   = "/app/analytical_dataset_generator"
