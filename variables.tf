@@ -108,7 +108,7 @@ variable "emr_core_instance_count_incremental" {
     qa          = "10"
     integration = "10"
     preprod     = "39"
-    production  = "39"
+    production  = "1" # temp change  for troubleshoot in prod, will revert again on 18th june evening
   }
 }
 
