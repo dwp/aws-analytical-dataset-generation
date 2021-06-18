@@ -1,0 +1,56 @@
+jobs:
+  - name: apply-and-test-with-ami
+    max_in_flight: 1
+    plan:
+      - in_parallel:
+          - get: meta
+            resource: meta-qa
+            trigger: false
+          - get: manage-mysql-user-release
+            trigger: false
+            params:
+              globs:
+                - "*.zip"
+          - get: aws-analytical-dataset-generation
+            trigger: false
+          - get: secrets-management
+            trigger: false
+          - get: dataworks-behavioural-framework
+            trigger: false
+          - get: emr-launcher-release
+            version: { tag: ((emr-launcher-version.qa)) }
+            trigger: false
+          - get: pdm-emr-launcher-release
+            trigger: false
+          - get: emr-relauncher-release
+            trigger: false
+          - get: analytical-dataset-generation-exporter-release
+            trigger: false
+          - get: al2-emr-ami
+            trigger: false
+          - get: untested-al2-emr-ami
+            trigger: true
+      - .: (( inject meta.plan.terraform-bootstrap ))
+        config:
+          params:
+            AWS_ACC: ((aws_account.qa))
+      - .: (( inject meta.plan.terraform-apply ))
+        config:
+          params:
+            TF_WORKSPACE: qa
+            TEST_AMI_RUN: true
+          inputs:
+            - name: untested-al2-emr-ami
+      - .: (( inject meta.plan.terraform-plan ))
+        config:
+          params:
+            TF_WORKSPACE: qa
+            TEST_AMI_RUN: true
+          inputs:
+            - name: untested-al2-emr-ami
+      - .: (( inject meta.plan.e2e-tests))
+        config:
+          params:
+            TF_WORKSPACE: qa
+            AWS_ACC: ((aws_account.qa))
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
