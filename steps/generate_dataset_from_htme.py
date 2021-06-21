@@ -10,6 +10,7 @@ import time
 import zlib
 import json
 import concurrent.futures
+import urllib.request
 from datetime import datetime, timedelta
 from itertools import groupby
 
@@ -133,7 +134,7 @@ def main(
     args,
     dynamodb_client,
     sns_client,
-    s3_resource=None
+    s3_resource=None,
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -197,7 +198,7 @@ def process_collections_threaded(
     keys_map,
     s3_publish_bucket,
     sns_client,
-    s3_resource=None
+    s3_resource=None,
 ):
     all_processed_collections = []
 
@@ -569,9 +570,7 @@ def get_dynamodb_client():
     client_config = botocore.config.Config(
         max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
     )
-    client = boto3.client(
-        "dynamodb", region_name=DEFAULT_REGION, config=client_config
-    )
+    client = boto3.client("dynamodb", region_name=DEFAULT_REGION, config=client_config)
     return client
 
 
@@ -581,6 +580,7 @@ def get_sns_client():
     )
     client = boto3.client("sns", region_name=DEFAULT_REGION, config=client_config)
     return client
+
 
 def get_s3_resource():
     session = boto3.session.Session()
@@ -628,6 +628,12 @@ def decode(txt):
 
 
 def get_metadatafor_key(key, s3_client, s3_htme_bucket):
+    instance_id = (
+        urllib.request.urlopen("http://169.254.169.254/latest/meta-data/instance-id")
+        .read()
+        .decode()
+    )
+    the_logger.info("Instance id making boto3 get_object calls: %s ", instance_id)
     s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
     iv = s3_object["Metadata"]["iv"]
     ciphertext = s3_object["Metadata"]["ciphertext"]
@@ -955,17 +961,14 @@ def notify_of_collection_failure(
         "notification_type": "Error",
         "slack_username": f"ADG-{snapshot_type.lower()}",
         "title_text": "Collection set to failure status",
-        "custom_elements": custom_elements
+        "custom_elements": custom_elements,
     }
 
     json_message = json.dumps(payload)
 
     response = None
     try:
-        response = sns_client.publish(
-            TopicArn=sns_topic_arn,
-            Message=json_message
-        )
+        response = sns_client.publish(TopicArn=sns_topic_arn, Message=json_message)
     except Exception as ex:
         the_logger.warning(
             f'Notification failed", "sns_topic_arn": "{sns_topic_arn}", "correlation_id": '

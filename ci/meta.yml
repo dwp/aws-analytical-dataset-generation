@@ -489,3 +489,38 @@ meta:
               aws dynamodb delete-item \
               --table-name data_pipeline_metadata \
               --key "$message_json"
+
+    ami-test-results:
+      task: ami-test-result
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.docker_awscli_repository))
+            version: ((dataworks.docker_awscli_version))
+            tag: ((dataworks.docker_awscli_version))
+        params:
+          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+          GIT_USERNAME: ((dataworks.concourse_github_username))
+          GIT_EMAIL: ((dataworks.concourse_github_email))
+          GITHUB_TOKEN: ((dataworks-secrets.concourse_github_pat))
+        run:
+          path: sh
+          args:
+            - |
+              AMI_ID=$(cat $UNTESTED_AMI/id)
+              DATE=$(date -u)
+              PIPELINE=${PWD##*/}
+
+              git config --global user.name "${GIT_USERNAME}"
+              git config --global user.email "${GIT_EMAIL}"
+
+              git clone https://github.com/dwp/ami-builder-config
+              cd ami-builder-config/results
+
+              echo "$AMI_ID $RESULT" >> $PIPELINE.test
+
+              git add $PIPELINE.test
+              git commit -m "Updating $PIPELINE AMI test on ${DATE}"
+              git push https://${GITHUB_TOKEN}:x-oauth-basic@github.com/dwp/ami-builder-config
