@@ -60,9 +60,13 @@ jobs:
               config:
                 params:
                   RESULT: FAILED
+                run:
+                  dir: aws-analytical-dataset-generation
         on_success:
           do:
             - .: (( inject meta.plan.ami-test-results ))
               config:
                 params:
                   RESULT: SUCCESS
+                run:
+                  dir: aws-analytical-dataset-generation
