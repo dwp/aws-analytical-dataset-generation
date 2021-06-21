@@ -16,6 +16,7 @@ spruce:
       - with_in: ci/jobs/preprod/admin/
       - with_in: ci/jobs/production/
       - with_in: ci/jobs/production/admin/
+      - with_in: ci/jobs/ami-test/
     to: aviator_pipeline.yml
 fly:
   name: analytical-dataset-generation
