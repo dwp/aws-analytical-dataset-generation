@@ -14,6 +14,8 @@ ARG_S3_PREFIX = "s3_prefix"
 ARG_CORRELATION_ID = "correlation_id"
 ARG_EXPORT_DATE = "export_date"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
+SNAPSHOT_TYPE_FULL = "full"
+ARG_SNAPSHOT_TYPE_VALID_VALUES = [SNAPSHOT_TYPE_FULL, SNAPSHOT_TYPE_INCREMENTAL]
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
