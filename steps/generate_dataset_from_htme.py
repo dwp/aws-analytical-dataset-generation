@@ -489,7 +489,7 @@ def consolidate_rdd_per_collection(
 
 
 def delete_existing_audit_files(s3_bucket, s3_prefix, s3_client, s3_resource):
-    """Returns true if the given key exists in the bucket, false otherwise.
+    """Deletes files if exists in the given bucket and prefix
 
     Keyword arguments:
     s3_bucket -- the S3 bucket name
