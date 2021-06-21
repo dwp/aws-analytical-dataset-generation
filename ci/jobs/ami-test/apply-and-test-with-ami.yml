@@ -54,3 +54,15 @@ jobs:
             TF_WORKSPACE: qa
             AWS_ACC: ((aws_account.qa))
             AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+        on_failure:
+          do:
+            - .: (( inject meta.plan.ami-test-results ))
+              config:
+                params:
+                  RESULT: FAILED
+        on_success:
+          do:
+            - .: (( inject meta.plan.ami-test-results ))
+              config:
+                params:
+                  RESULT: SUCCESS
