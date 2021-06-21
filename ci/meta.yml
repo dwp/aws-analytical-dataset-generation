@@ -152,7 +152,11 @@ meta:
           args:
             - -exc
             - |
-              export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
+              if [[ $TEST_AMI_RUN ]]; then
+                export TF_VAR_emr_ami_id=$(cat ../untested-al2-emr-ami/id)
+              else
+                export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
+              fi
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
@@ -190,7 +194,11 @@ meta:
           args:
             - -exc
             - |
-              export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
+              if [[ $TEST_AMI_RUN ]]; then
+                export TF_VAR_emr_ami_id=$(cat ../untested-al2-emr-ami/id)
+              else
+                export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
+              fi
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
@@ -481,4 +489,3 @@ meta:
               aws dynamodb delete-item \
               --table-name data_pipeline_metadata \
               --key "$message_json"
-
