@@ -145,14 +145,18 @@ meta:
           type: docker-image
           source:
             repository: ((dataworks.terraform_repository))
-            tag: ((dataworks.terraform_version))
+            tag: ((dataworks.terraform_13_version))
         run:
           path: sh
           dir: aws-analytical-dataset-generation
           args:
             - -exc
             - |
-              export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
+              if [[ $TEST_AMI_RUN ]]; then
+                export TF_VAR_emr_ami_id=$(cat ../untested-al2-emr-ami/id)
+              else
+                export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
+              fi
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
@@ -183,14 +187,18 @@ meta:
           type: docker-image
           source:
             repository: ((dataworks.terraform_repository))
-            tag: ((dataworks.terraform_version))
+            tag: ((dataworks.terraform_13_version))
         run:
           path: sh
           dir: aws-analytical-dataset-generation
           args:
             - -exc
             - |
-              export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
+              if [[ $TEST_AMI_RUN ]]; then
+                export TF_VAR_emr_ami_id=$(cat ../untested-al2-emr-ami/id)
+              else
+                export TF_VAR_emr_ami_id=$(cat ../al2-emr-ami/id)
+              fi
               cp ../terraform-config/terraform.tf .
               cp ../terraform-config/terraform.tfvars .
               export TF_VAR_emr_launcher_zip="{base_path = \"../emr-launcher-release\", version = \"$(cat ../emr-launcher-release/version)\"}"
@@ -220,7 +228,7 @@ meta:
           type: docker-image
           source:
             repository: ((dataworks.terraform_repository))
-            tag: ((dataworks.terraform_version))
+            tag: ((dataworks.terraform_13_version))
         run:
           path: sh
           args:
@@ -244,7 +252,7 @@ meta:
           type: docker-image
           source:
             repository: ((dataworks.terraform_repository))
-            tag: ((dataworks.terraform_version))
+            tag: ((dataworks.terraform_13_version))
         run:
           path: sh
           args:
@@ -268,7 +276,7 @@ meta:
           type: docker-image
           source:
             repository: ((dataworks.terraform_repository))
-            tag: ((dataworks.terraform_version))
+            tag: ((dataworks.terraform_13_version))
         run:
           path: sh
           args:
@@ -482,3 +490,37 @@ meta:
               --table-name data_pipeline_metadata \
               --key "$message_json"
 
+    ami-test-results:
+      task: ami-test-result
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ((dataworks.docker_awscli_repository))
+            version: ((dataworks.docker_awscli_version))
+            tag: ((dataworks.docker_awscli_version))
+        params:
+          AWS_DEFAULT_REGION: ((dataworks.aws_region))
+          GIT_USERNAME: ((dataworks.concourse_github_username))
+          GIT_EMAIL: ((dataworks.concourse_github_email))
+          GITHUB_TOKEN: ((dataworks-secrets.concourse_github_pat))
+        run:
+          path: sh
+          args:
+            - |
+              AMI_ID=$(cat $UNTESTED_AMI/id)
+              DATE=$(date -u)
+              PIPELINE=${PWD##*/}
+
+              git config --global user.name "${GIT_USERNAME}"
+              git config --global user.email "${GIT_EMAIL}"
+
+              git clone https://github.com/dwp/ami-builder-config
+              cd ami-builder-config/results
+
+              echo "$AMI_ID $RESULT" >> $PIPELINE.test
+
+              git add $PIPELINE.test
+              git commit -m "Updating $PIPELINE AMI test on ${DATE}"
+              git push https://${GITHUB_TOKEN}:x-oauth-basic@github.com/dwp/ami-builder-config
