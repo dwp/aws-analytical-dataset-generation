@@ -431,6 +431,7 @@ def consolidate_rdd_per_collection(
         current_date = datetime.today().strftime("%Y-%m-%d")
         json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+        delete_existing_audit_files(s3_publish_bucket, json_location_prefix, s3_client, s3_resource)
     else:
         json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
@@ -486,6 +487,38 @@ def consolidate_rdd_per_collection(
     )
     return json_location
 
+
+def delete_existing_audit_files(s3_bucket, s3_prefix, s3_client, s3_resource):
+    """Returns true if the given key exists in the bucket, false otherwise.
+
+    Keyword arguments:
+    s3_bucket -- the S3 bucket name
+    s3_prefix -- the key to look for, could be a file path and key or simply a path
+    s3_client -- S3 client
+    s3_resource -- S3 resource
+    """
+    if does_s3_key_exist(s3_bucket, s3_prefix, s3_client):
+        bucket = s3_resource.Bucket(s3_bucket)
+        for bucket_object in bucket.objects.filter(Prefix=s3_prefix):
+            bucket_object.delete()
+
+
+def does_s3_key_exist(s3_bucket, s3_prefix, s3_client):
+    """Returns true if the given key exists in the bucket, false otherwise.
+
+    Keyword arguments:
+    s3_bucket -- the S3 bucket name
+    s3_resource -- the key to look for, could be a file path and key or simply a path
+    s3_client -- S3 client
+    """
+    paginator = s3_client.get_paginator("list_objects_v2")
+    pages = paginator.paginate(Bucket=s3_bucket, Prefix=s3_prefix)
+
+    key_count = 0
+    for page in pages:
+        key_count += page["KeyCount"]
+
+    return key_count > 0
 
 def create_hive_table_on_published_for_collection(
     spark,
