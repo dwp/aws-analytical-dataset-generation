@@ -500,7 +500,9 @@ def delete_existing_audit_files(s3_bucket, s3_prefix, s3_client, s3_resource):
     if does_s3_key_exist(s3_bucket, s3_prefix, s3_client):
         bucket = s3_resource.Bucket(s3_bucket)
         for bucket_object in bucket.objects.filter(Prefix=s3_prefix):
-            bucket_object.delete()
+            if s3_prefix != bucket_object.key:
+                bucket_object.delete()
+                bucket_object.wait_until_not_exists()
 
 
 def does_s3_key_exist(s3_bucket, s3_prefix, s3_client):
