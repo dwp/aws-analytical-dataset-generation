@@ -517,6 +517,11 @@ def test_delete_existing_audit_files(aws_credentials):
         Key=f"{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}",
     )
 
+    keys = generate_dataset_from_htme.get_list_keys_for_prefix(
+        s3_client, S3_HTME_BUCKET, S3_PREFIX)
+
+    assert len(keys) == 2
+
     generate_dataset_from_htme.delete_existing_audit_files(
         S3_HTME_BUCKET, S3_PREFIX, s3_client)
 
