@@ -11,9 +11,10 @@ jobs:
             passed:
               - analytical-dataset-generation-integration
           - get: aws-analytical-dataset-generation
+            resource: aws-analytical-dataset-generation-branch
             trigger: true
-            passed:
-              - analytical-dataset-generation-integration
+            # passed:
+            #   - analytical-dataset-generation-integration
           - get: secrets-management
             trigger: false
             passed:
