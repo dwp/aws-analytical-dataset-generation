@@ -625,8 +625,9 @@ def get_list_keys_for_prefix(s3_client, s3_bucket, s3_prefix):
     paginator = s3_client.get_paginator("list_objects_v2")
     pages = paginator.paginate(Bucket=s3_bucket, Prefix=s3_prefix)
     for page in pages:
-        for obj in page["Contents"]:
-            keys.append(obj["Key"])
+        if "Contents" in page:
+            for obj in page["Contents"]:
+                keys.append(obj["Key"])
     if s3_prefix in keys:
         keys.remove(s3_prefix)
     return keys
