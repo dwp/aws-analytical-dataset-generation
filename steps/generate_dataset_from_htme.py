@@ -431,7 +431,7 @@ def consolidate_rdd_per_collection(
         current_date = datetime.today().strftime("%Y-%m-%d")
         json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
-        delete_existing_audit_files(s3_publish_bucket, json_location_prefix, s3_client, s3_resource)
+        delete_existing_audit_files(s3_publish_bucket, json_location_prefix, s3_client)
     else:
         json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
@@ -488,38 +488,30 @@ def consolidate_rdd_per_collection(
     return json_location
 
 
-def delete_existing_audit_files(s3_bucket, s3_prefix, s3_client, s3_resource):
+def delete_existing_audit_files(s3_bucket, s3_prefix, s3_client):
     """Deletes files if exists in the given bucket and prefix
 
     Keyword arguments:
     s3_bucket -- the S3 bucket name
     s3_prefix -- the key to look for, could be a file path and key or simply a path
     s3_client -- S3 client
-    s3_resource -- S3 resource
     """
-    bucket = s3_resource.Bucket(s3_bucket)
-    bucket_objects = bucket.objects.filter(Prefix=s3_prefix)
+    keys = get_list_keys_for_prefix(s3_client, s3_bucket, s3_prefix)
     the_logger.info(
-        "Retrieved '%s' objects from prefix '%s'",
-        str(len(bucket_objects)),
+        "Retrieved '%s' keys from prefix '%s'",
+        str(len(keys)),
         s3_prefix,
     )
 
-    while len(bucket_objects) > 0:
-        for bucket_object in bucket_objects:
-            the_logger.info(
-                "Found key '%s'",
-                bucket_object.key,
-            )
-            if s3_prefix != bucket_object.key:
-                bucket_object.delete()
-                bucket_object.wait_until_not_exists()
-
-        bucket_objects = bucket.objects.filter(Prefix=s3_prefix)
+    waiter = s3_client.get_waiter("object_not_exists")
+    for key in keys:
+        s3_client.delete_object(Bucket=s3_bucket, Key=key)
         the_logger.info(
-            "Retrieved '%s' objects from prefix '%s'",
-            str(len(bucket_objects)),
-            s3_prefix,
+            "Deleted key '%s'",
+            key,
+        )
+        waiter.wait(
+            Bucket=s3_bucket, Key=key, WaiterConfig={"Delay": 1, "MaxAttempts": 10}
         )
 
 
@@ -623,15 +615,15 @@ def get_s3_resource():
     return session.resource("s3", region_name=DEFAULT_REGION)
 
 
-def get_list_keys_for_prefix(s3_client, s3_htme_bucket, s3_prefix):
+def get_list_keys_for_prefix(s3_client, s3_bucket, s3_prefix):
     the_logger.info(
         "Looking for files to process in bucket : %s with prefix : %s",
-        s3_htme_bucket,
+        s3_bucket,
         s3_prefix,
     )
     keys = []
     paginator = s3_client.get_paginator("list_objects_v2")
-    pages = paginator.paginate(Bucket=s3_htme_bucket, Prefix=s3_prefix)
+    pages = paginator.paginate(Bucket=s3_bucket, Prefix=s3_prefix)
     for page in pages:
         for obj in page["Contents"]:
             keys.append(obj["Key"])

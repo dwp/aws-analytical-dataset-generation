@@ -505,7 +505,6 @@ def test_validate_required_args_with_invalid_values_for_snapshot_type():
 @mock_s3
 def test_delete_existing_audit_files(aws_credentials):
     s3_client = boto3.client("s3")
-    s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
     s3_client.put_object(
         Body="test1",
@@ -519,7 +518,7 @@ def test_delete_existing_audit_files(aws_credentials):
     )
 
     generate_dataset_from_htme.delete_existing_audit_files(
-        S3_HTME_BUCKET, S3_PREFIX, s3_client, s3_resource)
+        S3_HTME_BUCKET, S3_PREFIX, s3_client)
 
     keys = generate_dataset_from_htme.get_list_keys_for_prefix(
         s3_client, S3_HTME_BUCKET, S3_PREFIX)
