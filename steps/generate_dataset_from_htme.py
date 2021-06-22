@@ -506,10 +506,6 @@ def delete_existing_audit_files(s3_bucket, s3_prefix, s3_client):
     waiter = s3_client.get_waiter("object_not_exists")
     for key in keys:
         s3_client.delete_object(Bucket=s3_bucket, Key=key)
-        the_logger.info(
-            "Deleted key '%s'",
-            key,
-        )
         waiter.wait(
             Bucket=s3_bucket, Key=key, WaiterConfig={"Delay": 1, "MaxAttempts": 10}
         )
