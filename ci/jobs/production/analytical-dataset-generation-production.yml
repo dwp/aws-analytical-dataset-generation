@@ -13,7 +13,7 @@ jobs:
           - get: aws-analytical-dataset-generation
             trigger: true
             passed:
-              - analytical-dataset-generation-qa
+              - analytical-dataset-generation-integration
           - get: secrets-management
             trigger: false
             passed:
@@ -22,7 +22,7 @@ jobs:
             version: { tag: ((emr-launcher-version.production)) }
             trigger: true
             passed:
-              - analytical-dataset-generation-preprod
+              - analytical-dataset-generation-integration
           - get: pdm-emr-launcher-release
             trigger: true
             passed:

@@ -22,8 +22,8 @@ jobs:
           - get: emr-launcher-release
             version: { tag: ((emr-launcher-version.preprod)) }
             trigger: true
-            passed:
-              - analytical-dataset-generation-integration
+            # passed:
+            #   - analytical-dataset-generation-integration
           - get: pdm-emr-launcher-release
             trigger: true
             passed:
