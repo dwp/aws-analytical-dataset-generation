@@ -127,7 +127,7 @@ resources:
         owner-id: ((dataworks.aws_management_acc))
         is-public: false
         state: available
-        name: dw-al2-emr-ami-*
+        name: untested-dw-al2-emr-ami-*
         architecture: x86_64
 
   - name: manage-mysql-user-release
