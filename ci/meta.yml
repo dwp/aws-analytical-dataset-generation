@@ -499,22 +499,26 @@ meta:
         run:
           path: sh
           args:
+            - -exc
             - |
               set +x
 
-              AMI_ID=$(cat $UNTESTED_AMI/id)
+              AMI_ID=$(cat al2-emr-ami/id)
               DATE=$(date -u)
               PIPELINE="$(cat meta/build_pipeline_name)"
 
               git config --global user.name "${GIT_USERNAME}"
               git config --global user.email "${GIT_EMAIL}"
 
-              git clone https://github.com/dwp/ami-builder-config
-              cd ami-builder-config/results
+              git clone https://${GITHUB_TOKEN}:x-oauth-basic@github.com/dwp/ami-builder-configs
+              cd ami-builder-configs/results
 
               echo "$AMI_ID $RESULT" > "$PIPELINE.test"
 
               git add "$PIPELINE.test"
               git commit -m "Updating $PIPELINE AMI test on ${DATE}"
-              git push https://${GITHUB_TOKEN}:x-oauth-basic@github.com/dwp/ami-builder-config
-        input: meta
+              git push https://${GITHUB_TOKEN}:x-oauth-basic@github.com/dwp/ami-builder-configs
+        inputs:
+          - name: meta
+          - name: al2-emr-ami
+

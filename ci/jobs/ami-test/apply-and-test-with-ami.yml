@@ -69,13 +69,15 @@ jobs:
     on_failure:
       do:
         - .: (( inject meta.plan.ami-test-results ))
+          task: ami-test-result-fail
           config:
             params:
               RESULT: FAILED
     on_success:
       do:
         - .: (( inject meta.plan.ami-test-results ))
+          task: ami-test-result-success
           config:
-            params:
-              RESULT: SUCCESS
+              params:
+                RESULT: SUCCESS
 
