@@ -352,7 +352,6 @@ meta:
           AWS_DEFAULT_REGION: ((dataworks.aws_region))
           NUMBER_OF_TOPICS_TO_USE: "3"
           E2E_TEST_TIMEOUT: 300
-          E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation"
           ASSUME_DURATION: 7200
         run:
           path: sh
