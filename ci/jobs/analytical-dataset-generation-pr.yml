@@ -8,17 +8,19 @@ jobs:
             version: every
           - get: emr-launcher-release
             version: { tag: ((emr-launcher-version.qa)) }
-            trigger: false
+            trigger: true
           - get: pdm-emr-launcher-release
-            trigger: false
+            version: { tag: ((pdm-emr-launcher-version.qa)) }
+            trigger: true
           - get: emr-relauncher-release
-            trigger: false
+            version: { tag: ((emr-relauncher-version.qa)) }
+            trigger: true
           - get: manage-mysql-user-release
-            trigger: false
+            trigger: true
           - get: analytical-dataset-generation-exporter-release
-            trigger: false
+            trigger: true
           - get: al2-emr-ami
-            trigger: false
+            trigger: true
           - get: secrets-management
             trigger: false
       - put: aws-analytical-dataset-generation-pr

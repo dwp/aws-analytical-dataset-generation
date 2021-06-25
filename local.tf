@@ -175,7 +175,6 @@ locals {
     production  = false
   }
 
-
   published_db = "analytical_dataset_generation"
 
   hive_metastore_backend = {
@@ -184,14 +183,6 @@ locals {
     integration = "aurora"
     preprod     = "aurora"
     production  = "aurora"
-  }
-
-  hive_metastore_monitoring_interval = {
-    development = 0
-    qa          = 0
-    integration = 0
-    preprod     = 0
-    production  = 0
   }
 
   hive_metastore_enable_perf_insights = {
@@ -284,14 +275,6 @@ locals {
     production  = "5068"
   }
 
-  hive_bytes_per_reducer = {
-    development = "13421728"
-    qa          = "13421728"
-    integration = "13421728"
-    preprod     = "13421728"
-    production  = "13421728"
-  }
-
   tez_runtime_unordered_output_buffer_size_mb = {
     development = "268"
     qa          = "268"
@@ -351,55 +334,6 @@ locals {
     production  = "-Xmx6556m"
   }
 
-  // This value should be the same as yarn.scheduler.maximum-allocation-mb
-  llap_daemon_yarn_container_mb = {
-    development = "57344"
-    qa          = "57344"
-    integration = "57344"
-    preprod     = "385024"
-    production  = "385024"
-  }
-
-  llap_number_of_instances = {
-    development = "5"
-    qa          = "5"
-    integration = "5"
-    preprod     = "20"
-    production  = "20"
-  }
-
-  map_reduce_vcores_per_node = {
-    development = "5"
-    qa          = "5"
-    integration = "5"
-    preprod     = "15"
-    production  = "15"
-  }
-
-  map_reduce_vcores_per_task = {
-    development = "1"
-    qa          = "1"
-    integration = "1"
-    preprod     = "5"
-    production  = "5"
-  }
-
-  hive_max_reducers = {
-    development = "1099"
-    qa          = "1099"
-    integration = "1099"
-    preprod     = "3000"
-    production  = "3000"
-  }
-
-  hive_tez_sessions_per_queue = {
-    development = "10"
-    qa          = "10"
-    integration = "10"
-    preprod     = "35"
-    production  = "35"
-  }
-
   use_capacity_reservation = {
     development = false
     qa          = false
@@ -409,10 +343,20 @@ locals {
   }
 
   emr_capacity_reservation_preference = local.use_capacity_reservation[local.environment] == true ? "open" : "none"
-
   emr_capacity_reservation_usage_strategy = local.use_capacity_reservation[local.environment] == true ? "use-capacity-reservations-first" : ""
 
-  emr_subnet_non_capacity_reserved_environments = "eu-west-2b"
+  use_capacity_reservation_incremental = {
+    development = false
+    qa          = false
+    integration = false
+    preprod     = false
+    production  = false
+  }
+
+  emr_capacity_reservation_preference_incremental = local.use_capacity_reservation_incremental[local.environment] == true ? "open" : "none"
+  emr_capacity_reservation_usage_strategy_incremental = local.use_capacity_reservation_incremental[local.environment] == true ? "use-capacity-reservations-first" : ""
+
+  emr_subnet_non_capacity_reserved_environments = "eu-west-2a"
 
   pdm_start_do_not_run_after_hour = {
     development = "23" # 2300 (UTC) the day after the export as for lower environments we want to run on demand
