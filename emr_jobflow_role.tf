@@ -361,6 +361,8 @@ data "aws_iam_policy_document" "adg_cloudwatch_topic_policy_for_pdm_trigger" {
       "events:EnableRule",
       "events:PutRule",
       "events:PutTargets",
+      "events:ListRules",
+      "events:DeleteRule",
     ]
 
     effect = "Allow"
