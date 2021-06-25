@@ -54,25 +54,19 @@ resource "aws_s3_bucket_object" "instances_incremental" {
   key    = "emr/adg/instances_incremental.yaml"
   content = templatefile("${path.module}/cluster_config/instances_incremental.yaml.tpl",
     {
-      keep_cluster_alive = local.keep_cluster_alive[local.environment]
-      add_master_sg      = aws_security_group.adg_common.id
-      add_slave_sg       = aws_security_group.adg_common.id
-      subnet_id = (
-        local.use_capacity_reservation_incremental[local.environment] == true ?
-        data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, data.terraform_remote_state.common.outputs.ec2_capacity_reservations.emr_m5_16_x_large_2a.availability_zone)].id :
-        data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, local.emr_subnet_non_capacity_reserved_environments)].id
-      )
-      master_sg                           = aws_security_group.adg_master.id
-      slave_sg                            = aws_security_group.adg_slave.id
-      service_access_sg                   = aws_security_group.adg_emr_service.id
-      instance_type_core_one              = var.emr_instance_type_core_one_incremental[local.environment]
-      instance_type_core_two              = var.emr_instance_type_core_two_incremental[local.environment]
-      instance_type_core_three            = var.emr_instance_type_core_three_incremental[local.environment]
-      instance_type_master_one            = var.emr_instance_type_master_one_incremental[local.environment]
-      instance_type_master_two            = var.emr_instance_type_master_two_incremental[local.environment]
-      core_instance_count                 = var.emr_core_instance_count_incremental[local.environment]
-      capacity_reservation_preference     = local.emr_capacity_reservation_preference_incremental
-      capacity_reservation_usage_strategy = local.emr_capacity_reservation_usage_strategy_incremental
+      keep_cluster_alive       = local.keep_cluster_alive[local.environment]
+      add_master_sg            = aws_security_group.adg_common.id
+      add_slave_sg             = aws_security_group.adg_common.id
+      subnet_id                = data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets[index(data.terraform_remote_state.internal_compute.outputs.adg_subnet_new.subnets.*.availability_zone, local.emr_subnet_non_capacity_reserved_environments)].id
+      master_sg                = aws_security_group.adg_master.id
+      slave_sg                 = aws_security_group.adg_slave.id
+      service_access_sg        = aws_security_group.adg_emr_service.id
+      instance_type_core_one   = var.emr_instance_type_core_one_incremental[local.environment]
+      instance_type_core_two   = var.emr_instance_type_core_two_incremental[local.environment]
+      instance_type_core_three = var.emr_instance_type_core_three_incremental[local.environment]
+      instance_type_master_one = var.emr_instance_type_master_one_incremental[local.environment]
+      instance_type_master_two = var.emr_instance_type_master_two_incremental[local.environment]
+      core_instance_count      = var.emr_core_instance_count_incremental[local.environment]
     }
   )
 }
