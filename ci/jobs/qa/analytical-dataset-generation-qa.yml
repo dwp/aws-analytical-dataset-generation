@@ -21,8 +21,10 @@ jobs:
             version: { tag: ((emr-launcher-version.qa)) }
             trigger: true
           - get: pdm-emr-launcher-release
+            version: { tag: ((pdm-emr-launcher-version.qa)) }
             trigger: true
           - get: emr-relauncher-release
+            version: { tag: ((emr-relauncher-version.qa)) }
             trigger: true
           - get: analytical-dataset-generation-exporter-release
             trigger: true

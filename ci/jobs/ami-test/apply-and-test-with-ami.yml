@@ -32,10 +32,12 @@ jobs:
             passed:
               - analytical-dataset-generation-qa
           - get: pdm-emr-launcher-release
+            version: { tag: ((pdm-emr-launcher-version.qa)) }
             trigger: false
             passed:
               - analytical-dataset-generation-qa
           - get: emr-relauncher-release
+            version: { tag: ((emr-relauncher-version.qa)) }
             trigger: false
             passed:
               - analytical-dataset-generation-qa

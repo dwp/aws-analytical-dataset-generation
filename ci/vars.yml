@@ -1,6 +1,20 @@
 emr-launcher-version:
-  development: "1.0.33"
-  qa:          "1.0.33"
-  integration: "1.0.33"
-  preprod:     "1.0.33"
-  production:  "1.0.33"
+  development: "1.0.34"
+  qa:          "1.0.34"
+  integration: "1.0.34"
+  preprod:     "1.0.34"
+  production:  "1.0.34"
+
+emr-relauncher-version:
+  development: "0.0.7"
+  qa:          "0.0.7"
+  integration: "0.0.7"
+  preprod:     "0.0.7"
+  production:  "0.0.7"
+
+pdm-emr-launcher-version:
+  development: "0.0.5"
+  qa:          "0.0.5"
+  integration: "0.0.5"
+  preprod:     "0.0.5"
+  production:  "0.0.5"

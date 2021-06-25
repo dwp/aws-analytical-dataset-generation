@@ -82,6 +82,37 @@ variable "emr_core_instance_count" {
   }
 }
 
+variable "emr_instance_type_master_incremental" {
+  default = {
+    development = "r4.2xlarge"
+    qa          = "r4.2xlarge"
+    integration = "r4.2xlarge"
+    preprod     = "r4.8xlarge"
+    production  = "r4.8xlarge"
+  }
+}
+
+variable "emr_instance_type_core_one_incremental" {
+  default = {
+    development = "r4.2xlarge"
+    qa          = "r4.2xlarge"
+    integration = "r4.2xlarge"
+    preprod     = "r4.8xlarge"
+    production  = "r4.8xlarge"
+  }
+}
+
+# Count of instances
+variable "emr_core_instance_count_incremental" {
+  default = {
+    development = "3"
+    qa          = "3"
+    integration = "3"
+    preprod     = "10"
+    production  = "10"
+  }
+}
+
 variable "spark_kyro_buffer" {
   default = {
     development = "128m"
