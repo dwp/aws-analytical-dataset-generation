@@ -120,14 +120,6 @@ locals {
     production  = false
   }
 
-  keep_cluster_alive_incremental = {
-    development = true
-    qa          = false
-    integration = false
-    preprod     = false
-    production  = false
-  }
-
   step_fail_action = {
     development = "CONTINUE"
     qa          = "TERMINATE_CLUSTER"
@@ -243,11 +235,11 @@ locals {
   }
 
   dynamodb_final_step = {
-    development = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
-    qa          = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
-    integration = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
-    preprod     = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
-    production  = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "spark-submit" : "send_notification"
+    development = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
+    qa          = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
+    integration = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
+    preprod     = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
+    production  = local.skip_sns_notification_on_adg_completion[local.environment] == "true" ? "create_pdm_trigger" : "send_notification"
   }
 
   adg_max_retry_count = {

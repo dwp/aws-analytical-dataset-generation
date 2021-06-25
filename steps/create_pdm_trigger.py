@@ -31,7 +31,7 @@ def create_pdm_trigger(
     now = get_now()
     do_not_run_after = generate_cut_off_date(args.export_date, args.pdm_start_do_not_run_after_hour)
 
-    if should_step_be_skipped(args.skip_pdm_trigger, now, do_not_run_after, args.skip_date_checks):
+    if should_step_be_skipped(args.skip_pdm_trigger, now, do_not_run_after, args.skip_date_checks, args.snapshot_type):
         return None
 
     if events_client is None:
@@ -250,10 +250,16 @@ def check_should_skip_step():
     return should_skip_step(the_logger, "trigger-pdm")
 
 
-def should_step_be_skipped(skip_pdm_trigger, now, do_not_trigger_after, skip_date_checks):
+def should_step_be_skipped(skip_pdm_trigger, now, do_not_trigger_after, skip_date_checks, snapshot_type):
     if skip_pdm_trigger.lower() == "true":
         the_logger.info(
             f"Skipping PDM trigger due to skip_pdm_trigger value of {skip_pdm_trigger}",
+        )
+        return True
+
+    if snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL.lower():
+        the_logger.info(
+            f"Skipping PDM trigger due to snapshot_type value of {snapshot_type}",
         )
         return True
 

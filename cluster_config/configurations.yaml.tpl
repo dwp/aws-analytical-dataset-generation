@@ -35,10 +35,6 @@ Configurations:
 
 - Classification: "spark-hive-site"
   Properties:
-    %{~ if hive_metastore_backend == "glue" ~}
-    "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
-    %{~ endif ~}
-    %{~ if hive_metastore_backend == "aurora" ~}
     "hive.txn.manager": "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager"
     "hive.enforce.bucketing": "true"
     "hive.exec.dynamic.partition.mode": "nostrict"
@@ -50,14 +46,9 @@ Configurations:
     "javax.jdo.option.ConnectionUserName": "${hive_metsatore_username}"
     "javax.jdo.option.ConnectionPassword": "${hive_metastore_pwd}"
     "hive.metastore.client.socket.timeout": "7200"
-    %{~ endif ~}
 
 - Classification: "hive-site"
   Properties:
-    %{~ if hive_metastore_backend == "glue" ~}
-    "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
-    %{~ endif ~}
-    %{~ if hive_metastore_backend == "aurora" ~}
     "hive.metastore.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
     "hive.txn.manager": "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager"
     "hive.enforce.bucketing": "true"
@@ -70,7 +61,6 @@ Configurations:
     "javax.jdo.option.ConnectionUserName": "${hive_metsatore_username}"
     "javax.jdo.option.ConnectionPassword": "${hive_metastore_pwd}"
     "hive.metastore.client.socket.timeout": "7200"
-    %{~ endif ~}
     "hive.mapred.mode": "nonstrict"
     "hive.strict.checks.cartesian.product": "false"
     "hive.exec.parallel": "true"

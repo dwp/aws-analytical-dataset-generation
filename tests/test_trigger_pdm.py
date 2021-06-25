@@ -84,6 +84,7 @@ class TestReplayer(unittest.TestCase):
             now,
             do_not_run_after,
             args.skip_date_checks,
+            args.snapshot_type,
         )
         get_events_client_mock.assert_called_once()
         generate_do_not_run_before_date_mock.assert_called_once_with(
@@ -162,6 +163,7 @@ class TestReplayer(unittest.TestCase):
             now,
             do_not_run_after,
             args.skip_date_checks,
+            args.snapshot_type,
         )
         get_events_client_mock.assert_not_called()
         generate_do_not_run_before_date_mock.assert_not_called()
@@ -334,6 +336,7 @@ class TestReplayer(unittest.TestCase):
             now, 
             do_not_trigger_after,
             "false",
+            "full",
         )
 
         assert True == actual
@@ -354,6 +357,7 @@ class TestReplayer(unittest.TestCase):
             now, 
             do_not_trigger_after,
             "true",
+            "full",
         )
 
         assert False == actual
@@ -374,6 +378,7 @@ class TestReplayer(unittest.TestCase):
             now, 
             do_not_trigger_after,
             "TRUE",
+            "full",
         )
 
         assert False == actual
@@ -394,6 +399,7 @@ class TestReplayer(unittest.TestCase):
             now, 
             do_not_trigger_after,
             "false",
+            "full",
         )
 
         assert True == actual
@@ -414,6 +420,7 @@ class TestReplayer(unittest.TestCase):
             now, 
             do_not_trigger_after,
             "true",
+            "full",
         )
 
         assert True == actual
@@ -434,6 +441,7 @@ class TestReplayer(unittest.TestCase):
             now, 
             do_not_trigger_after,
             "false",
+            "full",
         )
 
         assert True == actual
@@ -454,6 +462,7 @@ class TestReplayer(unittest.TestCase):
             now, 
             do_not_trigger_after,
             "true",
+            "full",
         )
 
         assert True == actual
@@ -474,6 +483,7 @@ class TestReplayer(unittest.TestCase):
             now, 
             do_not_trigger_after,
             "false",
+            "full",
         )
 
         assert True == actual
@@ -494,9 +504,31 @@ class TestReplayer(unittest.TestCase):
             now, 
             do_not_trigger_after,
             "false",
+            "full",
         )
 
         assert False == actual
+
+
+    @mock.patch("steps.create_pdm_trigger.check_should_skip_step")
+    def test_should_skip_returns_true_when_incremental(
+        self,
+        check_should_skip_step_mock,
+    ):
+        now = datetime.strptime("18/09/19 23:57:19", '%d/%m/%y %H:%M:%S')
+        do_not_trigger_after = datetime.strptime("18/09/19 22:55:19", '%d/%m/%y %H:%M:%S')
+
+        check_should_skip_step_mock.return_value = False
+
+        actual = create_pdm_trigger.should_step_be_skipped(
+            "false",
+            now, 
+            do_not_trigger_after,
+            "false",
+            "incremental",
+        )
+
+        assert True == actual
 
 
     def test_get_cron_gives_cut_out_time_plus_5_minutes_when_before_cut_off(self):
