@@ -82,7 +82,37 @@ variable "emr_core_instance_count" {
   }
 }
 
-variable "emr_instance_type_master_incremental" {
+variable "emr_instance_type_master_one_incremental" {
+  default = {
+    development = "r5.2xlarge"
+    qa          = "r5.2xlarge"
+    integration = "r5.2xlarge"
+    preprod     = "r5.8xlarge"
+    production  = "r5.8xlarge"
+  }
+}
+
+variable "emr_instance_type_master_two_incremental" {
+  default = {
+    development = "m5.4xlarge"
+    qa          = "m5.4xlarge"
+    integration = "m5.4xlarge"
+    preprod     = "m5.16xlarge"
+    production  = "m5.16xlarge"
+  }
+}
+
+variable "emr_instance_type_core_one_incremental" {
+  default = {
+    development = "r5.2xlarge"
+    qa          = "r5.2xlarge"
+    integration = "r5.2xlarge"
+    preprod     = "r5.8xlarge"
+    production  = "r5.8xlarge"
+  }
+}
+
+variable "emr_instance_type_core_two_incremental" {
   default = {
     development = "r4.2xlarge"
     qa          = "r4.2xlarge"
@@ -92,13 +122,13 @@ variable "emr_instance_type_master_incremental" {
   }
 }
 
-variable "emr_instance_type_core_one_incremental" {
+variable "emr_instance_type_core_three_incremental" {
   default = {
-    development = "r4.2xlarge"
-    qa          = "r4.2xlarge"
-    integration = "r4.2xlarge"
-    preprod     = "r4.8xlarge"
-    production  = "r4.8xlarge"
+    development = "m5.4xlarge"
+    qa          = "m5.4xlarge"
+    integration = "m5.4xlarge"
+    preprod     = "m5.16xlarge"
+    production  = "m5.16xlarge"
   }
 }
 
