@@ -84,11 +84,11 @@ variable "emr_core_instance_count" {
 
 variable "emr_instance_type_master_one_incremental" {
   default = {
-    development = "r4.2xlarge"
-    qa          = "r4.2xlarge"
-    integration = "r4.2xlarge"
-    preprod     = "r4.8xlarge"
-    production  = "r4.8xlarge"
+    development = "r5.2xlarge"
+    qa          = "r5.2xlarge"
+    integration = "r5.2xlarge"
+    preprod     = "r5.8xlarge"
+    production  = "r5.8xlarge"
   }
 }
 
@@ -104,21 +104,21 @@ variable "emr_instance_type_master_two_incremental" {
 
 variable "emr_instance_type_core_one_incremental" {
   default = {
-    development = "r4.2xlarge"
-    qa          = "r4.2xlarge"
-    integration = "r4.2xlarge"
-    preprod     = "r4.8xlarge"
-    production  = "r4.8xlarge"
-  }
-}
-
-variable "emr_instance_type_core_two_incremental" {
-  default = {
     development = "r5.2xlarge"
     qa          = "r5.2xlarge"
     integration = "r5.2xlarge"
     preprod     = "r5.8xlarge"
     production  = "r5.8xlarge"
+  }
+}
+
+variable "emr_instance_type_core_two_incremental" {
+  default = {
+    development = "r4.2xlarge"
+    qa          = "r4.2xlarge"
+    integration = "r4.2xlarge"
+    preprod     = "r4.8xlarge"
+    production  = "r4.8xlarge"
   }
 }
 
