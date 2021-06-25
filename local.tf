@@ -342,7 +342,7 @@ locals {
     production  = true
   }
 
-  emr_capacity_reservation_preference = local.use_capacity_reservation[local.environment] == true ? "open" : "none"
+  emr_capacity_reservation_preference     = local.use_capacity_reservation[local.environment] == true ? "open" : "none"
   emr_capacity_reservation_usage_strategy = local.use_capacity_reservation[local.environment] == true ? "use-capacity-reservations-first" : ""
 
   use_capacity_reservation_incremental = {
@@ -353,7 +353,7 @@ locals {
     production  = false
   }
 
-  emr_capacity_reservation_preference_incremental = local.use_capacity_reservation_incremental[local.environment] == true ? "open" : "none"
+  emr_capacity_reservation_preference_incremental     = local.use_capacity_reservation_incremental[local.environment] == true ? "open" : "none"
   emr_capacity_reservation_usage_strategy_incremental = local.use_capacity_reservation_incremental[local.environment] == true ? "use-capacity-reservations-first" : ""
 
   emr_subnet_non_capacity_reserved_environments = "eu-west-2a"
