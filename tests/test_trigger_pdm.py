@@ -293,8 +293,8 @@ class TestReplayer(unittest.TestCase):
     @mock.patch("steps.create_pdm_trigger.remove_targets_from_existing_cloudwatch_rule")
     def test_delete_old_cloudwatch_event_rules(
         self,
-        get_existing_cloudwatch_rule_targets_mock,
         remove_targets_from_existing_cloudwatch_rule_mock,
+        get_existing_cloudwatch_rule_targets_mock,
     ):
         events_client = mock.MagicMock()
         events_client.delete_rule = mock.MagicMock()
@@ -386,7 +386,7 @@ class TestReplayer(unittest.TestCase):
         )
 
         events_client.remove_targets.assert_called_once_with(
-            Rule=rule_name,
+            Name=rule_name,
             Ids=ids,
         )
 
