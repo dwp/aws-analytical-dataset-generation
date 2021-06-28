@@ -6,5 +6,5 @@ jobs:
           params:
             AWS_ROLE_ARN: arn:aws:iam::((aws_account.production)):role/ci
             AWS_ACC: ((aws_account.production))
-            CORRELATION_ID: ingest_emr_scheduled_tasks_export_snapshots_to_crown_production_incremental_157_incremental
-            DATA_PRODUCT: ADG-incremental
+            CORRELATION_ID: 071c488d-e920-50dc-b5f6-11c2cb489d9f
+            DATA_PRODUCT: AZKABAN_MONGO_LATEST_EMR_LAUNCHER

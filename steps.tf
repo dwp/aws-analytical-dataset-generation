@@ -55,6 +55,7 @@ resource "aws_s3_bucket_object" "send_notification_script" {
       publish_bucket       = data.terraform_remote_state.common.outputs.published_bucket.id
       status_topic_arn     = aws_sns_topic.adg_completion_status_sns.arn
       log_path             = "/var/log/adg/sns_notification.log"
+      s3_prefix            = var.htme_data_location[local.environment]
       skip_message_sending = local.skip_sns_notification_on_adg_completion[local.environment]
     }
   )
@@ -78,19 +79,6 @@ resource "aws_s3_bucket_object" "courtesy_flush" {
   content = templatefile("${path.module}/steps/courtesy-flush.sh",
     {
       adg_pushgateway_hostname = local.adg_pushgateway_hostname
-    }
-  )
-}
-
-resource "aws_s3_bucket_object" "create-mongo-latest-dbs" {
-  bucket     = data.terraform_remote_state.common.outputs.config_bucket.id
-  kms_key_id = data.terraform_remote_state.common.outputs.config_bucket_cmk.arn
-  key        = "component/analytical-dataset-generation/create-mongo-latest-dbs.sh"
-  content = templatefile("${path.module}/steps/create-mongo-latest-dbs.sh",
-    {
-      publish_bucket      = format("s3://%s", data.terraform_remote_state.common.outputs.published_bucket.id)
-      processed_bucket    = format("s3://%s", data.terraform_remote_state.common.outputs.processed_bucket.id)
-      dynamodb_table_name = local.data_pipeline_metadata
     }
   )
 }

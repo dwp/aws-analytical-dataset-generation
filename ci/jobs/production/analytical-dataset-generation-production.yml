@@ -24,10 +24,12 @@ jobs:
             passed:
               - analytical-dataset-generation-preprod
           - get: pdm-emr-launcher-release
+            version: { tag: ((pdm-emr-launcher-version.production)) }
             trigger: true
             passed:
               - analytical-dataset-generation-preprod
           - get: emr-relauncher-release
+            version: { tag: ((emr-relauncher-version.production)) }
             trigger: true
             passed:
               - analytical-dataset-generation-preprod

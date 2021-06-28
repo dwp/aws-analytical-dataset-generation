@@ -212,6 +212,11 @@ To do a full cluster restart
 
 * You can then run `start-cluster` job with the same `Correlation_Id` from fresh.
 
+### Pipeline not running in QA?
+
+There is an automated AMI upgrade pipeline embedded into the pipeline of this repo (`ci/jobs/ami-test`). This is in a `serial_group` with the QA deployment pipeline to ensure that they do not interfere with each other.
+
+Please let the tests run and the deployment pipeline will continue automatically.
 
 # Upgrading to EMR 6.2.0
 
@@ -332,4 +337,4 @@ Whenever we call boto3.get_object set the log level to debug. This will allow us
 Log the UTC current time whenever we call boto3.get_object. This is to compare this time with the time generated on the S3 side to see if they vary.
 
 
-Next steps are whenenver this error happens check the complete error trace from the logs and contact AWS support team.
+Next steps are whenever this error happens check the complete error trace from the logs and contact AWS support team.

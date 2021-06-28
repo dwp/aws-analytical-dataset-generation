@@ -1,6 +1,7 @@
 jobs:
   - name: apply-and-test-with-ami
     max_in_flight: 1
+    serial_groups: [qa-applies]
     plan:
       - in_parallel:
           - get: meta
@@ -11,24 +12,41 @@ jobs:
             params:
               globs:
                 - "*.zip"
+            passed:
+              - analytical-dataset-generation-qa
           - get: aws-analytical-dataset-generation
             trigger: false
+            passed:
+              - analytical-dataset-generation-qa
           - get: secrets-management
             trigger: false
+            passed:
+              - analytical-dataset-generation-qa
           - get: dataworks-behavioural-framework
             trigger: false
+            passed:
+              - analytical-dataset-generation-qa
           - get: emr-launcher-release
             version: { tag: ((emr-launcher-version.qa)) }
             trigger: false
+            passed:
+              - analytical-dataset-generation-qa
           - get: pdm-emr-launcher-release
+            version: { tag: ((pdm-emr-launcher-version.qa)) }
             trigger: false
+            passed:
+              - analytical-dataset-generation-qa
           - get: emr-relauncher-release
+            version: { tag: ((emr-relauncher-version.qa)) }
             trigger: false
+            passed:
+              - analytical-dataset-generation-qa
           - get: analytical-dataset-generation-exporter-release
             trigger: false
+            passed:
+              - analytical-dataset-generation-qa
           - get: al2-emr-ami
-            trigger: false
-          - get: untested-al2-emr-ami
+            resource: untested-al2-emr-ami
             trigger: true
       - .: (( inject meta.plan.terraform-bootstrap ))
         config:
@@ -39,34 +57,40 @@ jobs:
           params:
             TF_WORKSPACE: qa
             TEST_AMI_RUN: true
-          inputs:
-            - name: untested-al2-emr-ami
       - .: (( inject meta.plan.terraform-plan ))
         config:
           params:
             TF_WORKSPACE: qa
             TEST_AMI_RUN: true
-          inputs:
-            - name: untested-al2-emr-ami
-      - .: (( inject meta.plan.e2e-tests))
-        config:
-          params:
-            TF_WORKSPACE: qa
-            AWS_ACC: ((aws_account.qa))
-            AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
-        on_failure:
-          do:
-            - .: (( inject meta.plan.ami-test-results ))
-              config:
-                params:
-                  RESULT: FAILED
-                run:
-                  dir: aws-analytical-dataset-generation
-        on_success:
-          do:
-            - .: (( inject meta.plan.ami-test-results ))
-              config:
-                params:
-                  RESULT: SUCCESS
-                run:
-                  dir: aws-analytical-dataset-generation
+      - in_parallel:
+        - .: (( inject meta.plan.e2e-tests))
+          task: run-full-e2e-tests
+          config:
+            params:
+              TF_WORKSPACE: qa
+              AWS_ACC: ((aws_account.qa))
+              AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+              E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation-full"
+        - .: (( inject meta.plan.e2e-tests))
+          task: run-incremental-e2e-tests
+          config:
+            params:
+              TF_WORKSPACE: qa
+              AWS_ACC: ((aws_account.qa))
+              AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+              E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation-incremental"
+    on_failure:
+      do:
+        - .: (( inject meta.plan.ami-test-results ))
+          task: ami-test-result-fail
+          config:
+            params:
+              RESULT: FAILED
+    on_success:
+      do:
+        - .: (( inject meta.plan.ami-test-results ))
+          task: ami-test-result-success
+          config:
+              params:
+                RESULT: SUCCESS
+

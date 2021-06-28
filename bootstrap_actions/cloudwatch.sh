@@ -189,36 +189,6 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/adg/create-mongo-latest-dbs.log",
-            "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "{instance_id}-create-mongo-latest-dbs.log",
-            "timezone": "UTC"
-          },
-          {
-            "file_path": "/var/log/mongo_latest/executeUpdateContractClaimant.log",
-            "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "{instance_id}-executeUpdateContractClaimant.log",
-            "timezone": "UTC"
-          },
-          {
-            "file_path": "/var/log/mongo_latest/executeUpdateStatement.log",
-            "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "{instance_id}-executeUpdateStatement.log",
-            "timezone": "UTC"
-          },
-          {
-            "file_path": "/var/log/mongo_latest/executeUpdateToDo.log",
-            "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "{instance_id}-executeUpdateToDo.log",
-            "timezone": "UTC"
-          },
-          {
-            "file_path": "/var/log/mongo_latest/executeUpdateAppointment.log",
-            "log_group_name": "$${cwa_steps_loggrp_name}",
-            "log_stream_name": "{instance_id}-executeUpdateAppointment.log",
-            "timezone": "UTC"
-          },
-          {
             "file_path": "/var/log/adg/executeUpdateAppointment.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
             "log_stream_name": "{instance_id}-executeUpdateAppointment.log",
@@ -230,7 +200,6 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "log_stream_name": "{instance_id}-e2e.log",
             "timezone": "UTC"
           }
-
         ]
       }
     },
