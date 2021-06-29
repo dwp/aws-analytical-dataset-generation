@@ -231,7 +231,7 @@ def remove_targets_from_existing_cloudwatch_rule(client, rule_name, target_ids):
             f"Removing all existing targets from PDM cloudwatch rule with name of '{rule_name}'",
         )
         client.remove_targets(
-            Name=rule_name,
+            Rule=rule_name,
             Ids=target_ids,
         )
         the_logger.info(
