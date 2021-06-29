@@ -341,7 +341,9 @@ class TestReplayer(unittest.TestCase):
 
         remove_calls = [
             mock.call(events_client, "Rule1", ids),
+            mock.call(events_client, "Rule2", no_ids),
             mock.call(events_client, "Rule4", ids),
+            mock.call(events_client, "Rule5", no_ids),
             mock.call(events_client, "Rule6", ids),
         ]
 
@@ -389,6 +391,24 @@ class TestReplayer(unittest.TestCase):
             Name=rule_name,
             Ids=ids,
         )
+
+
+    def test_remove_targets_from_existing_cloudwatch_rule_for_empty_array(
+        self,
+    ):
+        events_client = mock.MagicMock()
+        events_client.remove_targets = mock.MagicMock()
+
+        rule_name = "Rule1"
+        ids = []
+
+        create_pdm_trigger.remove_targets_from_existing_cloudwatch_rule(
+            events_client,
+            rule_name,
+            ids,
+        )
+
+        events_client.remove_targets.assert_not_called()
 
 
     @mock.patch("steps.create_pdm_trigger.check_should_skip_step")

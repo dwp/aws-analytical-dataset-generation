@@ -172,8 +172,7 @@ def delete_old_cloudwatch_event_rules(client, all_rules, new_rule_name):
                 f"Checking for existing targets to delete for '{rule_name}'",
             )
             existing_target_ids = get_existing_cloudwatch_rule_targets(client, rule_name)
-            if existing_target_ids:
-                remove_targets_from_existing_cloudwatch_rule(client, rule_name, existing_target_ids)
+            remove_targets_from_existing_cloudwatch_rule(client, rule_name, existing_target_ids)
 
             the_logger.info(
                 f"Deleting rule named '{rule_name}'",
@@ -227,16 +226,21 @@ def get_existing_cloudwatch_rule_targets(client, rule_name):
 
 
 def remove_targets_from_existing_cloudwatch_rule(client, rule_name, target_ids):
-    the_logger.info(
-        f"Removing all existing targets from PDM cloudwatch rule with name of '{rule_name}'",
-    )
-    client.remove_targets(
-        Name=rule_name,
-        Ids=target_ids,
-    )
-    the_logger.info(
-        f"Removed all existing targets from PDM cloudwatch rule with name of '{rule_name}'"
-    )
+    if target_ids:
+        the_logger.info(
+            f"Removing all existing targets from PDM cloudwatch rule with name of '{rule_name}'",
+        )
+        client.remove_targets(
+            Name=rule_name,
+            Ids=target_ids,
+        )
+        the_logger.info(
+            f"Removed all existing targets from PDM cloudwatch rule with name of '{rule_name}'"
+        )
+    else:
+        the_logger.info(
+            f"No targets to remove from rule with name of '{rule_name}'"
+        )
 
 
 def put_cloudwatch_event_rule(client, now, cron):
