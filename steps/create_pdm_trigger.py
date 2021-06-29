@@ -172,7 +172,7 @@ def delete_old_cloudwatch_event_rules(client, all_rules, new_rule_name):
                 f"Checking for existing targets to delete for '{rule_name}'",
             )
             existing_target_ids = get_existing_cloudwatch_rule_targets(client, rule_name)
-            if len(existing_target_ids) > 0:
+            if existing_target_ids:
                 remove_targets_from_existing_cloudwatch_rule(client, rule_name, existing_target_ids)
 
             the_logger.info(
