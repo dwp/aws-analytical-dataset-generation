@@ -340,11 +340,11 @@ class TestReplayer(unittest.TestCase):
         get_existing_cloudwatch_rule_targets_mock.assert_has_calls(get_calls)
 
         remove_calls = [
-            mock.call(events_client, "Rule1", ids),
-            mock.call(events_client, "Rule2", no_ids),
-            mock.call(events_client, "Rule4", ids),
-            mock.call(events_client, "Rule5", no_ids),
-            mock.call(events_client, "Rule6", ids),
+            mock.call(events_client, "Rule1", get_existing_cloudwatch_rule_targets_mock.return_value),
+            mock.call(events_client, "Rule2", get_existing_cloudwatch_rule_targets_mock.return_value),
+            mock.call(events_client, "Rule4", get_existing_cloudwatch_rule_targets_mock.return_value),
+            mock.call(events_client, "Rule5", get_existing_cloudwatch_rule_targets_mock.return_value),
+            mock.call(events_client, "Rule6", get_existing_cloudwatch_rule_targets_mock.return_value),
         ]
 
         remove_targets_from_existing_cloudwatch_rule_mock.assert_has_calls(remove_calls)
