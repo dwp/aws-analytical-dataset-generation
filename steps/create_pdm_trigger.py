@@ -169,6 +169,12 @@ def delete_old_cloudwatch_event_rules(client, all_rules, new_rule_name):
         rule_name = rule["Name"]
         if rule_name != new_rule_name:
             the_logger.info(
+                f"Checking for existing targets to delete for '{rule_name}'",
+            )
+            existing_target_ids = get_existing_cloudwatch_rule_targets(client, rule_name)
+            remove_targets_from_existing_cloudwatch_rule(client, rule_name, existing_target_ids)
+
+            the_logger.info(
                 f"Deleting rule named '{rule_name}'",
             )
             client.delete_rule(
@@ -183,6 +189,58 @@ def delete_old_cloudwatch_event_rules(client, all_rules, new_rule_name):
     )
 
     return all_rules
+
+
+def get_existing_cloudwatch_rule_targets(client, rule_name):
+    the_logger.info(
+        f"Retrieving all existing targets for PDM cloudwatch rule with name of '{rule_name}'",
+    )
+
+    first_batch = client.list_targets_by_rule(
+        Rule=rule_name,
+    )
+    all_targets = first_batch["Targets"]
+    next_token = (
+        first_batch["NextToken"]
+        if "NextToken" in first_batch
+        else None
+    )
+
+    while next_token is not None:
+        next_batch = client.list_targets_by_rule(
+            Rule=rule_name,
+            NextToken=next_token,
+        )
+        all_targets.extend(next_batch["Targets"])
+        next_token = (
+            next_batch["NextToken"]
+            if "NextToken" in next_batch
+            else None
+        )
+
+    the_logger.info(
+        f"Retrieved {len(all_targets)} existing targets for PDM cloudwatch rule with name of'{rule_name}'",
+    )
+
+    return list({ target['Id'] : target for target in all_targets }.values())
+
+
+def remove_targets_from_existing_cloudwatch_rule(client, rule_name, target_ids):
+    if target_ids:
+        the_logger.info(
+            f"Removing all existing targets from PDM cloudwatch rule with name of '{rule_name}'",
+        )
+        client.remove_targets(
+            Name=rule_name,
+            Ids=target_ids,
+        )
+        the_logger.info(
+            f"Removed all existing targets from PDM cloudwatch rule with name of '{rule_name}'"
+        )
+    else:
+        the_logger.info(
+            f"No targets to remove from rule with name of '{rule_name}'"
+        )
 
 
 def put_cloudwatch_event_rule(client, now, cron):
