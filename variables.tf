@@ -135,11 +135,11 @@ variable "emr_instance_type_core_three_incremental" {
 # Count of instances
 variable "emr_core_instance_count_incremental" {
   default = {
-    development = "3"
-    qa          = "3"
-    integration = "3"
-    preprod     = "10"
-    production  = "10"
+    development = "2"
+    qa          = "2"
+    integration = "2"
+    preprod     = "5"
+    production  = "5"
   }
 }
 
