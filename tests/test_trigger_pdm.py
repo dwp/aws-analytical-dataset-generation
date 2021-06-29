@@ -388,7 +388,7 @@ class TestReplayer(unittest.TestCase):
         )
 
         events_client.remove_targets.assert_called_once_with(
-            Name=rule_name,
+            Rule=rule_name,
             Ids=ids,
         )
 
