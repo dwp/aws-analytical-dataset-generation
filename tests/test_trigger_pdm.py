@@ -289,9 +289,20 @@ class TestReplayer(unittest.TestCase):
         self.assertEqual(expected, actual)
 
 
-    def test_delete_old_cloudwatch_event_rules(self):
+    @mock.patch("steps.create_pdm_trigger.get_existing_cloudwatch_rule_targets")
+    @mock.patch("steps.create_pdm_trigger.remove_targets_from_existing_cloudwatch_rule")
+    def test_delete_old_cloudwatch_event_rules(
+        self,
+        remove_targets_from_existing_cloudwatch_rule_mock,
+        get_existing_cloudwatch_rule_targets_mock,
+    ):
         events_client = mock.MagicMock()
         events_client.delete_rule = mock.MagicMock()
+
+        ids = [1]
+        no_ids = []
+        
+        get_existing_cloudwatch_rule_targets_mock.side_affect = [ids, no_ids, ids, no_ids, ids]
 
         rules = [
             {"Name": "Rule1"},
@@ -308,7 +319,7 @@ class TestReplayer(unittest.TestCase):
             "Rule3",
         )
 
-        calls = [
+        client_calls = [
             mock.call(Name="Rule1"),
             mock.call(Name="Rule2"),
             mock.call(Name="Rule4"),
@@ -316,9 +327,88 @@ class TestReplayer(unittest.TestCase):
             mock.call(Name="Rule6"),
         ]
 
-        events_client.delete_rule.assert_has_calls(calls)
+        events_client.delete_rule.assert_has_calls(client_calls)
+
+        get_calls = [
+            mock.call(events_client, "Rule1"),
+            mock.call(events_client, "Rule2"),
+            mock.call(events_client, "Rule4"),
+            mock.call(events_client, "Rule5"),
+            mock.call(events_client, "Rule6"),
+        ]
+
+        get_existing_cloudwatch_rule_targets_mock.assert_has_calls(get_calls)
+
+        remove_calls = [
+            mock.call(events_client, "Rule1", get_existing_cloudwatch_rule_targets_mock.return_value),
+            mock.call(events_client, "Rule2", get_existing_cloudwatch_rule_targets_mock.return_value),
+            mock.call(events_client, "Rule4", get_existing_cloudwatch_rule_targets_mock.return_value),
+            mock.call(events_client, "Rule5", get_existing_cloudwatch_rule_targets_mock.return_value),
+            mock.call(events_client, "Rule6", get_existing_cloudwatch_rule_targets_mock.return_value),
+        ]
+
+        remove_targets_from_existing_cloudwatch_rule_mock.assert_has_calls(remove_calls)
 
         self.assertEqual(5, events_client.delete_rule.call_count)
+        self.assertEqual(5, get_existing_cloudwatch_rule_targets_mock.call_count)
+        self.assertEqual(5, remove_targets_from_existing_cloudwatch_rule_mock.call_count)
+
+
+    def test_get_existing_cloudwatch_rule_targets(
+        self,
+    ):
+        events_client = mock.MagicMock()
+        events_client.list_targets_by_rule = mock.MagicMock()
+
+        rule_name = "Rule1"
+
+        create_pdm_trigger.get_existing_cloudwatch_rule_targets(
+            events_client,
+            rule_name,
+        )
+
+        events_client.list_targets_by_rule.assert_called_once_with(
+            Rule=rule_name,
+        )
+
+
+    def test_remove_targets_from_existing_cloudwatch_rule(
+        self,
+    ):
+        events_client = mock.MagicMock()
+        events_client.remove_targets = mock.MagicMock()
+
+        rule_name = "Rule1"
+        ids = [1]
+
+        create_pdm_trigger.remove_targets_from_existing_cloudwatch_rule(
+            events_client,
+            rule_name,
+            ids,
+        )
+
+        events_client.remove_targets.assert_called_once_with(
+            Rule=rule_name,
+            Ids=ids,
+        )
+
+
+    def test_remove_targets_from_existing_cloudwatch_rule_for_empty_array(
+        self,
+    ):
+        events_client = mock.MagicMock()
+        events_client.remove_targets = mock.MagicMock()
+
+        rule_name = "Rule1"
+        ids = []
+
+        create_pdm_trigger.remove_targets_from_existing_cloudwatch_rule(
+            events_client,
+            rule_name,
+            ids,
+        )
+
+        events_client.remove_targets.assert_not_called()
 
 
     @mock.patch("steps.create_pdm_trigger.check_should_skip_step")
