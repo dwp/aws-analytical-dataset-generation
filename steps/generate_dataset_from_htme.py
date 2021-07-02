@@ -549,7 +549,7 @@ def create_hive_table_on_published_for_collection(
             .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
             .replace("#{hivevar:data_location}", collection_json_location)
         )
-        split_queries = queries.split(";", 3)
+        split_queries = queries.split(";", 4)
         print(list(map(lambda query: spark.sql(query), split_queries)))
     else:
         src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
