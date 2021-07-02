@@ -37,7 +37,7 @@ Configurations:
   Properties:
     "hive.txn.manager": "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager"
     "hive.enforce.bucketing": "true"
-    "hive.exec.dynamic.partition.mode": "nostrict"
+    "hive.exec.dynamic.partition.mode": "nonstrict"
     "hive.compactor.initiator.on": "true"
     "hive.compactor.worker.threads": "1"
     "hive.support.concurrency": "true"
@@ -52,7 +52,7 @@ Configurations:
     "hive.metastore.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
     "hive.txn.manager": "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager"
     "hive.enforce.bucketing": "true"
-    "hive.exec.dynamic.partition.mode": "nostrict"
+    "hive.exec.dynamic.partition.mode": "nonstrict"
     "hive.compactor.initiator.on": "true"
     "hive.compactor.worker.threads": "1"
     "hive.support.concurrency": "true"

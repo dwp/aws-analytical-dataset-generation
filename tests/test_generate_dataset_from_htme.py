@@ -3,11 +3,13 @@ import ast
 import zlib
 import requests
 import time
+import json
 
 import boto3
 import pytest
 from moto import mock_s3, mock_dynamodb2, mock_sns
 from datetime import datetime
+from pyspark.sql import Row
 
 import steps
 from steps import generate_dataset_from_htme
@@ -330,6 +332,58 @@ def test_create_hive_table_on_published_for_collection(
 
 
 @mock_s3
+def test_create_hive_table_on_published_for_audit_log(
+    spark, handle_server, aws_credentials, monkeypatch
+):
+    test_data = '{"first_name":"abcd","last_name":"xyz"}'
+    s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
+    s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
+    date_hyphen = datetime.today().strftime("%Y-%m-%d")
+    date_underscore = date_hyphen.replace("-", "_")
+    s3_client.put_object(
+        Body=str.encode(test_data),
+        Bucket=S3_PUBLISH_BUCKET,
+        Key=f"data/businessAudit/{date_hyphen}/auditlog.1444209739198.json.gz.enc",
+        Metadata={
+            "iv": "123",
+            "ciphertext": "test_ciphertext",
+            "datakeyencryptionkeyid": "123",
+        },
+    )
+    json_location = f"s3://{S3_PUBLISH_BUCKET}/data/businessAudit/{date_hyphen}/"
+    collection_name = "data/businessAudit"
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_audit_managed_file", mock_get_audit_managed_file)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_audit_external_file", mock_get_audit_external_file)
+    steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
+        spark,
+        collection_name,
+        json_location,
+        PUBLISHED_DATABASE_NAME,
+        mock_args(),
+    )
+    steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
+            spark,
+            collection_name,
+            json_location,
+            PUBLISHED_DATABASE_NAME,
+            mock_args(),
+        )
+    managed_table = 'auditlog_managed'
+    tables = spark.catalog.listTables('uc_dw_auditlog')
+    actual = list(map(lambda table: table.name, tables))
+    expected = [managed_table]
+    assert len(actual) == len(expected)
+    assert all([a == b for a, b in zip(actual, expected)])
+    managed_table_result = spark.sql(f"select first_name, last_name, date_str from uc_dw_auditlog.{managed_table}").collect()
+    print(managed_table_result)
+    expected = [Row(first_name='abcd', last_name='xyz', date_str='2021-07-02'), Row(first_name='abcd', last_name='xyz', date_str='2021-07-02')]
+    expected_json = json.dumps(expected)
+    actual_json = json.dumps(managed_table_result)
+    print(expected_json)
+    print(actual_json)
+    assert len(managed_table_result) == 2
+
+@mock_s3
 def test_exception_when_decompression_fails(
     spark, monkeypatch, handle_server, aws_credentials
 ):
@@ -453,6 +507,11 @@ def mock_call_dks(cek, kek, args, run_time_stamp):
 def mock_persist_json(json_location, values):
     values.saveAsTextFile(json_location)
 
+def mock_get_audit_managed_file():
+    return open("tests/auditlog_managed_table.sql")
+
+def mock_get_audit_external_file():
+    return open("tests/auditlog_external_table.sql")
 
 def test_retry_requests_with_no_retries():
     start_time = time.perf_counter()
