@@ -309,7 +309,7 @@ def consolidate_rdd_per_collection(
         decompressed = decrypted.mapValues(decompress)
         the_logger.info("Processed decompression for %s", collection_file_key)
         decoded = decompressed.mapValues(decode)
-        the_logger.info("Processed deooding for %s", collection_file_key)
+        the_logger.info("Processed decoding for %s", collection_file_key)
         rdd_list.append(decoded)
     consolidated_rdd = spark.sparkContext.union(rdd_list)
     consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
