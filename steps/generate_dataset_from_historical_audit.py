@@ -1,555 +1,589 @@
 import argparse
 import ast
-import zlib
-import requests
+import base64
+import csv
+import itertools
+import os
+import re
+import sys
 import time
+import zlib
+import json
+import concurrent.futures
+import urllib.request
+from datetime import datetime, timedelta
+from itertools import groupby
 
 import boto3
-import pytest
-from moto import mock_s3, mock_dynamodb2, mock_sns
-from datetime import datetime
+import botocore
+import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+from Crypto.Cipher import AES
+from Crypto.Util import Counter
 
-import steps
-from steps import generate_dataset_from_htme
+from pyspark.sql import SparkSession
+from steps.logger import setup_logging
+import logging
+from steps.resume_step import should_skip_step
 
-VALUE_KEY = "Value"
-NAME_KEY = "Key"
-PII_KEY = "pii"
-TRUE_VALUE = "true"
-DB_KEY = "db"
-TABLE_KEY = "table"
-SNAPSHOT_TYPE_FULL = "full"
-SNS_TOPIC_ARN = "test_arn"
-SNAPSHOT_TYPE_INCREMENTAL = "incremental"
-SNAPSHOT_TYPE_KEY = "snapshot_type"
-TAG_SET_FULL = [
-    {NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE},
-    {NAME_KEY: DB_KEY, VALUE_KEY: "core"},
-    {NAME_KEY: TABLE_KEY, VALUE_KEY: "contract"},
-    {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_FULL},
-]
-TAG_SET_INCREMENTAL = [
-    {NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE},
-    {NAME_KEY: DB_KEY, VALUE_KEY: "core"},
-    {NAME_KEY: TABLE_KEY, VALUE_KEY: "contract"},
-    {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_INCREMENTAL},
-]
-INVALID_SNAPSHOT_TYPE = "abc"
-MOCK_LOCALHOST_URL = "http://localhost:1000"
-MOTO_SERVER_URL = "http://127.0.0.1:5000"
-DB_CORE_CONTRACT = "db.core.contract"
-DB_CORE_ACCOUNTS = "db.core.accounts"
-DB_CORE_CONTRACT_FILE_NAME = f"{DB_CORE_CONTRACT}.01002.4040.gz.enc"
-DB_CORE_ACCOUNTS_FILE_NAME = f"{DB_CORE_ACCOUNTS}.01002.4040.gz.enc"
-S3_PREFIX = "mongo/ucdata"
-S3_HTME_BUCKET = "test"
-S3_PUBLISH_BUCKET = "target"
-SECRETS = "{'collections_all': {'db.core.contract': {'pii' : 'true', 'db' : 'core', 'table' : 'contract'}}}"
-SECRETS_COLLECTIONS = {
-    DB_CORE_CONTRACT: {"pii": "true", "db": "core", "table": "contract"}
-}
-KEYS_MAP = {"test_ciphertext": "test_key"}
-RUN_TIME_STAMP = "2020-10-10_10-10-10"
-EXPORT_DATE = "2020-10-10"
-PUBLISHED_DATABASE_NAME = "test_db"
-CORRELATION_ID = "12345"
-AWS_REGION = "eu-west-2"
-S3_PREFIX_ADG_FULL = f"${{file_location}}/{SNAPSHOT_TYPE_FULL}/{RUN_TIME_STAMP}"
-ADG_OUTPUT_FILE_KEY_FULL = (
-    f"${{file_location}}/{SNAPSHOT_TYPE_FULL}/adg_output/adg_params.csv"
-)
-S3_PREFIX_ADG_INCREMENTAL = (
-    f"${{file_location}}/{SNAPSHOT_TYPE_INCREMENTAL}/{RUN_TIME_STAMP}"
-)
-ADG_OUTPUT_FILE_KEY_INCREMENTAL = (
-    f"${{file_location}}/{SNAPSHOT_TYPE_INCREMENTAL}/adg_output/adg_params.csv"
+the_logger = setup_logging(
+    log_level=os.environ["ADG_LOG_LEVEL"].upper()
+    if "ADG_LOG_LEVEL" in os.environ
+    else "INFO",
+    log_path="${log_path}",
 )
 
+class CollectionException(Exception):
+    """Raised when collection could not be published"""
 
-def test_retrieve_secrets(monkeypatch):
-    class MockSession:
-        class Session:
-            def client(self, service_name):
-                class Client:
-                    def get_secret_value(self, SecretId):
-                        return {"SecretBinary": str.encode(SECRETS)}
-
-                return Client()
-
-    monkeypatch.setattr(boto3, "session", MockSession)
-    assert generate_dataset_from_htme.retrieve_secrets(
-        mock_args(), SNAPSHOT_TYPE_FULL
-    ) == ast.literal_eval(SECRETS)
+    pass
 
 
-def test_get_collections():
-    secret_dict = ast.literal_eval(SECRETS)
-    assert (
-        generate_dataset_from_htme.get_collections(secret_dict, mock_args())
-        == SECRETS_COLLECTIONS
-    )
+class CollectionProcessingException(CollectionException):
+    """Raised when collection could not be published"""
+
+    pass
 
 
-@mock_s3
-def test_get_list_keys_for_prefix(aws_credentials):
-    s3_client = boto3.client("s3")
-    s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
-    s3_client.put_object(
-        Body="test",
-        Bucket=S3_HTME_BUCKET,
-        Key=f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}",
-    )
+class CollectionPublishingException(CollectionException):
+    """Raised when collection could not be published"""
 
-    assert generate_dataset_from_htme.get_list_keys_for_prefix(
-        s3_client, S3_HTME_BUCKET, S3_PREFIX
-    ) == [f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}"]
+    pass
 
-
-def test_group_keys_by_collection():
-    keys = [
-        f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}",
-        f"{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}",
-    ]
-    assert generate_dataset_from_htme.group_keys_by_collection(keys) == [
-        {f"{DB_CORE_CONTRACT}": [f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}"]},
-        {f"{DB_CORE_ACCOUNTS}": [f"{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}"]},
-    ]
-
-
-def test_get_collections_in_secrets():
-    list_of_dicts = [
-        {f"{DB_CORE_CONTRACT}": [f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}"]},
-        {f"{DB_CORE_ACCOUNTS}": [f"{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}"]},
-    ]
-    expected_list_of_dicts = [
-        {f"{DB_CORE_CONTRACT}": [f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}"]}
-    ]
-    assert (
-        generate_dataset_from_htme.get_collections_in_secrets(
-            list_of_dicts, SECRETS_COLLECTIONS, mock_args()
-        )
-        == expected_list_of_dicts
-    )
-
-
-@mock_s3
-@mock_sns
-def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_full(
-    spark, monkeypatch, handle_server, aws_credentials
+def create_metastore_db(
+    spark,
+    published_database_name,
+    args,
 ):
-    mocked_args = mock_args()
-    verify_processed_data(
-        mocked_args, monkeypatch, spark, S3_PREFIX_ADG_FULL, ADG_OUTPUT_FILE_KEY_FULL
-    )
+    verified_database_name = published_database_name
+    # Check to create database only if the backend is Aurora as Glue database is created through terraform
+    if "${hive_metastore_backend}" == "aurora":
+        try:
+            if args.snapshot_type.lower() != SNAPSHOT_TYPE_FULL:
+                verified_database_name = (
+                    f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
+                )
 
+            the_logger.info(
+                "Creating metastore db with name of %s while processing",
+                verified_database_name,
+            )
 
-@mock_s3
-@mock_sns
-def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_incremental(
-    spark, monkeypatch, handle_server, aws_credentials
-):
-    mocked_args = mock_args()
-    mocked_args.snapshot_type = SNAPSHOT_TYPE_INCREMENTAL
-    verify_processed_data(
-        mocked_args,
-        monkeypatch,
-        spark,
-        S3_PREFIX_ADG_INCREMENTAL,
-        ADG_OUTPUT_FILE_KEY_INCREMENTAL,
-    )
+            create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name}"
+            spark.sql(create_db_query)
+        except BaseException as ex:
+            the_logger.error(
+                "Error occurred creating hive metastore backend %s",
+                repr(ex),
+            )
+            raise BaseException(ex)
 
+    return verified_database_name
 
-def verify_processed_data(
-    mocked_args, monkeypatch, spark, s3_prefix_adg, adg_output_key
-):
-    tag_set = (
-        TAG_SET_FULL
-        if mocked_args.snapshot_type == SNAPSHOT_TYPE_FULL
-        else TAG_SET_INCREMENTAL
-    )
-    tbl_name = "core_contract"
-    collection_location = "core"
-    collection_name = "contract"
-    test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
-    target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
-    sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
-    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
-    s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
-    s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
-    s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
-    s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
-    s3_client.put_object(
-        Body=zlib.compress(test_data),
-        Bucket=S3_HTME_BUCKET,
-        Key=f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}",
-        Metadata={
-            "iv": "123",
-            "ciphertext": "test_ciphertext",
-            "datakeyencryptionkeyid": "123",
-        },
-    )
-    monkeypatch_with_mocks(monkeypatch)
-    generate_dataset_from_htme.main(
+def main(
         spark,
         s3_client,
-        S3_HTME_BUCKET,
-        SECRETS_COLLECTIONS,
-        KEYS_MAP,
-        RUN_TIME_STAMP,
-        S3_PUBLISH_BUCKET,
-        PUBLISHED_DATABASE_NAME,
-        mocked_args,
-        dynamodb_client,
-        sns_client,
-        s3_resource,
-    )
-    assert len(s3_client.list_buckets()["Buckets"]) == 2
-    assert (
-        s3_client.get_object(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)["Body"]
-        .read()
-        .decode()
-        .strip()
-        == test_data.decode()
-    )
-    assert (
-        s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)[
-            "TagSet"
-        ]
-        == tag_set
-    )
-    assert tbl_name in [
-        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
-    ]
-    assert (
-        CORRELATION_ID
-        in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET, Key=adg_output_key)["Body"]
-        .read()
-        .decode()
-    )
-    assert (
-        s3_prefix_adg
-        in s3_client.get_object(Bucket=S3_PUBLISH_BUCKET, Key=adg_output_key)["Body"]
-        .read()
-        .decode()
-    )
-
-
-@mock_sns
-def test_consolidate_rdd_per_collection_with_multiple_collections(
-    spark, monkeypatch, handle_server, aws_credentials
+        s3_historical_audit_bucket,
+        keys_map,
+        s3_publish_bucket,
+        published_database_name,
+        args,
+        s3_resource=None,
 ):
-    core_contract_collection_name = "core_contract"
-    core_accounts_collection_name = "core_accounts"
-    test_data = '{"name":"abcd"}\n{"name":"xyz"}'
-    secret_collections = SECRETS_COLLECTIONS
-    secret_collections[DB_CORE_ACCOUNTS] = {
-        PII_KEY: TRUE_VALUE,
-        DB_KEY: "core",
-        TABLE_KEY: "accounts",
-    }
-    sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
-    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
-    s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
-    s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
-    s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
-    s3_publish_bucket_for_multiple_collections = f"{S3_PUBLISH_BUCKET}-2"
-    s3_client.create_bucket(Bucket=s3_publish_bucket_for_multiple_collections)
-    s3_client.put_object(
-        Body=zlib.compress(str.encode(test_data)),
-        Bucket=S3_HTME_BUCKET,
-        Key=f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}",
-        Metadata={
-            "iv": "123",
-            "ciphertext": "test_ciphertext",
-            "datakeyencryptionkeyid": "123",
-        },
-    )
-    s3_client.put_object(
-        Body=zlib.compress(str.encode(test_data)),
-        Bucket=S3_HTME_BUCKET,
-        Key=f"{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}",
-        Metadata={
-            "iv": "123",
-            "ciphertext": "test_ciphertext",
-            "datakeyencryptionkeyid": "123",
-        },
-    )
-    monkeypatch_with_mocks(monkeypatch)
-    generate_dataset_from_htme.main(
-        spark,
-        s3_client,
-        S3_HTME_BUCKET,
-        secret_collections,
-        KEYS_MAP,
-        RUN_TIME_STAMP,
-        s3_publish_bucket_for_multiple_collections,
-        PUBLISHED_DATABASE_NAME,
-        mock_args(),
-        dynamodb_client,
-        sns_client,
-        s3_resource,
-    )
-    assert core_contract_collection_name in [
-        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
-    ]
-    assert core_accounts_collection_name in [
-        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
-    ]
-
-
-def monkeypatch_with_mocks(monkeypatch):
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
-    monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "persist_json", mock_persist_json
-    )
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
-
-
-def test_create_hive_table_on_published_for_collection(
-    spark, handle_server, aws_credentials, monkeypatch
-):
-    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
-    json_location = "s3://test/t"
-    collection_name = "tabtest"
-    steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
-        spark,
-        collection_name,
-        json_location,
-        PUBLISHED_DATABASE_NAME,
-        mock_args(),
-    )
-
-    monkeypatch.setattr(
-        steps.generate_dataset_from_htme, "persist_json", mock_persist_json
-    )
-    assert generate_dataset_from_htme.get_collection(collection_name) in [
-        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
-    ]
-
-
-@mock_s3
-def test_exception_when_decompression_fails(
-    spark, monkeypatch, handle_server, aws_credentials
-):
-    with pytest.raises(BaseException):
-        sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
-        dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
-        s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
-        s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
-        s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
-        s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
-        s3_client.put_object(
-            Body=zlib.compress(b"test data"),
-            Bucket=S3_HTME_BUCKET,
-            Key=f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}",
-            Metadata={
-                "iv": "123",
-                "ciphertext": "test_ciphertext",
-                "datakeyencryptionkeyid": "123",
-            },
-        )
-        monkeypatch.setattr(
-            steps.generate_dataset_from_htme, "add_metric", mock_add_metric
-        )
-        monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
-        monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
-        generate_dataset_from_htme.main(
+    try:
+        prefixes = get_all_years_for_historic_audit(s3_client, s3_historical_audit_bucket, args.s3_prefix)
+        verified_database_name = create_metastore_db(
             spark,
+            published_database_name,
+            args,
+        )
+        the_logger.info(
+            "Using database name %s",
+            verified_database_name,
+        )
+        process_collections_threaded(
+            spark,
+            verified_database_name,
+            args,
+            prefixes,
             s3_client,
-            S3_HTME_BUCKET,
-            SECRETS_COLLECTIONS,
-            KEYS_MAP,
-            RUN_TIME_STAMP,
-            S3_PUBLISH_BUCKET,
-            PUBLISHED_DATABASE_NAME,
-            mock_args(),
-            dynamodb_client,
-            sns_client,
+            s3_historical_audit_bucket,
+            keys_map,
+            s3_publish_bucket,
             s3_resource,
         )
-
-@mock_dynamodb2
-def test_update_adg_status_for_collection():
-    expected = "test_status"
-    collection_name = "test_collection"
-
-    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2")
-    table_name = "UCExportToCrownStatus"
-    dynamodb_client.create_table(
-        TableName=table_name,
-        KeySchema=[
-            {'AttributeName': 'CorrelationId', 'KeyType': 'HASH'},
-            {'AttributeName': 'CollectionName', 'KeyType': 'RANGE'}
-        ],
-        AttributeDefinitions=[
-            {'AttributeName': 'CorrelationId', 'AttributeType': 'S'},
-            {'AttributeName': 'CollectionName', 'AttributeType': 'S'}
-        ]
-    )
-
-    active = False
-    while active == False:
-        response = dynamodb_client.describe_table(
-            TableName=table_name
+    except CollectionException as ex:
+        the_logger.error(
+            "Some error occurred %s ",
+            repr(ex),
         )
-        active = (response["Table"]["TableStatus"] == "ACTIVE")
+        # raising exception is not working with YARN so need to send an exit code(-1) for it to fail the job
+        sys.exit(-1)
 
-    generate_dataset_from_htme.update_adg_status_for_collection(
-        dynamodb_client,
-        table_name,
-        CORRELATION_ID,
+
+def process_collections_threaded(
+        spark,
+        verified_database_name,
+        args,
+        prefixes,
+        s3_client,
+        s3_historical_audit_bucket,
+        keys_map,
+        s3_publish_bucket,
+        s3_resource=None,
+):
+    all_processed_collections = []
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        completed_collections = executor.map(
+            process_collection,
+            itertools.repeat(spark),
+            itertools.repeat(verified_database_name),
+            itertools.repeat(args),
+            prefixes,
+            itertools.repeat(s3_client),
+            itertools.repeat(s3_historical_audit_bucket),
+            itertools.repeat(keys_map),
+            itertools.repeat(s3_publish_bucket),
+            itertools.repeat(s3_resource),
+        )
+
+    for completed_collection in completed_collections:
+        all_processed_collections.append(completed_collection)
+
+    return all_processed_collections
+
+
+def process_collection(
+        spark,
+        verified_database_name,
+        args,
+        prefix,
+        s3_client,
+        s3_historical_audit_bucket,
+        keys_map,
+        s3_publish_bucket,
+        s3_resource=None,
+):
+    if s3_resource is None:
+        s3_resource = get_s3_resource()
+
+    year  = prefix.split('/')[-2]
+    keys = get_list_keys_for_prefix(s3_client, s3_historical_audit_bucket, prefix)
+
+    the_logger.info(
+            "Processing for the year : %s keys : %s",
+            year,
+            keys,
+        )
+
+    try:
+        collection_json_location = consolidate_rdd_per_collection(
+            year,
+            keys,
+            s3_client,
+            s3_historical_audit_bucket,
+            spark,
+            keys_map,
+            s3_publish_bucket,
+            args,
+            s3_resource,
+        )
+    except Exception as ex:
+        the_logger.error(
+            "Error occurred processing collection named %s: %s",
+            'historical_business_audit',
+            repr(ex),
+        )
+        raise CollectionProcessingException(ex)
+
+    try:
+        create_hive_table_on_published_for_collection(
+            spark,
+            year,
+            collection_json_location,
+            verified_database_name,
+            args,
+        )
+    except Exception as ex:
+        the_logger.error(
+            "Error occurred publishing collection named %s : %s",
+            year,
+            repr(ex),
+        )
+        raise CollectionPublishingException(ex)
+
+def create_hive_table_on_published_for_collection(
+        spark,
         collection_name,
-        expected,
+        collection_json_location,
+        verified_database_name,
+        args,
+):
+    verified_database_name = 'uc_dw_auditlog'
+    the_logger.info(
+        "Publishing collection named : %s",
+        collection_name,
+    )
+    auditlog_managed_table_sql_file = open("/var/ci/auditlog_managed_table.sql")
+    auditlog_managed_table_sql_content = (
+        auditlog_managed_table_sql_file.read().replace(
+            "#{hivevar:auditlog_database}", verified_database_name
+        )
+    )
+    spark.sql(auditlog_managed_table_sql_content)
+
+    auditlog_external_table_sql_file = open("/var/ci/auditlog_external_table.sql")
+    date_hyphen = collection_name
+    date_underscore = date_hyphen.replace("-", "_")
+    queries = (
+        auditlog_external_table_sql_file.read()
+            .replace("#{hivevar:auditlog_database}", verified_database_name)
+            .replace("#{hivevar:date_underscore}", date_underscore)
+            .replace("#{hivevar:date_hyphen}", date_hyphen)
+            .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
+            .replace("#{hivevar:data_location}", collection_json_location)
+    )
+    split_queries = queries.split(";", 3)
+    print(list(map(lambda query: spark.sql(query), split_queries)))
+    return collection_name
+
+
+def consolidate_rdd_per_collection(
+        collection_name,
+        collection_files_keys,
+        s3_client,
+        s3_historical_audit_bucket,
+        spark,
+        keys_map,
+        s3_publish_bucket,
+        args,
+        s3_resource,
+):
+    the_logger.info(
+        "Processing collection : %s",
+        collection_name,
+    )
+    start_time = time.perf_counter()
+    rdd_list = []
+    total_collection_size = 0
+    for collection_file_key in collection_files_keys:
+        the_logger.info("About to readbinary data for %s", collection_file_key)
+        key1 = f"s3://{s3_historical_audit_bucket}/{collection_file_key}"
+        the_logger.info("spark : %s and key: %s", spark, key1)
+        try:
+            encrypted = read_binary(spark, key1)
+        except BaseException as ex:
+            the_logger.error("reading problem %s", repr(ex))
+        the_logger.info("before metadata for %s", collection_file_key)
+        metadata = get_metadatafor_key(collection_file_key, s3_client, s3_historical_audit_bucket)
+        total_collection_size += get_filesize(
+            s3_client, s3_historical_audit_bucket, collection_file_key
+        )
+        the_logger.info("Processed metadata for %s", collection_file_key)
+        ciphertext = metadata["ciphertext"]
+        datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
+        iv = metadata["iv"]
+        plain_text_key = get_plaintext_key_calling_dks(
+            ciphertext, datakeyencryptionkeyid, keys_map, args
+        )
+        decrypted = encrypted.mapValues(
+            lambda val, plain_text_key=plain_text_key, iv=iv: decrypt(
+                plain_text_key, iv, val, args
+            )
+        )
+        the_logger.info("Processed decryption for %s", collection_file_key)
+        decompressed = decrypted.mapValues(decompress)
+        the_logger.info("Processed decompression for %s", collection_file_key)
+        decoded = decompressed.mapValues(decode)
+        the_logger.info("Processed decoding for %s", collection_file_key)
+        rdd_list.append(decoded)
+    consolidated_rdd = spark.sparkContext.union(rdd_list)
+    consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
+    the_logger.info(
+        "Persisting Json of collection : %s",
+        collection_name,
+    )
+    file_location = "${file_location}"
+    json_location_prefix = f"{file_location}/data/businessAudit/{collection_name}"
+    json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+    delete_existing_audit_files(s3_publish_bucket, json_location_prefix, s3_client)
+
+    persist_json(json_location, consolidated_rdd_mapped)
+    the_logger.info(
+        "Applying Tags for prefix : %s",
+        json_location_prefix,
+    )
+    the_logger.info(
+        "Created Hive tables of collection : %s",
+        collection_name,
+    )
+    end_time = time.perf_counter()
+    total_time = round(end_time - start_time)
+    the_logger.info(
+        "Completed Processing of collection : %s",
+        collection_name,
+    )
+    return json_location
+
+def persist_json(json_location, values):
+    values.saveAsTextFile(
+        json_location, compressionCodecClass="com.hadoop.compression.lzo.LzopCodec"
     )
 
-    actual = dynamodb_client.get_item(
-        TableName=table_name,
-        Key={
-            "CorrelationId": {"S": CORRELATION_ID},
-            "CollectionName": {"S": collection_name},
-        }
-    )["Item"]["ADGStatus"]["S"]
+def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket, snapshot_type):
+    the_logger.info(
+        "Looking for files to tag in bucket : %s with prefix : %s",
+        s3_publish_bucket,
+        prefix,
+    )
+    for key in s3_client.list_objects(Bucket=s3_publish_bucket, Prefix=prefix)[
+        "Contents"
+    ]:
+        tags_set_value = (
+            [{"Key": "collection_tag", "Value": "NOT_SET"}]
+            if tag_value is None or tag_value == ""
+            else get_tags(tag_value, snapshot_type)
+        )
 
-    assert expected == actual
+        s3_client.put_object_tagging(
+            Bucket=s3_publish_bucket,
+            Key=key["Key"],
+            Tagging={"TagSet": tags_set_value},
+        )
+def decode(txt):
+    return txt.decode("utf-8")
 
+def delete_existing_audit_files(s3_bucket, s3_prefix, s3_client):
+    """Deletes files if exists in the given bucket and prefix
 
-def test_get_tags():
-    tag_value = SECRETS_COLLECTIONS[DB_CORE_CONTRACT]
-    assert (
-        generate_dataset_from_htme.get_tags(tag_value, SNAPSHOT_TYPE_FULL)
-        == TAG_SET_FULL
+    Keyword arguments:
+    s3_bucket -- the S3 bucket name
+    s3_prefix -- the key to look for, could be a file path and key or simply a path
+    s3_client -- S3 client
+    """
+    keys = get_list_keys_for_prefix(s3_client, s3_bucket, s3_prefix)
+    the_logger.info(
+        "Retrieved '%s' keys from prefix '%s'",
+        str(len(keys)),
+        s3_prefix,
     )
 
-
-def mock_decompress(compressed_text):
-    return zlib.decompress(compressed_text)
-
-
-def mock_add_metric(metrics_file, collection_name, value):
-    return value
-
-
-def mock_decrypt(plain_text_key, iv_key, data, args, run_time_stamp):
-    return data
+    waiter = s3_client.get_waiter("object_not_exists")
+    for key in keys:
+        s3_client.delete_object(Bucket=s3_bucket, Key=key)
+        waiter.wait(
+            Bucket=s3_bucket, Key=key, WaiterConfig={"Delay": 1, "MaxAttempts": 10}
+        )
 
 
-def mock_args():
-    args = argparse.Namespace()
-    args.correlation_id = CORRELATION_ID
-    args.s3_prefix = S3_PREFIX
-    args.snapshot_type = SNAPSHOT_TYPE_FULL
-    args.export_date = EXPORT_DATE
-    args.monitoring_topic_arn = SNS_TOPIC_ARN
+def get_metadatafor_key(key, s3_client, s3_htme_bucket):
+    instance_id = (
+        urllib.request.urlopen("http://169.254.169.254/latest/meta-data/instance-id")
+            .read()
+            .decode()
+    )
+    the_logger.info("Instance id making boto3 get_object calls: %s ", instance_id)
+    s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
+    iv = s3_object["Metadata"]["iv"]
+    ciphertext = s3_object["Metadata"]["ciphertext"]
+    datakeyencryptionkeyid = s3_object["Metadata"]["datakeyencryptionkeyid"]
+    metadata = {
+        "iv": iv,
+        "ciphertext": ciphertext,
+        "datakeyencryptionkeyid": datakeyencryptionkeyid,
+    }
+    return metadata
+
+def get_list_keys_for_prefix(s3_client, s3_bucket, s3_prefix):
+    the_logger.info(
+        "Looking for files to process in bucket : %s with prefix : %s",
+        s3_bucket,
+        s3_prefix,
+    )
+    keys = []
+    paginator = s3_client.get_paginator("list_objects_v2")
+    pages = paginator.paginate(Bucket=s3_bucket, Prefix=s3_prefix)
+    for page in pages:
+        if "Contents" in page:
+            for obj in page["Contents"]:
+                keys.append(obj["Key"])
+    if s3_prefix in keys:
+        keys.remove(s3_prefix)
+    return keys
+
+def get_s3_resource():
+    session = boto3.session.Session()
+    return session.resource("s3", region_name=DEFAULT_REGION)
+
+def get_all_years_for_historic_audit(s3_client, s3_bucket, s3_prefix):
+    the_logger.info(
+        "Looking for files to process in bucket : %s with prefix : %s",
+        s3_bucket,
+        s3_prefix,
+    )
+    keys = []
+    paginator = s3_client.get_paginator("list_objects_v2")
+    pages = paginator.paginate(Bucket=s3_bucket, Prefix=s3_prefix, Delimiter='/')
+    for page in pages:
+        for content in  page.get('CommonPrefixes', []):
+            keys.append(content.get('Prefix'))
+    return keys
+
+
+def validate_required_args(args):
+    required_args = [ARG_S3_PREFIX]
+    missing_args = []
+    for required_message_key in required_args:
+        if required_message_key not in args:
+            missing_args.append(required_message_key)
+    if missing_args:
+        raise argparse.ArgumentError(
+            None,
+            "ArgumentError: The following required arguments are missing: {}".format(
+                ", ".join(missing_args)
+            ),
+        )
+    if args.snapshot_type.lower() not in ARG_SNAPSHOT_TYPE_VALID_VALUES:
+        raise argparse.ArgumentError(
+            None,
+            "ArgumentError: Valid values for snapshot_type are: {}".format(
+                ", ".join(ARG_SNAPSHOT_TYPE_VALID_VALUES)
+            ),
+        )
+
+def get_parameters():
+    """Define and parse command line args."""
+    parser = argparse.ArgumentParser(
+        description="Receive args provided to spark submit job for historical business audit"
+    )
+    # Parse command line inputs and set defaults
+    parser.add_argument("--s3_prefix", default="${s3_prefix}")
+    parser.add_argument("--snapshot_type", default="historical_business_audit")
+    args, unrecognized_args = parser.parse_known_args()
+
+    if len(unrecognized_args) > 0:
+        the_logger.warning(
+            "Unrecognized args %s found",
+            unrecognized_args,
+        )
+
+    validate_required_args(args)
+
     return args
 
 
-def mock_call_dks(cek, kek, args, run_time_stamp):
-    return kek
+def get_spark_session(args):
+    spark = (
+        SparkSession.builder.master("yarn")
+            .config("spark.metrics.conf", "/opt/emr/metrics/metrics.properties")
+            .config("spark.metrics.namespace", f"adg_{args.snapshot_type.lower()}")
+            .config("spark.executor.heartbeatInterval", "300000")
+            .config("spark.storage.blockManagerSlaveTimeoutMs", "500000")
+            .config("spark.network.timeout", "500000")
+            .config("spark.hadoop.fs.s3.maxRetries", "20")
+            .config("spark.rpc.numRetries", "10")
+            .config("spark.task.maxFailures", "10")
+            .config("spark.scheduler.mode", "FAIR")
+            .config("spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version", "2")
+            .appName("spike")
+            .enableHiveSupport()
+            .getOrCreate()
+    )
+    return spark
 
 
-# Mocking because we don't have the compression codec libraries available in test phase
-def mock_persist_json(json_location, values):
-    values.saveAsTextFile(json_location)
+def get_s3_client():
+    client_config = botocore.config.Config(
+        max_pool_connections=100, retries={"max_attempts": 10, "mode": "standard"}
+    )
+    client = boto3.client("s3", config=client_config)
+    return client
+
+def decompress(compressed_text):
+    return zlib.decompress(compressed_text, 16 + zlib.MAX_WBITS)
+
+def decrypt(plain_text_key, iv_key, data, args, run_time_stamp):
+    try:
+        iv_int = int(base64.b64decode(iv_key).hex(), 16)
+        ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
+        aes = AES.new(base64.b64decode(plain_text_key), AES.MODE_CTR, counter=ctr)
+        decrypted = aes.decrypt(data)
+    except BaseException as ex:
+        the_logger.error(
+            "Problem decrypting data %s",
+            repr(ex),
+        )
+        sys.exit(-1)
+    return decrypted
 
 
-def test_retry_requests_with_no_retries():
-    start_time = time.perf_counter()
-    with pytest.raises(requests.exceptions.ConnectionError):
-        generate_dataset_from_htme.retry_requests(retries=0).post(MOCK_LOCALHOST_URL)
-    end_time = time.perf_counter()
-    assert round(end_time - start_time) == 0
+def get_collection(collection_name):
+    return collection_name.replace("db.", "", 1).replace(".", "/").replace("-", "_")
 
 
-def test_retry_requests_with_2_retries():
-    start_time = time.perf_counter()
-    with pytest.raises(requests.exceptions.ConnectionError):
-        generate_dataset_from_htme.retry_requests(retries=2).post(MOCK_LOCALHOST_URL)
-    end_time = time.perf_counter()
-    assert round(end_time - start_time) == 2
+def call_dks(cek, kek, args):
+    try:
+        url = "${url}"
+        params = {"keyId": kek, "correlationId": ''}
+        result = retry_requests().post(
+            url,
+            params=params,
+            data=cek,
+            cert=(
+                "/etc/pki/tls/certs/private_key.crt",
+                "/etc/pki/tls/private/private_key.key",
+            ),
+            verify="/etc/pki/ca-trust/source/anchors/analytical_ca.pem",
+        )
+        content = result.json()
+    except BaseException as ex:
+        the_logger.error(
+            "Problem calling DKS %s",
+            repr(ex),
+        )
+        sys.exit(-1)
+    return content["plaintextDataKey"]
 
+def read_binary(spark, file_path):
+    return spark.sparkContext.binaryFiles(file_path)
 
-def test_retry_requests_with_3_retries():
-    start_time = time.perf_counter()
-    with pytest.raises(requests.exceptions.ConnectionError):
-        generate_dataset_from_htme.retry_requests(retries=3).post(MOCK_LOCALHOST_URL)
-    end_time = time.perf_counter()
-    assert round(end_time - start_time) == 6
+def get_filesize(s3_client, s3_htme_bucket, collection_file_key):
+    metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
+    filesize = metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"]
+    return int(filesize)
 
+def get_plaintext_key_calling_dks(
+    encryptedkey, keyencryptionkeyid, keys_map, args
+):
+    if keys_map.get(encryptedkey):
+        key = keys_map[encryptedkey]
+    else:
+        key = call_dks(encryptedkey, keyencryptionkeyid, args)
+        keys_map[encryptedkey] = key
+    return key
 
-def test_validate_required_args_with_missing_args():
-    args = argparse.Namespace()
-    with pytest.raises(argparse.ArgumentError) as argument_error:
-        generate_dataset_from_htme.validate_required_args(args)
-    assert (
-        str(argument_error.value)
-        == "ArgumentError: The following required arguments are missing: correlation_id, s3_prefix, snapshot_type"
+if __name__ == "__main__":
+    args = get_parameters()
+    the_logger.info(
+        "Processing spark job for s3_prefix : %s",
+        args.s3_prefix,
+    )
+    spark = get_spark_session(args)
+    s3_historical_audit_bucket = os.getenv("S3_HISTORICAL_AUDIT_BUCKET")
+    s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
+    s3_client = get_s3_client()
+    published_database_name = "${published_db}"
+    keys_map = {}
+    main(
+        spark,
+        s3_client,
+        s3_historical_audit_bucket,
+        keys_map,
+        s3_publish_bucket,
+        published_database_name,
+        args,
     )
 
 
-def test_validate_required_args_with_invalid_values_for_snapshot_type():
-    args = argparse.Namespace()
-    args.correlation_id = CORRELATION_ID
-    args.s3_prefix = S3_PREFIX
-    args.export_date = EXPORT_DATE
-    args.snapshot_type = INVALID_SNAPSHOT_TYPE
-    with pytest.raises(argparse.ArgumentError) as argument_error:
-        generate_dataset_from_htme.validate_required_args(args)
-    assert (
-        str(argument_error.value)
-        == "ArgumentError: Valid values for snapshot_type are: full, incremental"
-    )
-
-
-@mock_s3
-def test_delete_existing_audit_files(aws_credentials):
-    s3_client = boto3.client("s3")
-    s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
-    s3_client.put_object(
-        Body="test1",
-        Bucket=S3_HTME_BUCKET,
-        Key=f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}",
-    )
-    s3_client.put_object(
-        Body="test2",
-        Bucket=S3_HTME_BUCKET,
-        Key=f"{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}",
-    )
-
-    keys = generate_dataset_from_htme.get_list_keys_for_prefix(
-        s3_client, S3_HTME_BUCKET, S3_PREFIX)
-
-    assert len(keys) == 2
-
-    generate_dataset_from_htme.delete_existing_audit_files(
-        S3_HTME_BUCKET, S3_PREFIX, s3_client)
-
-    keys = generate_dataset_from_htme.get_list_keys_for_prefix(
-        s3_client, S3_HTME_BUCKET, S3_PREFIX)
-
-    assert len(keys) == 0
-
-
-@mock_sns
-def test_send_sns_message():
-    status = "test_status"
-    collection_name = "test_collection"
-    sns_client = boto3.client(service_name="sns", region_name=AWS_REGION)
-    sns_client.create_topic(
-        Name="status_topic", Attributes={"DisplayName": "test-topic"}
-    )
-
-    topics_json = sns_client.list_topics()
-    status_topic_arn = topics_json["Topics"][0]["TopicArn"]
-
-    response = generate_dataset_from_htme.notify_of_collection_failure(
-        sns_client,
-        status_topic_arn,
-        CORRELATION_ID,
-        collection_name,
-        status,
-        SNAPSHOT_TYPE_FULL,
-    )
-
-    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
