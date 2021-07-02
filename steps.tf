@@ -18,23 +18,6 @@ resource "aws_s3_bucket_object" "generate_dataset_from_htme_script" {
   )
 }
 
-resource "aws_s3_bucket_object" "create_pdm_trigger_script" {
-  bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/analytical-dataset-generation/create_pdm_trigger.py"
-  content = templatefile("${path.module}/steps/create_pdm_trigger.py",
-    {
-      pdm_lambda_trigger_arn           = aws_lambda_function.pdm_cw_emr_launcher.arn
-      aws_default_region               = "eu-west-2"
-      log_path                         = "/var/log/adg/create_pdm_trigger.log"
-      skip_pdm_trigger                 = local.skip_pdm_trigger_on_adg_completion[local.environment]
-      skip_date_checks                 = local.skip_pdm_trigger_date_checks_on_adg_completion[local.environment]
-      s3_prefix                        = var.htme_data_location[local.environment]
-      pdm_start_do_not_run_after_hour  = local.pdm_start_do_not_run_after_hour[local.environment]
-      pdm_start_do_not_run_before_hour = local.pdm_start_do_not_run_before_hour[local.environment]
-    }
-  )
-}
-
 resource "aws_s3_bucket_object" "logger" {
   bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
   key     = "component/analytical-dataset-generation/logger.py"
