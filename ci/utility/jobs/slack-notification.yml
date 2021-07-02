@@ -1,0 +1,11 @@
+jobs:
+  - name: slack-notification
+    plan:
+      - get: chs-auditlog
+        trigger: true
+    .: (( inject meta.plan.notify ))
+    on_success:
+      params:
+        attachments:
+          - color: danger
+            text: The `chs-auditlog` repo has changed, please check if we need to make changes in `aws-auditlog`.

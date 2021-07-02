@@ -7,6 +7,7 @@
 
 terraform.tf
 aviator_pipeline.yml
+aviator_utility_pipeline.yml
 .DS_Store
 .vscode
 **/__pycache__/

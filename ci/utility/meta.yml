@@ -1,0 +1,9 @@
+meta:
+  plan:
+    notify:
+      on_success:
+        put: slack
+        attempts: 3
+        params:
+          channel: ((dataworks.repo_changes_slack_channel))
+          icon_emoji: ":github:"

@@ -1,0 +1,4 @@
+groups:
+  - name: master
+    jobs:
+      - slack-notification
