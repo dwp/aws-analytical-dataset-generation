@@ -667,7 +667,7 @@ def get_metadatafor_key(key, s3_client, s3_htme_bucket):
         .read()
         .decode()
     )
-    the_logger.info("Instance id making boto3 get_object calls: %s ", instance_id)
+    the_logger.debug("Instance id making boto3 get_object calls: %s ", instance_id)
     s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
     iv = s3_object["Metadata"]["iv"]
     ciphertext = s3_object["Metadata"]["ciphertext"]
