@@ -32,7 +32,7 @@ def handle_server():
 def spark():
     os.environ[
         "PYSPARK_SUBMIT_ARGS"
-    ] = '--packages "org.apache.hadoop:hadoop-aws:2.7.3" --conf spark.jars.ivySettings=/root/ivysettings.xml pyspark-shell'
+    ] = '--jars tests/json-1.3.7.3.jar,tests/json-serde-1.3.7.3.jar,tests/json-serde-cdh5-shim-1.3.7.3.jar --packages "org.apache.hadoop:hadoop-aws:2.7.3" --conf spark.jars.ivySettings=/root/ivysettings.xml pyspark-shell'
 
     os.environ["PYSPARK_PYTHON"] = "python3"
     os.environ["PYSPARK_DRIVER_PYTHON"] = "python3"
@@ -40,6 +40,7 @@ def spark():
         SparkSession.builder.master("local")
         .appName("adg-test")
         .config("spark.local.dir", "spark-temp")
+        .config("hive.exec.dynamic.partition.mode", "nonstrict")
         .enableHiveSupport()
         .getOrCreate()
     )
@@ -50,6 +51,7 @@ def spark():
     hadoop_conf.set("fs.s3a.access.key", "mock")
     hadoop_conf.set("fs.s3a.secret.key", "mock")
     hadoop_conf.set("fs.s3a.endpoint", "http://127.0.0.1:5000")
+
 
     spark.sql("create database if not exists test_db")
     yield spark
