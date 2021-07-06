@@ -26,6 +26,7 @@ from pyspark.sql import SparkSession
 from steps.logger import setup_logging
 import logging
 from steps.resume_step import should_skip_step
+from datetime import date, timedelta
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -89,10 +90,13 @@ def main(
         s3_publish_bucket,
         published_database_name,
         args,
+        start_date,
+        end_date,
         s3_resource=None,
 ):
     try:
-        prefixes = get_all_years_for_historic_audit(s3_client, s3_historical_audit_bucket, args.s3_prefix)
+        # prefixes = get_all_years_for_historic_audit(s3_client, s3_historical_audit_bucket, args.s3_prefix)
+        prefixes = get_prefixes_for_selected_dates(s3_historical_audit_bucket, args.s3_prefix, start_date, end_date)
         verified_database_name = create_metastore_db(
             spark,
             published_database_name,
@@ -226,7 +230,9 @@ def create_hive_table_on_published_for_collection(
         "Publishing collection named : %s",
         collection_name,
     )
-    auditlog_managed_table_sql_file = open("/var/ci/auditlog_managed_table.sql")
+    create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name}"
+    spark.sql(create_db_query)
+    auditlog_managed_table_sql_file = get_audit_managed_file()
     auditlog_managed_table_sql_content = (
         auditlog_managed_table_sql_file.read().replace(
             "#{hivevar:auditlog_database}", verified_database_name
@@ -234,7 +240,7 @@ def create_hive_table_on_published_for_collection(
     )
     spark.sql(auditlog_managed_table_sql_content)
 
-    auditlog_external_table_sql_file = open("/var/ci/auditlog_external_table.sql")
+    auditlog_external_table_sql_file = get_audit_external_file()
     date_hyphen = collection_name
     date_underscore = date_hyphen.replace("-", "_")
     queries = (
@@ -245,10 +251,15 @@ def create_hive_table_on_published_for_collection(
             .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
             .replace("#{hivevar:data_location}", collection_json_location)
     )
-    split_queries = queries.split(";", 3)
+    split_queries = queries.split(";", 4)
     print(list(map(lambda query: spark.sql(query), split_queries)))
     return collection_name
 
+def get_audit_managed_file():
+    return open("/var/ci/auditlog_managed_table.sql")
+
+def get_audit_external_file():
+    return open("/var/ci/auditlog_external_table.sql")
 
 def consolidate_rdd_per_collection(
         collection_name,
@@ -417,6 +428,23 @@ def get_s3_resource():
     session = boto3.session.Session()
     return session.resource("s3", region_name=DEFAULT_REGION)
 
+def get_prefixes_for_selected_dates(s3_bucket, s3_prefix, start_date, end_date):
+    prefixes = []
+    the_logger.info(
+            "Looking for prefixes for dates between : %s and : %s",
+            start_date,
+            end_date,
+        )
+    sdate = datetime.strptime(start_date, '%Y-%m-%d').date()  # start date
+    edate = datetime.strptime(end_date, '%Y-%m-%d').date() # end date
+    delta = edate - sdate       # as timedelta
+    for i in range(delta.days + 1):
+        day = sdate + timedelta(days=i)
+        prefix = f's3://{s3_bucket}/{s3_prefix}{day}/'
+        prefixes.append(prefix)
+    return prefixes
+
+
 def get_all_years_for_historic_audit(s3_client, s3_bucket, s3_prefix):
     the_logger.info(
         "Looking for files to process in bucket : %s with prefix : %s",
@@ -461,6 +489,8 @@ def get_parameters():
     # Parse command line inputs and set defaults
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
     parser.add_argument("--snapshot_type", default="historical_business_audit")
+    parser.add_argument("--start_date", default="2014-11-25")
+    parser.add_argument("--end_date", default=f'{datetime.now().strftime("%Y-%m-%d")}')
     args, unrecognized_args = parser.parse_known_args()
 
     if len(unrecognized_args) > 0:
@@ -584,6 +614,8 @@ if __name__ == "__main__":
         s3_publish_bucket,
         published_database_name,
         args,
+        start_date,
+        end_date
     )
 
 
