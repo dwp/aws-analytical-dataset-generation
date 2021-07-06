@@ -81,7 +81,7 @@ def verify_processed_data(
     target_object_key = f"${{file_location}}/{collection_location}/{collection_name}/2021-07-02/part-00000"
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
-    s3_client.create_bucket(Bucket=S3_HISTORICAL_BUSINESS_AUDIT_BUCKET)
+    historical_business_audit_bucket = s3_client.create_bucket(Bucket=S3_HISTORICAL_BUSINESS_AUDIT_BUCKET)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
     s3_client.put_object(
         Body=zlib.compress(test_data),
@@ -93,6 +93,8 @@ def verify_processed_data(
             "datakeyencryptionkeyid": "123",
         },
     )
+    for key in s3_client.list_objects(Bucket=S3_HISTORICAL_BUSINESS_AUDIT_BUCKET, Prefix=f'{S3_PREFIX}/2021-07-02/')['Contents']:
+        print(f'keyssss are {key["Key"]}')
     monkeypatch_with_mocks(monkeypatch)
     generate_dataset_from_historical_audit.main(
         spark,
@@ -103,7 +105,7 @@ def verify_processed_data(
         PUBLISHED_DATABASE_NAME,
         mocked_args,
         '2021-07-02',
-        '2021-07-03',
+        '2021-07-02',
         s3_resource
     )
     assert len(s3_client.list_buckets()["Buckets"]) == 2
@@ -188,6 +190,8 @@ def monkeypatch_with_mocks(monkeypatch):
     monkeypatch.setattr(steps.generate_dataset_from_historical_audit, "decrypt", mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_historical_audit, "call_dks", mock_call_dks)
     monkeypatch.setattr(steps.generate_dataset_from_historical_audit, "get_metadatafor_key", mock_get_metadatafor_key)
+    monkeypatch.setattr(steps.generate_dataset_from_historical_audit, "get_audit_managed_file", mock_get_audit_managed_file)
+    monkeypatch.setattr(steps.generate_dataset_from_historical_audit, "get_audit_external_file", mock_get_audit_external_file)
 
 
 def mock_decompress(compressed_text):
