@@ -527,7 +527,10 @@ def create_hive_table_on_published_for_collection(
         args.correlation_id,
     )
     if hive_table_name == "data_businessAudit":
-        auditlog_managed_table_sql_file = open("/var/ci/auditlog_managed_table.sql")
+        verified_database_name = 'uc_dw_auditlog'
+        create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name}"
+        spark.sql(create_db_query)
+        auditlog_managed_table_sql_file = get_audit_managed_file()
         auditlog_managed_table_sql_content = (
             auditlog_managed_table_sql_file.read().replace(
                 "#{hivevar:auditlog_database}", verified_database_name
@@ -535,7 +538,7 @@ def create_hive_table_on_published_for_collection(
         )
         spark.sql(auditlog_managed_table_sql_content)
 
-        auditlog_external_table_sql_file = open("/var/ci/auditlog_external_table.sql")
+        auditlog_external_table_sql_file = get_audit_external_file()
         date_hyphen = datetime.today().strftime("%Y-%m-%d")
         date_underscore = date_hyphen.replace("-", "_")
         queries = (
@@ -546,7 +549,7 @@ def create_hive_table_on_published_for_collection(
             .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
             .replace("#{hivevar:data_location}", collection_json_location)
         )
-        split_queries = queries.split(";", 3)
+        split_queries = queries.split(";", 4)
         print(list(map(lambda query: spark.sql(query), split_queries)))
     else:
         src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
@@ -559,6 +562,12 @@ def create_hive_table_on_published_for_collection(
             args.correlation_id,
         )
     return collection_name
+
+def get_audit_managed_file():
+    return open("/var/ci/auditlog_managed_table.sql")
+
+def get_audit_external_file():
+    return open("/var/ci/auditlog_external_table.sql")
 
 
 def get_filesize(s3_client, s3_htme_bucket, collection_file_key):
@@ -658,7 +667,7 @@ def get_metadatafor_key(key, s3_client, s3_htme_bucket):
         .read()
         .decode()
     )
-    the_logger.info("Instance id making boto3 get_object calls: %s ", instance_id)
+    the_logger.debug("Instance id making boto3 get_object calls: %s ", instance_id)
     s3_object = s3_client.get_object(Bucket=s3_htme_bucket, Key=key)
     iv = s3_object["Metadata"]["iv"]
     ciphertext = s3_object["Metadata"]["ciphertext"]
