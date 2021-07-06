@@ -374,7 +374,7 @@ def test_exception_when_decompression_fails(
 def test_update_adg_status_for_collection():
     expected = "test_status"
     collection_name = "test_collection"
-    
+
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2")
     table_name = "UCExportToCrownStatus"
     dynamodb_client.create_table(
