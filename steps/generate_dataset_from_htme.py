@@ -575,7 +575,7 @@ def create_audit_log_raw_managed_table(verified_database_name, date_hyphen, coll
         spark.sql(src_managed_hive_create_query)
 
         src_external_hive_table = verified_database_name + "." + 'auditlog_raw_external'
-        src_external_hive_create_query = f"""CREATE EXTERNAL TABLE {src_external_hive_table}(val STRING) PARTITIONED BY (date_str STRING) ROW FORMAT SERDE "org.openx.data.jsonserde.JsonSerDe" WITH SERDEPROPERTIES ("ignore.malformed.json" = "true") STORED AS TEXTFILE LOCATION "{collection_json_location}""""
+        src_external_hive_create_query = f"""CREATE EXTERNAL TABLE {src_external_hive_table}(val STRING) PARTITIONED BY (date_str STRING) ROW FORMAT SERDE "org.openx.data.jsonserde.JsonSerDe" WITH SERDEPROPERTIES ("ignore.malformed.json" = "true") STORED AS TEXTFILE LOCATION "{collection_json_location}" """
         src_external_hive_alter_query = f"""ALTER TABLE {src_external_hive_table} ADD IF NOT EXISTS PARTITION(date_str='{date_hyphen}') LOCATION '{collection_json_location}'"""
         src_external_hive_insert_query = f"""INSERT INTO {src_managed_hive_table} SELECT * FROM {src_external_hive_table}"""
         src_externl_hive_drop_query = f"""DROP TABLE IF EXISTS {src_external_hive_table}"""
