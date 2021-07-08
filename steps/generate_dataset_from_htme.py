@@ -528,8 +528,14 @@ def create_hive_table_on_published_for_collection(
     )
     if hive_table_name == "data_businessAudit":
         verified_database_name = 'uc_dw_auditlog'
+        date_hyphen = datetime.today().strftime("%Y-%m-%d")
+        date_underscore = date_hyphen.replace("-", "_")
         create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name}"
         spark.sql(create_db_query)
+
+        create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location)
+
+
         auditlog_managed_table_sql_file = get_audit_managed_file()
         auditlog_managed_table_sql_content = (
             auditlog_managed_table_sql_file.read().replace(
@@ -538,9 +544,8 @@ def create_hive_table_on_published_for_collection(
         )
         spark.sql(auditlog_managed_table_sql_content)
 
+
         auditlog_external_table_sql_file = get_audit_external_file()
-        date_hyphen = datetime.today().strftime("%Y-%m-%d")
-        date_underscore = date_hyphen.replace("-", "_")
         queries = (
             auditlog_external_table_sql_file.read()
             .replace("#{hivevar:auditlog_database}", verified_database_name)
@@ -562,6 +567,29 @@ def create_hive_table_on_published_for_collection(
             args.correlation_id,
         )
     return collection_name
+
+
+def create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location):
+        the_logger.info(
+                    "collection_json_location : %s",
+                    collection_json_location,
+                )
+        src_managed_hive_table = verified_database_name + "." + 'auditlog_raw'
+        src_managed_hive_create_query = f"""CREATE TABLE IF NOT EXISTS {src_managed_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS orc TBLPROPERTIES ('orc.compress'='ZLIB')"""
+        spark.sql(src_managed_hive_create_query)
+
+        src_external_hive_table = verified_database_name + "." + 'auditlog_raw_external'
+        src_external_hive_create_query = f"""CREATE EXTERNAL TABLE {src_external_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+        the_logger.info("hive create query %s", src_external_hive_create_query)
+        src_external_hive_alter_query = f"""ALTER TABLE {src_external_hive_table} ADD IF NOT EXISTS PARTITION(date_str='{date_hyphen}') LOCATION '{collection_json_location}'"""
+        src_external_hive_insert_query = f"""INSERT INTO {src_managed_hive_table} SELECT * FROM {src_external_hive_table}"""
+        src_externl_hive_drop_query = f"""DROP TABLE IF EXISTS {src_external_hive_table}"""
+
+        spark.sql(src_external_hive_create_query)
+        spark.sql(src_external_hive_alter_query)
+        spark.sql(src_external_hive_insert_query)
+        spark.sql(src_externl_hive_drop_query)
+
 
 def get_audit_managed_file():
     return open("/var/ci/auditlog_managed_table.sql")
