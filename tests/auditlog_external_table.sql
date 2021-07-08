@@ -8,5 +8,5 @@ STORED AS TEXTFILE
 LOCATION '#{hivevar:data_location}';
 
 ALTER TABLE #{hivevar:auditlog_database}.auditlog_#{hivevar:date_underscore} ADD IF NOT EXISTS PARTITION(date_str='#{hivevar:date_hyphen}') LOCATION '#{hivevar:data_location}';
-INSERT INTO #{hivevar:auditlog_database}.auditlog_managed SELECT * FROM #{hivevar:auditlog_database}.auditlog_#{hivevar:date_underscore};
+INSERT OVERWRITE TABLE #{hivevar:auditlog_database}.auditlog_managed SELECT * FROM #{hivevar:auditlog_database}.auditlog_#{hivevar:date_underscore};
 DROP TABLE IF EXISTS #{hivevar:auditlog_database}.auditlog_#{hivevar:date_underscore}
