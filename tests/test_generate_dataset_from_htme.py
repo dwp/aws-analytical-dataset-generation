@@ -307,6 +307,10 @@ def monkeypatch_with_mocks(monkeypatch):
     )
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decrypt", mock_decrypt)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "call_dks", mock_call_dks)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_metadatafor_key", mock_get_metadatafor_key)
+
+
 
 
 def test_create_hive_table_on_published_for_collection(
@@ -369,16 +373,26 @@ def test_create_hive_table_on_published_for_audit_log(
             mock_args(),
         )
     managed_table = 'auditlog_managed'
+    managed_table_raw = 'auditlog_raw'
     tables = spark.catalog.listTables('uc_dw_auditlog')
     actual = list(map(lambda table: table.name, tables))
-    expected = [managed_table]
+    expected = [managed_table, managed_table_raw]
     assert len(actual) == len(expected)
     assert all([a == b for a, b in zip(actual, expected)])
     managed_table_result = spark.sql(f"select first_name, last_name, date_str from uc_dw_auditlog.{managed_table}").collect()
     print(managed_table_result)
-    expected = [Row(first_name='abcd', last_name='xyz', date_str='2021-07-02'), Row(first_name='abcd', last_name='xyz', date_str='2021-07-02')]
+    expected = [Row(first_name='abcd', last_name='xyz', date_str=date_hyphen), Row(first_name='abcd', last_name='xyz', date_str=date_hyphen)]
     expected_json = json.dumps(expected)
     actual_json = json.dumps(managed_table_result)
+    print(expected_json)
+    print(actual_json)
+    assert len(managed_table_result) == 2
+
+    managed_table_raw_result = spark.sql(f"select * from uc_dw_auditlog.{managed_table_raw}").collect()
+    print(managed_table_raw_result)
+    expected = [Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str='2021-07-07'), Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str='2021-07-07')]
+    expected_json = json.dumps(expected)
+    actual_json = json.dumps(managed_table_raw_result)
     print(expected_json)
     print(actual_json)
     assert len(managed_table_result) == 2
@@ -487,6 +501,14 @@ def mock_add_metric(metrics_file, collection_name, value):
 
 def mock_decrypt(plain_text_key, iv_key, data, args, run_time_stamp):
     return data
+
+
+def mock_get_metadatafor_key(key, s3_client, s3_htme_bucket):
+    return {
+               "iv": "123",
+               "ciphertext": "test_ciphertext",
+               "datakeyencryptionkeyid": "123",
+           }
 
 
 def mock_args():
