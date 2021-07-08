@@ -8,6 +8,8 @@ import boto3
 import pytest
 from moto import mock_s3, mock_dynamodb2, mock_sns
 from datetime import datetime
+from pyspark.sql import Row
+import json
 
 import steps
 from steps import generate_dataset_from_historical_audit
@@ -137,9 +139,9 @@ def test_create_hive_table_on_published_for_audit_log(
         },
     )
     json_location = f"s3://{S3_PUBLISH_BUCKET}/data/businessAudit/{date_hyphen}/"
-    collection_name = "data/businessAudit"
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_audit_managed_file", mock_get_audit_managed_file)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_audit_external_file", mock_get_audit_external_file)
+    collection_name = date_hyphen
+    monkeypatch.setattr(steps.generate_dataset_from_historical_audit, "get_audit_managed_file", mock_get_audit_managed_file)
+    monkeypatch.setattr(steps.generate_dataset_from_historical_audit, "get_audit_external_file", mock_get_audit_external_file)
     steps.generate_dataset_from_historical_audit.create_hive_table_on_published_for_collection(
         spark,
         collection_name,
@@ -155,9 +157,10 @@ def test_create_hive_table_on_published_for_audit_log(
             mock_args(),
         )
     managed_table = 'auditlog_managed'
+    managed_table_raw = 'auditlog_raw'
     tables = spark.catalog.listTables('uc_dw_auditlog')
     actual = list(map(lambda table: table.name, tables))
-    expected = [managed_table]
+    expected = [managed_table, managed_table_raw]
     assert len(actual) == len(expected)
     assert all([a == b for a, b in zip(actual, expected)])
     managed_table_result = spark.sql(f"select first_name, last_name, date_str from uc_dw_auditlog.{managed_table}").collect()
@@ -165,6 +168,15 @@ def test_create_hive_table_on_published_for_audit_log(
     expected = [Row(first_name='abcd', last_name='xyz', date_str='2021-07-02'), Row(first_name='abcd', last_name='xyz', date_str='2021-07-02')]
     expected_json = json.dumps(expected)
     actual_json = json.dumps(managed_table_result)
+    print(expected_json)
+    print(actual_json)
+    assert len(managed_table_result) == 2
+
+    managed_table_raw_result = spark.sql(f"select * from uc_dw_auditlog.{managed_table_raw}").collect()
+    print(managed_table_raw_result)
+    expected = [Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str='2021-07-07'), Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str='2021-07-07')]
+    expected_json = json.dumps(expected)
+    actual_json = json.dumps(managed_table_raw_result)
     print(expected_json)
     print(actual_json)
     assert len(managed_table_result) == 2
