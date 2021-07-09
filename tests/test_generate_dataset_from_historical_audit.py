@@ -20,15 +20,15 @@ PII_KEY = "pii"
 TRUE_VALUE = "true"
 DB_KEY = "db"
 TABLE_KEY = "table"
-SNAPSHOT_TYPE_FULL = "full"
+SNAPSHOT_TYPE_HISTORICAL_BUSINESS_AUDIT = "historical_business_audit"
 SNS_TOPIC_ARN = "test_arn"
 SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_KEY = "snapshot_type"
-TAG_SET_FULL = [
+TAG_SET_HISTORICAL_BUSINESS_AUDIT = [
     {NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE},
-    {NAME_KEY: DB_KEY, VALUE_KEY: "core"},
-    {NAME_KEY: TABLE_KEY, VALUE_KEY: "contract"},
-    {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_FULL},
+    {NAME_KEY: DB_KEY, VALUE_KEY: "data"},
+    {NAME_KEY: TABLE_KEY, VALUE_KEY: "businessAudit"},
+    {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_HISTORICAL_BUSINESS_AUDIT},
 ]
 TAG_SET_INCREMENTAL = [
     {NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE},
@@ -72,9 +72,7 @@ def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_full(
 def verify_processed_data(
     mocked_args, monkeypatch, spark):
     tag_set = (
-        TAG_SET_FULL
-        if mocked_args.snapshot_type == SNAPSHOT_TYPE_FULL
-        else TAG_SET_INCREMENTAL
+        TAG_SET_HISTORICAL_BUSINESS_AUDIT
     )
     tbl_name = "businessAudit"
     collection_location = "data"
@@ -117,6 +115,12 @@ def verify_processed_data(
         .decode()
         .strip()
         == test_data.decode()
+    )
+    assert (
+        s3_client.get_object_tagging(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)[
+            "TagSet"
+        ]
+        == tag_set
     )
 
 @mock_s3
@@ -170,7 +174,7 @@ def test_create_hive_table_on_published_for_audit_log(
     actual_json = json.dumps(managed_table_result)
     print(expected_json)
     print(actual_json)
-    assert len(managed_table_result) == 2
+    assert len(managed_table_result) == 1
 
     managed_table_raw_result = spark.sql(f"select * from uc_dw_auditlog.{managed_table_raw}").collect()
     print(managed_table_raw_result)
@@ -179,7 +183,7 @@ def test_create_hive_table_on_published_for_audit_log(
     actual_json = json.dumps(managed_table_raw_result)
     print(expected_json)
     print(actual_json)
-    assert len(managed_table_result) == 2
+    assert len(managed_table_result) == 1
 
 def mock_get_audit_managed_file():
     return open("tests/auditlog_managed_table.sql")

@@ -28,6 +28,9 @@ import logging
 from steps.resume_step import should_skip_step
 from datetime import date, timedelta
 
+SNAPSHOT_TYPE_KEY = "snapshot_type"
+VALUE_KEY = "Value"
+KEY_KEY = "Key"
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
     if "ADG_LOG_LEVEL" in os.environ
@@ -173,18 +176,18 @@ def process_collection(
     if s3_resource is None:
         s3_resource = get_s3_resource()
 
-    year  = prefix.split('/')[-2]
+    day  = prefix.split('/')[-2]
     keys = get_list_keys_for_prefix(s3_client, s3_historical_audit_bucket, prefix)
 
     the_logger.info(
-            "Processing for the year : %s keys : %s",
-            year,
+            "Processing for the day : %s keys : %s",
+            day,
             keys,
         )
 
     try:
         collection_json_location = consolidate_rdd_per_collection(
-            year,
+            day,
             keys,
             s3_client,
             s3_historical_audit_bucket,
@@ -205,7 +208,7 @@ def process_collection(
     try:
         create_hive_table_on_published_for_collection(
             spark,
-            year,
+            day,
             collection_json_location,
             verified_database_name,
             args,
@@ -213,7 +216,7 @@ def process_collection(
     except Exception as ex:
         the_logger.error(
             "Error occurred publishing collection named %s : %s",
-            year,
+            day,
             repr(ex),
         )
         raise CollectionPublishingException(ex)
@@ -306,19 +309,12 @@ def consolidate_rdd_per_collection(
     rdd_list = []
     total_collection_size = 0
     for collection_file_key in collection_files_keys:
-        the_logger.info("About to readbinary data for %s", collection_file_key)
         key1 = f"s3://{s3_historical_audit_bucket}/{collection_file_key}"
-        the_logger.info("spark : %s and key: %s", spark, key1)
-        try:
-            encrypted = read_binary(spark, key1)
-        except BaseException as ex:
-            the_logger.error("reading problem %s", repr(ex))
-        the_logger.info("before metadata for %s", collection_file_key)
+        encrypted = read_binary(spark, key1)
         metadata = get_metadatafor_key(collection_file_key, s3_client, s3_historical_audit_bucket)
         total_collection_size += get_filesize(
             s3_client, s3_historical_audit_bucket, collection_file_key
         )
-        the_logger.info("Processed metadata for %s", collection_file_key)
         ciphertext = metadata["ciphertext"]
         datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
         iv = metadata["iv"]
@@ -330,11 +326,8 @@ def consolidate_rdd_per_collection(
                 plain_text_key, iv, val, args
             )
         )
-        the_logger.info("Processed decryption for %s", collection_file_key)
         decompressed = decrypted.mapValues(decompress)
-        the_logger.info("Processed decompression for %s", collection_file_key)
         decoded = decompressed.mapValues(decode)
-        the_logger.info("Processed decoding for %s", collection_file_key)
         rdd_list.append(decoded)
     consolidated_rdd = spark.sparkContext.union(rdd_list)
     consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
@@ -348,6 +341,14 @@ def consolidate_rdd_per_collection(
     delete_existing_audit_files(s3_publish_bucket, json_location_prefix, s3_client)
 
     persist_json(json_location, consolidated_rdd_mapped)
+    tag_value = {"pii": "true", "db": "data", "table": "businessAudit"}
+    tag_objects(
+        json_location_prefix,
+        tag_value,
+        s3_client,
+        s3_publish_bucket,
+        args.snapshot_type,
+    )
     the_logger.info(
         "Applying Tags for prefix : %s",
         json_location_prefix,
@@ -389,6 +390,15 @@ def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket, snapshot_type):
             Key=key["Key"],
             Tagging={"TagSet": tags_set_value},
         )
+
+
+def get_tags(tag_value, snapshot_type):
+    tag_set = []
+    for k, v in tag_value.items():
+        tag_set.append({KEY_KEY: k, VALUE_KEY: v})
+    tag_set.append({KEY_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: snapshot_type})
+    return tag_set
+
 def decode(txt):
     return txt.decode("utf-8")
 
@@ -516,7 +526,7 @@ def get_parameters():
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
     parser.add_argument("--snapshot_type", default="historical_business_audit")
     parser.add_argument("--start_date", default="2014-11-25")
-    parser.add_argument("--end_date", default=f'{datetime.now().strftime("%Y-%m-%d")}')
+    parser.add_argument("--end_date", default='2014-11-25')
     args, unrecognized_args = parser.parse_known_args()
 
     if len(unrecognized_args) > 0:
@@ -620,17 +630,27 @@ def get_plaintext_key_calling_dks(
         keys_map[encryptedkey] = key
     return key
 
+def exit_if_skipping_step():
+    if should_skip_step(the_logger, "spark-submit"):
+        the_logger.info("Step needs to be skipped so will exit without error")
+        sys.exit(0)
+
 if __name__ == "__main__":
     args = get_parameters()
     the_logger.info(
-        "Processing spark job for s3_prefix : %s",
+        "Processing spark job for s3_prefix : %s starting from %s to %s",
         args.s3_prefix,
+        args.start_date,
+        args.end_date
     )
+    the_logger.info("Checking if step should be skipped")
+    exit_if_skipping_step()
+
     spark = get_spark_session(args)
+    published_database_name = "${published_db}"
     s3_historical_audit_bucket = os.getenv("S3_HISTORICAL_AUDIT_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_s3_client()
-    published_database_name = "${published_db}"
     keys_map = {}
     main(
         spark,
