@@ -428,7 +428,7 @@ def consolidate_rdd_per_collection(
     collection_name_key = collection_name_key.replace("_", "-")
     file_location = "${file_location}"
     if collection_name_key == "data/businessAudit":
-        current_date = datetime.today().strftime("%Y-%m-%d")
+        current_date = args.export_date
         json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
         delete_existing_audit_files(s3_publish_bucket, json_location_prefix, s3_client)
@@ -528,7 +528,7 @@ def create_hive_table_on_published_for_collection(
     )
     if hive_table_name == "data_businessAudit":
         verified_database_name = 'uc_dw_auditlog'
-        date_hyphen = datetime.today().strftime("%Y-%m-%d")
+        date_hyphen = args.export_date
         date_underscore = date_hyphen.replace("-", "_")
         create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name}"
         spark.sql(create_db_query)
@@ -567,7 +567,6 @@ def create_hive_table_on_published_for_collection(
             args.correlation_id,
         )
     return collection_name
-
 
 def create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location):
         the_logger.info(
