@@ -210,7 +210,6 @@ def process_collection(
             spark,
             day,
             collection_json_location,
-            verified_database_name,
             args,
         )
     except Exception as ex:
@@ -225,25 +224,24 @@ def create_hive_table_on_published_for_collection(
         spark,
         collection_name,
         collection_json_location,
-        verified_database_name,
         args,
 ):
-    verified_database_name = 'uc_dw_auditlog'
+    verified_database_name_for_audit = 'uc_dw_auditlog'
     date_hyphen = collection_name
     date_underscore = date_hyphen.replace("-", "_")
     the_logger.info(
         "Publishing collection named : %s",
         collection_name,
     )
-    create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name}"
+    create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_audit}"
     spark.sql(create_db_query)
 
-    create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location)
+    create_audit_log_raw_managed_table(spark, verified_database_name_for_audit, date_hyphen, collection_json_location)
 
     auditlog_managed_table_sql_file = get_audit_managed_file()
     auditlog_managed_table_sql_content = (
         auditlog_managed_table_sql_file.read().replace(
-            "#{hivevar:auditlog_database}", verified_database_name
+            "#{hivevar:auditlog_database}", verified_database_name_for_audit
         )
     )
     spark.sql(auditlog_managed_table_sql_content)
@@ -251,7 +249,7 @@ def create_hive_table_on_published_for_collection(
     auditlog_external_table_sql_file = get_audit_external_file()
     queries = (
         auditlog_external_table_sql_file.read()
-            .replace("#{hivevar:auditlog_database}", verified_database_name)
+            .replace("#{hivevar:auditlog_database}", verified_database_name_for_audit)
             .replace("#{hivevar:date_underscore}", date_underscore)
             .replace("#{hivevar:date_hyphen}", date_hyphen)
             .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")

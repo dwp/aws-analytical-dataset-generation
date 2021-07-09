@@ -150,14 +150,12 @@ def test_create_hive_table_on_published_for_audit_log(
         spark,
         collection_name,
         json_location,
-        PUBLISHED_DATABASE_NAME,
         mock_args(),
     )
     steps.generate_dataset_from_historical_audit.create_hive_table_on_published_for_collection(
             spark,
             collection_name,
             json_location,
-            PUBLISHED_DATABASE_NAME,
             mock_args(),
         )
     managed_table = 'auditlog_managed'
