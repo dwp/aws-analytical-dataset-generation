@@ -390,7 +390,7 @@ def test_create_hive_table_on_published_for_audit_log(
 
     managed_table_raw_result = spark.sql(f"select * from uc_dw_auditlog.{managed_table_raw}").collect()
     print(managed_table_raw_result)
-    expected = [Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str='2021-07-07'), Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str='2021-07-07')]
+    expected = [Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str=date_hyphen), Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str=date_hyphen)]
     expected_json = json.dumps(expected)
     actual_json = json.dumps(managed_table_raw_result)
     print(expected_json)
@@ -442,7 +442,7 @@ def test_exception_when_decompression_fails(
 def test_update_adg_status_for_collection():
     expected = "test_status"
     collection_name = "test_collection"
-    
+
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2")
     table_name = "UCExportToCrownStatus"
     dynamodb_client.create_table(
