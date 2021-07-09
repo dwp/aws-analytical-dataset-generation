@@ -339,10 +339,12 @@ def test_create_hive_table_on_published_for_collection(
 def test_create_hive_table_on_published_for_audit_log(
     spark, handle_server, aws_credentials, monkeypatch
 ):
+    spark.sql("drop table uc_dw_auditlog.auditlog_managed")
+    args = mock_args()
     test_data = '{"first_name":"abcd","last_name":"xyz"}'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
-    date_hyphen = datetime.today().strftime("%Y-%m-%d")
+    date_hyphen = args.export_date
     date_underscore = date_hyphen.replace("-", "_")
     s3_client.put_object(
         Body=str.encode(test_data),
