@@ -570,7 +570,7 @@ def get_s3_client():
 def decompress(compressed_text):
     return zlib.decompress(compressed_text, 16 + zlib.MAX_WBITS)
 
-def decrypt(plain_text_key, iv_key, data, args, run_time_stamp):
+def decrypt(plain_text_key, iv_key, data, args):
     try:
         iv_int = int(base64.b64decode(iv_key).hex(), 16)
         ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
