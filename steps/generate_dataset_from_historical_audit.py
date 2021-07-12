@@ -31,6 +31,7 @@ from datetime import date, timedelta
 SNAPSHOT_TYPE_KEY = "snapshot_type"
 VALUE_KEY = "Value"
 KEY_KEY = "Key"
+DEFAULT_REGION = "${aws_default_region}"
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
     if "ADG_LOG_LEVEL" in os.environ
