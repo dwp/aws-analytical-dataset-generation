@@ -28,6 +28,16 @@ Steps:
     - "file:/var/ci/courtesy-flush.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
+- Name: "submit-historical-audit-job"
+  HadoopJarStep:
+    Args:
+    - "spark-submit"
+    - "--master"
+    - "yarn"
+    - "--conf"
+    - "spark.yarn.submit.waitAppCompletion=true"
+    - "/opt/emr/generate_dataset_from_historical_audit.py"
+    Jar: "command-runner.jar"
 - Name: "submit-job"
   HadoopJarStep:
     Args:
