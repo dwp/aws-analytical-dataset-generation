@@ -339,10 +339,12 @@ def test_create_hive_table_on_published_for_collection(
 def test_create_hive_table_on_published_for_audit_log(
     spark, handle_server, aws_credentials, monkeypatch
 ):
+    spark.sql("drop table uc_dw_auditlog.auditlog_managed")
+    args = mock_args()
     test_data = '{"first_name":"abcd","last_name":"xyz"}'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
-    date_hyphen = datetime.today().strftime("%Y-%m-%d")
+    date_hyphen = args.export_date
     date_underscore = date_hyphen.replace("-", "_")
     s3_client.put_object(
         Body=str.encode(test_data),
@@ -386,16 +388,16 @@ def test_create_hive_table_on_published_for_audit_log(
     actual_json = json.dumps(managed_table_result)
     print(expected_json)
     print(actual_json)
-    assert len(managed_table_result) == 2
+    assert len(managed_table_result) == 1
 
     managed_table_raw_result = spark.sql(f"select * from uc_dw_auditlog.{managed_table_raw}").collect()
     print(managed_table_raw_result)
-    expected = [Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str='2021-07-07'), Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str='2021-07-07')]
+    expected = [Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str=date_hyphen), Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str=date_hyphen)]
     expected_json = json.dumps(expected)
     actual_json = json.dumps(managed_table_raw_result)
     print(expected_json)
     print(actual_json)
-    assert len(managed_table_result) == 2
+    assert len(managed_table_result) == 1
 
 @mock_s3
 def test_exception_when_decompression_fails(
@@ -442,7 +444,7 @@ def test_exception_when_decompression_fails(
 def test_update_adg_status_for_collection():
     expected = "test_status"
     collection_name = "test_collection"
-    
+
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2")
     table_name = "UCExportToCrownStatus"
     dynamodb_client.create_table(
