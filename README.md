@@ -168,7 +168,7 @@ There is a concourse pipeline for ADG named `analytical-dataset-generation`. The
 
 ### Admin jobs
 
-There are a number of available admin jobs for each environment.
+There are a number of available admin jobs for each environment. These can be found in the Utility [Concourse pipeline](https://ci.dataworks.dwp.gov.uk/teams/utility/pipelines/adg-emr-admin)
 
 #### Start cluster
 
