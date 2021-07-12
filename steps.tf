@@ -30,8 +30,6 @@ resource "aws_s3_bucket_object" "generate_dataset_from_historical_audit" {
       aws_default_region     = "eu-west-2"
       log_path               = "/var/log/adg/generate-analytical-dataset.log"
       s3_prefix              = var.historical_audit_data_location[local.environment]
-      start_date             = "2014-11-25"
-      end_date               = "2014-11-25"
     }
   )
 }
