@@ -81,6 +81,7 @@ data "aws_iam_policy_document" "analytical_dataset_read_only" {
 
     resources = [
       data.terraform_remote_state.common.outputs.published_bucket.arn,
+      data.terraform_remote_state.aws_ingestion.outputs.landed_write_light_bucket_arn.arn,
     ]
   }
 
@@ -96,6 +97,7 @@ data "aws_iam_policy_document" "analytical_dataset_read_only" {
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/analytical-dataset/*",
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/data/ucs_latest_unredacted/*",
       "${data.terraform_remote_state.common.outputs.published_bucket.arn}/data/ucs_latest_redacted/*",
+      "${data.terraform_remote_state.aws_ingestion.outputs.landed_write_light_bucket_arn.arn}/auditlog/*",
     ]
   }
 
@@ -109,6 +111,7 @@ data "aws_iam_policy_document" "analytical_dataset_read_only" {
 
     resources = [
       data.terraform_remote_state.common.outputs.published_bucket_cmk.arn,
+      data.terraform_remote_state.aws_ingestion.outputs.landed_write_light_bucket_cmk.arn,
     ]
   }
 }

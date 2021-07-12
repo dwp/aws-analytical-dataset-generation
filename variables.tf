@@ -207,3 +207,14 @@ variable "htme_data_location" {
     production  = "businessdata/mongo/ucdata/2020-07-26/full/"
   }
 }
+
+
+variable "historical_audit_data_location" {
+  default = {
+    development = "auditlog/"
+    qa          = "auditlog/"
+    integration = "auditlog/"
+    preprod     = "auditlog/"
+    production  = "auditlog/"
+  }
+}
