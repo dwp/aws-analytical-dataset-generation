@@ -1,30 +1,22 @@
 import argparse
-import ast
 import base64
-import csv
 import itertools
 import os
-import re
 import sys
 import time
 import zlib
-import json
 import concurrent.futures
 import urllib.request
 from datetime import datetime, timedelta
-from itertools import groupby
-
 import boto3
 import botocore
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from Crypto.Cipher import AES
-from Crypto.Util import Counter
 
 from pyspark.sql import SparkSession
 from steps.logger import setup_logging
-import logging
 from steps.resume_step import should_skip_step
 from datetime import date, timedelta
 
@@ -56,36 +48,6 @@ class CollectionPublishingException(CollectionException):
 
     pass
 
-def create_metastore_db(
-    spark,
-    published_database_name,
-    args,
-):
-    verified_database_name = published_database_name
-    # Check to create database only if the backend is Aurora as Glue database is created through terraform
-    if "${hive_metastore_backend}" == "aurora":
-        try:
-            if args.snapshot_type.lower() != SNAPSHOT_TYPE_FULL:
-                verified_database_name = (
-                    f"{published_database_name}_{SNAPSHOT_TYPE_INCREMENTAL}"
-                )
-
-            the_logger.info(
-                "Creating metastore db with name of %s while processing",
-                verified_database_name,
-            )
-
-            create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name}"
-            spark.sql(create_db_query)
-        except BaseException as ex:
-            the_logger.error(
-                "Error occurred creating hive metastore backend %s",
-                repr(ex),
-            )
-            raise BaseException(ex)
-
-    return verified_database_name
-
 def main(
         spark,
         s3_client,
@@ -101,18 +63,9 @@ def main(
     try:
         # prefixes = get_all_years_for_historic_audit(s3_client, s3_historical_audit_bucket, args.s3_prefix)
         prefixes = get_prefixes_for_selected_dates(s3_historical_audit_bucket, args.s3_prefix, start_date, end_date)
-        verified_database_name = create_metastore_db(
-            spark,
-            published_database_name,
-            args,
-        )
-        the_logger.info(
-            "Using database name %s",
-            verified_database_name,
-        )
         process_collections_threaded(
             spark,
-            verified_database_name,
+            '',
             args,
             prefixes,
             s3_client,
@@ -201,7 +154,7 @@ def process_collection(
     except Exception as ex:
         the_logger.error(
             "Error occurred processing collection named %s: %s",
-            'historical_business_audit',
+            day,
             repr(ex),
         )
         raise CollectionProcessingException(ex)
@@ -270,7 +223,9 @@ def create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphe
         src_managed_hive_create_query = f"""CREATE TABLE IF NOT EXISTS {src_managed_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS orc TBLPROPERTIES ('orc.compress'='ZLIB')"""
         spark.sql(src_managed_hive_create_query)
 
-        src_external_hive_table = verified_database_name + "." + 'auditlog_raw_external'
+        date_underscore = date_hyphen.replace("-", "_")
+        src_external_table = f'auditlog_raw_external_{date_underscore}'
+        src_external_hive_table = verified_database_name + "." + src_external_table
         src_external_hive_create_query = f"""CREATE EXTERNAL TABLE {src_external_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
         the_logger.info("hive create query %s", src_external_hive_create_query)
         src_external_hive_alter_query = f"""ALTER TABLE {src_external_hive_table} ADD IF NOT EXISTS PARTITION(date_str='{date_hyphen}') LOCATION '{collection_json_location}'"""
@@ -496,7 +451,7 @@ def get_all_years_for_historic_audit(s3_client, s3_bucket, s3_prefix):
 
 
 def validate_required_args(args):
-    required_args = [ARG_S3_PREFIX]
+    required_args = ['s3_prefix', 'start_date', 'end_date']
     missing_args = []
     for required_message_key in required_args:
         if required_message_key not in args:
@@ -508,13 +463,7 @@ def validate_required_args(args):
                 ", ".join(missing_args)
             ),
         )
-    if args.snapshot_type.lower() not in ARG_SNAPSHOT_TYPE_VALID_VALUES:
-        raise argparse.ArgumentError(
-            None,
-            "ArgumentError: Valid values for snapshot_type are: {}".format(
-                ", ".join(ARG_SNAPSHOT_TYPE_VALID_VALUES)
-            ),
-        )
+
 
 def get_parameters():
     """Define and parse command line args."""
@@ -567,13 +516,12 @@ def get_s3_client():
     return client
 
 def decompress(compressed_text):
-    return zlib.decompress(compressed_text, 16 + zlib.MAX_WBITS)
+    return zlib.decompress(compressed_text)
 
 def decrypt(plain_text_key, iv_key, data, args):
     try:
-        iv_int = int(base64.b64decode(iv_key).hex(), 16)
-        ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
-        aes = AES.new(base64.b64decode(plain_text_key), AES.MODE_CTR, counter=ctr)
+        iv_int = base64.b64decode(iv_key)
+        aes = AES.new(base64.b64decode(plain_text_key), AES.MODE_EAX, nonce=iv_int)
         decrypted = aes.decrypt(data)
     except BaseException as ex:
         the_logger.error(
@@ -587,6 +535,18 @@ def decrypt(plain_text_key, iv_key, data, args):
 def get_collection(collection_name):
     return collection_name.replace("db.", "", 1).replace(".", "/").replace("-", "_")
 
+def retry_requests(retries=10, backoff=1):
+    retry_strategy = Retry(
+        total=retries,
+        backoff_factor=backoff,
+        status_forcelist=[429, 500, 502, 503, 504],
+        method_whitelist=frozenset(["POST"]),
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    requests_session = requests.Session()
+    requests_session.mount("https://", adapter)
+    requests_session.mount("http://", adapter)
+    return requests_session
 
 def call_dks(cek, kek, args):
     try:
@@ -646,6 +606,7 @@ if __name__ == "__main__":
     exit_if_skipping_step()
 
     spark = get_spark_session(args)
+
     published_database_name = "${published_db}"
     s3_historical_audit_bucket = os.getenv("S3_HISTORICAL_AUDIT_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
@@ -659,8 +620,8 @@ if __name__ == "__main__":
         s3_publish_bucket,
         published_database_name,
         args,
-        start_date,
-        end_date
+        args.start_date,
+        args.end_date
     )
 
 
