@@ -26,6 +26,7 @@ set -euo pipefail
     aws s3 cp "${python_logger}" /opt/emr/steps/.
     aws s3 cp "${python_resume_script}" /opt/emr/steps/.
     aws s3 cp "${generate_analytical_dataset}" /opt/emr/.
+    aws s3 cp "${generate_analytical_dataset_historical_audit}" /opt/emr/.
 
 ) >> /var/log/adg/hive_setup.log 2>&1
 

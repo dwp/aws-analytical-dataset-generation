@@ -20,7 +20,7 @@ resource "aws_s3_bucket_object" "generate_dataset_from_htme_script" {
 
 resource "aws_s3_bucket_object" "generate_dataset_from_historical_audit" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
-  key    = "component/generate_dataset_from_historical_audit.py"
+  key    = "component/analytical-dataset-generation/generate_dataset_from_historical_audit.py"
   content = templatefile("${path.module}/steps/generate_dataset_from_historical_audit.py",
     {
       published_db           = local.published_db
