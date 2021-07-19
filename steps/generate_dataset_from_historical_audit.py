@@ -229,7 +229,7 @@ def create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphe
         src_external_hive_create_query = f"""CREATE EXTERNAL TABLE {src_external_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
         the_logger.info("hive create query %s", src_external_hive_create_query)
         src_external_hive_alter_query = f"""ALTER TABLE {src_external_hive_table} ADD IF NOT EXISTS PARTITION(date_str='{date_hyphen}') LOCATION '{collection_json_location}'"""
-        src_external_hive_insert_query = f"""INSERT INTO {src_managed_hive_table} SELECT * FROM {src_external_hive_table}"""
+        src_external_hive_insert_query = f"""INSERT OVERWRITE TABLE {src_managed_hive_table} SELECT * FROM {src_external_hive_table}"""
         src_externl_hive_drop_query = f"""DROP TABLE IF EXISTS {src_external_hive_table}"""
 
         spark.sql(src_external_hive_create_query)
