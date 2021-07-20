@@ -172,7 +172,7 @@ def verify_processed_data(
     tbl_name = "core_contract"
     collection_location = "core"
     collection_name = "contract"
-    test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
+    test_data = b'{"name":"abcd"}\n{"name":"xyz"}\n'
     target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
     sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
@@ -210,7 +210,6 @@ def verify_processed_data(
         s3_client.get_object(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)["Body"]
         .read()
         .decode()
-        .strip()
         == test_data.decode()
     )
     assert (
@@ -339,7 +338,7 @@ def test_create_hive_table_on_published_for_collection(
 def test_create_hive_table_on_published_for_audit_log(
     spark, handle_server, aws_credentials, monkeypatch
 ):
-    spark.sql("drop table uc_dw_auditlog.auditlog_managed")
+    spark.sql("drop table if exists uc_dw_auditlog.auditlog_managed")
     args = mock_args()
     test_data = '{"first_name":"abcd","last_name":"xyz"}'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)

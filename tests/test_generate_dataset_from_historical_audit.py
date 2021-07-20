@@ -126,7 +126,7 @@ def verify_processed_data(
 def test_create_hive_table_on_published_for_audit_log(
     spark, handle_server, aws_credentials, monkeypatch
 ):
-    spark.sql("drop table uc_dw_auditlog.auditlog_managed")
+    spark.sql("drop table if exists uc_dw_auditlog.auditlog_managed")
     test_data = '{"first_name":"abcd","last_name":"xyz"}'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
