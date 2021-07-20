@@ -401,7 +401,7 @@ meta:
             - -exc
             - |
               set +x
-              source ../previous_success/exit-if-succeeded.sh
+              source ./previous_success/exit-if-succeeded.sh
 
               AMI_ID=$(cat al2-emr-ami/id)
               DATE=$(date -u)
