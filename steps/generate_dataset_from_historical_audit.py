@@ -355,8 +355,10 @@ def get_tags(tag_value, snapshot_type):
 
 def decode(txt):
     decoded =  txt.decode("utf-8")
-    stripped_last_new_line_character = decoded[:-1]
-    return stripped_last_new_line_character
+    if "\n" == decoded[-1]:
+        stripped_last_new_line_character = decoded[:-1]
+        return stripped_last_new_line_character
+    return decoded
 
 def delete_existing_audit_files(s3_bucket, s3_prefix, s3_client):
     """Deletes files if exists in the given bucket and prefix
