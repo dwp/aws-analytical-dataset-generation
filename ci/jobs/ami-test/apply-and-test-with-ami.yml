@@ -48,6 +48,8 @@ jobs:
             resource: untested-al2-emr-ami
             trigger: true
       - .: (( inject meta.plan.check-ami-test-results ))
+        input_mapping:
+          untested_ami: al2-emr-ami
       - .: (( inject meta.plan.terraform-bootstrap ))
         config:
           params:
