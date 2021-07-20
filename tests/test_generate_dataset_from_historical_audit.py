@@ -77,7 +77,7 @@ def verify_processed_data(
     tbl_name = "businessAudit"
     collection_location = "data"
     collection_name = "businessAudit"
-    test_data = b'{"name":"abcd"}\n{"name":"xyz"}'
+    test_data = b'{"name":"abcd"}\n{"name":"xyz"}\n'
     target_object_key = f"${{file_location}}/{collection_location}/{collection_name}/2021-07-02/part-00000"
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
@@ -113,7 +113,6 @@ def verify_processed_data(
         s3_client.get_object(Bucket=S3_PUBLISH_BUCKET, Key=target_object_key)["Body"]
         .read()
         .decode()
-        .strip()
         == test_data.decode()
     )
     assert (
