@@ -302,15 +302,14 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
 def test_consolidate_rdd_per_collection_with_multiple_collections_where_one_is_empty(
     spark, monkeypatch, handle_server, aws_credentials
 ):
-    core_contract_collection_name = "core_contract"
-    core_accounts_collection_name = "core_accounts"
+    core_full_collection_name = "core_full"
     empty_collection_name = "fake_empty"
     test_data = '{"name":"abcd"}\n{"name":"xyz"}'
-    secret_collections = SECRETS_COLLECTIONS
-    secret_collections[DB_CORE_ACCOUNTS] = {
+    secret_collections = {}
+    secret_collections["db.core.full"] = {
         PII_KEY: TRUE_VALUE,
         DB_KEY: "core",
-        TABLE_KEY: "accounts",
+        TABLE_KEY: "full",
     }
     secret_collections["db.fake.empty"] = {
         PII_KEY: TRUE_VALUE,
@@ -327,17 +326,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections_where_one_is_e
     s3_client.put_object(
         Body=zlib.compress(str.encode(test_data)),
         Bucket=S3_HTME_BUCKET,
-        Key=f"{S3_PREFIX}/{DB_CORE_CONTRACT_FILE_NAME}",
-        Metadata={
-            "iv": "123",
-            "ciphertext": "test_ciphertext",
-            "datakeyencryptionkeyid": "123",
-        },
-    )
-    s3_client.put_object(
-        Body=zlib.compress(str.encode(test_data)),
-        Bucket=S3_HTME_BUCKET,
-        Key=f"{S3_PREFIX}/{DB_CORE_ACCOUNTS_FILE_NAME}",
+        Key=f"{S3_PREFIX}/db.core.full.01002.4040.gz.enc",
         Metadata={
             "iv": "123",
             "ciphertext": "test_ciphertext",
@@ -359,10 +348,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections_where_one_is_e
         sns_client,
         s3_resource,
     )
-    assert core_contract_collection_name in [
-        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
-    ]
-    assert core_accounts_collection_name in [
+    assert core_full_collection_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
     ]
     assert empty_collection_name in [
