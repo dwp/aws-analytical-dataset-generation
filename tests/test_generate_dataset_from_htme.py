@@ -351,7 +351,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections_where_one_is_e
     assert core_full_collection_name in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
     ]
-    assert empty_collection_name in [
+    assert empty_collection_name not in [
         x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
     ]
 
