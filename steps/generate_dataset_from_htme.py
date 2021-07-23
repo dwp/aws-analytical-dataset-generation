@@ -577,17 +577,20 @@ def create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphe
         src_managed_hive_create_query = f"""CREATE TABLE IF NOT EXISTS {src_managed_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS orc TBLPROPERTIES ('orc.compress'='ZLIB')"""
         spark.sql(src_managed_hive_create_query)
 
-        src_external_hive_table = verified_database_name + "." + 'auditlog_raw_external'
+        date_underscore = date_hyphen.replace("-", "_")
+        src_external_table = f'auditlog_raw_external_{date_underscore}'
+        src_external_hive_table = verified_database_name + "." + src_external_table
         src_external_hive_create_query = f"""CREATE EXTERNAL TABLE {src_external_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
         the_logger.info("hive create query %s", src_external_hive_create_query)
         src_external_hive_alter_query = f"""ALTER TABLE {src_external_hive_table} ADD IF NOT EXISTS PARTITION(date_str='{date_hyphen}') LOCATION '{collection_json_location}'"""
         src_external_hive_insert_query = f"""INSERT OVERWRITE TABLE {src_managed_hive_table} SELECT * FROM {src_external_hive_table}"""
-        src_externl_hive_drop_query = f"""DROP TABLE IF EXISTS {src_external_hive_table}"""
+        src_external_hive_drop_query = f"""DROP TABLE IF EXISTS {src_external_hive_table}"""
 
+        spark.sql(src_external_hive_drop_query)
         spark.sql(src_external_hive_create_query)
         spark.sql(src_external_hive_alter_query)
         spark.sql(src_external_hive_insert_query)
-        spark.sql(src_externl_hive_drop_query)
+        spark.sql(src_external_hive_drop_query)
 
 
 def get_audit_managed_file():
