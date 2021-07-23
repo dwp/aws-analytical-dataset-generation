@@ -685,8 +685,11 @@ def group_keys_by_collection(keys):
 
 
 def decode(txt):
-    return txt.decode("utf-8")
-
+    decoded =  txt.decode("utf-8")
+    if "\n" == decoded[-1]:
+        stripped_last_new_line_character = decoded[:-1]
+        return stripped_last_new_line_character
+    return decoded
 
 def get_metadatafor_key(key, s3_client, s3_htme_bucket):
     instance_id = (
