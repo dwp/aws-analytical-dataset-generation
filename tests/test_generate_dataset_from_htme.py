@@ -298,6 +298,64 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     ]
 
 
+@mock_sns
+def test_consolidate_rdd_per_collection_with_multiple_collections_where_one_is_empty(
+    spark, monkeypatch, handle_server, aws_credentials
+):
+    core_full_collection_name = "core_full"
+    empty_collection_name = "fake_empty"
+    test_data = '{"name":"abcd"}\n{"name":"xyz"}'
+    secret_collections = {}
+    secret_collections["db.core.full"] = {
+        PII_KEY: TRUE_VALUE,
+        DB_KEY: "core",
+        TABLE_KEY: "full",
+    }
+    secret_collections["db.fake.empty"] = {
+        PII_KEY: TRUE_VALUE,
+        DB_KEY: "fake",
+        TABLE_KEY: "empty",
+    }
+    sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
+    s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
+    s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
+    s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
+    s3_publish_bucket_for_multiple_collections = f"{S3_PUBLISH_BUCKET}-2"
+    s3_client.create_bucket(Bucket=s3_publish_bucket_for_multiple_collections)
+    s3_client.put_object(
+        Body=zlib.compress(str.encode(test_data)),
+        Bucket=S3_HTME_BUCKET,
+        Key=f"{S3_PREFIX}/db.core.full.01002.4040.gz.enc",
+        Metadata={
+            "iv": "123",
+            "ciphertext": "test_ciphertext",
+            "datakeyencryptionkeyid": "123",
+        },
+    )
+    monkeypatch_with_mocks(monkeypatch)
+    generate_dataset_from_htme.main(
+        spark,
+        s3_client,
+        S3_HTME_BUCKET,
+        secret_collections,
+        KEYS_MAP,
+        RUN_TIME_STAMP,
+        s3_publish_bucket_for_multiple_collections,
+        PUBLISHED_DATABASE_NAME,
+        mock_args(),
+        dynamodb_client,
+        sns_client,
+        s3_resource,
+    )
+    assert core_full_collection_name in [
+        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
+    ]
+    assert empty_collection_name not in [
+        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
+    ]
+
+
 def monkeypatch_with_mocks(monkeypatch):
     monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
