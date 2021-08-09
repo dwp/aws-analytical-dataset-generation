@@ -423,6 +423,13 @@ def test_create_hive_table_on_published_for_audit_log(
         PUBLISHED_DATABASE_NAME,
         mock_args(),
     )
+    steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
+        spark,
+        collection_name,
+        json_location,
+        PUBLISHED_DATABASE_NAME,
+        mock_args(),
+    )
     managed_table = 'auditlog_managed'
     managed_table_raw = 'auditlog_raw'
     tables = spark.catalog.listTables('uc_dw_auditlog')
