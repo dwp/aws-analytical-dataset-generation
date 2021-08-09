@@ -402,7 +402,6 @@ def test_create_hive_table_on_published_for_audit_log(
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
     date_hyphen = args.export_date
-    date_underscore = date_hyphen.replace("-", "_")
     s3_client.put_object(
         Body=str.encode(test_data),
         Bucket=S3_PUBLISH_BUCKET,
@@ -452,6 +451,60 @@ def test_create_hive_table_on_published_for_audit_log(
     expected = [Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str=date_hyphen), Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str=date_hyphen)]
     expected_json = json.dumps(expected)
     actual_json = json.dumps(managed_table_raw_result)
+    print(expected_json)
+    print(actual_json)
+    assert len(managed_table_raw_result) == 1
+
+
+@mock_s3
+def test_create_hive_table_on_published_for_equality(
+    spark, handle_server, aws_credentials, monkeypatch
+):
+    spark.sql("drop table if exists uc_equality.equality_managed")
+    args = mock_args()
+    test_data = '{"first_name":"abcd","last_name":"xyz"}'
+    s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
+    s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
+    date_hyphen = args.export_date
+    s3_client.put_object(
+        Body=str.encode(test_data),
+        Bucket=S3_PUBLISH_BUCKET,
+        Key=f"data/equality/{date_hyphen}/equality.1444209739198.json.gz.enc",
+        Metadata={
+            "iv": "123",
+            "ciphertext": "test_ciphertext",
+            "datakeyencryptionkeyid": "123",
+        },
+    )
+    json_location = f"s3://{S3_PUBLISH_BUCKET}/data/equality/{date_hyphen}/"
+    collection_name = "data/equality"
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_equality_managed_file", mock_get_equality_managed_file)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_equality_external_file", mock_get_equality_external_file)
+    steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
+        spark,
+        collection_name,
+        json_location,
+        PUBLISHED_DATABASE_NAME,
+        mock_args(),
+    )
+    steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
+            spark,
+            collection_name,
+            json_location,
+            PUBLISHED_DATABASE_NAME,
+            mock_args(),
+        )
+    managed_table = 'equality_managed'
+    tables = spark.catalog.listTables('uc_equality')
+    actual = list(map(lambda table: table.name, tables))
+    expected = [managed_table]
+    assert len(actual) == len(expected)
+    assert all([a == b for a, b in zip(actual, expected)])
+    managed_table_result = spark.sql(f"select first_name, last_name, date_str from uc_equality.{managed_table}").collect()
+    print(managed_table_result)
+    expected = [Row(first_name='abcd', last_name='xyz', date_str=date_hyphen), Row(first_name='abcd', last_name='xyz', date_str=date_hyphen)]
+    expected_json = json.dumps(expected)
+    actual_json = json.dumps(managed_table_result)
     print(expected_json)
     print(actual_json)
     assert len(managed_table_result) == 1
@@ -594,6 +647,12 @@ def mock_get_audit_managed_file():
 def mock_get_audit_external_file():
     return open("tests/auditlog_external_table.sql")
 
+def mock_get_equality_managed_file():
+    return open("tests/equality_managed_table.sql")
+
+def mock_get_equality_external_file():
+    return open("tests/equality_external_table.sql")
+
 def test_retry_requests_with_no_retries():
     start_time = time.perf_counter()
     with pytest.raises(requests.exceptions.ConnectionError):
@@ -643,7 +702,7 @@ def test_validate_required_args_with_invalid_values_for_snapshot_type():
 
 
 @mock_s3
-def test_delete_existing_audit_files(aws_credentials):
+def test_delete_existing_s3_files(aws_credentials):
     s3_client = boto3.client("s3")
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
     s3_client.put_object(
@@ -662,7 +721,7 @@ def test_delete_existing_audit_files(aws_credentials):
 
     assert len(keys) == 2
 
-    generate_dataset_from_htme.delete_existing_audit_files(
+    generate_dataset_from_htme.delete_existing_s3_files(
         S3_HTME_BUCKET, S3_PREFIX, s3_client)
 
     keys = generate_dataset_from_htme.get_list_keys_for_prefix(

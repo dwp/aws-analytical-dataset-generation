@@ -431,7 +431,12 @@ def consolidate_rdd_per_collection(
         current_date = args.export_date
         json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
-        delete_existing_audit_files(s3_publish_bucket, json_location_prefix, s3_client)
+        delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
+    elif collection_name_key == "data/equality":
+        current_date = args.export_date
+        json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
+        json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+        delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
     else:
         json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
@@ -488,7 +493,7 @@ def consolidate_rdd_per_collection(
     return json_location
 
 
-def delete_existing_audit_files(s3_bucket, s3_prefix, s3_client):
+def delete_existing_s3_files(s3_bucket, s3_prefix, s3_client):
     """Deletes files if exists in the given bucket and prefix
 
     Keyword arguments:
@@ -527,35 +532,31 @@ def create_hive_table_on_published_for_collection(
         args.correlation_id,
     )
     if hive_table_name == "data_businessAudit":
-        verified_database_name = 'uc_dw_auditlog'
+        verified_database_name_for_audit = 'uc_dw_auditlog'
         date_hyphen = args.export_date
         date_underscore = date_hyphen.replace("-", "_")
-        create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name}"
+        create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_audit}"
         spark.sql(create_db_query)
-
-        create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location)
-
-
-        auditlog_managed_table_sql_file = get_audit_managed_file()
-        auditlog_managed_table_sql_content = (
-            auditlog_managed_table_sql_file.read().replace(
-                "#{hivevar:auditlog_database}", verified_database_name
-            )
+        process_audit(
+            spark,
+            verified_database_name_for_audit,
+            date_hyphen,
+            date_underscore,
+            collection_json_location,
         )
-        spark.sql(auditlog_managed_table_sql_content)
-
-
-        auditlog_external_table_sql_file = get_audit_external_file()
-        queries = (
-            auditlog_external_table_sql_file.read()
-            .replace("#{hivevar:auditlog_database}", verified_database_name)
-            .replace("#{hivevar:date_underscore}", date_underscore)
-            .replace("#{hivevar:date_hyphen}", date_hyphen)
-            .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
-            .replace("#{hivevar:data_location}", collection_json_location)
+    elif hive_table_name == "data_equality":
+        verified_database_name_for_equality = 'uc_equality'
+        date_hyphen = args.export_date
+        date_underscore = date_hyphen.replace("-", "_")
+        create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_equality}"
+        spark.sql(create_db_query)
+        process_equality(
+            spark,
+            verified_database_name_for_equality,
+            date_hyphen,
+            date_underscore,
+            collection_json_location,
         )
-        split_queries = queries.split(";", 4)
-        print(list(map(lambda query: spark.sql(query), split_queries)))
     else:
         src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
         src_hive_create_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS {src_hive_table}(val STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
@@ -568,29 +569,88 @@ def create_hive_table_on_published_for_collection(
         )
     return collection_name
 
+
+def process_audit(
+    spark,
+    verified_database_name,
+    date_hyphen,
+    date_underscore,
+    collection_json_location,
+):
+    create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location)
+
+    auditlog_managed_table_sql_file = get_audit_managed_file()
+    auditlog_managed_table_sql_content = (
+        auditlog_managed_table_sql_file.read().replace(
+            "#{hivevar:auditlog_database}", verified_database_name
+        )
+    )
+    spark.sql(auditlog_managed_table_sql_content)
+
+    auditlog_external_table_sql_file = get_audit_external_file()
+    queries = (
+        auditlog_external_table_sql_file.read()
+        .replace("#{hivevar:auditlog_database}", verified_database_name)
+        .replace("#{hivevar:date_underscore}", date_underscore)
+        .replace("#{hivevar:date_hyphen}", date_hyphen)
+        .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
+        .replace("#{hivevar:data_location}", collection_json_location)
+    )
+    split_queries = queries.split(";", 4)
+    print(list(map(lambda query: spark.sql(query), split_queries)))
+
+
+def process_equality(
+    spark,
+    verified_database_name,
+    date_hyphen,
+    date_underscore,
+    collection_json_location,
+):
+    equality_managed_table_sql_file = get_equality_managed_file()
+    equality_managed_table_sql_content = (
+        equality_managed_table_sql_file.read().replace(
+            "#{hivevar:hivevar:equality_database}", verified_database_name
+        )
+    )
+    spark.sql(equality_managed_table_sql_content)
+
+    equality_external_table_sql_file = get_equality_external_file()
+    queries = (
+        equality_external_table_sql_file.read()
+        .replace("#{hivevar:equality_database}", verified_database_name)
+        .replace("#{hivevar:date_underscore}", date_underscore)
+        .replace("#{hivevar:date_hyphen}", date_hyphen)
+        .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
+        .replace("#{hivevar:data_location}", collection_json_location)
+    )
+    split_queries = queries.split(";", 4)
+    print(list(map(lambda query: spark.sql(query), split_queries)))
+
+
 def create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location):
-        the_logger.info(
-                    "collection_json_location : %s",
-                    collection_json_location,
-                )
-        src_managed_hive_table = verified_database_name + "." + 'auditlog_raw'
-        src_managed_hive_create_query = f"""CREATE TABLE IF NOT EXISTS {src_managed_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS orc TBLPROPERTIES ('orc.compress'='ZLIB')"""
-        spark.sql(src_managed_hive_create_query)
+    the_logger.info(
+                "collection_json_location : %s",
+                collection_json_location,
+            )
+    src_managed_hive_table = verified_database_name + "." + 'auditlog_raw'
+    src_managed_hive_create_query = f"""CREATE TABLE IF NOT EXISTS {src_managed_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS orc TBLPROPERTIES ('orc.compress'='ZLIB')"""
+    spark.sql(src_managed_hive_create_query)
 
-        date_underscore = date_hyphen.replace("-", "_")
-        src_external_table = f'auditlog_raw_external_{date_underscore}'
-        src_external_hive_table = verified_database_name + "." + src_external_table
-        src_external_hive_create_query = f"""CREATE EXTERNAL TABLE {src_external_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
-        the_logger.info("hive create query %s", src_external_hive_create_query)
-        src_external_hive_alter_query = f"""ALTER TABLE {src_external_hive_table} ADD IF NOT EXISTS PARTITION(date_str='{date_hyphen}') LOCATION '{collection_json_location}'"""
-        src_external_hive_insert_query = f"""INSERT OVERWRITE TABLE {src_managed_hive_table} SELECT * FROM {src_external_hive_table}"""
-        src_external_hive_drop_query = f"""DROP TABLE IF EXISTS {src_external_hive_table}"""
+    date_underscore = date_hyphen.replace("-", "_")
+    src_external_table = f'auditlog_raw_external_{date_underscore}'
+    src_external_hive_table = verified_database_name + "." + src_external_table
+    src_external_hive_create_query = f"""CREATE EXTERNAL TABLE {src_external_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
+    the_logger.info("hive create query %s", src_external_hive_create_query)
+    src_external_hive_alter_query = f"""ALTER TABLE {src_external_hive_table} ADD IF NOT EXISTS PARTITION(date_str='{date_hyphen}') LOCATION '{collection_json_location}'"""
+    src_external_hive_insert_query = f"""INSERT OVERWRITE TABLE {src_managed_hive_table} SELECT * FROM {src_external_hive_table}"""
+    src_external_hive_drop_query = f"""DROP TABLE IF EXISTS {src_external_hive_table}"""
 
-        spark.sql(src_external_hive_drop_query)
-        spark.sql(src_external_hive_create_query)
-        spark.sql(src_external_hive_alter_query)
-        spark.sql(src_external_hive_insert_query)
-        spark.sql(src_external_hive_drop_query)
+    spark.sql(src_external_hive_drop_query)
+    spark.sql(src_external_hive_create_query)
+    spark.sql(src_external_hive_alter_query)
+    spark.sql(src_external_hive_insert_query)
+    spark.sql(src_external_hive_drop_query)
 
 
 def get_audit_managed_file():
@@ -598,6 +658,12 @@ def get_audit_managed_file():
 
 def get_audit_external_file():
     return open("/var/ci/auditlog_external_table.sql")
+
+def get_equality_managed_file():
+    return open("/var/ci/equality_managed_table.sql")
+
+def get_equality_external_file():
+    return open("/var/ci/equality_external_table.sql")
 
 
 def get_filesize(s3_client, s3_htme_bucket, collection_file_key):
