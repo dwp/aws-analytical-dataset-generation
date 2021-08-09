@@ -605,7 +605,7 @@ def process_equality(
     equality_managed_table_sql_file = get_equality_managed_file()
     equality_managed_table_sql_content = (
         equality_managed_table_sql_file.read().replace(
-            "#{hivevar:hivevar:equality_database}", verified_database_name
+            "#{hivevar:equality_database}", verified_database_name
         )
     )
     spark.sql(equality_managed_table_sql_content)

@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS #{hivevar:equality_database}.equality(
+CREATE TABLE IF NOT EXISTS #{hivevar:equality_database}.equality_managed(
      type string,
      claimantid string,
      ethnicgroup string,
