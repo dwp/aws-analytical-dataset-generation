@@ -490,7 +490,7 @@ def test_create_hive_table_on_published_for_equality(
     print(managed_table_result)
     expected = [Row(type='abcd', claimantid='efg', ethnicGroup='hij', ethnicitySubgroup='klm', sexualOrientation='nop', religion='qrst', maritalStatus='uvw')]
     expected_json = json.dumps(expected)
-    actual_json = json.dumps(managed_table_result)
+    actual_json = json.dumps(managed_table_result, default=str)
     print(expected_json)
     print(actual_json)
     assert len(managed_table_result) == 1
