@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS #{hivevar:equality_database}.equality_managed(
      maritalstatus string,
      load_date date)
 STORED AS orc
-TBLPROPERTIES ('orc.compress'='ZLIB');
+TBLPROPERTIES ('orc.compress'='ZLIB')

@@ -24,4 +24,4 @@ SELECT
      ,`message`.`religion`  as `religion`
      ,`message`.`maritalStatus` as `maritalStatus`
      ,CURRENT_DATE as load_date
-FROM #{hivevar:equality_database}.equality_#{hivevar:date_underscore};
+FROM #{hivevar:equality_database}.equality_#{hivevar:date_underscore}
