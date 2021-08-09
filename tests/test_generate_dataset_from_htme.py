@@ -487,13 +487,6 @@ def test_create_hive_table_on_published_for_equality(
         PUBLISHED_DATABASE_NAME,
         mock_args(),
     )
-    steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
-        spark,
-        collection_name,
-        json_location,
-        PUBLISHED_DATABASE_NAME,
-        mock_args(),
-    )
     managed_table = 'equality_managed'
     tables = spark.catalog.listTables('uc_equality')
     actual = list(map(lambda table: table.name, tables))
@@ -507,7 +500,7 @@ def test_create_hive_table_on_published_for_equality(
     actual_json = json.dumps(managed_table_result, default=str)
     print(expected_json)
     print(actual_json)
-    assert len(managed_table_result) == 1
+    assert len(managed_table_result) == 2
 
 @mock_s3
 def test_exception_when_decompression_fails(
