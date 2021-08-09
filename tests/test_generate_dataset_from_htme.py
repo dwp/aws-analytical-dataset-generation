@@ -446,7 +446,7 @@ def test_create_hive_table_on_published_for_audit_log(
     actual_json = json.dumps(managed_table_raw_result)
     print(expected_json)
     print(actual_json)
-    assert len(managed_table_raw_result) == 1
+    assert len(expected) == len(managed_table_raw_result)
 
 
 @mock_s3
@@ -455,7 +455,7 @@ def test_create_hive_table_on_published_for_equality(
 ):
     spark.sql("drop table if exists uc_equality.equality_managed")
     args = mock_args()
-    test_data = '{"message":{"claimantId":"abcd","maritalStatus":"xyz"}}'
+    test_data = '{"message":{"type":"abcd","claimantId":"efg","ethnicGroup":"hij","ethnicitySubgroup":"klm","sexualOrientation":"nop","religion":"qrst","maritalStatus":"uvw"}}'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
     date_hyphen = args.export_date
@@ -488,7 +488,7 @@ def test_create_hive_table_on_published_for_equality(
     assert all([a == b for a, b in zip(actual, expected)])
     managed_table_result = spark.sql(f"select claimantid, maritalStatus, load_date from uc_equality.{managed_table}").collect()
     print(managed_table_result)
-    expected = [Row(claimantid='abcd', maritalStatus='xyz', load_date=date_hyphen), Row(claimantid='abcd', maritalStatus='xyz', load_date=date_hyphen)]
+    expected = [Row(type='abcd', claimantid='efg', ethnicGroup='hij', ethnicitySubgroup='klm', sexualOrientation='nop', religion='qrst', maritalStatus='uvw')]
     expected_json = json.dumps(expected)
     actual_json = json.dumps(managed_table_result)
     print(expected_json)
