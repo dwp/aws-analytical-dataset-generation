@@ -423,13 +423,6 @@ def test_create_hive_table_on_published_for_audit_log(
         PUBLISHED_DATABASE_NAME,
         mock_args(),
     )
-    steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
-            spark,
-            collection_name,
-            json_location,
-            PUBLISHED_DATABASE_NAME,
-            mock_args(),
-        )
     managed_table = 'auditlog_managed'
     managed_table_raw = 'auditlog_raw'
     tables = spark.catalog.listTables('uc_dw_auditlog')
@@ -462,7 +455,7 @@ def test_create_hive_table_on_published_for_equality(
 ):
     spark.sql("drop table if exists uc_equality.equality_managed")
     args = mock_args()
-    test_data = '{"first_name":"abcd","last_name":"xyz"}'
+    test_data = '{"message":{"claimantId":"abcd","maritalStatus":"xyz"}}'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
     date_hyphen = args.export_date
@@ -487,22 +480,15 @@ def test_create_hive_table_on_published_for_equality(
         PUBLISHED_DATABASE_NAME,
         mock_args(),
     )
-    steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
-            spark,
-            collection_name,
-            json_location,
-            PUBLISHED_DATABASE_NAME,
-            mock_args(),
-        )
     managed_table = 'equality_managed'
     tables = spark.catalog.listTables('uc_equality')
     actual = list(map(lambda table: table.name, tables))
     expected = [managed_table]
     assert len(actual) == len(expected)
     assert all([a == b for a, b in zip(actual, expected)])
-    managed_table_result = spark.sql(f"select first_name, last_name, date_str from uc_equality.{managed_table}").collect()
+    managed_table_result = spark.sql(f"select claimantid, maritalStatus, load_date from uc_equality.{managed_table}").collect()
     print(managed_table_result)
-    expected = [Row(first_name='abcd', last_name='xyz', date_str=date_hyphen), Row(first_name='abcd', last_name='xyz', date_str=date_hyphen)]
+    expected = [Row(claimantid='abcd', maritalStatus='xyz', load_date=date_hyphen), Row(claimantid='abcd', maritalStatus='xyz', load_date=date_hyphen)]
     expected_json = json.dumps(expected)
     actual_json = json.dumps(managed_table_result)
     print(expected_json)
