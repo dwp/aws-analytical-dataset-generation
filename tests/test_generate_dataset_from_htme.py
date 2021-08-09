@@ -500,7 +500,7 @@ def test_create_hive_table_on_published_for_equality(
     actual_json = json.dumps(managed_table_result, default=str)
     print(expected_json)
     print(actual_json)
-    assert len(managed_table_result) == 2
+    assert len(managed_table_result) == 1
 
 @mock_s3
 def test_exception_when_decompression_fails(
