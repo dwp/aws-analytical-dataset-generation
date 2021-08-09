@@ -427,12 +427,7 @@ def consolidate_rdd_per_collection(
     collection_name_key = get_collection(collection_name)
     collection_name_key = collection_name_key.replace("_", "-")
     file_location = "${file_location}"
-    if collection_name_key == "data/businessAudit":
-        current_date = args.export_date
-        json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
-        json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
-        delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
-    elif collection_name_key == "data/equality":
+    if collection_name_key == "data/businessAudit" or collection_name_key == "data/equality":
         current_date = args.export_date
         json_location_prefix = f"{file_location}/{collection_name_key}/{current_date}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
