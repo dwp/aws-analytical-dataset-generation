@@ -493,7 +493,7 @@ def test_create_hive_table_on_published_for_equality(
     expected = [managed_table]
     assert len(actual) == len(expected)
     assert all([a == b for a, b in zip(actual, expected)])
-    managed_table_result = spark.sql(f"select claimantid, maritalStatus, load_date from uc_equality.{managed_table}").collect()
+    managed_table_result = spark.sql(f"select claimantid, ethnicGroup, ethnicitySubgroup, sexualOrientation, religion, maritalStatus from uc_equality.{managed_table}").collect()
     print(managed_table_result)
     expected = [Row(type='abcd', claimantid='efg', ethnicGroup='hij', ethnicitySubgroup='klm', sexualOrientation='nop', religion='qrst', maritalStatus='uvw')]
     expected_json = json.dumps(expected)

@@ -51,7 +51,7 @@ class CollectionPublishingException(CollectionException):
 def main(
         spark,
         s3_client,
-        s3_historical_audit_bucket,
+        s3_historical_equality_bucket,
         keys_map,
         s3_publish_bucket,
         published_database_name,
@@ -61,15 +61,15 @@ def main(
         s3_resource=None,
 ):
     try:
-        # prefixes = get_all_years_for_historic_audit(s3_client, s3_historical_audit_bucket, args.s3_prefix)
-        prefixes = get_prefixes_for_selected_dates(s3_historical_audit_bucket, args.s3_prefix, start_date, end_date)
+        # prefixes = get_all_years_for_historic_equality(s3_client, s3_historical_equality_bucket, args.s3_prefix)
+        prefixes = get_prefixes_for_selected_dates(s3_historical_equality_bucket, args.s3_prefix, start_date, end_date)
         process_collections_threaded(
             spark,
             '',
             args,
             prefixes,
             s3_client,
-            s3_historical_audit_bucket,
+            s3_historical_equality_bucket,
             keys_map,
             s3_publish_bucket,
             s3_resource,
@@ -89,7 +89,7 @@ def process_collections_threaded(
         args,
         prefixes,
         s3_client,
-        s3_historical_audit_bucket,
+        s3_historical_equality_bucket,
         keys_map,
         s3_publish_bucket,
         s3_resource=None,
@@ -104,7 +104,7 @@ def process_collections_threaded(
             itertools.repeat(args),
             prefixes,
             itertools.repeat(s3_client),
-            itertools.repeat(s3_historical_audit_bucket),
+            itertools.repeat(s3_historical_equality_bucket),
             itertools.repeat(keys_map),
             itertools.repeat(s3_publish_bucket),
             itertools.repeat(s3_resource),
@@ -122,7 +122,7 @@ def process_collection(
         args,
         prefix,
         s3_client,
-        s3_historical_audit_bucket,
+        s3_historical_equality_bucket,
         keys_map,
         s3_publish_bucket,
         s3_resource=None,
@@ -131,7 +131,7 @@ def process_collection(
         s3_resource = get_s3_resource()
 
     day  = prefix.split('/')[-2]
-    keys = get_list_keys_for_prefix(s3_client, s3_historical_audit_bucket, prefix)
+    keys = get_list_keys_for_prefix(s3_client, s3_historical_equality_bucket, prefix)
 
     the_logger.info(
             "Processing for the day : %s keys : %s",
@@ -144,7 +144,7 @@ def process_collection(
             day,
             keys,
             s3_client,
-            s3_historical_audit_bucket,
+            s3_historical_equality_bucket,
             spark,
             keys_map,
             s3_publish_bucket,
@@ -180,30 +180,28 @@ def create_hive_table_on_published_for_collection(
         collection_json_location,
         args,
 ):
-    verified_database_name_for_audit = 'uc_dw_auditlog'
+    verified_database_name_for_equality = 'uc_equality'
     date_hyphen = collection_name
     date_underscore = date_hyphen.replace("-", "_")
     the_logger.info(
         "Publishing collection named : %s",
         collection_name,
     )
-    create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_audit}"
+    create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_equality}"
     spark.sql(create_db_query)
 
-    create_audit_log_raw_managed_table(spark, verified_database_name_for_audit, date_hyphen, collection_json_location)
-
-    auditlog_managed_table_sql_file = get_audit_managed_file()
-    auditlog_managed_table_sql_content = (
-        auditlog_managed_table_sql_file.read().replace(
-            "#{hivevar:auditlog_database}", verified_database_name_for_audit
+    managed_table_sql_file = get_equality_managed_file()
+    managed_table_sql_content = (
+        managed_table_sql_file.read().replace(
+            "#{hivevar:equality_database}", verified_database_name_for_equality
         )
     )
-    spark.sql(auditlog_managed_table_sql_content)
+    spark.sql(managed_table_sql_content)
 
-    auditlog_external_table_sql_file = get_audit_external_file()
+    external_table_sql_file = get_equality_external_file()
     queries = (
-        auditlog_external_table_sql_file.read()
-            .replace("#{hivevar:auditlog_database}", verified_database_name_for_audit)
+        external_table_sql_file.read()
+            .replace("#{hivevar:equality_database}", verified_database_name_for_equality)
             .replace("#{hivevar:date_underscore}", date_underscore)
             .replace("#{hivevar:date_hyphen}", date_hyphen)
             .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
@@ -214,41 +212,19 @@ def create_hive_table_on_published_for_collection(
     return collection_name
 
 
-def create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location):
-        the_logger.info(
-                    "collection_json_location : %s",
-                    collection_json_location,
-                )
-        src_managed_hive_table = verified_database_name + "." + 'auditlog_raw'
-        src_managed_hive_create_query = f"""CREATE TABLE IF NOT EXISTS {src_managed_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS orc TBLPROPERTIES ('orc.compress'='ZLIB')"""
-        spark.sql(src_managed_hive_create_query)
-
-        date_underscore = date_hyphen.replace("-", "_")
-        src_external_table = f'auditlog_raw_external_{date_underscore}'
-        src_external_hive_table = verified_database_name + "." + src_external_table
-        src_external_hive_create_query = f"""CREATE EXTERNAL TABLE {src_external_hive_table}(val STRING) PARTITIONED BY (date_str STRING) STORED AS TEXTFILE LOCATION "{collection_json_location}" """
-        the_logger.info("hive create query %s", src_external_hive_create_query)
-        src_external_hive_alter_query = f"""ALTER TABLE {src_external_hive_table} ADD IF NOT EXISTS PARTITION(date_str='{date_hyphen}') LOCATION '{collection_json_location}'"""
-        src_external_hive_insert_query = f"""INSERT OVERWRITE TABLE {src_managed_hive_table} SELECT * FROM {src_external_hive_table}"""
-        src_externl_hive_drop_query = f"""DROP TABLE IF EXISTS {src_external_hive_table}"""
-
-        spark.sql(src_external_hive_create_query)
-        spark.sql(src_external_hive_alter_query)
-        spark.sql(src_external_hive_insert_query)
-        spark.sql(src_externl_hive_drop_query)
+def get_equality_managed_file():
+    return open("/var/ci/equality_managed_table.sql")
 
 
-def get_audit_managed_file():
-    return open("/var/ci/auditlog_managed_table.sql")
+def get_equality_external_file():
+    return open("/var/ci/equality_external_table.sql")
 
-def get_audit_external_file():
-    return open("/var/ci/auditlog_external_table.sql")
 
 def consolidate_rdd_per_collection(
         collection_name,
         collection_files_keys,
         s3_client,
-        s3_historical_audit_bucket,
+        s3_historical_equality_bucket,
         spark,
         keys_map,
         s3_publish_bucket,
@@ -262,9 +238,9 @@ def consolidate_rdd_per_collection(
     start_time = time.perf_counter()
     rdd_list = []
     for collection_file_key in collection_files_keys:
-        key1 = f"s3://{s3_historical_audit_bucket}/{collection_file_key}"
+        key1 = f"s3://{s3_historical_equality_bucket}/{collection_file_key}"
         encrypted = read_binary(spark, key1)
-        metadata = get_metadatafor_key(collection_file_key, s3_client, s3_historical_audit_bucket)
+        metadata = get_metadatafor_key(collection_file_key, s3_client, s3_historical_equality_bucket)
         ciphertext = metadata["ciphertext"]
         datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
         iv = metadata["iv"]
@@ -286,12 +262,12 @@ def consolidate_rdd_per_collection(
         collection_name,
     )
     file_location = "${file_location}"
-    json_location_prefix = f"{file_location}/data/businessAudit/{collection_name}"
+    json_location_prefix = f"{file_location}/data/equality/{collection_name}"
     json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
-    delete_existing_audit_files(s3_publish_bucket, json_location_prefix, s3_client)
+    delete_existing_equality_files(s3_publish_bucket, json_location_prefix, s3_client)
 
     persist_json(json_location, consolidated_rdd_mapped)
-    tag_value = {"pii": "true", "db": "data", "table": "businessAudit"}
+    tag_value = {"pii": "true", "db": "data", "table": "equality"}
     tag_objects(
         json_location_prefix,
         tag_value,
@@ -310,8 +286,9 @@ def consolidate_rdd_per_collection(
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
     the_logger.info(
-        "Completed Processing of collection : %s",
+        "Completed Processing of collection : %s in : %s",
         collection_name,
+        total_time,
     )
     return json_location
 
@@ -349,6 +326,7 @@ def get_tags(tag_value, snapshot_type):
     tag_set.append({KEY_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: snapshot_type})
     return tag_set
 
+
 def decode(txt):
     decoded =  txt.decode("utf-8")
     if "\n" == decoded[-1]:
@@ -356,7 +334,8 @@ def decode(txt):
         return stripped_last_new_line_character
     return decoded
 
-def delete_existing_audit_files(s3_bucket, s3_prefix, s3_client):
+
+def delete_existing_equality_files(s3_bucket, s3_prefix, s3_client):
     """Deletes files if exists in the given bucket and prefix
 
     Keyword arguments:
@@ -397,6 +376,7 @@ def get_metadatafor_key(key, s3_client, s3_htme_bucket):
     }
     return metadata
 
+
 def get_list_keys_for_prefix(s3_client, s3_bucket, s3_prefix):
     the_logger.info(
         "Looking for files to process in bucket : %s with prefix : %s",
@@ -414,9 +394,11 @@ def get_list_keys_for_prefix(s3_client, s3_bucket, s3_prefix):
         keys.remove(s3_prefix)
     return keys
 
+
 def get_s3_resource():
     session = boto3.session.Session()
     return session.resource("s3", region_name=DEFAULT_REGION)
+
 
 def get_prefixes_for_selected_dates(s3_bucket, s3_prefix, start_date, end_date):
     prefixes = []
@@ -435,7 +417,7 @@ def get_prefixes_for_selected_dates(s3_bucket, s3_prefix, start_date, end_date):
     return prefixes
 
 
-def get_all_years_for_historic_audit(s3_client, s3_bucket, s3_prefix):
+def get_all_years_for_historic_equality(s3_client, s3_bucket, s3_prefix):
     the_logger.info(
         "Looking for files to process in bucket : %s with prefix : %s",
         s3_bucket,
@@ -468,11 +450,11 @@ def validate_required_args(args):
 def get_parameters():
     """Define and parse command line args."""
     parser = argparse.ArgumentParser(
-        description="Receive args provided to spark submit job for historical business audit"
+        description="Receive args provided to spark submit job for historical business equality"
     )
     # Parse command line inputs and set defaults
     parser.add_argument("--s3_prefix", default="${s3_prefix}")
-    parser.add_argument("--snapshot_type", default="historical_business_audit")
+    parser.add_argument("--snapshot_type", default="historical_business_equality")
     parser.add_argument("--start_date", default="2014-11-25")
     parser.add_argument("--end_date", default='2014-11-25')
     args, unrecognized_args = parser.parse_known_args()
@@ -535,6 +517,7 @@ def decrypt(plain_text_key, iv_key, data, args):
 def get_collection(collection_name):
     return collection_name.replace("db.", "", 1).replace(".", "/").replace("-", "_")
 
+
 def retry_requests(retries=10, backoff=1):
     retry_strategy = Retry(
         total=retries,
@@ -547,6 +530,7 @@ def retry_requests(retries=10, backoff=1):
     requests_session.mount("https://", adapter)
     requests_session.mount("http://", adapter)
     return requests_session
+
 
 def call_dks(cek, kek, args):
     try:
@@ -571,8 +555,10 @@ def call_dks(cek, kek, args):
         sys.exit(-1)
     return content["plaintextDataKey"]
 
+
 def read_binary(spark, file_path):
     return spark.sparkContext.binaryFiles(file_path)
+
 
 def get_plaintext_key_calling_dks(
     encryptedkey, keyencryptionkeyid, keys_map, args
@@ -584,10 +570,12 @@ def get_plaintext_key_calling_dks(
         keys_map[encryptedkey] = key
     return key
 
+
 def exit_if_skipping_step():
     if should_skip_step(the_logger, "spark-submit"):
         the_logger.info("Step needs to be skipped so will exit without error")
         sys.exit(0)
+
 
 if __name__ == "__main__":
     args = get_parameters()
@@ -603,14 +591,14 @@ if __name__ == "__main__":
     spark = get_spark_session(args)
 
     published_database_name = "${published_db}"
-    s3_historical_audit_bucket = os.getenv("S3_HISTORICAL_AUDIT_BUCKET")
+    s3_historical_equality_bucket = os.getenv("s3_historical_equality_bucket")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_s3_client()
     keys_map = {}
     main(
         spark,
         s3_client,
-        s3_historical_audit_bucket,
+        s3_historical_equality_bucket,
         keys_map,
         s3_publish_bucket,
         published_database_name,
@@ -618,5 +606,3 @@ if __name__ == "__main__":
         args.start_date,
         args.end_date
     )
-
-

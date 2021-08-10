@@ -121,6 +121,7 @@ resource "aws_s3_bucket_object" "configurations" {
       tez_runtime_io_sort_mb                        = local.tez_runtime_io_sort_mb[local.environment]
       tez_runtime_unordered_output_buffer_size_mb   = local.tez_runtime_unordered_output_buffer_size_mb[local.environment]
       s3_historical_audit_bucket                    = data.terraform_remote_state.aws_ingestion.outputs.landed_write_light_bucket.bucket
+      s3_historical_equality_bucket                 = data.terraform_remote_state.aws_ingestion.outputs.landed_write_light_bucket.bucket
     }
   )
 }

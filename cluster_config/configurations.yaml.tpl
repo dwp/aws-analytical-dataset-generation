@@ -105,6 +105,7 @@ Configurations:
       "S3_PUBLISH_BUCKET": "${s3_published_bucket}"
       "S3_HTME_BUCKET": "${s3_htme_bucket}"
       "S3_HISTORICAL_AUDIT_BUCKET": "${s3_historical_audit_bucket}"
+      "S3_HISTORICAL_EQUALITY_BUCKET": "${s3_historical_equality_bucket}"
 
 - Classification: "hadoop-env"
   Configurations:
