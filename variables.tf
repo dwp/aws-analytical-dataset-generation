@@ -218,3 +218,14 @@ variable "historical_audit_data_location" {
     production  = "auditlog/"
   }
 }
+
+
+variable "historical_equality_data_location" {
+  default = {
+    development = "equalities/"
+    qa          = "equalities/"
+    integration = "equalities/"
+    preprod     = "equalities/"
+    production  = "equalities/"
+  }
+}
