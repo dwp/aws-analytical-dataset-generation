@@ -125,12 +125,6 @@ def test_create_hive_table_on_published_for_equality_log(
         json_location,
         mock_args(),
     )
-    steps.generate_dataset_from_historical_equality.create_hive_table_on_published_for_collection(
-            spark,
-            collection_name,
-            json_location,
-            mock_args(),
-        )
     managed_table = 'equality_managed'
     tables = spark.catalog.listTables('uc_equality')
     actual = list(map(lambda table: table.name, tables))
