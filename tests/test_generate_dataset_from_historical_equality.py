@@ -21,8 +21,6 @@ TRUE_VALUE = "true"
 DB_KEY = "db"
 TABLE_KEY = "table"
 SNAPSHOT_TYPE_HISTORICAL_BUSINESS_EQUALITY = "historical_business_equality"
-SNS_TOPIC_ARN = "test_arn"
-SNAPSHOT_TYPE_INCREMENTAL = "incremental"
 SNAPSHOT_TYPE_KEY = "snapshot_type"
 TAG_SET_HISTORICAL_BUSINESS_EQUALITY = [
     {NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE},
@@ -30,36 +28,14 @@ TAG_SET_HISTORICAL_BUSINESS_EQUALITY = [
     {NAME_KEY: TABLE_KEY, VALUE_KEY: "equality"},
     {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_HISTORICAL_BUSINESS_EQUALITY},
 ]
-TAG_SET_INCREMENTAL = [
-    {NAME_KEY: PII_KEY, VALUE_KEY: TRUE_VALUE},
-    {NAME_KEY: DB_KEY, VALUE_KEY: "core"},
-    {NAME_KEY: TABLE_KEY, VALUE_KEY: "contract"},
-    {NAME_KEY: SNAPSHOT_TYPE_KEY, VALUE_KEY: SNAPSHOT_TYPE_INCREMENTAL},
-]
-INVALID_SNAPSHOT_TYPE = "abc"
-MOCK_LOCALHOST_URL = "http://localhost:1000"
 MOTO_SERVER_URL = "http://127.0.0.1:5000"
 DATA_BUSINESS_EQUALITY = "equality"
-DB_CORE_CONTRACT = "db.core.contract"
-DB_CORE_ACCOUNTS = "db.core.accounts"
-DB_CORE_CONTRACT_FILE_NAME = f"{DB_CORE_CONTRACT}.01002.4040.gz.enc"
-DB_CORE_ACCOUNTS_FILE_NAME = f"{DB_CORE_ACCOUNTS}.01002.4040.gz.enc"
 DATA_BUSINESS_EQUALITY_FILE_NAME = f"{DATA_BUSINESS_EQUALITY}.1444209739198.json.gz.enc"
 S3_PREFIX = "equalities"
-S3_HTME_BUCKET = "test"
 S3_HISTORICAL_BUSINESS_EQUALITY_BUCKET = "test"
 S3_PUBLISH_BUCKET = "target"
-SECRETS = "{'collections_all': {'db.core.contract': {'pii' : 'true', 'db' : 'core', 'table' : 'contract'}}}"
-SECRETS_COLLECTIONS = {
-    DB_CORE_CONTRACT: {"pii": "true", "db": "core", "table": "contract"}
-}
 KEYS_MAP = {"test_ciphertext": "test_key"}
-RUN_TIME_STAMP = "2020-10-10_10-10-10"
-EXPORT_DATE = "2020-10-10"
 PUBLISHED_DATABASE_NAME = "test_db"
-CORRELATION_ID = "12345"
-AWS_REGION = "eu-west-2"
-S3_PREFIX_BUSINESS_EQUALITY = f"${{file_location}}/data/equality"
 
 @mock_s3
 def test_consolidate_rdd_per_collection_with_one_collection_snapshot_type_full(
@@ -125,7 +101,7 @@ def test_create_hive_table_on_published_for_equality_log(
     spark, handle_server, aws_credentials, monkeypatch
 ):
     spark.sql("drop table if exists uc_equality.equality_managed")
-    test_data = '{"first_name":"abcd","last_name":"xyz"}'
+    test_data = '{"message":{"type":"abcd","claimantId":"efg","ethnicGroup":"hij","ethnicitySubgroup":"klm","sexualOrientation":"nop","religion":"qrst","maritalStatus":"uvw"}}'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
     date_hyphen = datetime.today().strftime("%Y-%m-%d")
@@ -161,9 +137,9 @@ def test_create_hive_table_on_published_for_equality_log(
     expected = [managed_table]
     assert len(actual) == len(expected)
     assert all([a == b for a, b in zip(actual, expected)])
-    managed_table_result = spark.sql(f"select first_name, last_name, date_str from uc_equality.{managed_table}").collect()
+    managed_table_result = spark.sql(f"select claimantid, ethnicGroup, ethnicitySubgroup, sexualOrientation, religion, maritalStatus from uc_equality.{managed_table}").collect()
     print(managed_table_result)
-    expected = [Row(first_name='abcd', last_name='xyz', date_str='2021-07-02'), Row(first_name='abcd', last_name='xyz', date_str='2021-07-02')]
+    expected = [Row(type='abcd', claimantid='efg', ethnicGroup='hij', ethnicitySubgroup='klm', sexualOrientation='nop', religion='qrst', maritalStatus='uvw')]
     expected_json = json.dumps(expected)
     actual_json = json.dumps(managed_table_result)
     print(expected_json)
