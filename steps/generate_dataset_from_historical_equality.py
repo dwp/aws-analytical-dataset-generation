@@ -237,14 +237,10 @@ def consolidate_rdd_per_collection(
     )
     start_time = time.perf_counter()
     rdd_list = []
-    total_collection_size = 0
     for collection_file_key in collection_files_keys:
         key1 = f"s3://{s3_historical_equality_bucket}/{collection_file_key}"
         encrypted = read_binary(spark, key1)
         metadata = get_metadatafor_key(collection_file_key, s3_client, s3_historical_equality_bucket)
-        total_collection_size += get_filesize(
-            s3_client, s3_historical_equality_bucket, collection_file_key
-        )
         ciphertext = metadata["ciphertext"]
         datakeyencryptionkeyid = metadata["datakeyencryptionkeyid"]
         iv = metadata["iv"]
@@ -562,12 +558,6 @@ def call_dks(cek, kek, args):
 
 def read_binary(spark, file_path):
     return spark.sparkContext.binaryFiles(file_path)
-
-
-def get_filesize(s3_client, s3_htme_bucket, collection_file_key):
-    metadata = s3_client.head_object(Bucket=s3_htme_bucket, Key=collection_file_key)
-    filesize = metadata["ResponseMetadata"]["HTTPHeaders"]["content-length"]
-    return int(filesize)
 
 
 def get_plaintext_key_calling_dks(
