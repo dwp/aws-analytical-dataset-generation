@@ -209,12 +209,12 @@ resource "aws_s3_bucket_object" "hive_setup_sh" {
   key    = "component/analytical-dataset-generation/hive-setup.sh"
   content = templatefile("${path.module}/bootstrap_actions/hive-setup.sh",
     {
-      python_logger                                = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
-      generate_analytical_dataset                  = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_dataset_from_htme_script.key)
-      generate_analytical_dataset_historical_audit = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_dataset_from_historical_audit.key)
+      python_logger                                   = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.logger.key)
+      generate_analytical_dataset                     = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_dataset_from_htme_script.key)
+      generate_analytical_dataset_historical_audit    = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_dataset_from_historical_audit.key)
       generate_analytical_dataset_historical_equality = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.generate_dataset_from_historical_equality.key)
-      python_resume_script                         = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.resume_step.key)
-      published_db                                 = local.published_db
+      python_resume_script                            = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.resume_step.key)
+      published_db                                    = local.published_db
     }
   )
 }
