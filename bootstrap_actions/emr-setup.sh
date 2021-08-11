@@ -124,8 +124,10 @@ EOF
 
     hostnamectl set-hostname "$HOSTNAME"
     aws ec2 create-tags --resources "$INSTANCE_ID" --tags Key=Name,Value="$HOSTNAME"
-
-
+    
+    #Setting correct permissions for EMR 6.2.0 DW-6304
+    sudo chmod 644 /etc/cron.d/libinstance-controller-java
+    
     log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 
     /opt/emr/update_dynamo.sh &

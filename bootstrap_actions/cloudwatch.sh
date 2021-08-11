@@ -135,6 +135,18 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "timezone": "UTC"
           },
           {
+            "file_path": "/var/log/adg/generate-analytical-dataset-historical-audit.log",
+            "log_group_name": "$${cwa_steps_loggrp_name}",
+            "log_stream_name": "{instance_id}-generate-analytical-dataset-historical-audit.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/generate-analytical-dataset-historical-equality.log",
+            "log_group_name": "$${cwa_steps_loggrp_name}",
+            "log_stream_name": "{instance_id}-generate-analytical-dataset-historical-equality.log",
+            "timezone": "UTC"
+          },
+          {
             "file_path": "/var/log/hadoop-yarn/containers/application_*/container_*/stdout**",
             "log_group_name": "$${cwa_yarnspark_loggrp_name}",
             "log_stream_name": "{instance_id}-spark-stdout.log",

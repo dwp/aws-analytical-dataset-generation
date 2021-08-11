@@ -298,6 +298,64 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
     ]
 
 
+@mock_sns
+def test_consolidate_rdd_per_collection_with_multiple_collections_where_one_is_empty(
+    spark, monkeypatch, handle_server, aws_credentials
+):
+    core_full_collection_name = "core_full"
+    empty_collection_name = "fake_empty"
+    test_data = '{"name":"abcd"}\n{"name":"xyz"}'
+    secret_collections = {}
+    secret_collections["db.core.full"] = {
+        PII_KEY: TRUE_VALUE,
+        DB_KEY: "core",
+        TABLE_KEY: "full",
+    }
+    secret_collections["db.fake.empty"] = {
+        PII_KEY: TRUE_VALUE,
+        DB_KEY: "fake",
+        TABLE_KEY: "empty",
+    }
+    sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
+    s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
+    s3_resource = boto3.resource("s3", endpoint_url=MOTO_SERVER_URL)
+    s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
+    s3_publish_bucket_for_multiple_collections = f"{S3_PUBLISH_BUCKET}-2"
+    s3_client.create_bucket(Bucket=s3_publish_bucket_for_multiple_collections)
+    s3_client.put_object(
+        Body=zlib.compress(str.encode(test_data)),
+        Bucket=S3_HTME_BUCKET,
+        Key=f"{S3_PREFIX}/db.core.full.01002.4040.gz.enc",
+        Metadata={
+            "iv": "123",
+            "ciphertext": "test_ciphertext",
+            "datakeyencryptionkeyid": "123",
+        },
+    )
+    monkeypatch_with_mocks(monkeypatch)
+    generate_dataset_from_htme.main(
+        spark,
+        s3_client,
+        S3_HTME_BUCKET,
+        secret_collections,
+        KEYS_MAP,
+        RUN_TIME_STAMP,
+        s3_publish_bucket_for_multiple_collections,
+        PUBLISHED_DATABASE_NAME,
+        mock_args(),
+        dynamodb_client,
+        sns_client,
+        s3_resource,
+    )
+    assert core_full_collection_name in [
+        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
+    ]
+    assert empty_collection_name not in [
+        x.name for x in spark.catalog.listTables(PUBLISHED_DATABASE_NAME)
+    ]
+
+
 def monkeypatch_with_mocks(monkeypatch):
     monkeypatch.setattr(steps.generate_dataset_from_htme, "add_metric", mock_add_metric)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "decompress", mock_decompress)
@@ -344,7 +402,6 @@ def test_create_hive_table_on_published_for_audit_log(
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
     date_hyphen = args.export_date
-    date_underscore = date_hyphen.replace("-", "_")
     s3_client.put_object(
         Body=str.encode(test_data),
         Bucket=S3_PUBLISH_BUCKET,
@@ -367,12 +424,12 @@ def test_create_hive_table_on_published_for_audit_log(
         mock_args(),
     )
     steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
-            spark,
-            collection_name,
-            json_location,
-            PUBLISHED_DATABASE_NAME,
-            mock_args(),
-        )
+        spark,
+        collection_name,
+        json_location,
+        PUBLISHED_DATABASE_NAME,
+        mock_args(),
+    )
     managed_table = 'auditlog_managed'
     managed_table_raw = 'auditlog_raw'
     tables = spark.catalog.listTables('uc_dw_auditlog')
@@ -394,6 +451,53 @@ def test_create_hive_table_on_published_for_audit_log(
     expected = [Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str=date_hyphen), Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str=date_hyphen)]
     expected_json = json.dumps(expected)
     actual_json = json.dumps(managed_table_raw_result)
+    print(expected_json)
+    print(actual_json)
+    assert len(expected) == len(managed_table_raw_result)
+
+
+@mock_s3
+def test_create_hive_table_on_published_for_equality(
+    spark, handle_server, aws_credentials, monkeypatch
+):
+    spark.sql("drop table if exists uc_equality.equality_managed")
+    args = mock_args()
+    test_data = '{"message":{"type":"abcd","claimantId":"efg","ethnicGroup":"hij","ethnicitySubgroup":"klm","sexualOrientation":"nop","religion":"qrst","maritalStatus":"uvw"}}'
+    s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
+    s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
+    date_hyphen = args.export_date
+    s3_client.put_object(
+        Body=str.encode(test_data),
+        Bucket=S3_PUBLISH_BUCKET,
+        Key=f"data/equality/{date_hyphen}/equality.1444209739198.json.gz.enc",
+        Metadata={
+            "iv": "123",
+            "ciphertext": "test_ciphertext",
+            "datakeyencryptionkeyid": "123",
+        },
+    )
+    json_location = f"s3://{S3_PUBLISH_BUCKET}/data/equality/{date_hyphen}/"
+    collection_name = "data/equality"
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_equality_managed_file", mock_get_equality_managed_file)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_equality_external_file", mock_get_equality_external_file)
+    steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
+        spark,
+        collection_name,
+        json_location,
+        PUBLISHED_DATABASE_NAME,
+        mock_args(),
+    )
+    managed_table = 'equality_managed'
+    tables = spark.catalog.listTables('uc_equality')
+    actual = list(map(lambda table: table.name, tables))
+    expected = [managed_table]
+    assert len(actual) == len(expected)
+    assert all([a == b for a, b in zip(actual, expected)])
+    managed_table_result = spark.sql(f"select claimantid, ethnicGroup, ethnicitySubgroup, sexualOrientation, religion, maritalStatus from uc_equality.{managed_table}").collect()
+    print(managed_table_result)
+    expected = [Row(type='abcd', claimantid='efg', ethnicGroup='hij', ethnicitySubgroup='klm', sexualOrientation='nop', religion='qrst', maritalStatus='uvw')]
+    expected_json = json.dumps(expected)
+    actual_json = json.dumps(managed_table_result, default=str)
     print(expected_json)
     print(actual_json)
     assert len(managed_table_result) == 1
@@ -536,6 +640,12 @@ def mock_get_audit_managed_file():
 def mock_get_audit_external_file():
     return open("tests/auditlog_external_table.sql")
 
+def mock_get_equality_managed_file():
+    return open("tests/equality_managed_table.sql")
+
+def mock_get_equality_external_file():
+    return open("tests/equality_external_table.sql")
+
 def test_retry_requests_with_no_retries():
     start_time = time.perf_counter()
     with pytest.raises(requests.exceptions.ConnectionError):
@@ -585,7 +695,7 @@ def test_validate_required_args_with_invalid_values_for_snapshot_type():
 
 
 @mock_s3
-def test_delete_existing_audit_files(aws_credentials):
+def test_delete_existing_s3_files(aws_credentials):
     s3_client = boto3.client("s3")
     s3_client.create_bucket(Bucket=S3_HTME_BUCKET)
     s3_client.put_object(
@@ -604,7 +714,7 @@ def test_delete_existing_audit_files(aws_credentials):
 
     assert len(keys) == 2
 
-    generate_dataset_from_htme.delete_existing_audit_files(
+    generate_dataset_from_htme.delete_existing_s3_files(
         S3_HTME_BUCKET, S3_PREFIX, s3_client)
 
     keys = generate_dataset_from_htme.get_list_keys_for_prefix(
