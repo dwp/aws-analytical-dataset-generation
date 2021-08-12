@@ -619,7 +619,7 @@ def process_audit(
         .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
         .replace("#{hivevar:data_location}", collection_json_location)
     )
-    split_queries = queries.split(";", 4)
+    split_queries = queries.split(";", 5)
     for query in split_queries:
         the_logger.info(
             "Executing audit query : '%s' for correlation id : %s",
