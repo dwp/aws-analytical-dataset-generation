@@ -619,7 +619,7 @@ def process_audit(
         .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
         .replace("#{hivevar:data_location}", collection_json_location)
     )
-    execute_queries(queries.split(";"), "audit", args)
+    execute_queries(queries.split(";"), "audit", spark, args)
 
 
 def process_equality(
@@ -656,10 +656,10 @@ def process_equality(
         .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
         .replace("#{hivevar:data_location}", collection_json_location)
     )
-    execute_queries(queries.split(";"), "equality", args)
+    execute_queries(queries.split(";"), "equality", spark, args)
 
 
-def execute_queries(queries, type_of_query, args):
+def execute_queries(queries, type_of_query, spark, args):
     for query in queries:
         if query and not query.isspace():
             the_logger.info(
