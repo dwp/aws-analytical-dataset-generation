@@ -50,9 +50,19 @@ jobs:
             dir: aws-analytical-dataset-generation
           inputs:
             - name: aws-analytical-dataset-generation
+        on_failure:
+          put: aws-analytical-dataset-generation-pr
+          params:
+            path: aws-analytical-dataset-generation-pr
+            status: failure
       - .: (( inject meta.plan.unit-tests))
         input_mapping:
           aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
+        on_failure:
+          put: aws-analytical-dataset-generation-pr
+          params:
+            path: aws-analytical-dataset-generation-pr
+            status: failure
       - .: (( inject meta.plan.terraform-bootstrap ))
         input_mapping:
           aws-analytical-dataset-generation: aws-analytical-dataset-generation-pr
