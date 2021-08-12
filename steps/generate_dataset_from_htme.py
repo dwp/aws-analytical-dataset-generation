@@ -619,7 +619,7 @@ def process_audit(
         .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
         .replace("#{hivevar:data_location}", collection_json_location)
     )
-    execute_queries(queries.split(";", 5), "audit")
+    execute_queries(queries.split(";"), "audit")
 
 
 def process_equality(
@@ -656,7 +656,7 @@ def process_equality(
         .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
         .replace("#{hivevar:data_location}", collection_json_location)
     )
-    execute_queries(queries.split(";", 4), "equality")
+    execute_queries(queries.split(";"), "equality")
 
 
 def execute_queries(queries, type_of_query):
