@@ -619,14 +619,7 @@ def process_audit(
         .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
         .replace("#{hivevar:data_location}", collection_json_location)
     )
-    split_queries = queries.split(";", 5)
-    for query in split_queries:
-        the_logger.info(
-            "Executing audit query : '%s' for correlation id : %s",
-            query,
-            args.correlation_id,
-        )
-        spark.sql(query)
+    execute_queries(queries.split(";", 5), "audit")
 
 
 def process_equality(
@@ -663,14 +656,26 @@ def process_equality(
         .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
         .replace("#{hivevar:data_location}", collection_json_location)
     )
-    split_queries = queries.split(";", 4)
-    for query in split_queries:
-        the_logger.info(
-            "Executing equality query : '%s' for correlation id : %s",
-            query,
-            args.correlation_id,
-        )
-        spark.sql(query)
+    execute_queries(queries.split(";", 4), "equality")
+
+
+def execute_queries(queries, type_of_query):
+    for query in queries:
+        if query and not query.isspace():
+            the_logger.info(
+                "Executing %s query : '%s' for correlation id : %s",
+                type_of_query,
+                query,
+                args.correlation_id,
+            )
+            spark.sql(query)
+        else:
+            the_logger.info(
+                "Not executing invalid %s query : '%s' for correlation id : %s",
+                type_of_query,
+                query,
+                args.correlation_id,
+            )
 
 
 def create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location):
