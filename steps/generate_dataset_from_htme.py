@@ -531,6 +531,12 @@ def create_hive_table_on_published_for_collection(
         date_hyphen = args.export_date
         date_underscore = date_hyphen.replace("-", "_")
         create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_audit}"
+        the_logger.info(
+            "Creating audit database named : %s using sql : '%s' for correlation id : %s",
+            verified_database_name_for_audit,
+            create_db_query,
+            args.correlation_id,
+        )
         spark.sql(create_db_query)
         process_audit(
             spark,
@@ -538,12 +544,19 @@ def create_hive_table_on_published_for_collection(
             date_hyphen,
             date_underscore,
             collection_json_location,
+            args,
         )
     elif hive_table_name == "data_equality":
         verified_database_name_for_equality = 'uc_equality'
         date_hyphen = args.export_date
         date_underscore = date_hyphen.replace("-", "_")
         create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_equality}"
+        the_logger.info(
+            "Creating equality database named : %s using sql : '%s' for correlation id : %s",
+            verified_database_name_for_equality,
+            create_db_query,
+            args.correlation_id,
+        )
         spark.sql(create_db_query)
         process_equality(
             spark,
@@ -551,6 +564,7 @@ def create_hive_table_on_published_for_collection(
             date_hyphen,
             date_underscore,
             collection_json_location,
+            args,
         )
     else:
         src_hive_drop_query = f"DROP TABLE IF EXISTS {src_hive_table}"
@@ -571,7 +585,12 @@ def process_audit(
     date_hyphen,
     date_underscore,
     collection_json_location,
+    args,
 ):
+    the_logger.info(
+        "Creating audit raw managed table for correlation id : %s",
+        args.correlation_id,
+    )
     create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location)
 
     auditlog_managed_table_sql_file = get_audit_managed_file()
@@ -580,8 +599,17 @@ def process_audit(
             "#{hivevar:auditlog_database}", verified_database_name
         )
     )
+    the_logger.info(
+        "Creating audit managed table using sql : '%s' for correlation id : %s",
+        auditlog_managed_table_sql_content,
+        args.correlation_id,
+    )
     spark.sql(auditlog_managed_table_sql_content)
 
+    the_logger.info(
+        "Creating audit external table for correlation id : %s",
+        args.correlation_id,
+    )
     auditlog_external_table_sql_file = get_audit_external_file()
     queries = (
         auditlog_external_table_sql_file.read()
@@ -591,8 +619,7 @@ def process_audit(
         .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
         .replace("#{hivevar:data_location}", collection_json_location)
     )
-    split_queries = queries.split(";", 4)
-    print(list(map(lambda query: spark.sql(query), split_queries)))
+    execute_queries(queries.split(";"), "audit", spark, args)
 
 
 def process_equality(
@@ -601,6 +628,7 @@ def process_equality(
     date_hyphen,
     date_underscore,
     collection_json_location,
+    args,
 ):
     equality_managed_table_sql_file = get_equality_managed_file()
     equality_managed_table_sql_content = (
@@ -608,8 +636,17 @@ def process_equality(
             "#{hivevar:equality_database}", verified_database_name
         )
     )
+    the_logger.info(
+        "Creating equality managed table using sql : '%s' for correlation id : %s",
+        equality_managed_table_sql_content,
+        args.correlation_id,
+    )
     spark.sql(equality_managed_table_sql_content)
 
+    the_logger.info(
+        "Creating equality external table for correlation id : %s",
+        args.correlation_id,
+    )
     equality_external_table_sql_file = get_equality_external_file()
     queries = (
         equality_external_table_sql_file.read()
@@ -619,8 +656,26 @@ def process_equality(
         .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
         .replace("#{hivevar:data_location}", collection_json_location)
     )
-    split_queries = queries.split(";", 4)
-    print(list(map(lambda query: spark.sql(query), split_queries)))
+    execute_queries(queries.split(";"), "equality", spark, args)
+
+
+def execute_queries(queries, type_of_query, spark, args):
+    for query in queries:
+        if query and not query.isspace():
+            the_logger.info(
+                "Executing %s query : '%s' for correlation id : %s",
+                type_of_query,
+                query,
+                args.correlation_id,
+            )
+            spark.sql(query)
+        else:
+            the_logger.info(
+                "Not executing invalid %s query : '%s' for correlation id : %s",
+                type_of_query,
+                query,
+                args.correlation_id,
+            )
 
 
 def create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location):
