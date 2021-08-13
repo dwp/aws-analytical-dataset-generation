@@ -188,8 +188,18 @@ def create_hive_table_on_published_for_collection(
         collection_name,
     )
     create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_audit}"
+    the_logger.info(
+        "Creating audit database named : %s using sql : '%s' for correlation id : %s",
+        verified_database_name_for_audit,
+        create_db_query,
+        args.correlation_id,
+    )
     spark.sql(create_db_query)
 
+    the_logger.info(
+        "Creating audit raw managed table for correlation id : %s",
+        args.correlation_id,
+    )
     create_audit_log_raw_managed_table(spark, verified_database_name_for_audit, date_hyphen, collection_json_location)
 
     auditlog_managed_table_sql_file = get_audit_managed_file()
@@ -197,6 +207,11 @@ def create_hive_table_on_published_for_collection(
         auditlog_managed_table_sql_file.read().replace(
             "#{hivevar:auditlog_database}", verified_database_name_for_audit
         )
+    )
+    the_logger.info(
+        "Creating audit managed table using sql : '%s' for correlation id : %s",
+        auditlog_managed_table_sql_file,
+        args.correlation_id,
     )
     spark.sql(auditlog_managed_table_sql_content)
 
@@ -209,9 +224,27 @@ def create_hive_table_on_published_for_collection(
             .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
             .replace("#{hivevar:data_location}", collection_json_location)
     )
-    split_queries = queries.split(";", 4)
-    print(list(map(lambda query: spark.sql(query), split_queries)))
+    execute_queries(queries.split(";"), "audit", spark, args)
     return collection_name
+
+
+def execute_queries(queries, type_of_query, spark, args):
+    for query in queries:
+        if query and not query.isspace():
+            the_logger.info(
+                "Executing %s query : '%s' for correlation id : %s",
+                type_of_query,
+                query,
+                args.correlation_id,
+            )
+            spark.sql(query)
+        else:
+            the_logger.info(
+                "Not executing invalid %s query : '%s' for correlation id : %s",
+                type_of_query,
+                query,
+                args.correlation_id,
+            )
 
 
 def create_audit_log_raw_managed_table(spark, verified_database_name, date_hyphen, collection_json_location):
