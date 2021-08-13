@@ -188,6 +188,11 @@ def create_hive_table_on_published_for_collection(
         collection_name,
     )
     create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_equality}"
+    the_logger.info(
+        "Creating equality database named : %s using sql : '%s'",
+        verified_database_name_for_equality,
+        create_db_query,
+    )
     spark.sql(create_db_query)
 
     managed_table_sql_file = get_equality_managed_file()
@@ -195,6 +200,10 @@ def create_hive_table_on_published_for_collection(
         managed_table_sql_file.read().replace(
             "#{hivevar:equality_database}", verified_database_name_for_equality
         )
+    )
+    the_logger.info(
+        "Creating equality managed table using sql : '%s'",
+        managed_table_sql_content,
     )
     spark.sql(managed_table_sql_content)
 
@@ -207,9 +216,25 @@ def create_hive_table_on_published_for_collection(
             .replace("#{hivevar:serde}", "org.openx.data.jsonserde.JsonSerDe")
             .replace("#{hivevar:data_location}", collection_json_location)
     )
-    split_queries = queries.split(";", 4)
-    print(list(map(lambda query: spark.sql(query), split_queries)))
+    execute_queries(queries.split(";"), "equality", spark, args)
     return collection_name
+
+
+def execute_queries(queries, type_of_query, spark, args):
+    for query in queries:
+        if query and not query.isspace():
+            the_logger.info(
+                "Executing %s query : '%s'",
+                type_of_query,
+                query,
+            )
+            spark.sql(query)
+        else:
+            the_logger.info(
+                "Not executing invalid %s query : '%s'",
+                type_of_query,
+                query,
+            )
 
 
 def get_equality_managed_file():
