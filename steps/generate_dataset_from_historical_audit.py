@@ -189,16 +189,14 @@ def create_hive_table_on_published_for_collection(
     )
     create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_audit}"
     the_logger.info(
-        "Creating audit database named : %s using sql : '%s' for correlation id : %s",
+        "Creating audit database named : %s using sql : '%s'",
         verified_database_name_for_audit,
         create_db_query,
-        args.correlation_id,
     )
     spark.sql(create_db_query)
 
     the_logger.info(
-        "Creating audit raw managed table for correlation id : %s",
-        args.correlation_id,
+        "Creating audit raw managed table",
     )
     create_audit_log_raw_managed_table(spark, verified_database_name_for_audit, date_hyphen, collection_json_location)
 
@@ -209,9 +207,8 @@ def create_hive_table_on_published_for_collection(
         )
     )
     the_logger.info(
-        "Creating audit managed table using sql : '%s' for correlation id : %s",
+        "Creating audit managed table using sql : '%s'",
         auditlog_managed_table_sql_file,
-        args.correlation_id,
     )
     spark.sql(auditlog_managed_table_sql_content)
 
@@ -232,18 +229,16 @@ def execute_queries(queries, type_of_query, spark, args):
     for query in queries:
         if query and not query.isspace():
             the_logger.info(
-                "Executing %s query : '%s' for correlation id : %s",
+                "Executing %s query : '%s'",
                 type_of_query,
                 query,
-                args.correlation_id,
             )
             spark.sql(query)
         else:
             the_logger.info(
-                "Not executing invalid %s query : '%s' for correlation id : %s",
+                "Not executing invalid %s query : '%s'",
                 type_of_query,
                 query,
-                args.correlation_id,
             )
 
 
