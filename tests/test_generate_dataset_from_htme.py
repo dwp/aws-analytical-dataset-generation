@@ -657,6 +657,19 @@ def mock_get_equality_managed_file():
 def mock_get_equality_external_file():
     return open("tests/equality_external_table.sql")
 
+def mock_get_auditlog_sec_v_file():
+    return open("tests/alter_add_part_auditlog_sec_v.sql")
+
+def mock_get_auditlog_sec_v_columns_file():
+    return open("tests/auditlog_sec_v_columns.txt")
+
+def mock_get_auditlog_red_v_file():
+    return open("tests/alter_add_part_auditlog_red_v.sql")
+
+def mock_get_auditlog_red_v_columns_file():
+    return open("tests/auditlog_red_v_columns.txt")
+
+
 def test_retry_requests_with_no_retries():
     start_time = time.perf_counter()
     with pytest.raises(requests.exceptions.ConnectionError):

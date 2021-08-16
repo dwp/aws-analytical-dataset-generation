@@ -1,0 +1,2 @@
+HASH(firstname) AS firstname_hash,
+HASH(middlename) AS middlename_hash
