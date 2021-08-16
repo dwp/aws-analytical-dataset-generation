@@ -620,6 +620,19 @@ def process_audit(
         .replace("#{hivevar:data_location}", collection_json_location)
     )
     execute_queries(queries.split(";"), "audit", spark, args)
+    process_auditlog_sec_and_red_v(spark, verified_database_name, date_hyphen)
+
+
+def process_auditlog_sec_and_red_v(spark,verified_database_name,date_hyphen):
+    sec_v_columns = get_auditlog_sec_v_columns_file().read().strip('\n')
+    sec_v_file = get_auditlog_sec_v_file()
+    sec_v_query = sec_v_file.read().replace("#{hivevar:uc_database}", "uc").replace("#{hivevar:date_hyphen}", date_hyphen).replace("#{hivevar:uc_dw_auditlog_database}", verified_database_name).replace("#{hivevar:auditlog_sec_v_columns}", sec_v_columns)
+    spark.sql(sec_v_query)
+
+    red_v_columns = get_auditlog_red_v_columns_file().read().strip('\n')
+    red_v_file = get_auditlog_red_v_file()
+    red_v_query = red_v_file.read().replace("#{hivevar:uc_database}", "uc").replace("#{hivevar:date_hyphen}", date_hyphen).replace("#{hivevar:uc_dw_auditlog_database}", verified_database_name).replace("#{hivevar:auditlog_sec_v_columns}", red_v_columns)
+    spark.sql(red_v_query)
 
 
 def process_equality(
@@ -714,6 +727,19 @@ def get_equality_managed_file():
 
 def get_equality_external_file():
     return open("/var/ci/equality_external_table.sql")
+
+def get_auditlog_sec_v_file():
+    return open("/var/ci/alter_add_part_auditlog_sec_v.sql")
+
+def get_auditlog_sec_v_columns_file():
+    return open("/var/ci/auditlog_sec_v_columns.txt")
+
+def get_auditlog_red_v_file():
+    return open("/var/ci/alter_add_part_auditlog_red_v.sql")
+
+def get_auditlog_red_v_columns_file():
+    return open("/var/ci/auditlog_red_v_columns.txt")
+
 
 
 def get_filesize(s3_client, s3_htme_bucket, collection_file_key):

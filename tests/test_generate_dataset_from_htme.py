@@ -455,6 +455,17 @@ def test_create_hive_table_on_published_for_audit_log(
     print(actual_json)
     assert len(expected) == len(managed_table_raw_result)
 
+    auditlog_sec_v_table = 'auditlog_sec_v'
+    auditlog_red_v_table = 'auditlog_red_v'
+    view_tables = spark.catalog.listTables('uc')
+    view_tables_actual = list(map(lambda table: table.name, view_tables))
+    view_tables_expected = [auditlog_sec_v_table, auditlog_red_v_table]
+    assert len(view_tables_actual) == len(view_tables_expected)
+    sec_v_table_result = spark.sql(f"select date_str from uc.{auditlog_sec_v_table}").collect()
+    print(sec_v_table_result)
+    red_v_table_result = spark.sql(f"select firstname_hash, lastname_hash, date_str from uc.{auditlog_red_v_table}").collect()
+    print(red_v_table_result)
+
 
 @mock_s3
 def test_create_hive_table_on_published_for_equality(
