@@ -416,6 +416,10 @@ def test_create_hive_table_on_published_for_audit_log(
     collection_name = "data/businessAudit"
     monkeypatch.setattr(steps.generate_dataset_from_htme, "get_audit_managed_file", mock_get_audit_managed_file)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "get_audit_external_file", mock_get_audit_external_file)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_sec_v_file", mock_get_auditlog_sec_v_file)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_sec_v_columns_file", mock_get_auditlog_sec_v_columns_file)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_red_v_file", mock_get_auditlog_red_v_file)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_red_v_columns_file", mock_get_auditlog_red_v_columns_file)
     steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
         spark,
         collection_name,
