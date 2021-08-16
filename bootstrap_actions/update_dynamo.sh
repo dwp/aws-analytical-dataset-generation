@@ -125,7 +125,7 @@
         fi
         CURRENT_STEP=$(echo "$step_script_name" | sed 's:.*/::' | cut -f 1 -d '.')
         state=$(jq -r '.state' "$i")
-        if state=$(jq -er '.state' "$i") && [[ $CURRENT_STEP != 'null' ]] && [[ ! -z $CURRENT_STEP ]]; then
+        if state=$(jq -er '.state' "$i") && [[ $CURRENT_STEP != 'null' ]] && [[ -n $CURRENT_STEP ]]; then
           if [[ "$state" == "$FAILED_STATUS" ]] || [[ "$state" == "$CANCELLED_STATUS" ]]; then
             log_wrapper_message "Failed step. Step Name: $CURRENT_STEP, Step status: $state"
             dynamo_update_item "$CURRENT_STEP" "$FAILED_STATUS" "NOT_SET"
