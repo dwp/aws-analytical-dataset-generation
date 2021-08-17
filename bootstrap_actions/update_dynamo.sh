@@ -145,7 +145,7 @@
           fi
         else
           if [[ $RETRY_COUNT -ge $MAX_RETRY ]]; then
-            echo "Could not parse one or more json attributes from ${i}. Last Step Name: $PREVIOUS_STEP. Last State Name: $PREVIOUS_STATE."
+            log_wrapper_message "Could not parse one or more json attributes from ${i}. Last Step Name: $PREVIOUS_STEP. Last State Name: $PREVIOUS_STATE."
             exit 0
           fi
           RETRY_COUNT=$((RETRY_COUNT+1))
