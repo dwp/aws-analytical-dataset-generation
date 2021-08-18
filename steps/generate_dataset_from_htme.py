@@ -628,7 +628,7 @@ def process_audit(
 
 
 def process_auditlog_sec_and_red_v(spark,verified_database_name,date_hyphen,s3_publish_bucket):
-    sec_v_location = f'{s3_publish_bucket}/data/uc/auditlog_sec_v/'
+    sec_v_location = f's3://{s3_publish_bucket}/data/uc/auditlog_sec_v/'
     sec_v_columns = get_auditlog_sec_v_columns_file().read().strip('\n')
     sec_v_create_file = get_auditlog_sec_v_create_file()
     sec_v_create_query = sec_v_create_file.read().replace("#{hivevar:uc_database}").replace("#{hivevar:location_str}", sec_v_location)
@@ -637,7 +637,7 @@ def process_auditlog_sec_and_red_v(spark,verified_database_name,date_hyphen,s3_p
     sec_v_alter_query = sec_v_alter_file.read().replace("#{hivevar:uc_database}", "uc").replace("#{hivevar:date_hyphen}", date_hyphen).replace("#{hivevar:uc_dw_auditlog_database}", verified_database_name).replace("#{hivevar:auditlog_sec_v_columns}", sec_v_columns).replace("#{hivevar:location_str}", sec_v_location)
     spark.sql(sec_v_alter_query)
 
-    red_v_location = f'{s3_publish_bucket}/data/uc/auditlog_red_v/'
+    red_v_location = f's3://{s3_publish_bucket}/data/uc/auditlog_red_v/'
     red_v_columns = get_auditlog_red_v_columns_file().read().strip('\n')
     red_v_create_file = get_auditlog_red_v_create_file()
     red_v_create_query = red_v_create_file.read().replace("#{hivevar:uc_database}").replace("#{hivevar:location_str}", red_v_location)
