@@ -437,7 +437,7 @@ def get_prefixes_for_selected_dates(s3_bucket, s3_prefix, start_date, end_date):
     delta = edate - sdate       # as timedelta
     for i in range(delta.days + 1):
         day = sdate + timedelta(days=i)
-        prefix = f'{s3_prefix}{day}/'
+        prefix = f'{s3_prefix}/{day}/'
         prefixes.append(prefix)
     return prefixes
 
