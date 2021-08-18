@@ -416,10 +416,12 @@ def test_create_hive_table_on_published_for_audit_log(
     collection_name = "data/businessAudit"
     monkeypatch.setattr(steps.generate_dataset_from_htme, "get_audit_managed_file", mock_get_audit_managed_file)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "get_audit_external_file", mock_get_audit_external_file)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_sec_v_file", mock_get_auditlog_sec_v_file)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_sec_v_alter_file", mock_get_auditlog_sec_v_alter_file)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_sec_v_columns_file", mock_get_auditlog_sec_v_columns_file)
-    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_red_v_file", mock_get_auditlog_red_v_file)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_red_v_alter_file", mock_get_auditlog_red_v_alter_file)
     monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_red_v_columns_file", mock_get_auditlog_red_v_columns_file)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_sec_v_create_file", mock_get_auditlog_sec_v_create_file)
+    monkeypatch.setattr(steps.generate_dataset_from_htme, "get_auditlog_red_v_create_file", mock_get_auditlog_red_v_create_file)
     steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
         spark,
         collection_name,
@@ -661,17 +663,23 @@ def mock_get_equality_managed_file():
 def mock_get_equality_external_file():
     return open("tests/equality_external_table.sql")
 
-def mock_get_auditlog_sec_v_file():
+def mock_get_auditlog_sec_v_alter_file():
     return open("tests/alter_add_part_auditlog_sec_v.sql")
 
 def mock_get_auditlog_sec_v_columns_file():
     return open("tests/auditlog_sec_v_columns.txt")
 
-def mock_get_auditlog_red_v_file():
+def mock_get_auditlog_red_v_alter_file():
     return open("tests/alter_add_part_auditlog_red_v.sql")
 
 def mock_get_auditlog_red_v_columns_file():
     return open("tests/auditlog_red_v_columns.txt")
+
+def mock_get_auditlog_sec_v_create_file():
+    return open("/var/ci/create_auditlog_sec_v.sql")
+
+def mock_get_auditlog_red_v_create_file():
+    return open("/var/ci/create_auditlog_red_v.sql")
 
 
 def test_retry_requests_with_no_retries():
