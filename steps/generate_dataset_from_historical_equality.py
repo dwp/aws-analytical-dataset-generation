@@ -616,7 +616,7 @@ if __name__ == "__main__":
     spark = get_spark_session(args)
 
     published_database_name = "${published_db}"
-    s3_historical_equality_bucket = os.getenv("s3_historical_equality_bucket")
+    s3_historical_equality_bucket = os.getenv("S3_HISTORICAL_EQUALITY_BUCKET")
     s3_publish_bucket = os.getenv("S3_PUBLISH_BUCKET")
     s3_client = get_s3_client()
     keys_map = {}
