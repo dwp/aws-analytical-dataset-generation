@@ -643,7 +643,7 @@ def process_auditlog_sec_and_red_v(spark,verified_database_name,date_hyphen,s3_p
     red_v_create_query = red_v_create_file.read().replace("#{hivevar:uc_database}", "uc").replace("#{hivevar:location_str}", red_v_location)
     spark.sql(red_v_create_query)
     red_v_alter_file = get_auditlog_red_v_alter_file()
-        red_v_alter_query = red_v_alter_file.read().replace("#{hivevar:uc_database}", "uc").replace("#{hivevar:date_hyphen}", date_hyphen).replace("#{hivevar:uc_dw_auditlog_database}", verified_database_name).replace("#{hivevar:auditlog_red_v_columns}", red_v_columns).replace("#{hivevar:location_str}", red_v_location)
+    red_v_alter_query = red_v_alter_file.read().replace("#{hivevar:uc_database}", "uc").replace("#{hivevar:date_hyphen}", date_hyphen).replace("#{hivevar:uc_dw_auditlog_database}", verified_database_name).replace("#{hivevar:auditlog_red_v_columns}", red_v_columns).replace("#{hivevar:location_str}", red_v_location)
     execute_queries(red_v_alter_query.split(";"), "red_v", spark, args)
 
 
