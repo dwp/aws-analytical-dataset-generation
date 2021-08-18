@@ -382,6 +382,7 @@ def test_create_hive_table_on_published_for_collection(
         json_location,
         PUBLISHED_DATABASE_NAME,
         mock_args(),
+        S3_PUBLISH_BUCKET
     )
 
     monkeypatch.setattr(
@@ -397,8 +398,10 @@ def test_create_hive_table_on_published_for_audit_log(
     spark, handle_server, aws_credentials, monkeypatch
 ):
     spark.sql("drop table if exists uc_dw_auditlog.auditlog_managed")
+    spark.sql("drop table if exists uc_dw_auditlog.auditlog_raw")
+    spark.sql("create database if not exists uc")
     args = mock_args()
-    test_data = '{"first_name":"abcd","last_name":"xyz"}'
+    test_data = '{"first_name":"abcd","last_name":"xyz", "1_abroad_for_more_than_one_month":"abcabc"}'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
     s3_client.create_bucket(Bucket=S3_PUBLISH_BUCKET)
     date_hyphen = args.export_date
@@ -428,6 +431,7 @@ def test_create_hive_table_on_published_for_audit_log(
         json_location,
         PUBLISHED_DATABASE_NAME,
         mock_args(),
+        S3_PUBLISH_BUCKET
     )
     steps.generate_dataset_from_htme.create_hive_table_on_published_for_collection(
         spark,
@@ -435,6 +439,7 @@ def test_create_hive_table_on_published_for_audit_log(
         json_location,
         PUBLISHED_DATABASE_NAME,
         mock_args(),
+        S3_PUBLISH_BUCKET
     )
     managed_table = 'auditlog_managed'
     managed_table_raw = 'auditlog_raw'
@@ -445,21 +450,11 @@ def test_create_hive_table_on_published_for_audit_log(
     assert all([a == b for a, b in zip(actual, expected)])
     managed_table_result = spark.sql(f"select first_name, last_name, date_str from uc_dw_auditlog.{managed_table}").collect()
     print(managed_table_result)
-    expected = [Row(first_name='abcd', last_name='xyz', date_str=date_hyphen), Row(first_name='abcd', last_name='xyz', date_str=date_hyphen)]
-    expected_json = json.dumps(expected)
-    actual_json = json.dumps(managed_table_result)
-    print(expected_json)
-    print(actual_json)
     assert len(managed_table_result) == 1
 
     managed_table_raw_result = spark.sql(f"select * from uc_dw_auditlog.{managed_table_raw}").collect()
     print(managed_table_raw_result)
-    expected = [Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str=date_hyphen), Row(val='{"first_name":"abcd","last_name":"xyz"}', date_str=date_hyphen)]
-    expected_json = json.dumps(expected)
-    actual_json = json.dumps(managed_table_raw_result)
-    print(expected_json)
-    print(actual_json)
-    assert len(expected) == len(managed_table_raw_result)
+    assert len(managed_table_raw_result) == 1
 
     auditlog_sec_v_table = 'auditlog_sec_v'
     auditlog_red_v_table = 'auditlog_red_v'
@@ -467,10 +462,12 @@ def test_create_hive_table_on_published_for_audit_log(
     view_tables_actual = list(map(lambda table: table.name, view_tables))
     view_tables_expected = [auditlog_sec_v_table, auditlog_red_v_table]
     assert len(view_tables_actual) == len(view_tables_expected)
-    sec_v_table_result = spark.sql(f"select date_str from uc.{auditlog_sec_v_table}").collect()
+    sec_v_table_result = spark.sql(f"select 1_abroad_for_more_than_one_month, date_str from uc.{auditlog_sec_v_table}").collect()
     print(sec_v_table_result)
-    red_v_table_result = spark.sql(f"select firstname_hash, lastname_hash, date_str from uc.{auditlog_red_v_table}").collect()
+    assert len(sec_v_table_result) == 1
+    red_v_table_result = spark.sql(f"select 1_abroad_for_more_than_one_month, date_str from uc.{auditlog_red_v_table}").collect()
     print(red_v_table_result)
+    assert len(red_v_table_result) == 1
 
 
 @mock_s3
@@ -503,6 +500,7 @@ def test_create_hive_table_on_published_for_equality(
         json_location,
         PUBLISHED_DATABASE_NAME,
         mock_args(),
+        S3_PUBLISH_BUCKET
     )
     managed_table = 'equality_managed'
     tables = spark.catalog.listTables('uc_equality')
@@ -676,10 +674,10 @@ def mock_get_auditlog_red_v_columns_file():
     return open("tests/auditlog_red_v_columns.txt")
 
 def mock_get_auditlog_sec_v_create_file():
-    return open("/var/ci/create_auditlog_sec_v.sql")
+    return open("tests/create_auditlog_sec_v.sql")
 
 def mock_get_auditlog_red_v_create_file():
-    return open("/var/ci/create_auditlog_red_v.sql")
+    return open("tests/create_auditlog_red_v.sql")
 
 
 def test_retry_requests_with_no_retries():
