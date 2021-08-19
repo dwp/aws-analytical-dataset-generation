@@ -117,7 +117,7 @@ locals {
     qa          = false
     integration = false
     preprod     = false
-    production  = false
+    production  = true
   }
 
   step_fail_action = {
@@ -404,7 +404,7 @@ locals {
     qa          = 5
     integration = 5
     preprod     = 10
-    production  = 10 # Doesn't need as much as executors
+    production  = 20 # Doesn't need as much as executors
   }
 
   spark_driver_cores = {
