@@ -419,14 +419,16 @@ def consolidate_rdd_per_collection(
         decoded = decompressed.mapValues(decode)
         rdd_list.append(decoded)
     consolidated_rdd = spark.sparkContext.union(rdd_list)
+    collection_name_key = get_collection(collection_name)
+    collection_name_key = collection_name_key.replace("_", "-")
+    if collection_name_key == "data/businessAudit" or collection_name_key == "data/equality":
+        consolidated_rdd = consolidated_rdd.repartition(1)
     consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
     the_logger.info(
         "Persisting Json of collection : %s for correlation id : %s",
         collection_name,
         args.correlation_id,
     )
-    collection_name_key = get_collection(collection_name)
-    collection_name_key = collection_name_key.replace("_", "-")
     file_location = "${file_location}"
     if collection_name_key == "data/businessAudit" or collection_name_key == "data/equality":
         current_date = args.export_date
