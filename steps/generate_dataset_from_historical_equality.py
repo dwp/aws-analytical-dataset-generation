@@ -281,6 +281,7 @@ def consolidate_rdd_per_collection(
         decoded = decompressed.mapValues(decode)
         rdd_list.append(decoded)
     consolidated_rdd = spark.sparkContext.union(rdd_list)
+    consolidated_rdd = consolidated_rdd.repartition(1)
     consolidated_rdd_mapped = consolidated_rdd.map(lambda x: x[1])
     the_logger.info(
         "Persisting Json of collection : %s",
