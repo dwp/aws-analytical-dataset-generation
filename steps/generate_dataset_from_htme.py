@@ -555,7 +555,7 @@ def create_hive_table_on_published_for_collection(
         verified_database_name_for_equality = 'uc_equality'
         date_hyphen = args.export_date
         date_underscore = date_hyphen.replace("-", "_")
-        create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_equality} LOCATION s3://{s3_publish_bucket}/data/uc_equality/"
+        create_db_query = f"CREATE DATABASE IF NOT EXISTS {verified_database_name_for_equality} LOCATION 's3://{s3_publish_bucket}/data/uc_equality/'"
         the_logger.info(
             "Creating equality database named : %s using sql : '%s' for correlation id : %s",
             verified_database_name_for_equality,
