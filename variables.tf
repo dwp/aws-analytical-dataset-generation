@@ -29,7 +29,7 @@ variable "truststore_aliases" {
 
 variable "emr_ami_id" {
   description = "AMI ID to use for the HBase EMR nodes"
-  default     = "ami-0a5d042ae876f72ff"
+  default     = "ami-0743442f852e29cc6"
 }
 
 variable "analytical_dataset_generation_exporter_jar" {

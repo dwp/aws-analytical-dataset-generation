@@ -64,6 +64,7 @@
     echo "$OUTPUT_LOCATION"
   }
 
+  MAX_RETRY=10
   processed_files=()
   dynamo_update_item() {
     current_step="$1"
@@ -115,6 +116,7 @@
       if [[ "$${processed_files[@]}" =~ "$${i}" ]]; then # We do not want a REGEX check here so it is ok
         continue
       fi
+      RETRY_COUNT=0
       state=$(jq -r '.state' "$i")
       while [[ "$state" != "$COMPLETED_STATUS" ]]; do
         step_script_name=$(jq -r '.args[0]' "$i")
@@ -123,22 +125,33 @@
         fi
         CURRENT_STEP=$(echo "$step_script_name" | sed 's:.*/::' | cut -f 1 -d '.')
         state=$(jq -r '.state' "$i")
-        if [[ "$state" == "$FAILED_STATUS" ]] || [[ "$state" == "$CANCELLED_STATUS" ]]; then
-          log_wrapper_message "Failed step. Step Name: $CURRENT_STEP, Step status: $state"
-          dynamo_update_item "$CURRENT_STEP" "$FAILED_STATUS" "NOT_SET"
-          exit 0
-        fi
-        if [[ "$CURRENT_STEP" == "$FINAL_STEP_NAME" ]] && [[ "$state" == "$COMPLETED_STATUS" ]]; then
-          dynamo_update_item "$CURRENT_STEP" "$COMPLETED_STATUS" "NOT_SET"
-          log_wrapper_message "All steps completed. Final step Name: $CURRENT_STEP, Step status: $state"
-          exit 0
-        fi
-        if [[ "$PREVIOUS_STATE" != "$state" ]] && [[ "$PREVIOUS_STEP" != "$CURRENT_STEP" ]]; then
-          dynamo_update_item "$CURRENT_STEP" "NOT_SET" "NOT_SET"
-          log_wrapper_message "Successful step. Last step name: $PREVIOUS_STEP, Last step status: $PREVIOUS_STATE, Current step name: $CURRENT_STEP, Current step status: $state"
-          processed_files+=( "$i" )
+        if [[ -n "$state" ]] && [[ -n "$CURRENT_STEP" ]]; then
+          if [[ "$state" == "$FAILED_STATUS" ]] || [[ "$state" == "$CANCELLED_STATUS" ]]; then
+            log_wrapper_message "Failed step. Step Name: $CURRENT_STEP, Step status: $state"
+            dynamo_update_item "$CURRENT_STEP" "$FAILED_STATUS" "NOT_SET"
+            exit 0
+          fi
+          if [[ "$CURRENT_STEP" == "$FINAL_STEP_NAME" ]] && [[ "$state" == "$COMPLETED_STATUS" ]]; then
+            dynamo_update_item "$CURRENT_STEP" "$COMPLETED_STATUS" "NOT_SET"
+            log_wrapper_message "All steps completed. Final step Name: $CURRENT_STEP, Step status: $state"
+            exit 0
+          fi
+          if [[ "$PREVIOUS_STATE" != "$state" ]] && [[ "$PREVIOUS_STEP" != "$CURRENT_STEP" ]]; then
+            dynamo_update_item "$CURRENT_STEP" "NOT_SET" "NOT_SET"
+            log_wrapper_message "Successful step. Last step name: $PREVIOUS_STEP, Last step status: $PREVIOUS_STATE, Current step name: $CURRENT_STEP, Current step status: $state"
+            processed_files+=( "$i" )
+          else
+            sleep 0.2
+          fi
         else
-          sleep 0.2
+          if [[ "$RETRY_COUNT" -ge "$MAX_RETRY" ]]; then
+            log_wrapper_message "Could not parse one or more json attributes from $i. Last Step Name: $PREVIOUS_STEP. Last State Name: $PREVIOUS_STATE."
+            dynamo_update_item "$CURRENT_STEP" "$FAILED_STATUS" "NOT_SET"
+            exit 1
+          fi
+          RETRY_COUNT=$((RETRY_COUNT+1))
+          log_wrapper_message "Sleeping... Failed reading step file $RETRY_COUNT times. Could not parse one or more json attributes from $i. Last Step Name: $PREVIOUS_STEP. Last State Name: $PREVIOUS_STATE."
+          sleep 1
         fi
         PREVIOUS_STATE="$state"
         PREVIOUS_STEP="$CURRENT_STEP"
