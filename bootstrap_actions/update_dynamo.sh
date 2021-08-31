@@ -125,7 +125,7 @@
         fi
         CURRENT_STEP=$(echo "$step_script_name" | sed 's:.*/::' | cut -f 1 -d '.')
         state=$(jq -r '.state' "$i")
-        if state=$(jq -er '.state' "$i") && [[ $CURRENT_STEP != 'null' ]] && [[ -n $CURRENT_STEP ]]; then
+        if [[ -n "$state" ]] && [[ -n "$CURRENT_STEP" ]]; then
           if [[ "$state" == "$FAILED_STATUS" ]] || [[ "$state" == "$CANCELLED_STATUS" ]]; then
             log_wrapper_message "Failed step. Step Name: $CURRENT_STEP, Step status: $state"
             dynamo_update_item "$CURRENT_STEP" "$FAILED_STATUS" "NOT_SET"
@@ -144,12 +144,12 @@
             sleep 0.2
           fi
         else
-          if [[ $RETRY_COUNT -ge $MAX_RETRY ]]; then
+          if [[ "$RETRY_COUNT" -ge "$MAX_RETRY" ]]; then
             log_wrapper_message "Could not parse one or more json attributes from $i. Last Step Name: $PREVIOUS_STEP. Last State Name: $PREVIOUS_STATE."
             exit 0
           fi
           RETRY_COUNT=$((RETRY_COUNT+1))
-          sleep 1
+          sleep 0.2
         fi
         PREVIOUS_STATE="$state"
         PREVIOUS_STEP="$CURRENT_STEP"
