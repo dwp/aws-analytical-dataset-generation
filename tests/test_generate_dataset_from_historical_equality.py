@@ -124,6 +124,7 @@ def test_create_hive_table_on_published_for_equality_log(
         collection_name,
         json_location,
         mock_args(),
+        S3_PUBLISH_BUCKET,
     )
     managed_table = 'equality_managed'
     tables = spark.catalog.listTables('uc_equality')
