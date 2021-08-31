@@ -150,7 +150,7 @@
             exit 1
           fi
           RETRY_COUNT=$((RETRY_COUNT+1))
-          log_wrapper_message "Sleeping...Could not parse one or more json attributes from $i. Last Step Name: $PREVIOUS_STEP. Last State Name: $PREVIOUS_STATE."
+          log_wrapper_message "Sleeping... Failed reading step file $RETRY_COUNT times. Could not parse one or more json attributes from $i. Last Step Name: $PREVIOUS_STEP. Last State Name: $PREVIOUS_STATE."
           sleep 1
         fi
         PREVIOUS_STATE="$state"
