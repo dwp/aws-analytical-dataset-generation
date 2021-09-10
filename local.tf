@@ -48,22 +48,6 @@ locals {
     production  = "dataworks.dwp.gov.uk"
   }
 
-  adg_emr_lambda_schedule = {
-    development = "1 0 * * ? 2099"
-    qa          = "1 0 * * ? *"
-    integration = "00 14 6 Jul ? 2020" # trigger one off temp increase for DW-4437 testing
-    preprod     = "1 0 * * ? *"
-    production  = "1 0 * * ? 2025"
-  }
-
-  pdm_cw_emr_lambda_schedule = {
-    development = "01 12 * * ? 2099"
-    qa          = "00 15 * * ? 2099"
-    integration = "00 15 * * ? 2099"
-    preprod     = "00 15 * * ? 2099"
-    production  = "00 15 * * ? *"
-  }
-
   adg_log_level = {
     development = "DEBUG"
     qa          = "DEBUG"

@@ -28,7 +28,7 @@ resource "aws_lambda_function" "adg_emr_relauncher" {
       SNS_TOPIC       = data.terraform_remote_state.internal_compute.outputs.export_status_sns_fulls.arn
       TABLE_NAME      = local.data_pipeline_metadata
       MAX_RETRY_COUNT = local.adg_max_retry_count[local.environment]
-      LOG_LEVEL       = "info"
+      LOG_LEVEL       = local.adg_log_level[local.environment]
     }
   }
 }

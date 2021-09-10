@@ -27,21 +27,9 @@ resource "aws_lambda_function" "adg_emr_launcher" {
     variables = {
       EMR_LAUNCHER_CONFIG_S3_BUCKET = data.terraform_remote_state.common.outputs.config_bucket.id
       EMR_LAUNCHER_CONFIG_S3_FOLDER = "emr/adg"
-      EMR_LAUNCHER_LOG_LEVEL        = "debug"
+      EMR_LAUNCHER_LOG_LEVEL        = local.adg_log_level[local.environment]
     }
   }
-}
-
-resource "aws_cloudwatch_event_rule" "adg_emr_launcher_schedule" {
-  name                = "adg_emr_launcher_schedule"
-  description         = "Triggers ADG EMR Launcher"
-  schedule_expression = format("cron(%s)", local.adg_emr_lambda_schedule[local.environment])
-}
-
-resource "aws_cloudwatch_event_target" "adg_emr_launcher_target" {
-  rule      = aws_cloudwatch_event_rule.adg_emr_launcher_schedule.name
-  target_id = "adg_emr_launcher_target"
-  arn       = aws_lambda_function.adg_emr_launcher.arn
 }
 
 resource "aws_iam_role" "adg_emr_launcher_lambda_role" {
