@@ -657,19 +657,6 @@ def process_equality(
     collection_json_location,
     args,
 ):
-    equality_managed_table_sql_file = get_equality_managed_file()
-    equality_managed_table_sql_content = (
-        equality_managed_table_sql_file.read().replace(
-            "#{hivevar:equality_database}", verified_database_name
-        )
-    )
-    the_logger.info(
-        "Creating equality managed table using sql : '%s' for correlation id : %s",
-        equality_managed_table_sql_content,
-        args.correlation_id,
-    )
-    spark.sql(equality_managed_table_sql_content)
-
     the_logger.info(
         "Creating equality external table for correlation id : %s",
         args.correlation_id,
