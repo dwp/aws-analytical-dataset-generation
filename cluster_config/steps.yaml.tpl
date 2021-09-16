@@ -28,6 +28,12 @@ Steps:
     - "file:/var/ci/courtesy-flush.sh"
     Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
   ActionOnFailure: "${action_on_failure}"
+- Name: "equalities-managed"
+  HadoopJarStep:
+    Args:
+    - "file:/var/ci/equalities-managed.sh"
+    Jar: "s3://eu-west-2.elasticmapreduce/libs/script-runner/script-runner.jar"
+  ActionOnFailure: "${action_on_failure}"
 - Name: "submit-job"
   HadoopJarStep:
     Args:
