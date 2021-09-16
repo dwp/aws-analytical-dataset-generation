@@ -475,6 +475,13 @@ def test_create_hive_table_on_published_for_equality(
     spark, handle_server, aws_credentials, monkeypatch
 ):
     spark.sql("drop table if exists uc_equality.equality_managed")
+    equality_managed_table_sql_file = mock_get_equality_managed_file()
+    equality_managed_table_sql_content = (
+        equality_managed_table_sql_file.read().replace(
+            "#{hivevar:equality_database}", "uc_equality"
+        )
+    )
+    spark.sql(equality_managed_table_sql_content)
     args = mock_args()
     test_data = '{"message":{"type":"abcd","claimantId":"efg","ethnicGroup":"hij","ethnicitySubgroup":"klm","sexualOrientation":"nop","religion":"qrst","maritalStatus":"uvw"}}'
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
