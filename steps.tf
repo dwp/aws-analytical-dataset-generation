@@ -97,3 +97,9 @@ resource "aws_s3_bucket_object" "courtesy_flush" {
     }
   )
 }
+
+resource "aws_s3_bucket_object" "equalities-managed" {
+  bucket  = data.terraform_remote_state.common.outputs.config_bucket.id
+  key     = "component/analytical-dataset-generation/equalities-managed.sh"
+  content = file("${path.module}/steps/equalities-managed.sh")
+}
