@@ -355,3 +355,11 @@ https://github.ucds.io/dip/aws-common-infrastructure/blob/3ea2f98667df49455be57f
 Going forward if there is any new prefix like analytical-dataset/xxxx to be added explicit life cycle purge policy needs to be defined so that objects get expired appropriately
 
 
+# Lessons learnt
+Strange behaviour was observed when hive join operation is performed between tables created by spark and hive. This include not showing up records 
+that have same value in two tables. During investigation as part of the ticket https://projects.ucd.gpn.gov.uk/browse/DW-7280. We found out that Hive versions
+are fully compatible with only certain versions of the spark as documented here https://cwiki.apache.org/confluence/display/Hive/Hive+on+Spark%3A+Getting+Started#HiveonSpark:GettingStarted-VersionCompatibility.
+As EMR comes up with its own combination of hive and spark versions, this issue is resolved by creating all tables in Hive while  other operations/transformations can still be done
+both Hive and spark.
+
+
