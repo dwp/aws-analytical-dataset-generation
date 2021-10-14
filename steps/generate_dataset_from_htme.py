@@ -136,6 +136,7 @@ def main(
     dynamodb_client,
     sns_client,
     s3_resource=None,
+    existing_prefix=False
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -183,6 +184,7 @@ def main(
         run_time_stamp,
         args.snapshot_type,
         args.export_date,
+        existing_prefix,
     )
 
 
@@ -1091,8 +1093,13 @@ def create_adg_status_csv(
     run_time_stamp,
     snapshot_type,
     export_date,
+    existing_prefix,
 ):
     file_location = "${file_location}"
+    if existing_prefix:
+        prefix = existing_prefix
+    else:
+        prefix = f"{file_location}/{snapshot_type}/{run_time_stamp}"
 
     with open("adg_params.csv", "w", newline="") as file:
         writer = csv.writer(file)
@@ -1100,7 +1107,7 @@ def create_adg_status_csv(
         writer.writerow(
             [
                 correlation_id,
-                f"{file_location}/{snapshot_type}/{run_time_stamp}",
+                prefix,
                 snapshot_type,
                 export_date,
             ]
@@ -1120,19 +1127,18 @@ def exit_if_skipping_step():
         sys.exit(0)
 
 
-def save_output_location(args, run_time_stamp):
+def save_output_location(args, run_time_stamp, existing_prefix=False):
     file_location = "${file_location}"
-    existing_prefix = check_for_previous_run(args)
     if existing_prefix:
         output_location = existing_prefix
     else:
-        output_location = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
+        output_location = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
 
     with open("/opt/emr/output_location.txt", "wt") as output_location_file:
         output_location_file.write(output_location)
 
 def check_for_previous_run(args):
-    DATA_PRODUCT = f"ADG-{args.snapshot_type}"
+    DATA_PRODUCT = f"ADG-{args.snapshot_type.lower()}"
     key_dict = {
         "Correlation_Id": {"S": f"{PIPELINE_METADATA_TABLE}"},
         "DataProduct": {"S": f"{DATA_PRODUCT}"},
@@ -1236,7 +1242,8 @@ if __name__ == "__main__":
 
     spark = get_spark_session(args)
     run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    save_output_location(args, run_time_stamp)
+    existing_prefix = check_for_previous_run(args)
+    save_output_location(args, run_time_stamp, existing_prefix)
     published_database_name = "${published_db}"
     secret_name_full = "${secret_name_full}"
     secret_name_incremental = "${secret_name_incremental}"
@@ -1266,6 +1273,7 @@ if __name__ == "__main__":
         args,
         dynamodb_client,
         sns_client,
+        existing_prefix
     )
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
