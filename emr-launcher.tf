@@ -187,3 +187,4 @@ resource "aws_iam_role_policy_attachment" "adg_emr_launcher_getsecrets" {
   role       = aws_iam_role.adg_emr_launcher_lambda_role.name
   policy_arn = aws_iam_policy.adg_emr_launcher_getsecrets.arn
 }
+
