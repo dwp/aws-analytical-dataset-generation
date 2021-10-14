@@ -42,6 +42,7 @@ ADG_CLUSTER_ID_FIELD_NAME = "ADGClusterId"
 CORRELATION_ID_DDB_FIELD_NAME = "CorrelationId"
 COLLECTION_NAME_DDB_FIELD_NAME = "CollectionName"
 TABLE_NAME = "${dynamodb_table_name}"
+PIPELINE_METADATA_TABLE = "${data_pipeline_metadata}"
 DEFAULT_REGION = "${aws_default_region}"
 
 the_logger = setup_logging(
@@ -1116,11 +1117,25 @@ def exit_if_skipping_step():
 
 def save_output_location(args, run_time_stamp):
     file_location = "${file_location}"
-    output_location = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
+    existing_prefix = check_for_previous_run(args)
+    if existing_prefix:
+        output_location = existing_prefix
+    else:
+        output_location = f"{file_location}/{args.snapshot_type}/{run_time_stamp}"
 
     with open("/opt/emr/output_location.txt", "wt") as output_location_file:
         output_location_file.write(output_location)
 
+def check_for_previous_run(args):
+    DATA_PRODUCT = f"ADG-{args.snapshot_type}"
+    key_dict = {
+        "Correlation_Id": {"S": f"{PIPELINE_METADATA_TABLE}"},
+        "DataProduct": {"S": f"{DATA_PRODUCT}"},
+    }
+    try:
+        return dynamodb_client.get_item(TableName=PIPELINE_METADATA_TABLE, Key=key_dict)["Item"]["S3_Prefix_Analytical_DataSet"]
+    except:
+        return False
 
 def update_adg_status_for_collection(
     dynamodb_client,
