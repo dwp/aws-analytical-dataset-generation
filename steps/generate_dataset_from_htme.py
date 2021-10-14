@@ -437,7 +437,12 @@ def consolidate_rdd_per_collection(
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
         delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
     else:
-        json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
+        existing_prefix = check_for_previous_run(args)
+        if existing_prefix:
+            json_location_prefix = f"{existing_prefix}/{collection_name_key}/"
+            delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
+        else:
+            json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
 
     persist_json(json_location, consolidated_rdd_mapped)
