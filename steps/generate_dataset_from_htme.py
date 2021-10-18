@@ -447,6 +447,7 @@ def consolidate_rdd_per_collection(
     else:
         if existing_output_prefix:
             json_location_prefix = f"{existing_output_prefix}/{collection_name_key}/"
+            the_logger.info(f"using existing output location {json_location_prefix}")
             delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
         else:
             json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
@@ -1138,6 +1139,7 @@ def save_output_location(args, run_time_stamp, existing_output_prefix=False):
         output_location = existing_output_prefix
     else:
         output_location = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
+    the_logger.info(f"Output locations set as {output_location}")
 
     with open("/opt/emr/output_location.txt", "wt") as output_location_file:
         output_location_file.write(output_location)
