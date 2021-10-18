@@ -1286,7 +1286,8 @@ if __name__ == "__main__":
         args,
         dynamodb_client,
         sns_client,
-        existing_output_prefix
+        None,
+        existing_output_prefix,
     )
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
