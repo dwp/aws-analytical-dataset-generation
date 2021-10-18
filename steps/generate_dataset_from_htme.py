@@ -136,7 +136,7 @@ def main(
     dynamodb_client,
     sns_client,
     s3_resource=None,
-    existing_prefix=False
+    existing_output_prefix=False
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -167,7 +167,7 @@ def main(
             s3_publish_bucket,
             sns_client,
             s3_resource,
-            existing_prefix,
+            existing_output_prefix,
         )
     except CollectionException as ex:
         the_logger.error(
@@ -185,7 +185,7 @@ def main(
         run_time_stamp,
         args.snapshot_type,
         args.export_date,
-        existing_prefix,
+        existing_output_prefix,
     )
 
 
@@ -203,7 +203,7 @@ def process_collections_threaded(
     s3_publish_bucket,
     sns_client,
     s3_resource=None,
-    existing_prefix=False,
+    existing_output_prefix=False,
 ):
     all_processed_collections = []
 
@@ -223,7 +223,7 @@ def process_collections_threaded(
             itertools.repeat(s3_publish_bucket),
             itertools.repeat(sns_client),
             itertools.repeat(s3_resource),
-            itertools.repeat(existing_prefix),
+            itertools.repeat(existing_output_prefix),
         )
 
     for completed_collection in completed_collections:
@@ -278,7 +278,7 @@ def process_collection(
     s3_publish_bucket,
     sns_client,
     s3_resource=None,
-    existing_prefix=False,
+    existing_output_prefix=False,
 ):
     if s3_resource is None:
         s3_resource = get_s3_resource()
@@ -308,7 +308,7 @@ def process_collection(
             s3_publish_bucket,
             args,
             s3_resource,
-            existing_prefix,
+            existing_output_prefix,
         )
     except Exception as ex:
         the_logger.error(
@@ -396,7 +396,7 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     s3_resource,
-    existing_prefix,
+    existing_output_prefix,
 ):
     the_logger.info(
         "Processing collection : %s for correlation id : %s",
@@ -445,8 +445,8 @@ def consolidate_rdd_per_collection(
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
         delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
     else:
-        if existing_prefix:
-            json_location_prefix = f"{existing_prefix}/{collection_name_key}/"
+        if existing_output_prefix:
+            json_location_prefix = f"{existing_output_prefix}/{collection_name_key}/"
             delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
         else:
             json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
@@ -1098,11 +1098,11 @@ def create_adg_status_csv(
     run_time_stamp,
     snapshot_type,
     export_date,
-    existing_prefix,
+    existing_output_prefix,
 ):
     file_location = "${file_location}"
-    if existing_prefix:
-        prefix = existing_prefix
+    if existing_output_prefix:
+        prefix = existing_output_prefix
     else:
         prefix = f"{file_location}/{snapshot_type}/{run_time_stamp}"
 
@@ -1132,10 +1132,10 @@ def exit_if_skipping_step():
         sys.exit(0)
 
 
-def save_output_location(args, run_time_stamp, existing_prefix=False):
+def save_output_location(args, run_time_stamp, existing_output_prefix=False):
     file_location = "${file_location}"
-    if existing_prefix:
-        output_location = existing_prefix
+    if existing_output_prefix:
+        output_location = existing_output_prefix
     else:
         output_location = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
 
@@ -1247,8 +1247,8 @@ if __name__ == "__main__":
 
     spark = get_spark_session(args)
     run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    existing_prefix = check_for_previous_run(args)
-    save_output_location(args, run_time_stamp, existing_prefix)
+    existing_output_prefix = check_for_previous_run(args)
+    save_output_location(args, run_time_stamp, existing_output_prefix)
     published_database_name = "${published_db}"
     secret_name_full = "${secret_name_full}"
     secret_name_incremental = "${secret_name_incremental}"
@@ -1278,7 +1278,7 @@ if __name__ == "__main__":
         args,
         dynamodb_client,
         sns_client,
-        existing_prefix
+        existing_output_prefix
     )
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)
