@@ -167,6 +167,7 @@ def main(
             s3_publish_bucket,
             sns_client,
             s3_resource,
+            existing_prefix,
         )
     except CollectionException as ex:
         the_logger.error(
@@ -202,6 +203,7 @@ def process_collections_threaded(
     s3_publish_bucket,
     sns_client,
     s3_resource=None,
+    existing_prefix,
 ):
     all_processed_collections = []
 
@@ -221,6 +223,7 @@ def process_collections_threaded(
             itertools.repeat(s3_publish_bucket),
             itertools.repeat(sns_client),
             itertools.repeat(s3_resource),
+            itertools.repeat(existing_prefix,
         )
 
     for completed_collection in completed_collections:
@@ -275,6 +278,7 @@ def process_collection(
     s3_publish_bucket,
     sns_client,
     s3_resource=None,
+    existing_prefix,
 ):
     if s3_resource is None:
         s3_resource = get_s3_resource()
@@ -304,6 +308,7 @@ def process_collection(
             s3_publish_bucket,
             args,
             s3_resource,
+            existing_prefix,
         )
     except Exception as ex:
         the_logger.error(
@@ -391,6 +396,7 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     s3_resource,
+    existing_prefix,
 ):
     the_logger.info(
         "Processing collection : %s for correlation id : %s",
@@ -439,7 +445,6 @@ def consolidate_rdd_per_collection(
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
         delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
     else:
-        existing_prefix = check_for_previous_run(args)
         if existing_prefix:
             json_location_prefix = f"{existing_prefix}/{collection_name_key}/"
             delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
