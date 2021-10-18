@@ -1150,10 +1150,13 @@ def check_for_previous_run(args):
         "Correlation_Id": {"S": f"{PIPELINE_METADATA_TABLE}"},
         "DataProduct": {"S": f"{DATA_PRODUCT}"},
     }
+
     try:
-        return dynamodb_client.get_item(TableName=PIPELINE_METADATA_TABLE, Key=key_dict)["Item"]["S3_Prefix_Analytical_DataSet"]
+        existing_output_prefix = dynamodb_client.get_item(TableName=PIPELINE_METADATA_TABLE, Key=key_dict)["Item"]["S3_Prefix_Analytical_DataSet"]["S"]
     except:
-        return False
+        existing_output_prefix = False
+    the_logger.info(f"Existing output prefix for ADG previous run: {existing_output_prefix}")
+    return existing_output_prefix
 
 def update_adg_status_for_collection(
     dynamodb_client,
