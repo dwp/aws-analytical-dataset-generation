@@ -203,7 +203,7 @@ def process_collections_threaded(
     s3_publish_bucket,
     sns_client,
     s3_resource=None,
-    existing_prefix,
+    existing_prefix=False,
 ):
     all_processed_collections = []
 
@@ -278,7 +278,7 @@ def process_collection(
     s3_publish_bucket,
     sns_client,
     s3_resource=None,
-    existing_prefix,
+    existing_prefix=False,
 ):
     if s3_resource is None:
         s3_resource = get_s3_resource()
