@@ -452,6 +452,7 @@ def consolidate_rdd_per_collection(
         else:
             json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
+        the_logger.info(f"Using output json location: {json_location}")
 
     persist_json(json_location, consolidated_rdd_mapped)
     the_logger.info(
@@ -907,6 +908,7 @@ def tag_objects(prefix, tag_value, s3_client, s3_publish_bucket, snapshot_type):
             Key=key["Key"],
             Tagging={"TagSet": tags_set_value},
         )
+    the_logger.info(f"Successfully tagged objects for the following prefix: {prefix}")
 
 
 def get_tags(tag_value, snapshot_type):
