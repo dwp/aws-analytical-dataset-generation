@@ -194,6 +194,7 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "log_stream_name": "{instance_id}-flush-pushgateway.log",
             "timezone": "UTC"
           },
+          {
             "file_path": "/var/log/adg/equalities-managed.log",
             "log_group_name": "$${cwa_steps_loggrp_name}",
             "log_stream_name": "{instance_id}-equalities-managed.log",
