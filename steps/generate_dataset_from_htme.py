@@ -396,7 +396,7 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     s3_resource,
-    existing_output_prefix,
+    existing_output_prefix=False,
 ):
     the_logger.info(
         "Processing collection : %s for correlation id : %s",
@@ -1031,6 +1031,7 @@ def add_filesize_metric(
 def add_folder_size_metric(
     collection_name, s3_bucket, s3_prefix, filename, s3_resource
 ):
+    the_logger.info(f"Adding folder size metrics for prefix: {s3_prefix}")
     total_size = 0
     for obj in s3_resource.Bucket(s3_bucket).objects.filter(Prefix=s3_prefix):
         total_size += obj.size
@@ -1101,7 +1102,7 @@ def create_adg_status_csv(
     run_time_stamp,
     snapshot_type,
     export_date,
-    existing_output_prefix,
+    existing_output_prefix=False,
 ):
     file_location = "${file_location}"
     if existing_output_prefix:
