@@ -308,8 +308,8 @@ def process_collection(
             run_time_stamp,
             s3_publish_bucket,
             args,
-            s3_resource,
             output_prefix,
+            s3_resource,
         )
     except Exception as ex:
         the_logger.error(
@@ -396,8 +396,8 @@ def consolidate_rdd_per_collection(
     run_time_stamp,
     s3_publish_bucket,
     args,
-    s3_resource,
     output_prefix,
+    s3_resource,
 ):
     the_logger.info(
         "Processing collection : %s for correlation id : %s",
