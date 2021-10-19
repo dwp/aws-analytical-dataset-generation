@@ -864,7 +864,7 @@ def test_check_existing_run():
         response = dynamodb_client.describe_table(
             TableName=table_name
         )
-        active = (response["Table"]["S3_Prefix_Analytical_Dataset"] == "test/prefix")
+        active = (response["Table"]["TableStatus"] == "ACTIVE")
 
     generate_dataset_from_htme.check_for_previous_run(
         mocked_args,
