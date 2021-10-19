@@ -1145,7 +1145,8 @@ def get_output_prefix(args, dynamodb_client, run_time_stamp):
     try:
         #check for previous run prefix in dynamodb
         output_prefix = dynamodb_client.get_item(TableName=PIPELINE_METADATA_TABLE, Key=key_dict)["Item"]["S3_Prefix_Analytical_DataSet"]["S"]
-        global EXISTING_OUTPUT_PREFIX=True
+        global EXISTING_OUTPUT_PREFIX
+        EXISTING_OUTPUT_PREFIX = True
         the_logger.info(f"Existing output prefix for ADG previous run: {output_prefix}")
     except:
         file_location = "${file_location}"
