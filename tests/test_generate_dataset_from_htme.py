@@ -884,8 +884,12 @@ def test_check_existing_run():
     expected = dynamodb_client.get_item(
         TableName=table_name,
         Key={
-            "Correlation_Id": {"S": f"{mocked_args.correlation_id}"},
-            "DataProduct": {"S": "ADG-full"},
+            "Correlation_Id": {
+                "S": f"{mocked_args.correlation_id}"
+            },
+            "DataProduct": {
+                "S": "ADG-full"
+            }
         }
     )["Item"]["S3_Prefix_Analytical_Dataset"]["S"]
 
