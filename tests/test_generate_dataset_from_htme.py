@@ -881,6 +881,11 @@ def test_check_existing_run():
         dynamodb_client
     )
 
+    response = dynamodb_client.describe_table(
+        TableName=table_name
+    )
+    print(response)
+
     expected = dynamodb_client.get_item(
         TableName=table_name,
         Key={
