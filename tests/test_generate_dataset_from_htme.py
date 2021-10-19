@@ -866,16 +866,16 @@ def test_check_existing_run():
         )
         active = (response["Table"]["TableStatus"] == "ACTIVE")
 
-    generate_dataset_from_htme.check_for_previous_run(
+    actual = generate_dataset_from_htme.check_for_previous_run(
         mocked_args,
         dynamodb_client
     )
 
-    actual = dynamodb_client.get_item(
+    expected = dynamodb_client.get_item(
         TableName=table_name,
         Key={
             "CorrelationId": {"S": CORRELATION_ID},
-            "CollectionName": {"S": collection_name},
+            "CollectionName": {"S": "ADG-full"},
         }
     )["Item"]["S3_Prefix_Analytical_Dataset"]["S"]
 
