@@ -1102,6 +1102,7 @@ def create_adg_status_csv(
     export_date,
     output_prefix,
 ):
+    file_location = "${file_location}"
     with open("adg_params.csv", "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["correlation_id", "s3_prefix", "snapshot_type", "export_date"])
