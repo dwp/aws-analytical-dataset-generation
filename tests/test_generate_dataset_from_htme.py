@@ -795,7 +795,7 @@ def test_check_no_existing_run():
     actual = generate_dataset_from_htme.get_output_prefix(mocked_args, dynamodb_client, run_time_stamp)
 
     file_location = "${file_location}"
-    expected = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
+    expected = f"{file_location}/{mocked_args.snapshot_type.lower()}/{run_time_stamp}"
 
     assert actual == expected
 
