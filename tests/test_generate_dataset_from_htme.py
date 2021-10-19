@@ -790,6 +790,38 @@ def test_send_sns_message():
 @mock_dynamodb2
 def test_check_existing_run():
     test_table = "TestTable"
+    table = dynamodb_client.create_table(
+        TableName=test_table,
+        KeySchema=[
+            {
+                'AttributeName': 'Correlation_Id',
+                'KeyType': 'HASH'  # Partition key
+            },
+            {
+                'AttributeName': 'DataProduct',
+                'KeyType': 'RANGE'  # Sort key
+            }
+        ],
+        AttributeDefinitions=[
+            {
+                'AttributeName': 'Correlation_Id',
+                'AttributeType': 'S'
+            },
+            {
+                'AttributeName': 'DataProduct',
+                'AttributeType': 'S'
+            },
+            {
+                'AttributeName': 'S3_Prefix_Analytical_Dataset',
+                'AttributeType': 'S'
+            },
+
+        ],
+        ProvisionedThroughput={
+            'ReadCapacityUnits': 10,
+            'WriteCapacityUnits': 10
+        }
+    )
     mocked_args = mock_args()
     key_dict = {"Correlation_Id": {"S": "{mocked_args.correlation_id}"},"DataProduct": {"S": "ADG-full"},"S3_Prefix_Analytical_Dataset": {"S": "test/prefix"}}
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
