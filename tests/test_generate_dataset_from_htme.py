@@ -790,7 +790,7 @@ def test_send_sns_message():
 @mock_dynamodb2
 def test_check_existing_run():
     # test_table = "TestTable"
-    # dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     # table = dynamodb_client.create_table(
     #     TableName=test_table,
     #     KeySchema=[
@@ -823,7 +823,7 @@ def test_check_existing_run():
     #         'WriteCapacityUnits': 10
     #     }
     # )
-    # mocked_args = mock_args()
+    mocked_args = mock_args()
     # key_dict = {"Correlation_Id": {"S": f"{mocked_args.correlation_id}"},"DataProduct": {"S": "ADG-full"},"S3_Prefix_Analytical_Dataset": {"S": "test/prefix"}}
     #
     # dynamodb = boto3.resource('dynamodb', endpoint_url=MOTO_SERVER_URL, region_name="eu-west-2")
