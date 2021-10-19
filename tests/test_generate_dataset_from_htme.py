@@ -850,6 +850,7 @@ def test_check_existing_run():
         AttributeDefinitions=[
             {'AttributeName': 'Correlation_Id', 'AttributeType': 'S'},
             {'AttributeName': 'DataProduct', 'AttributeType': 'S'}
+            {'AttributeName': 'S3_Prefix_Analytical_Dataset', 'AttributeType': 'S'}
         ]
     )
 
