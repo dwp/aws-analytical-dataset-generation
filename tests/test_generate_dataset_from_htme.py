@@ -876,6 +876,7 @@ def test_check_existing_run():
         mocked_args,
         dynamodb_client
     )
+    print(f"this is the actual {actual}")
 
     response = dynamodb_client.scan(
         TableName=table_name
