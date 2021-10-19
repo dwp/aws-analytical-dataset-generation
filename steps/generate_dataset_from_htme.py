@@ -1147,18 +1147,20 @@ def save_output_location(args, run_time_stamp, existing_output_prefix=False):
     with open("/opt/emr/output_location.txt", "wt") as output_location_file:
         output_location_file.write(output_location)
 
-def check_for_previous_run(args):
+def check_for_previous_run(args, dynamodb_client):
     DATA_PRODUCT = f"ADG-{args.snapshot_type.lower()}"
     key_dict = {
-        "Correlation_Id": {"S": f"{PIPELINE_METADATA_TABLE}"},
+        "Correlation_Id": {"S": f"{args.correlation_id}"},
         "DataProduct": {"S": f"{DATA_PRODUCT}"},
     }
 
     try:
         existing_output_prefix = dynamodb_client.get_item(TableName=PIPELINE_METADATA_TABLE, Key=key_dict)["Item"]["S3_Prefix_Analytical_DataSet"]["S"]
+        the_logger.info(f"Existing output prefix for ADG previous run: {existing_output_prefix}")
     except:
         existing_output_prefix = False
-    the_logger.info(f"Existing output prefix for ADG previous run: {existing_output_prefix}")
+        the_logger.info("No previous run found. Using new prefix for output")
+
     return existing_output_prefix
 
 def update_adg_status_for_collection(
@@ -1255,8 +1257,6 @@ if __name__ == "__main__":
 
     spark = get_spark_session(args)
     run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    existing_output_prefix = check_for_previous_run(args)
-    save_output_location(args, run_time_stamp, existing_output_prefix)
     published_database_name = "${published_db}"
     secret_name_full = "${secret_name_full}"
     secret_name_incremental = "${secret_name_incremental}"
@@ -1265,6 +1265,8 @@ if __name__ == "__main__":
     s3_client = get_s3_client()
     dynamodb_client = get_dynamodb_client()
     sns_client = get_sns_client()
+    existing_output_prefix = check_for_previous_run(args, dynamodb_client)
+    save_output_location(args, run_time_stamp, existing_output_prefix)
     secret_name = (
         secret_name_incremental
         if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
