@@ -349,6 +349,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections_where_one_is_e
         mock_args(),
         dynamodb_client,
         sns_client,
+        S3_PREFIX,
         s3_resource,
     )
     assert core_full_collection_name in [
