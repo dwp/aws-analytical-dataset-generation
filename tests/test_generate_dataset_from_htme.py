@@ -173,7 +173,8 @@ def verify_processed_data(
     collection_location = "core"
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}\n'
-    target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
+    output_prefix =  f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}"
+    target_object_key = f"{output_prefix}/{collection_location}/{collection_name}/part-00000"
     sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
@@ -203,6 +204,7 @@ def verify_processed_data(
         mocked_args,
         dynamodb_client,
         sns_client,
+        output_prefix,
         s3_resource,
     )
     assert len(s3_client.list_buckets()["Buckets"]) == 2
