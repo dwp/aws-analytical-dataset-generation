@@ -223,8 +223,8 @@ def process_collections_threaded(
             itertools.repeat(keys_map),
             itertools.repeat(s3_publish_bucket),
             itertools.repeat(sns_client),
-            itertools.repeat(s3_resource),
             itertools.repeat(output_prefix),
+            itertools.repeat(s3_resource),
         )
 
     for completed_collection in completed_collections:
