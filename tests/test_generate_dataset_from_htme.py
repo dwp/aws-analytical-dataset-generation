@@ -866,8 +866,6 @@ def test_check_existing_run():
     }
 
     dynamodb = boto3.resource('dynamodb', endpoint_url=MOTO_SERVER_URL, region_name="eu-west-2")
-    table = dynamodb.Table(table_name)
-    table.put_item(Item=key_dict)
 
     active = False
     while active == False:
@@ -875,6 +873,10 @@ def test_check_existing_run():
             TableName=table_name
         )
         active = (response["Table"]["TableStatus"] == "ACTIVE")
+
+    table = dynamodb.Table(table_name)
+    r = table.put_item(Item=key_dict)
+    print(r)
 
     actual = generate_dataset_from_htme.check_for_previous_run(
         mocked_args,
