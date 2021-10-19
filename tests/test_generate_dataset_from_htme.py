@@ -66,7 +66,7 @@ S3_PREFIX_ADG_INCREMENTAL = (
 ADG_OUTPUT_FILE_KEY_INCREMENTAL = (
     f"${{file_location}}/{SNAPSHOT_TYPE_INCREMENTAL}/adg_output/adg_params.csv"
 )
-
+PIPELINE_METADATA_TABLE = "${data_pipeline_metadata}"
 
 def test_retrieve_secrets(monkeypatch):
     class MockSession:
@@ -838,9 +838,8 @@ def test_check_existing_run():
     mocked_args = mock_args()
 
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2")
-    table_name = "data_pipeline_metadata"
     dynamodb_client.create_table(
-        TableName=table_name,
+        TableName=PIPELINE_METADATA_TABLE,
         KeySchema=[
             {'AttributeName': 'Correlation_Id', 'KeyType': 'HASH'},
             {'AttributeName': 'DataProduct', 'KeyType': 'RANGE'}
@@ -866,11 +865,11 @@ def test_check_existing_run():
     active = False
     while active == False:
         response = dynamodb_client.describe_table(
-            TableName=table_name
+            TableName=PIPELINE_METADATA_TABLE
         )
         active = (response["Table"]["TableStatus"] == "ACTIVE")
 
-    dynamodb_client.put_item(TableName=table_name, Item=key_dict)
+    dynamodb_client.put_item(TableName=PIPELINE_METADATA_TABLE, Item=key_dict)
 
     actual = generate_dataset_from_htme.check_for_previous_run(
         mocked_args,
@@ -879,12 +878,12 @@ def test_check_existing_run():
     print(f"this is the actual {actual}")
 
     response = dynamodb_client.scan(
-        TableName=table_name
+        TableName=PIPELINE_METADATA_TABLE
     )
     print(response)
 
     expected = dynamodb_client.get_item(
-        TableName=table_name,
+        TableName=PIPELINE_METADATA_TABLE,
         Key={
             "Correlation_Id": {
                 "S": f"{mocked_args.correlation_id}"
