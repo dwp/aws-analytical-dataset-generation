@@ -826,7 +826,7 @@ def test_check_existing_run():
     mocked_args = mock_args()
     key_dict = {"Correlation_Id": {"S": f"{mocked_args.correlation_id}"},"DataProduct": {"S": "ADG-full"},"S3_Prefix_Analytical_Dataset": {"S": "test/prefix"}}
 
-    dynamodb = boto3.resource('dynamodb', endpoint_url=MOTO_SERVER_URL)
+    dynamodb = boto3.resource('dynamodb', endpoint_url=MOTO_SERVER_URL, region_name="eu-west-2")
     table = dynamodb.Table(test_table)
     table.put_item(Item=key_dict)
     response = generate_dataset_from_htme.check_for_previous_run(mocked_args, dynamodb_client)
