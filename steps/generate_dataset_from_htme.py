@@ -1153,7 +1153,7 @@ def check_for_previous_run(args, dynamodb_client):
         "Correlation_Id": {"S": f"{args.correlation_id}"},
         "DataProduct": {"S": f"{DATA_PRODUCT}"},
     }
-    the_logger.info(f"looking for {args.correlation_id} and {DATA_PRODUCT} in dynamotable")
+    the_logger.info(f"looking for {args.correlation_id} and {DATA_PRODUCT} in dynamotable {PIPELINE_METADATA_TABLE}")
     try:
         response = dynamodb_client.scan(
             TableName=PIPELINE_METADATA_TABLE
