@@ -837,12 +837,6 @@ def test_check_existing_run():
         mocked_args,
         dynamodb_client
     )
-    print(f"this is the actual {actual}")
-
-    response = dynamodb_client.scan(
-        TableName=PIPELINE_METADATA_TABLE
-    )
-    print(response)
 
     expected = dynamodb_client.get_item(
         TableName=PIPELINE_METADATA_TABLE,
