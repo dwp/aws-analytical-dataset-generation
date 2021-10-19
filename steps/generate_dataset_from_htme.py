@@ -1155,6 +1155,10 @@ def check_for_previous_run(args, dynamodb_client):
     }
     the_logger.info(f"looking for {args.correlation_id} and {DATA_PRODUCT} in dynamotable")
     try:
+        response = dynamodb_client.scan(
+            TableName=PIPELINE_METADATA_TABLE
+        )
+        print(response)
         existing_output_prefix = dynamodb_client.get_item(TableName=PIPELINE_METADATA_TABLE, Key=key_dict)["Item"]["S3_Prefix_Analytical_DataSet"]["S"]
         the_logger.info(f"Existing output prefix for ADG previous run: {existing_output_prefix}")
     except:
