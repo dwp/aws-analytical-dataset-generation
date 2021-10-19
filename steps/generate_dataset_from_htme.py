@@ -44,6 +44,7 @@ COLLECTION_NAME_DDB_FIELD_NAME = "CollectionName"
 TABLE_NAME = "${dynamodb_table_name}"
 PIPELINE_METADATA_TABLE = "${data_pipeline_metadata}"
 DEFAULT_REGION = "${aws_default_region}"
+EXISTING_OUTPUT_PREFIX=False
 
 the_logger = setup_logging(
     log_level=os.environ["ADG_LOG_LEVEL"].upper()
@@ -135,8 +136,9 @@ def main(
     args,
     dynamodb_client,
     sns_client,
+    output_prefix,
     s3_resource=None,
-    existing_output_prefix=False
+
 ):
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
@@ -166,8 +168,8 @@ def main(
             keys_map,
             s3_publish_bucket,
             sns_client,
+            output_prefix,
             s3_resource,
-            existing_output_prefix,
         )
     except CollectionException as ex:
         the_logger.error(
@@ -182,10 +184,9 @@ def main(
         args.correlation_id,
         s3_publish_bucket,
         s3_client,
-        run_time_stamp,
         args.snapshot_type,
         args.export_date,
-        existing_output_prefix,
+        output_prefix,
     )
 
 
@@ -202,8 +203,8 @@ def process_collections_threaded(
     keys_map,
     s3_publish_bucket,
     sns_client,
+    output_prefix,
     s3_resource=None,
-    existing_output_prefix=False,
 ):
     all_processed_collections = []
 
@@ -223,7 +224,7 @@ def process_collections_threaded(
             itertools.repeat(s3_publish_bucket),
             itertools.repeat(sns_client),
             itertools.repeat(s3_resource),
-            itertools.repeat(existing_output_prefix),
+            itertools.repeat(output_prefix),
         )
 
     for completed_collection in completed_collections:
@@ -277,8 +278,8 @@ def process_collection(
     keys_map,
     s3_publish_bucket,
     sns_client,
+    output_prefix,
     s3_resource=None,
-    existing_output_prefix=False,
 ):
     if s3_resource is None:
         s3_resource = get_s3_resource()
@@ -308,7 +309,7 @@ def process_collection(
             s3_publish_bucket,
             args,
             s3_resource,
-            existing_output_prefix,
+            output_prefix,
         )
     except Exception as ex:
         the_logger.error(
@@ -396,7 +397,7 @@ def consolidate_rdd_per_collection(
     s3_publish_bucket,
     args,
     s3_resource,
-    existing_output_prefix=False,
+    output_prefix,
 ):
     the_logger.info(
         "Processing collection : %s for correlation id : %s",
@@ -445,12 +446,10 @@ def consolidate_rdd_per_collection(
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
         delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
     else:
-        if existing_output_prefix:
-            json_location_prefix = f"{existing_output_prefix}/{collection_name_key}/"
-            the_logger.info(f"using existing output location {json_location_prefix}")
+        json_location_prefix = f"{output_prefix}/{collection_name_key}/"
+        if EXISTING_OUTPUT_PREFIX:
+            #Delete files in prefix if this is a re-run for a failed run
             delete_existing_s3_files(s3_publish_bucket, json_location_prefix, s3_client)
-        else:
-            json_location_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}/{collection_name_key}/"
         json_location = f"s3://{s3_publish_bucket}/{json_location_prefix}"
         the_logger.info(f"Using output json location: {json_location}")
 
@@ -1099,24 +1098,17 @@ def create_adg_status_csv(
     correlation_id,
     publish_bucket,
     s3_client,
-    run_time_stamp,
     snapshot_type,
     export_date,
-    existing_output_prefix=False,
+    output_prefix,
 ):
-    file_location = "${file_location}"
-    if existing_output_prefix:
-        prefix = existing_output_prefix
-    else:
-        prefix = f"{file_location}/{snapshot_type}/{run_time_stamp}"
-
     with open("adg_params.csv", "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["correlation_id", "s3_prefix", "snapshot_type", "export_date"])
         writer.writerow(
             [
                 correlation_id,
-                prefix,
+                output_prefix,
                 snapshot_type,
                 export_date,
             ]
@@ -1136,18 +1128,13 @@ def exit_if_skipping_step():
         sys.exit(0)
 
 
-def save_output_location(args, run_time_stamp, existing_output_prefix=False):
-    file_location = "${file_location}"
-    if existing_output_prefix:
-        output_location = existing_output_prefix
-    else:
-        output_location = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
-    the_logger.info(f"Output locations set as {output_location}")
+def save_output_location(output_prefix):
+    the_logger.info(f"Output locations set as {output_prefix}")
 
     with open("/opt/emr/output_location.txt", "wt") as output_location_file:
-        output_location_file.write(output_location)
+        output_location_file.write(output_prefix)
 
-def check_for_previous_run(args, dynamodb_client):
+def get_output_prefix(args, dynamodb_client, run_time_stamp):
     DATA_PRODUCT = f"ADG-{args.snapshot_type.lower()}"
     key_dict = {
         "Correlation_Id": {"S": f"{args.correlation_id}"},
@@ -1155,13 +1142,16 @@ def check_for_previous_run(args, dynamodb_client):
     }
     the_logger.info(f"looking for {args.correlation_id} and {DATA_PRODUCT} in dynamodbtable {PIPELINE_METADATA_TABLE}")
     try:
-        existing_output_prefix = dynamodb_client.get_item(TableName=PIPELINE_METADATA_TABLE, Key=key_dict)["Item"]["S3_Prefix_Analytical_DataSet"]["S"]
-        the_logger.info(f"Existing output prefix for ADG previous run: {existing_output_prefix}")
+        #check for previous run prefix in dynamodb
+        output_prefix = dynamodb_client.get_item(TableName=PIPELINE_METADATA_TABLE, Key=key_dict)["Item"]["S3_Prefix_Analytical_DataSet"]["S"]
+        EXISTING_OUTPUT_PREFIX=True
+        the_logger.info(f"Existing output prefix for ADG previous run: {output_prefix}")
     except:
-        existing_output_prefix = False
-        the_logger.info("No previous run found. Using new prefix for output")
+        file_location = "${file_location}"
+        output_prefix = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
+        the_logger.info(f"No previous run found. Using new prefix for output {output_prefix}")
 
-    return existing_output_prefix
+    return output_prefix
 
 def update_adg_status_for_collection(
     dynamodb_client,
@@ -1265,8 +1255,8 @@ if __name__ == "__main__":
     s3_client = get_s3_client()
     dynamodb_client = get_dynamodb_client()
     sns_client = get_sns_client()
-    existing_output_prefix = check_for_previous_run(args, dynamodb_client)
-    save_output_location(args, run_time_stamp, existing_output_prefix)
+    output_prefix = get_output_prefix(args, dynamodb_client, run_time_stamp)
+    save_output_location(output_prefix)
     secret_name = (
         secret_name_incremental
         if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL
@@ -1288,8 +1278,8 @@ if __name__ == "__main__":
         args,
         dynamodb_client,
         sns_client,
+        output_prefix,
         None,
-        existing_output_prefix,
     )
     end_time = time.perf_counter()
     total_time = round(end_time - start_time)

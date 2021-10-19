@@ -791,9 +791,13 @@ def test_send_sns_message():
 def test_check_no_existing_run():
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     mocked_args = mock_args()
-    response = generate_dataset_from_htme.check_for_previous_run(mocked_args, dynamodb_client)
+    run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    actual = generate_dataset_from_htme.get_output_prefix(mocked_args, dynamodb_client, run_time_stamp)
 
-    assert response == False
+    file_location = "${file_location}"
+    expected = f"{file_location}/{args.snapshot_type.lower()}/{run_time_stamp}"
+
+    assert actual == expected
 
 @mock_dynamodb2
 def test_check_existing_run():
@@ -833,7 +837,7 @@ def test_check_existing_run():
 
     dynamodb_client.put_item(TableName=PIPELINE_METADATA_TABLE, Item=key_dict)
 
-    actual = generate_dataset_from_htme.check_for_previous_run(
+    actual = generate_dataset_from_htme.get_output_prefix(
         mocked_args,
         dynamodb_client
     )
