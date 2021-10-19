@@ -858,7 +858,7 @@ def test_check_existing_run():
             "S": f"{mocked_args.correlation_id}"
         },
         "DataProduct": {
-            "S": "ADG-full"
+            "S": f"ADG-{mocked_args.snapshot_type.lower()}"
         },
         "S3_Prefix_Analytical_DataSet": {
             "S": "test/prefix"
@@ -888,7 +888,7 @@ def test_check_existing_run():
                 "S": f"{mocked_args.correlation_id}"
             },
             "DataProduct": {
-                "S": "ADG-full"
+                "S": f"ADG-{mocked_args.snapshot_type.lower()}"
             }
         }
     )["Item"]["S3_Prefix_Analytical_Dataset"]["S"]
