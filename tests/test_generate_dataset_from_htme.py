@@ -853,7 +853,7 @@ def test_check_existing_run():
         ]
     )
 
-    key_dict = {"Correlation_Id": {"S": f"{CORRELATION_ID}"},"DataProduct": {"S": "ADG-full"},"S3_Prefix_Analytical_Dataset": {"S": "test/prefix"}}
+    key_dict = {"Correlation_Id": {"S": f"{mocked_args.correlation_id}"},"DataProduct": {"S": "ADG-full"},"S3_Prefix_Analytical_Dataset": {"S": "test/prefix"}}
 
     dynamodb = boto3.resource('dynamodb', endpoint_url=MOTO_SERVER_URL, region_name="eu-west-2")
     table = dynamodb.Table(table_name)
@@ -874,8 +874,8 @@ def test_check_existing_run():
     expected = dynamodb_client.get_item(
         TableName=table_name,
         Key={
-            "CorrelationId": {"S": CORRELATION_ID},
-            "CollectionName": {"S": "ADG-full"},
+            "Correlation_Id": {"S": mocked_args.correlation_id},
+            "DataProduct": {"S": "ADG-full"},
         }
     )["Item"]["S3_Prefix_Analytical_Dataset"]["S"]
 
