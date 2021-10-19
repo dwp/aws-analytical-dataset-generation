@@ -788,7 +788,7 @@ def test_send_sns_message():
     assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
 
 @mock_dynamodb2
-def test_check_existing_run():
+def test_check_no_existing_run():
     # test_table = "TestTable"
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     # table = dynamodb_client.create_table(
@@ -833,3 +833,50 @@ def test_check_existing_run():
 
     assert response == False
 
+@mock_dynamodb2
+def test_check_existing_run():
+    expected = "test_status"
+    collection_name = "test_collection"
+    mocked_args = mock_args()
+
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2")
+    table_name = "data_pipeline_metadata"
+    dynamodb_client.create_table(
+        TableName=table_name,
+        KeySchema=[
+            {'AttributeName': 'Correlation_Id', 'KeyType': 'HASH'},
+            {'AttributeName': 'DataProduct', 'KeyType': 'RANGE'}
+        ],
+        AttributeDefinitions=[
+            {'AttributeName': 'Correlation_Id', 'AttributeType': 'S'},
+            {'AttributeName': 'DataProduct', 'AttributeType': 'S'}
+        ]
+    )
+
+    key_dict = {"Correlation_Id": {"S": f"{mocked_args.correlation_id}"},"DataProduct": {"S": "ADG-full"},"S3_Prefix_Analytical_Dataset": {"S": "test/prefix"}}
+
+    dynamodb = boto3.resource('dynamodb', endpoint_url=MOTO_SERVER_URL, region_name="eu-west-2")
+    table = dynamodb.Table(table_name)
+    table.put_item(Item=key_dict)
+
+    active = False
+    while active == False:
+        response = dynamodb_client.describe_table(
+            TableName=table_name
+        )
+        active = (response["Table"]["S3_Prefix_Analytical_Dataset"] == "test/prefix")
+
+    generate_dataset_from_htme.check_for_previous_run(
+        mocked_args,
+        dynamodb_client
+    )
+
+    actual = dynamodb_client.get_item(
+        TableName=table_name,
+        Key={
+            "CorrelationId": {"S": CORRELATION_ID},
+            "CollectionName": {"S": collection_name},
+        }
+    )["Item"]["S3_Prefix_Analytical_Dataset"]["S"]
+
+    assert expected == actual
