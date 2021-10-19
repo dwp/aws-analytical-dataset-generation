@@ -881,7 +881,7 @@ def test_check_existing_run():
         dynamodb_client
     )
 
-    response = dynamodb_client.describe_table(
+    response = dynamodb_client.scan(
         TableName=table_name
     )
     print(response)
