@@ -835,8 +835,6 @@ def test_check_no_existing_run():
 
 @mock_dynamodb2
 def test_check_existing_run():
-    expected = "test_status"
-    collection_name = "test_collection"
     mocked_args = mock_args()
 
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2")
@@ -865,8 +863,6 @@ def test_check_existing_run():
         }
     }
 
-    # dynamodb = boto3.resource('dynamodb', endpoint_url=MOTO_SERVER_URL, region_name="eu-west-2")
-
     active = False
     while active == False:
         response = dynamodb_client.describe_table(
@@ -874,9 +870,6 @@ def test_check_existing_run():
         )
         active = (response["Table"]["TableStatus"] == "ACTIVE")
 
-    # table = dynamodb.Table(table_name)
-    # r = table.put_item(Item=key_dict)
-    # print(r)
     dynamodb_client.put_item(TableName=table_name, Item=key_dict)
 
     actual = generate_dataset_from_htme.check_for_previous_run(
