@@ -899,6 +899,6 @@ def test_check_existing_run():
                 "S": f"ADG-{mocked_args.snapshot_type.lower()}"
             }
         }
-    )["Item"]["S3_Prefix_Analytical_Dataset"]["S"]
+    )["Item"]["S3_Prefix_Analytical_DataSet"]["S"]
 
     assert expected == actual
