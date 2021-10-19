@@ -802,6 +802,7 @@ def test_check_no_existing_run():
 @mock_dynamodb2
 def test_check_existing_run():
     mocked_args = mock_args()
+    run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2")
     dynamodb_client.create_table(
@@ -839,7 +840,8 @@ def test_check_existing_run():
 
     actual = generate_dataset_from_htme.get_output_prefix(
         mocked_args,
-        dynamodb_client
+        dynamodb_client,
+        run_time_stamp
     )
 
     expected = dynamodb_client.get_item(
