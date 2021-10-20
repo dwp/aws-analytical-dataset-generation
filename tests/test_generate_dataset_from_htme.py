@@ -66,7 +66,7 @@ S3_PREFIX_ADG_INCREMENTAL = (
 ADG_OUTPUT_FILE_KEY_INCREMENTAL = (
     f"${{file_location}}/{SNAPSHOT_TYPE_INCREMENTAL}/adg_output/adg_params.csv"
 )
-
+PIPELINE_METADATA_TABLE = "${data_pipeline_metadata}"
 
 def test_retrieve_secrets(monkeypatch):
     class MockSession:
@@ -173,7 +173,8 @@ def verify_processed_data(
     collection_location = "core"
     collection_name = "contract"
     test_data = b'{"name":"abcd"}\n{"name":"xyz"}\n'
-    target_object_key = f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}/{collection_location}/{collection_name}/part-00000"
+    output_prefix =  f"${{file_location}}/{mocked_args.snapshot_type}/{RUN_TIME_STAMP}"
+    target_object_key = f"{output_prefix}/{collection_location}/{collection_name}/part-00000"
     sns_client = boto3.client("sns", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
     s3_client = boto3.client("s3", endpoint_url=MOTO_SERVER_URL)
@@ -203,6 +204,7 @@ def verify_processed_data(
         mocked_args,
         dynamodb_client,
         sns_client,
+        output_prefix,
         s3_resource,
     )
     assert len(s3_client.list_buckets()["Buckets"]) == 2
@@ -288,6 +290,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections(
         mock_args(),
         dynamodb_client,
         sns_client,
+        S3_PREFIX,
         s3_resource,
     )
     assert core_contract_collection_name in [
@@ -346,6 +349,7 @@ def test_consolidate_rdd_per_collection_with_multiple_collections_where_one_is_e
         mock_args(),
         dynamodb_client,
         sns_client,
+        S3_PREFIX,
         s3_resource,
     )
     assert core_full_collection_name in [
@@ -786,3 +790,74 @@ def test_send_sns_message():
     )
 
     assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+
+@mock_dynamodb2
+def test_check_no_existing_run():
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2", endpoint_url=MOTO_SERVER_URL)
+    mocked_args = mock_args()
+    run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    actual = generate_dataset_from_htme.get_output_prefix(mocked_args, dynamodb_client, run_time_stamp)
+
+    file_location = "${file_location}"
+    expected = f"{file_location}/{mocked_args.snapshot_type.lower()}/{run_time_stamp}"
+
+    assert actual == expected
+
+@mock_dynamodb2
+def test_check_existing_run():
+    mocked_args = mock_args()
+    run_time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    dynamodb_client = boto3.client("dynamodb", region_name="eu-west-2")
+    dynamodb_client.create_table(
+        TableName=PIPELINE_METADATA_TABLE,
+        KeySchema=[
+            {'AttributeName': 'Correlation_Id', 'KeyType': 'HASH'},
+            {'AttributeName': 'DataProduct', 'KeyType': 'RANGE'}
+        ],
+        AttributeDefinitions=[
+            {'AttributeName': 'Correlation_Id', 'AttributeType': 'S'},
+            {'AttributeName': 'DataProduct', 'AttributeType': 'S'}
+        ]
+    )
+
+    key_dict = {
+        "Correlation_Id": {
+            "S": f"{mocked_args.correlation_id}"
+        },
+        "DataProduct": {
+            "S": f"ADG-{mocked_args.snapshot_type.lower()}"
+        },
+        "S3_Prefix_Analytical_DataSet": {
+            "S": "test/prefix"
+        }
+    }
+
+    active = False
+    while active == False:
+        response = dynamodb_client.describe_table(
+            TableName=PIPELINE_METADATA_TABLE
+        )
+        active = (response["Table"]["TableStatus"] == "ACTIVE")
+
+    dynamodb_client.put_item(TableName=PIPELINE_METADATA_TABLE, Item=key_dict)
+
+    actual = generate_dataset_from_htme.get_output_prefix(
+        mocked_args,
+        dynamodb_client,
+        run_time_stamp
+    )
+
+    expected = dynamodb_client.get_item(
+        TableName=PIPELINE_METADATA_TABLE,
+        Key={
+            "Correlation_Id": {
+                "S": f"{mocked_args.correlation_id}"
+            },
+            "DataProduct": {
+                "S": f"ADG-{mocked_args.snapshot_type.lower()}"
+            }
+        }
+    )["Item"]["S3_Prefix_Analytical_DataSet"]["S"]
+
+    assert expected == actual
