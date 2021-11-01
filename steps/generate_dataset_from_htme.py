@@ -1020,10 +1020,22 @@ def get_failed_collection_names(correlation_id, dynamodb_client) -> list:
     return collections
 
 
-def get_collections(secrets_response, args):
+def get_collections(secrets_response, args, dynamodb_client):
     try:
         collections = secrets_response["collections_all"]
         collections = {k: v for k, v in collections.items()}
+
+        if args.failed_collections_only is True:
+            failed_collections = get_failed_collection_names(
+                args.correlation_id,
+                dynamodb_client
+            )
+
+            collections = {
+                k: v for k, v in collections.items()
+                if k in failed_collections
+            }
+
     except BaseException as ex:
         the_logger.error(
             "Problem with collections list for correlation id : %s %s",
@@ -1283,7 +1295,7 @@ if __name__ == "__main__":
         else secret_name_full
     )
     secrets_response = retrieve_secrets(args, secret_name)
-    secrets_collections = get_collections(secrets_response, args)
+    secrets_collections = get_collections(secrets_response, args, dynamodb_client)
     keys_map = {}
     start_time = time.perf_counter()
     main(
