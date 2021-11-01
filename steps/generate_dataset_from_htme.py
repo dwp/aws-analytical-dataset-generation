@@ -1003,6 +1003,23 @@ def get_collection(collection_name):
     return collection_name.replace("db.", "", 1).replace(".", "/").replace("-", "_")
 
 
+def get_failed_collection_names(correlation_id, dynamodb_client) -> list:
+    failed_collections_response = dynamodb_client.query(
+        TableName=TABLE_NAME,
+        KeyConditionExpression=f"CorrelationId = :cid",
+        FilterExpression="begins_with(ADGStatus, :status)",
+        ExpressionAttributeValues={
+            ":cid": {"S": correlation_id},
+            ":status": {"S": "Failed"},
+        }
+    )
+    collections = [
+        failed_collection["CollectionName"]["S"]
+        for failed_collection in failed_collections_response["Items"]
+    ]
+    return collections
+
+
 def get_collections(secrets_response, args):
     try:
         collections = secrets_response["collections_all"]
