@@ -1036,9 +1036,9 @@ def get_collections(secrets_response, args, dynamodb_client):
             for k, v in collections.items():
                 if k in failed_collections:
                     failed_collections_to_process[k] = v
-                    the_logger.warn(f"{k} is a failed collection, will be processed")
+                    the_logger.warning(f"{k} is a failed collection, will be processed")
                 else:
-                    the_logger.warn(
+                    the_logger.warning(
                         f"{k} is not a failed collection, will not be processed"
                     )
             collections = failed_collections_to_process
