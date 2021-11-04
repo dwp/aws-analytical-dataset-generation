@@ -83,6 +83,7 @@ def get_parameters():
     parser.add_argument("--monitoring_topic_arn", default="${monitoring_topic_arn}")
     parser.add_argument("--snapshot_type", default="full")
     parser.add_argument("--export_date", default=datetime.now().strftime("%Y-%m-%d"))
+    parser.add_argument("--failed_collections_only", action="store_true")
     args, unrecognized_args = parser.parse_known_args()
     args.snapshot_type = (
         SNAPSHOT_TYPE_INCREMENTAL
@@ -1002,10 +1003,48 @@ def get_collection(collection_name):
     return collection_name.replace("db.", "", 1).replace(".", "/").replace("-", "_")
 
 
-def get_collections(secrets_response, args):
+def get_failed_collection_names(correlation_id, dynamodb_client) -> list:
+    failed_collections_response = dynamodb_client.query(
+        TableName=TABLE_NAME,
+        KeyConditionExpression=f"CorrelationId = :cid",
+        FilterExpression="begins_with(ADGStatus, :status)",
+        ExpressionAttributeValues={
+            ":cid": {"S": correlation_id},
+            ":status": {"S": "Failed"},
+        }
+    )
+    collections = [
+        failed_collection["CollectionName"]["S"]
+        for failed_collection in failed_collections_response["Items"]
+    ]
+    return collections
+
+
+def get_collections(secrets_response, args, dynamodb_client):
     try:
         collections = secrets_response["collections_all"]
         collections = {k: v for k, v in collections.items()}
+
+        if args.failed_collections_only is True:
+            failed_collections = get_failed_collection_names(
+                args.correlation_id,
+                dynamodb_client
+            )
+
+            failed_collections_to_process = {}
+
+            for k, v in collections.items():
+                if k in failed_collections:
+                    failed_collections_to_process[k] = v
+                    the_logger.warning(f"{k} is a failed collection, will be processed")
+                else:
+                    the_logger.warning(
+                        f"{k} is not a failed collection, will not be processed"
+                    )
+            collections = failed_collections_to_process
+            if not collections:
+                the_logger.warning("No failed collections were found")
+
     except BaseException as ex:
         the_logger.error(
             "Problem with collections list for correlation id : %s %s",
@@ -1265,7 +1304,7 @@ if __name__ == "__main__":
         else secret_name_full
     )
     secrets_response = retrieve_secrets(args, secret_name)
-    secrets_collections = get_collections(secrets_response, args)
+    secrets_collections = get_collections(secrets_response, args, dynamodb_client)
     keys_map = {}
     start_time = time.perf_counter()
     main(

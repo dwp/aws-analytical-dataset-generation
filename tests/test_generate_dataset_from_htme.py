@@ -10,6 +10,7 @@ import pytest
 from moto import mock_s3, mock_dynamodb2, mock_sns
 from datetime import datetime
 from pyspark.sql import Row
+from unittest import mock
 
 import steps
 from steps import generate_dataset_from_htme
@@ -50,6 +51,7 @@ SECRETS = "{'collections_all': {'db.core.contract': {'pii' : 'true', 'db' : 'cor
 SECRETS_COLLECTIONS = {
     DB_CORE_CONTRACT: {"pii": "true", "db": "core", "table": "contract"}
 }
+FAILED_COLLECTIONS = list(SECRETS_COLLECTIONS.keys())
 KEYS_MAP = {"test_ciphertext": "test_key"}
 RUN_TIME_STAMP = "2020-10-10_10-10-10"
 EXPORT_DATE = "2020-10-10"
@@ -67,6 +69,8 @@ ADG_OUTPUT_FILE_KEY_INCREMENTAL = (
     f"${{file_location}}/{SNAPSHOT_TYPE_INCREMENTAL}/adg_output/adg_params.csv"
 )
 PIPELINE_METADATA_TABLE = "${data_pipeline_metadata}"
+FAILED_ONLY = False
+
 
 def test_retrieve_secrets(monkeypatch):
     class MockSession:
@@ -87,8 +91,38 @@ def test_retrieve_secrets(monkeypatch):
 def test_get_collections():
     secret_dict = ast.literal_eval(SECRETS)
     assert (
-        generate_dataset_from_htme.get_collections(secret_dict, mock_args())
+        generate_dataset_from_htme.get_collections(secret_dict, mock_args(), None)
         == SECRETS_COLLECTIONS
+    )
+
+
+@mock.patch(
+    "steps.generate_dataset_from_htme.get_failed_collection_names",
+    lambda x, y: FAILED_COLLECTIONS
+)
+def test_get_collections_with_failures():
+    secret_dict = ast.literal_eval(SECRETS)
+    args = mock_args()
+    args.failed_collections_only = True
+
+    assert (
+        generate_dataset_from_htme.get_collections(secret_dict, args, None)
+        == SECRETS_COLLECTIONS
+    )
+
+
+@mock.patch(
+    "steps.generate_dataset_from_htme.get_failed_collection_names",
+    lambda x, y: []
+)
+def test_get_collections_with_no_failures():
+    secret_dict = ast.literal_eval(SECRETS)
+    args = mock_args()
+    args.failed_collections_only = True
+
+    assert (
+        generate_dataset_from_htme.get_collections(secret_dict, args, None)
+        == {}
     )
 
 
@@ -649,6 +683,7 @@ def mock_args():
     args.snapshot_type = SNAPSHOT_TYPE_FULL
     args.export_date = EXPORT_DATE
     args.monitoring_topic_arn = SNS_TOPIC_ARN
+    args.failed_collections_only = FAILED_ONLY
     return args
 
 
