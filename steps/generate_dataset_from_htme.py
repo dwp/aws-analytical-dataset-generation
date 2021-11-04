@@ -1042,6 +1042,8 @@ def get_collections(secrets_response, args, dynamodb_client):
                         f"{k} is not a failed collection, will not be processed"
                     )
             collections = failed_collections_to_process
+            if not collections:
+                the_logger.warning("No failed collections were found")
 
     except BaseException as ex:
         the_logger.error(
