@@ -83,7 +83,6 @@ def get_parameters():
     parser.add_argument("--monitoring_topic_arn", default="${monitoring_topic_arn}")
     parser.add_argument("--snapshot_type", default="full")
     parser.add_argument("--export_date", default=datetime.now().strftime("%Y-%m-%d"))
-    parser.add_argument("--failed_collections_only", action="store_true")
     args, unrecognized_args = parser.parse_known_args()
     args.snapshot_type = (
         SNAPSHOT_TYPE_INCREMENTAL
@@ -1025,7 +1024,8 @@ def get_collections(secrets_response, args, dynamodb_client):
         collections = secrets_response["collections_all"]
         collections = {k: v for k, v in collections.items()}
 
-        if args.failed_collections_only is True:
+        if EXISTING_OUTPUT_PREFIX:
+            the_logger.warning("Running failed collections only")
             failed_collections = get_failed_collection_names(
                 args.correlation_id,
                 dynamodb_client
