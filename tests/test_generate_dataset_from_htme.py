@@ -69,7 +69,6 @@ ADG_OUTPUT_FILE_KEY_INCREMENTAL = (
     f"${{file_location}}/{SNAPSHOT_TYPE_INCREMENTAL}/adg_output/adg_params.csv"
 )
 PIPELINE_METADATA_TABLE = "${data_pipeline_metadata}"
-FAILED_ONLY = False
 
 
 def test_retrieve_secrets(monkeypatch):
@@ -100,6 +99,7 @@ def test_get_collections():
     "steps.generate_dataset_from_htme.get_failed_collection_names",
     lambda x, y: FAILED_COLLECTIONS
 )
+@mock.patch("steps.generate_dataset_from_htme.EXISTING_OUTPUT_PREFIX", "ABC")
 def test_get_collections_with_failures():
     secret_dict = ast.literal_eval(SECRETS)
     args = mock_args()
@@ -115,10 +115,10 @@ def test_get_collections_with_failures():
     "steps.generate_dataset_from_htme.get_failed_collection_names",
     lambda x, y: []
 )
+@mock.patch("steps.generate_dataset_from_htme.EXISTING_OUTPUT_PREFIX", "ABC")
 def test_get_collections_with_no_failures():
     secret_dict = ast.literal_eval(SECRETS)
     args = mock_args()
-    args.failed_collections_only = True
 
     assert (
         generate_dataset_from_htme.get_collections(secret_dict, args, None)
@@ -683,7 +683,6 @@ def mock_args():
     args.snapshot_type = SNAPSHOT_TYPE_FULL
     args.export_date = EXPORT_DATE
     args.monitoring_topic_arn = SNS_TOPIC_ARN
-    args.failed_collections_only = FAILED_ONLY
     return args
 
 
