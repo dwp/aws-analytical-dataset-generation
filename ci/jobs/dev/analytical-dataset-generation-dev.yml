@@ -47,20 +47,19 @@ jobs:
       - .: (( inject meta.plan.terraform-plan ))
         params:
           TF_WORKSPACE: default
-      - in_parallel:
-        - .: (( inject meta.plan.e2e-tests))
-          task: run-full-e2e-tests
-          config:
-            params:
-              TF_WORKSPACE: default
-              AWS_ACC: ((aws_account.development))
-              AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
-              E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation-full"
-        - .: (( inject meta.plan.e2e-tests))
-          task: run-incremental-e2e-tests
-          config:
-            params:
-              TF_WORKSPACE: default
-              AWS_ACC: ((aws_account.development))
-              AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
-              E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation-incremental"
+      - .: (( inject meta.plan.e2e-tests))
+        task: run-full-e2e-tests
+        config:
+          params:
+            TF_WORKSPACE: default
+            AWS_ACC: ((aws_account.development))
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+            E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation-full"
+      - .: (( inject meta.plan.e2e-tests))
+        task: run-incremental-e2e-tests
+        config:
+          params:
+            TF_WORKSPACE: default
+            AWS_ACC: ((aws_account.development))
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.development)):role/ci
+            E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation-incremental"
