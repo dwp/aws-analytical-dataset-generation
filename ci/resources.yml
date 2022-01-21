@@ -4,7 +4,7 @@ resources:
     source:
       access_token: ((dataworks-secrets.concourse_github_pat))
       repository: dwp/aws-analytical-dataset-generation
-    check_every: 720h
+    check_every: 15s
     webhook_token: ((dataworks.concourse_github_webhook_token))
 
   - name: aws-analytical-dataset-generation
