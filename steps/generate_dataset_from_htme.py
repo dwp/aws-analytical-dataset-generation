@@ -149,7 +149,7 @@ def main(
             list_of_dicts, secrets_collections, args
         )
         verified_database_name = create_metastore_db(
-            spark,ß
+            spark,
             published_database_name,
             args,
         )
