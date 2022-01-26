@@ -143,6 +143,8 @@ def main(
     try:
         keys = get_list_keys_for_prefix(s3_client, s3_htme_bucket, args.s3_prefix)
         list_of_dicts = group_keys_by_collection(keys)
+        if args.snapshot_type.lower() == SNAPSHOT_TYPE_INCREMENTAL:
+            populate_empty_prefixes_for_collections_in_secrets_but_no_data(list_of_dicts, secrets_collections, s3_client, output_prefix, s3_publish_bucket)
         list_of_dicts_filtered = get_collections_in_secrets(
             list_of_dicts, secrets_collections, args
         )
@@ -188,6 +190,20 @@ def main(
         args.export_date,
         output_prefix,
     )
+
+
+def populate_empty_prefixes_for_collections_in_secrets_but_no_data(list_of_dicts, secrets_collections, s3_client, output_prefix, published_bucket):
+    # This method is implemnted to create empty directory when no data for a collection for strategic ingest to work - DW-8004
+    collections = []
+    empty_str = b''
+    for collection_dict in list_of_dicts:
+        for collection_name, collection_files_keys in collection_dict.items():
+            collections.append(collection_name)
+    for k, v in secrets_collections.items():
+        if k not in collections:
+            empty_file_key = f'{output_prefix}/{get_collection(k)}/empty.txt'
+            the_logger.info("Creating a empty directory for the collection %s as there is no data with the prefix", k, empty_file_key)
+            s3_client.put_object(Body=empty_str, Bucket=published_bucket, Key=empty_file_key)
 
 
 def process_collections_threaded(
