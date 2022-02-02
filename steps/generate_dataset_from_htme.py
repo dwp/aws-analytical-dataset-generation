@@ -201,7 +201,9 @@ def populate_empty_prefixes_for_collections_in_secrets_but_no_data(list_of_dicts
             collections.append(collection_name)
     for k, v in secrets_collections.items():
         if k not in collections:
-            empty_file_key = f'{output_prefix}/{get_collection(k)}/empty.txt'
+            collection_name_key = get_collection(k)
+            collection_name_key = collection_name_key.replace("_", "-")
+            empty_file_key = f'{output_prefix}/{collection_name_key}/empty.txt'
             the_logger.info("Creating a empty directory for the collection %s as there is no data with the prefix", k, empty_file_key)
             s3_client.put_object(Body=empty_str, Bucket=published_bucket, Key=empty_file_key)
 
