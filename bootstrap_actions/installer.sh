@@ -29,7 +29,7 @@
 
     # No sudo needed to write to file for any of the below, so redirect is fine
     #shellcheck disable=SC2024
-    sudo -E $PIP install boto3 >> /var/log/adg/install-boto3.log 2>&1
+    sudo -E $PIP install boto3==1.23.1 >> /var/log/adg/install-boto3.log 2>&1
     #shellcheck disable=SC2024
     sudo -E $PIP install requests >> /var/log/adg/install-requests.log 2>&1
 
