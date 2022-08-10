@@ -71,58 +71,6 @@ resource "aws_iam_policy" "analytical_dataset_generator_write_parquet" {
   policy      = data.aws_iam_policy_document.analytical_dataset_generator_write_parquet.json
 }
 
-data "aws_iam_policy_document" "analytical_dataset_read_only" {
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:GetBucketLocation",
-      "s3:ListBucket",
-    ]
-
-    resources = [
-      data.terraform_remote_state.common.outputs.published_bucket.arn,
-      data.terraform_remote_state.aws_ingestion.outputs.landed_write_light_bucket_arn,
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:Get*",
-      "s3:List*",
-    ]
-
-    resources = [
-      "${data.terraform_remote_state.common.outputs.published_bucket.arn}/analytical-dataset/*",
-      "${data.terraform_remote_state.common.outputs.published_bucket.arn}/data/ucs_latest_unredacted/*",
-      "${data.terraform_remote_state.common.outputs.published_bucket.arn}/data/ucs_latest_redacted/*",
-      "${data.terraform_remote_state.aws_ingestion.outputs.landed_write_light_bucket_arn}/auditlog/*",
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "kms:Decrypt",
-      "kms:DescribeKey",
-    ]
-
-    resources = [
-      data.terraform_remote_state.common.outputs.published_bucket_cmk.arn,
-      data.terraform_remote_state.aws_ingestion.outputs.landed_write_light_bucket_cmk.arn,
-    ]
-  }
-}
-
-resource "aws_iam_policy" "analytical_dataset_read_only" {
-  name        = "AnalyticalDatasetReadOnly"
-  description = "Allow read access to the Analytical Dataset"
-  policy      = data.aws_iam_policy_document.analytical_dataset_read_only.json
-}
-
 data "aws_iam_policy_document" "analytical_dataset_crown_read_only" {
   statement {
     effect = "Allow"
