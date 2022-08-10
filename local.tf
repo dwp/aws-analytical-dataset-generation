@@ -65,11 +65,11 @@ locals {
   }
 
   emr_engine_version = {
-    development = "5.7.mysql_aurora.2.08.2"
-    qa          = "5.7.mysql_aurora.2.08.2"
-    integration = "5.7.mysql_aurora.2.08.2"
-    preprod     = "5.7.mysql_aurora.2.08.2"
-    production  = "5.7.mysql_aurora.2.08.2"
+    development = "5.7.mysql_aurora.2.10.2"
+    qa          = "5.7.mysql_aurora.2.10.2"
+    integration = "5.7.mysql_aurora.2.10.2"
+    preprod     = "5.7.mysql_aurora.2.10.2"
+    production  = "5.7.mysql_aurora.2.10.2"
   }
 
   amazon_region_domain = "${data.aws_region.current.name}.amazonaws.com"
