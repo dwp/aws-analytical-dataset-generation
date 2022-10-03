@@ -4,5 +4,5 @@ output "private_dns" {
     adg_service_discovery     = aws_service_discovery_service.adg_services
   }
 
-  sensitive   = true
+  sensitive = true
 }
