@@ -66,7 +66,7 @@ variable "emr_instance_type_core_one" {
     development = "m5.4xlarge"
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
-    preprod     = "m5.16xlarge"
+    preprod     = "m5.4xlarge"
     production  = "m5.16xlarge"
   }
 }
@@ -158,7 +158,7 @@ variable "spark_executor_instances" {
     development = 50
     qa          = 50
     integration = 50
-    preprod     = 600
+    preprod     = 116
     production  = 600 # More than possible as it won't create them if no core or memory available
   }
 }
