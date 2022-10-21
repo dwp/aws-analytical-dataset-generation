@@ -23,7 +23,7 @@ Configurations:
     "spark.sql.warehouse.dir": "s3://${s3_published_bucket}/analytical-dataset/hive/external"
     "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
     "spark.kryoserializer.buffer.max": "${spark_kyro_buffer}"
-    "spark.driver.maxResultSize": "0"
+    "spark.driver.maxResultSize": "4g"
     "spark.dynamicAllocation.enabled": "false"
     "spark.executor.cores": "${spark_executor_cores}"
     "spark.executor.memory": "${spark_executor_memory}G"
