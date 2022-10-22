@@ -363,7 +363,7 @@ locals {
     development = 1
     qa          = 1
     integration = 1
-    preprod     = 6
+    preprod     = 5
     production  = 1
   }
 
@@ -371,7 +371,7 @@ locals {
     development = 10
     qa          = 10
     integration = 10
-    preprod     = 28
+    preprod     = 18
     production  = 35 # At least 20 or more per executor core
   }
 
@@ -379,7 +379,7 @@ locals {
     development = 2
     qa          = 2
     integration = 2
-    preprod     = 4
+    preprod     = 3
     production  = 7
   }
 
@@ -387,7 +387,7 @@ locals {
     development = 5
     qa          = 5
     integration = 5
-    preprod     = 28
+    preprod     = 21
     production  = 10 # Doesn't need as much as executors
   }
 
@@ -395,7 +395,7 @@ locals {
     development = 1
     qa          = 1
     integration = 1
-    preprod     = 6
+    preprod     = 5
     production  = 1
   }
 
