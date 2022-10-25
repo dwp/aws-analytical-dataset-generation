@@ -57,7 +57,7 @@ variable "emr_instance_type_master" {
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
     preprod     = "m5.4xlarge"
-    production  = "m5.16xlarge"
+    production  = "m5.4xlarge"
   }
 }
 
@@ -67,7 +67,7 @@ variable "emr_instance_type_core_one" {
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
     preprod     = "r5.4xlarge"
-    production  = "m5.16xlarge"
+    production  = "r5.4xlarge"
   }
 }
 
@@ -159,7 +159,7 @@ variable "spark_executor_instances" {
     qa          = 50
     integration = 50
     preprod     = 77
-    production  = 600 # More than possible as it won't create them if no core or memory available
+    production  = 77 # More than possible as it won't create them if no core or memory available
   }
 }
 
