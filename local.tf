@@ -238,7 +238,7 @@ locals {
     qa          = "2688"
     integration = "2688"
     preprod     = "2688"
-    production  = "2688"
+    production  = "15360"
   }
 
   # 0.8 of hive_tez_container_size
@@ -247,7 +247,7 @@ locals {
     qa          = "-Xmx2150m"
     integration = "-Xmx2150m"
     preprod     = "-Xmx2150m"
-    production  = "-Xmx2150m"
+    production  = "-Xmx12288m"
   }
 
   # 0.33 of hive_tez_container_size
@@ -256,7 +256,7 @@ locals {
     qa          = "896"
     integration = "896"
     preprod     = "896"
-    production  = "896"
+    production  = "5068"
   }
 
   tez_runtime_unordered_output_buffer_size_mb = {
@@ -264,7 +264,7 @@ locals {
     qa          = "268"
     integration = "268"
     preprod     = "268"
-    production  = "268"
+    production  = "2148"
   }
 
   # 0.4 of hive_tez_container_size
@@ -273,7 +273,7 @@ locals {
     qa          = "1075"
     integration = "1075"
     preprod     = "1075"
-    production  = "1075"
+    production  = "6144"
   }
 
   tez_grouping_min_size = {
@@ -281,7 +281,7 @@ locals {
     qa          = "1342177"
     integration = "1342177"
     preprod     = "1342177"
-    production  = "1342177"
+    production  = "52428800"
   }
 
   tez_grouping_max_size = {
@@ -289,7 +289,7 @@ locals {
     qa          = "268435456"
     integration = "268435456"
     preprod     = "268435456"
-    production  = "268435456"
+    production  = "1073741824"
   }
 
   tez_am_resource_memory_mb = {
@@ -297,7 +297,7 @@ locals {
     qa          = "1024"
     integration = "1024"
     preprod     = "1024"
-    production  = "1024"
+    production  = "12288"
   }
 
   # 0.8 of hive_tez_container_size
@@ -306,7 +306,7 @@ locals {
     qa          = "1024"
     integration = "1024"
     preprod     = "1024"
-    production  = "1024"
+    production  = "8196"
   }
 
   # 0.8 of tez_am_resource_memory_mb
@@ -315,7 +315,7 @@ locals {
     qa          = "-Xmx819m"
     integration = "-Xmx819m"
     preprod     = "-Xmx819m"
-    production  = "-Xmx819m"
+    production  = "-Xmx6556m"
   }
 
   use_capacity_reservation = {
@@ -334,7 +334,7 @@ locals {
     qa          = false
     integration = false
     preprod     = false
-    production  = false
+    production  = true
   }
 
   emr_capacity_reservation_preference_incremental     = local.use_capacity_reservation_incremental[local.environment] == true ? "open" : "none"
@@ -364,7 +364,7 @@ locals {
     qa          = 1
     integration = 1
     preprod     = 5
-    production  = 5
+    production  = 1
   }
 
   spark_executor_memory = {
@@ -372,7 +372,7 @@ locals {
     qa          = 10
     integration = 10
     preprod     = 37
-    production  = 37 # At least 20 or more per executor core
+    production  = 35 # At least 20 or more per executor core
   }
 
   spark_yarn_executor_memory_overhead = {
@@ -380,7 +380,7 @@ locals {
     qa          = 2
     integration = 2
     preprod     = 5
-    production  = 5
+    production  = 7
   }
 
   spark_driver_memory = {
@@ -388,7 +388,7 @@ locals {
     qa          = 5
     integration = 5
     preprod     = 42
-    production  = 42 # Doesn't need as much as executors
+    production  = 10 # Doesn't need as much as executors
   }
 
   spark_driver_cores = {
@@ -396,7 +396,7 @@ locals {
     qa          = 1
     integration = 1
     preprod     = 5
-    production  = 5
+    production  = 1
   }
 
   spark_executor_instances  = var.spark_executor_instances[local.environment]
