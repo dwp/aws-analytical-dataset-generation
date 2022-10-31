@@ -158,7 +158,7 @@ variable "spark_executor_instances" {
     development = 50
     qa          = 50
     integration = 50
-    preprod     = 77
+    preprod     = 116
     production  = 600 # More than possible as it won't create them if no core or memory available
   }
 }
