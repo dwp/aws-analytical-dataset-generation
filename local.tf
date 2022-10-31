@@ -363,7 +363,7 @@ locals {
     development = 1
     qa          = 1
     integration = 1
-    preprod     = 5
+    preprod     = 3
     production  = 1
   }
 
