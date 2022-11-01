@@ -387,7 +387,7 @@ locals {
     development = 5
     qa          = 5
     integration = 5
-    preprod     = 37
+    preprod     = 5
     production  = 10 # Doesn't need as much as executors
   }
 
