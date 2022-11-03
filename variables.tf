@@ -67,7 +67,7 @@ variable "emr_instance_type_core_one" {
     qa          = "m5.4xlarge"
     integration = "m5.4xlarge"
     preprod     = "r5.4xlarge"
-    production  = "m5.16xlarge"
+    production  = "r5.4xlarge"
   }
 }
 
