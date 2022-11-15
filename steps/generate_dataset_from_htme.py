@@ -852,7 +852,7 @@ def get_list_keys_for_prefix(s3_client, s3_bucket, s3_prefix):
 def group_keys_by_collection(keys):
     file_key_dict = {key.split("/")[-1]: key for key in keys}
     file_names = list(file_key_dict.keys())
-    file_pattern = r"^(?:db.)?([\w-]+)\.([\w]+)"
+    file_pattern = r"^(?:db.)?([\w-]+)\.([A-Za-z]+-?[A-Za-z]+)"
     grouped_files = []
     for pattern, group in groupby(
         file_names, lambda x: re.match(file_pattern, x).group()
