@@ -70,27 +70,26 @@ jobs:
             TEST_AMI_RUN: true
           inputs:
             - name: previous_success
-      - in_parallel:
-        - .: (( inject meta.plan.e2e-tests))
-          task: run-full-e2e-tests
-          config:
-            params:
-              TF_WORKSPACE: qa
-              AWS_ACC: ((aws_account.qa))
-              AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
-              E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation-full"
-            inputs:
-              - name: previous_success
-        - .: (( inject meta.plan.e2e-tests))
-          task: run-incremental-e2e-tests
-          config:
-            params:
-              TF_WORKSPACE: qa
-              AWS_ACC: ((aws_account.qa))
-              AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
-              E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation-incremental"
-            inputs:
-              - name: previous_success
+      - .: (( inject meta.plan.e2e-tests))
+        task: run-full-e2e-tests
+        config:
+          params:
+            TF_WORKSPACE: qa
+            AWS_ACC: ((aws_account.qa))
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+            E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation-full"
+          inputs:
+            - name: previous_success
+      - .: (( inject meta.plan.e2e-tests))
+        task: run-incremental-e2e-tests
+        config:
+          params:
+            TF_WORKSPACE: qa
+            AWS_ACC: ((aws_account.qa))
+            AWS_ROLE_ARN: arn:aws:iam::((aws_account.qa)):role/ci
+            E2E_FEATURE_TAG_FILTER: "@analytical-dataset-generation-incremental"
+          inputs:
+            - name: previous_success
     on_failure:
       do:
         - .: (( inject meta.plan.ami-test-results ))
