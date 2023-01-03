@@ -64,14 +64,6 @@ groups:
       - rotate-mysql-password-bgdc-reader-preprod
       - rotate-mysql-password-bgdc-reader-production
 
-  - name: rotate-passwords-kickstart-adg-writer
-    jobs:
-      - rotate-mysql-password-kickstart-adg-writer-development
-      - rotate-mysql-password-kickstart-adg-writer-qa
-      - rotate-mysql-password-kickstart-adg-writer-integration
-      - rotate-mysql-password-kickstart-adg-writer-preprod
-      - rotate-mysql-password-kickstart-adg-writer-production
-
   - name: update-pipeline
     jobs:
       - update-pipeline

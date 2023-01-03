@@ -243,11 +243,6 @@ resource "aws_secretsmanager_secret" "metadata_store_bgdc" {
   tags        = local.common_tags
 }
 
-resource "aws_secretsmanager_secret" "metadata_store_kickstart_adg" {
-  name        = "metadata-store-${var.metadata_store_kickstart_username}"
-  description = "${var.metadata_store_kickstart_username} SQL user for Metadata Store"
-  tags        = local.common_tags
-}
 
 output "hive_metastore" {
   value = {
