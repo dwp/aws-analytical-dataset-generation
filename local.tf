@@ -65,7 +65,7 @@ locals {
   }
 
   emr_engine_version = {
-    development = "5.7.mysql_aurora.2.10.2"
+    development = "5.7.mysql_aurora.2.10.3"
     qa          = "5.7.mysql_aurora.2.10.2"
     integration = "5.7.mysql_aurora.2.10.2"
     preprod     = "5.7.mysql_aurora.2.10.2"
