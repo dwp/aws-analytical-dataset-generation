@@ -24,8 +24,8 @@ set -euo pipefail
     MAVEN="apache-maven"
     VERSION="3.6.3"
 
-    export http_proxy="${proxy_url}"
-    export https_proxy="${proxy_url}"
+    # export http_proxy="${proxy_url}"
+    # export https_proxy="${proxy_url}"
 
     aws s3 cp "${maven_binary_location}/component/maven/$MAVEN-$VERSION-bin.tar.gz" /tmp/$MAVEN-$VERSION.tar.gz
     tar -C /tmp -xvf "/tmp/$MAVEN-$VERSION.tar.gz"
