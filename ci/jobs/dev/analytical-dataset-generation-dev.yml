@@ -7,6 +7,8 @@ jobs:
             resource: meta-development
           - get: aws-analytical-dataset-generation
             trigger: true
+          - get: aws-analytical-dataset-generation-dev
+            trigger: true
           - get: emr-launcher-release
             version: { tag: ((emr-launcher-version.development)) }
             trigger: true
@@ -34,9 +36,13 @@ jobs:
         config:
           params:
             AWS_ACC: ((aws_account.development))
+        input_mapping:
+          aws-analytical-dataset-generation: aws-analytical-dataset-generation-dev
       - .: (( inject meta.plan.terraform-apply ))
         params:
           TF_WORKSPACE: default
+        input_mapping:
+          aws-analytical-dataset-generation: aws-analytical-dataset-generation-dev
       - .: (( inject meta.plan.rotate-mysql-master-password ))
         params:
           TF_WORKSPACE: default
@@ -47,6 +53,8 @@ jobs:
       - .: (( inject meta.plan.terraform-plan ))
         params:
           TF_WORKSPACE: default
+        input_mapping:
+          aws-analytical-dataset-generation: aws-analytical-dataset-generation-dev
       - .: (( inject meta.plan.e2e-tests))
         task: run-full-e2e-tests
         config:

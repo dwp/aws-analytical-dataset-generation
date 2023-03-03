@@ -144,12 +144,12 @@ resource "aws_s3_bucket_object" "metrics_setup_sh" {
   key        = "component/analytical-dataset-generation/metrics-setup.sh"
   content = templatefile("${path.module}/bootstrap_actions/metrics-setup.sh",
     {
-      proxy_url          = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
-      metrics_properties = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_properties.key)
-      metrics_pom        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_pom.key)
-      metrics_jar        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_jar.key)
-      prometheus_config  = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.prometheus_config.key)
-      maven_binary_location        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, "component/maven")
+      proxy_url             = data.terraform_remote_state.internal_compute.outputs.internet_proxy.url
+      metrics_properties    = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_properties.key)
+      metrics_pom           = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_pom.key)
+      metrics_jar           = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_jar.key)
+      prometheus_config     = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.prometheus_config.key)
+      maven_binary_location = format("s3://%s", data.terraform_remote_state.common.outputs.config_bucket.id)
     }
   )
 }
