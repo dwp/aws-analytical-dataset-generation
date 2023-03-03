@@ -149,6 +149,7 @@ resource "aws_s3_bucket_object" "metrics_setup_sh" {
       metrics_pom        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_pom.key)
       metrics_jar        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.metrics_jar.key)
       prometheus_config  = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.prometheus_config.key)
+      maven_binary_location        = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, "component/maven")
     }
   )
 }
