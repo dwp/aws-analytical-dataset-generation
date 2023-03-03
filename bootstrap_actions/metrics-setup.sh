@@ -27,7 +27,9 @@ set -euo pipefail
     # export http_proxy="${proxy_url}"
     # export https_proxy="${proxy_url}"
 
+    log_wrapper_message "debug 1 "
     aws s3 cp "${maven_binary_location}/component/maven/$MAVEN-$VERSION-bin.tar.gz" /tmp/$MAVEN-$VERSION.tar.gz
+    log_wrapper_message "debug 2 "
     tar -C /tmp -xvf "/tmp/$MAVEN-$VERSION.tar.gz"
 
     log_wrapper_message "Moving maven and cleaning up"
