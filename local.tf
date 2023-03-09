@@ -12,10 +12,8 @@ locals {
     },
   )
   common_tags = {
-    Environment  = local.environment
-    Application  = local.emr_cluster_name
-    CreatedBy    = "terraform"
-    Owner        = "dataworks platform"
+    DWX_Environment  = local.environment
+    DWX_Application  = local.emr_cluster_name
     Persistence  = "Ignore"
     AutoShutdown = "False"
   }
