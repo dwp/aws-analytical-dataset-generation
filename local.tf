@@ -12,12 +12,10 @@ locals {
     },
   )
   common_tags = {
-    Environment  = local.environment
-    Application  = local.emr_cluster_name
-    CreatedBy    = "terraform"
-    Owner        = "dataworks platform"
-    Persistence  = "Ignore"
-    AutoShutdown = "False"
+    DWX_Environment = local.environment
+    DWX_Application = local.emr_cluster_name
+    Persistence     = "Ignore"
+    AutoShutdown    = "False"
   }
   env_certificate_bucket = "dw-${local.environment}-public-certificates"
   dks_endpoint           = data.terraform_remote_state.crypto.outputs.dks_endpoint[local.environment]
