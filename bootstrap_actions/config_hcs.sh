@@ -25,4 +25,4 @@
 
 
 
-)   >> /var/log/aws-clive/config_hcs.log 2>&1
+)   >> /var/log/adg/config_hcs.log 2>&1
