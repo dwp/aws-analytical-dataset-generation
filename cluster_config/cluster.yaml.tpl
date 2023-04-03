@@ -25,7 +25,7 @@ Tags:
 - Key: "SSMEnabled"
   Value: "True"
 - Key: "Name"
-  Value: aws-analytical-dataset-generator"
+  Value: "aws-analytical-dataset-generator"
 - Key: "Application"
   Value: "${application_tag_value}"
 - Key: "Environment"
