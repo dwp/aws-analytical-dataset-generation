@@ -1,5 +1,5 @@
 pypandoc==1.5
-pyspark==2.4.5
+pyspark==3.2.2
 pytest==6.0.1
 boto3 >= 1.9.160,<2.0.0
 requests==2.23.0
