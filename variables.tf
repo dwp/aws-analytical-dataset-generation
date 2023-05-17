@@ -1,4 +1,4 @@
-  variable "emr_release_label" {
+variable "emr_release_label" {
   description = "Version of AWS EMR to deploy with associated applicatoins"
   default     = "emr-6.2.0"
 }
