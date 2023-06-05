@@ -397,6 +397,13 @@ locals {
     production  = 1
   }
 
+  yarn_nofiles_limit = {
+    development = 32768
+    qa          = 32768
+    integration = 32768
+    preprod     = 65536
+    production  = 65536
+  }
   spark_executor_instances  = var.spark_executor_instances[local.environment]
   spark_default_parallelism = local.spark_executor_instances * local.spark_executor_cores[local.environment] * 2
   spark_kyro_buffer         = var.spark_kyro_buffer[local.environment]
