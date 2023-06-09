@@ -94,7 +94,7 @@ resource "aws_s3_bucket_object" "steps" {
       tenant              = local.tenant
       tenantid            = local.tenantid
       token               = local.token
-      policyid            = local.policy_id[local.environment]     
+      policyid            = local.policy_id[local.environment]
     }
   )
 }
