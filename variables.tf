@@ -224,3 +224,15 @@ variable "historical_equality_data_location" {
     production  = "equalities/"
   }
 }
+
+variable "tanium_port_1" {
+  description = "tanium port 1"
+  type        = string
+  default     = "16563"
+}
+
+variable "tanium_port_2" {
+  description = "tanium port 2"
+  type        = string
+  default     = "16555"
+}
