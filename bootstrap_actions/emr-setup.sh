@@ -129,7 +129,7 @@ EOF
     sudo chmod 644 /etc/cron.d/libinstance-controller-java
 
     #Updates nofiles limit for yarn user
-    sed -i "/nofile/c\yarn   - nofile ${yarn_nofiles_limit}" /etc/security/limits.d/yarn.conf
+    sed -i "/nofile/c\yarn - nofile ${yarn_nofiles_limit}" /etc/security/limits.d/yarn.conf
 
     log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 
