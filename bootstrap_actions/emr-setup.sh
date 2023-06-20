@@ -49,11 +49,11 @@ chmod u+x /opt/emr/status_metrics.sh
         if [[ ! "$COUNT" -ge 60 ]]; then
             log_wrapper_message "Waiting for yarn.conf file to become available at /etc/security/limit.d"
             sleep 5
-            COUNTER=$(( COUNTER + 1 ))
         else
             log_wrapper_message "The yarn.conf taking too long to become available. Default values will be used for ulimit for yarn."
             break;
         fi
+        COUNTER=$(( COUNTER + 1 ))
     done
     sudo sed -i "/nofile/c\yarn - nofile ${yarn_nofiles_limit}" /etc/security/limits.d/yarn.conf
 
