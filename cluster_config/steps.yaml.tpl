@@ -44,6 +44,9 @@ BootstrapActions:
 - Name: "hive-setup"
   ScriptBootstrapAction:
     Path: "file:/var/ci/hive-setup.sh"
+- Name: "ulimit"
+  ScriptBootstrapAction:
+    Path: "s3://${s3_config_bucket}/component/analytical-dataset-generation/ulimit.sh"
 Steps:
 - Name: "courtesy-flush"
   HadoopJarStep:
