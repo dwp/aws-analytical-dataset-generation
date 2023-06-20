@@ -127,7 +127,7 @@ EOF
 
     # update yarn ulimit
     sudo sh -c "echo -e \"yarn - nofile ${yarn_nofile_limit}\" > /etc/security/limits.d/yarn.conf"
-    sudo sh -c "echo -e \"yarn - noproc ${yarn_nofile_limit}\" >> /etc/security/limits.d/yarn.conf"
+    sudo sh -c "echo -e \"yarn - noproc ${yarn_noproc_limit}\" >> /etc/security/limits.d/yarn.conf"
     # sudo echo -e "yarn - nofile ${yarn_nofile_limit}\nyarn - noproc ${yarn_nofile_limit}\n" > /etc/security/limits.d/yarn.conf
 
     #Setting correct permissions for EMR 6.2.0 DW-6304
