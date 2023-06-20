@@ -59,7 +59,8 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       cwa_yarnspark_loggrp_name       = aws_cloudwatch_log_group.adg_cw_yarnspark_loggroup.name
       cwa_chrony_loggrp_name          = aws_cloudwatch_log_group.adg_cw_chrony_loggroup.name
       name                            = local.emr_cluster_name
-      yarn_nofiles_limit              = local.yarn_nofiles_limit[local.environment]
+      yarn_nofile_limit               = local.yarn_nofile_limit[local.environment]
+      yarn_noproc_limit               = local.yarn_noproc_limit[local.environment]
       publish_bucket_id               = data.terraform_remote_state.common.outputs.published_bucket.id
       update_dynamo_sh                = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.update_dynamo_sh.key)
       dynamo_schema_json              = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.dynamo_json_file.key)
@@ -106,6 +107,7 @@ resource "aws_s3_bucket_object" "patch_log4j_emr_sh" {
   key     = "component/analytical-dataset-generation/patch-log4j-emr-6.3.1-v2.sh"
   content = file("${path.module}/bootstrap_actions/patch-log4j-emr-6.3.1-v2.sh")
 }
+
 resource "aws_cloudwatch_log_group" "analytical_dataset_generator" {
   name              = local.cw_agent_log_group_name
   retention_in_days = 180
