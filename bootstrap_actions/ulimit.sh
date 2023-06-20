@@ -2,10 +2,6 @@
 (
 
     echo "Configuring yarn nofile limit"
-    sudo touch /etc/security/limits.d/yarn.conf
-cat >> /etc/security/limits.d/yarn.conf <<EOF
-yarn - nofile ${yarn_nofiles_limit}
-yarn - noproc ${yarn_nofiles_limit}
-EOF
+    sidp echo -e "yarn - nofile ${yarn_nofiles_limit}\nyarn - noproc ${yarn_nofiles_limit}" > /etc/security/limits.d/yarn.conf
     echo "Configured yarn nofile limit successfully."
 ) >> /var/log/adg/ulimit.log 2>&1
