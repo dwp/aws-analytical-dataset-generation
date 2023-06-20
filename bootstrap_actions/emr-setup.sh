@@ -128,8 +128,9 @@ EOF
     #Setting correct permissions for EMR 6.2.0 DW-6304
     sudo chmod 644 /etc/cron.d/libinstance-controller-java
 
-    #Updates nofiles limit for yarn user
-    sed -i "/nofile/c\yarn   - nofile ${yarn_nofiles_limit}" /etc/security/limits.d/yarn.conf
+    # set yarn ulimit
+    sudo sh -c "echo -e \"yarn - nofile ${yarn_nofile_limit}\" > /etc/security/limits.d/yarn.conf"
+    sudo sh -c "echo -e \"yarn - noproc ${yarn_noproc_limit}\" >> /etc/security/limits.d/yarn.conf"
 
     log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 
