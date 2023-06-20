@@ -6,7 +6,6 @@ $(which aws) s3 cp "${RESUME_STEP_SHELL}"              /opt/emr/resume_step.sh
 $(which aws) s3 cp "${update_dynamo_sh}"               /opt/emr/update_dynamo.sh
 $(which aws) s3 cp "${dynamo_schema_json}"             /opt/emr/dynamo_schema.json
 $(which aws) s3 cp "${status_metrics_sh}"              /opt/emr/status_metrics.sh
-$(which aws) s3 cp "${ulimit_sh}"                      /opt/emr/ulimit.sh
 
 echo "Changing the Permissions"
 chmod u+x /opt/emr/cloudwatch.sh
@@ -14,7 +13,6 @@ chmod u+x /opt/emr/send_notification.py
 chmod u+x /opt/emr/resume_step.sh
 chmod u+x /opt/emr/update_dynamo.sh
 chmod u+x /opt/emr/status_metrics.sh
-chmod u+x /opt/emr/ulimit.sh
 
 (
     # Import the logging functions
@@ -127,6 +125,9 @@ EOF
     hostnamectl set-hostname "$HOSTNAME"
     aws ec2 create-tags --resources "$INSTANCE_ID" --tags Key=Name,Value="$HOSTNAME"
 
+    # update yarn ulimit
+    sudo echo -e "yarn - nofile {$yarn_nofiles_limit}\nyarn - noproc ${yarn_nofiles_limit}\n" > /etc/security/limits.d/yarn.conf
+
     #Setting correct permissions for EMR 6.2.0 DW-6304
     sudo chmod 644 /etc/cron.d/libinstance-controller-java
 
@@ -134,6 +135,5 @@ EOF
 
     /opt/emr/update_dynamo.sh &
     /opt/emr/status_metrics.sh &
-    /opt/emr/ulimit.sh &
 
 ) >> /var/log/adg/emr-setup.log 2>&1
