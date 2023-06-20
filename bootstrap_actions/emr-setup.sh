@@ -126,7 +126,9 @@ EOF
     aws ec2 create-tags --resources "$INSTANCE_ID" --tags Key=Name,Value="$HOSTNAME"
 
     # update yarn ulimit
-    sudo echo -e "yarn - nofile {$yarn_nofiles_limit}\nyarn - noproc ${yarn_nofiles_limit}\n" > /etc/security/limits.d/yarn.conf
+    sudo sh -c "echo -e \"yarn - nofile ${yarn_nofiles_limit}\" > /etc/security/limits.d/yarn.conf"
+    sudo sh -c "echo -e \"yarn - noproc ${yarn_nofiles_limit}\" >> /etc/security/limits.d/yarn.conf"
+    # sudo echo -e "yarn - nofile ${yarn_nofiles_limit}\nyarn - noproc ${yarn_nofiles_limit}\n" > /etc/security/limits.d/yarn.conf
 
     #Setting correct permissions for EMR 6.2.0 DW-6304
     sudo chmod 644 /etc/cron.d/libinstance-controller-java
