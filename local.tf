@@ -397,8 +397,15 @@ locals {
     production  = 1
   }
 
-  yarn_nofiles_limit = {
-    development = 32768
+  yarn_nofile_limit = {
+    development = 12345
+    qa          = 32768
+    integration = 32768
+    preprod     = 65536
+    production  = 65536
+  }
+  yarn_noproc_limit = {
+    development = 12345
     qa          = 32768
     integration = 32768
     preprod     = 65536
