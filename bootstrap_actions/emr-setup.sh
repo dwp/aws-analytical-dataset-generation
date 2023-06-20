@@ -43,20 +43,6 @@ chmod u+x /opt/emr/status_metrics.sh
     echo "export PUBLISH_BUCKET_ID=$PUB_BUCKET_ID" | sudo tee /etc/profile.d/buckets.sh
     sudo -s source /etc/profile.d/buckets.sh
 
-    # Updates nofiles limit for yarn user when it becomes available
-    COUNT=0
-    while ! $(ls /etc/security/limit.d/yarn.conf) ; do
-        if [[ ! "$COUNT" -ge 60 ]]; then
-            log_wrapper_message "Waiting for yarn.conf file to become available at /etc/security/limit.d"
-            sleep 5
-        else
-            log_wrapper_message "The yarn.conf taking too long to become available. Default values will be used for ulimit for yarn."
-            break;
-        fi
-        COUNTER=$(( COUNTER + 1 ))
-    done
-    sudo sed -i "/nofile/c\yarn - nofile ${yarn_nofiles_limit}" /etc/security/limits.d/yarn.conf
-
     echo "Setup cloudwatch logs"
     sudo /opt/emr/cloudwatch.sh \
     "${cwa_metrics_collection_interval}" "${cwa_namespace}"  "${cwa_log_group_name}" \
