@@ -56,6 +56,7 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       cwa_bootstrap_loggrp_name       = aws_cloudwatch_log_group.adg_cw_bootstrap_loggroup.name
       cwa_steps_loggrp_name           = aws_cloudwatch_log_group.adg_cw_steps_loggroup.name
       cwa_tests_loggrp_name           = aws_cloudwatch_log_group.adg_cw_tests_loggroup.name
+      cwa_ulimit_loggrp_name           = aws_cloudwatch_log_group.adg_cw_ulimit_loggroup.name
       cwa_yarnspark_loggrp_name       = aws_cloudwatch_log_group.adg_cw_yarnspark_loggroup.name
       cwa_chrony_loggrp_name          = aws_cloudwatch_log_group.adg_cw_chrony_loggroup.name
       name                            = local.emr_cluster_name
@@ -142,6 +143,11 @@ resource "aws_cloudwatch_log_group" "adg_cw_tests_loggroup" {
   tags              = local.common_tags
 }
 
+resource "aws_cloudwatch_log_group" "adg_cw_ulimit_loggroup" {
+  name              = local.cw_agent_ulimit_loggrp_name
+  retention_in_days = 180
+  tags              = local.common_tags
+}
 resource "aws_s3_bucket_object" "cloudwatch_sh" {
   bucket = data.terraform_remote_state.common.outputs.config_bucket.id
   key    = "component/analytical-dataset-generation/cloudwatch.sh"

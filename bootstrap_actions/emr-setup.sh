@@ -43,11 +43,26 @@ chmod u+x /opt/emr/status_metrics.sh
     echo "export PUBLISH_BUCKET_ID=$PUB_BUCKET_ID" | sudo tee /etc/profile.d/buckets.sh
     sudo -s source /etc/profile.d/buckets.sh
 
+    # Updates nofiles limit for yarn user when it becomes available
+    COUNT=0
+    while ! $(ls /etc/security/limit.d/yarn.conf) ; do
+        if [[ ! "$COUNT" -ge 60 ]]; then
+            log_wrapper_message "Waiting for yarn.conf file to become available at /etc/security/limit.d"
+            sleep 5
+            COUNTER=$(( COUNTER + 1 ))
+        else
+            log_wrapper_message "The yarn.conf taking too long to become available. Default values will be used for ulimit for yarn."
+            break;
+        fi
+    done
+    sudo sed -i "/nofile/c\yarn - nofile ${yarn_nofiles_limit}" /etc/security/limits.d/yarn.conf
+
     echo "Setup cloudwatch logs"
     sudo /opt/emr/cloudwatch.sh \
     "${cwa_metrics_collection_interval}" "${cwa_namespace}"  "${cwa_log_group_name}" \
     "${aws_default_region}" "${cwa_bootstrap_loggrp_name}" "${cwa_steps_loggrp_name}" \
-    "${cwa_yarnspark_loggrp_name}" "${cwa_tests_loggrp_name}" "${cwa_chrony_loggrp_name}"
+    "${cwa_yarnspark_loggrp_name}" "${cwa_tests_loggrp_name}" "${cwa_chrony_loggrp_name}" \
+    "${cwa_ulimit_loggrp_name}"
 
     log_wrapper_message "Getting the DKS Certificate Details "
 
@@ -127,9 +142,6 @@ EOF
 
     #Setting correct permissions for EMR 6.2.0 DW-6304
     sudo chmod 644 /etc/cron.d/libinstance-controller-java
-
-    #Updates nofiles limit for yarn user
-    sudo sed -i "/nofile/c\yarn - nofile ${yarn_nofiles_limit}" /etc/security/limits.d/yarn.conf
 
     log_wrapper_message "Completed the emr-setup.sh step of the EMR Cluster"
 

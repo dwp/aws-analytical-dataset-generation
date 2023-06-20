@@ -16,5 +16,6 @@ EQUALITY_DATABASE="uc_equality"
     log_wrapper_message "creating equalities managed table if doesnt exist"
     hive --hivevar equality_database=$EQUALITY_DATABASE -f /var/ci/equality_managed_table.sql
     log_wrapper_message "Done creation of equalities managed table"
-    
+
+    sleep 1800
 ) >> /var/log/adg/equalities-managed.log 2>&1

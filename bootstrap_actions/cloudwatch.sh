@@ -217,6 +217,24 @@ cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWAGEN
             "log_group_name": "$${cwa_tests_loggrp_name}",
             "log_stream_name": "{instance_id}-e2e.log",
             "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/ulimit-yarn.log",
+            "log_group_name": "$${cwa_ulimit_loggrp_name}",
+            "log_stream_name": "{instance_id}-ulimit-yarn.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/ulimit-spark.log",
+            "log_group_name": "$${cwa_ulimit_loggrp_name}",
+            "log_stream_name": "{instance_id}-ulimit-spark.log",
+            "timezone": "UTC"
+          },
+          {
+            "file_path": "/var/log/adg/ulimit-hadoop.log",
+            "log_group_name": "$${cwa_ulimit_loggrp_name}",
+            "log_stream_name": "{instance_id}-ulimit-hadoop.log",
+            "timezone": "UTC"
           }
         ]
       }
