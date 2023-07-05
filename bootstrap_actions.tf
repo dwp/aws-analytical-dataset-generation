@@ -60,7 +60,6 @@ resource "aws_s3_bucket_object" "emr_setup_sh" {
       cwa_chrony_loggrp_name          = aws_cloudwatch_log_group.adg_cw_chrony_loggroup.name
       name                            = local.emr_cluster_name
       yarn_nofile_limit               = local.yarn_nofile_limit[local.environment]
-      yarn_nofile_limit               = local.yarn_nofile_limit[local.environment]
       yarn_noproc_limit               = local.yarn_noproc_limit[local.environment]
       publish_bucket_id               = data.terraform_remote_state.common.outputs.published_bucket.id
       update_dynamo_sh                = format("s3://%s/%s", data.terraform_remote_state.common.outputs.config_bucket.id, aws_s3_bucket_object.update_dynamo_sh.key)
