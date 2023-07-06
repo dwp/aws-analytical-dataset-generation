@@ -496,8 +496,8 @@ locals {
     qa             = "1651"
     integration    = "1651"
     preprod        = "1651"
-    production     = "1651"
+    production     = "1717"
     management-dev = "1651"
-    management     = "1651"
+    management     = "1717"
   }
 }
