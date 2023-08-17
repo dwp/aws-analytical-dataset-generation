@@ -132,7 +132,7 @@
         echo "Start Tanium Service"
         sudo systemctl enable --now taniumclient.service
         echo "Set Tanium specific tags"
-        echo TechnicalService:"$TECHNICALSERVICE" >>/opt/Tanium/TaniumClient/Tools/CustomTags.txt
+        sudo echo TechnicalService:"$TECHNICALSERVICE" >>/opt/Tanium/TaniumClient/Tools/CustomTags.txt
         echo "Check Tanium status"
         sudo systemctl status taniumclient
     else
