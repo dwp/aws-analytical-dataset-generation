@@ -1,3 +1,5 @@
+# DON NOT USE - MIGRATED TO GITLAB
+
 # aws-analytical-dataset-generation
 
 The Analytical Dataset Generation (ADG) cluster converts the latest versions of all records in specified HBase tables into Parquet files stored on S3. It then
